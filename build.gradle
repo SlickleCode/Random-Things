@@ -85,6 +85,14 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.14.4-28.0.49'
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
     compileOnly 'org.spongepowered:mixin:0.8:processor'
+    // The ':processor' classifier above is compile-time only (annotation
+    // processing/refmap generation). Without the base artifact below, the
+    // actual Mixin engine - including its ModLauncher ITransformationService,
+    // which is what makes Forge's ModLauncher discover and apply mixins.json
+    // at all - was never on the runtime/launch classpath, so every @Mixin
+    // class silently never got woven in (no crash, since Mixin classes are
+    // only ever read as bytecode by that engine, never classloaded normally).
+    implementation 'org.spongepowered:mixin:0.8'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
