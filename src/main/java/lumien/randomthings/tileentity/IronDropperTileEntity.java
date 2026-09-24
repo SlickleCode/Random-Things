@@ -37,7 +37,7 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 {
 	public enum REDSTONE_MODE
 	{
-		PULSE, REPEAT_POWERED, REPEAT;
+		PULSE, REPEAT_POWERED;
 	}
 
 	public enum PICKUP_DELAY
@@ -195,7 +195,7 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 
 		dropCounter++;
 
-		if (dropCounter % 4 == 0 && (redstoneMode == REDSTONE_MODE.REPEAT || (redstoneMode == REDSTONE_MODE.REPEAT_POWERED && powered)))
+		if (dropCounter % 4 == 0 && redstoneMode == REDSTONE_MODE.REPEAT_POWERED && powered)
 		{
 			drop();
 		}
@@ -253,7 +253,13 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 
 		if (effects == EFFECTS.PARTICLE || effects == EFFECTS.SOUND_PARTICLE)
 		{
-			world.playEvent(2000, this.pos, facing.getXOffset() + 1 + (facing.getZOffset() + 1) * 3);
+			// WorldRenderer's handler for event 2000 (dispenser smoke) decodes the
+			// data parameter via Direction.byIndex, not the packed 3x3-grid formula
+			// this used to compute (which only ever produced values matching UP by
+			// coincidence for horizontal facings) - confirmed via `javap -c` on
+			// WorldRenderer, since the particle-direction encoding isn't documented
+			// anywhere else.
+			world.playEvent(2000, this.pos, facing.getIndex());
 		}
 	}
 

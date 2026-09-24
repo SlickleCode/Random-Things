@@ -75,7 +75,12 @@ public class ChatDetectorBlock extends Block
 
 			if (te instanceof ChatDetectorTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (ChatDetectorTileEntity) te);
+				ChatDetectorTileEntity cte = (ChatDetectorTileEntity) te;
+
+				NetworkHooks.openGui((ServerPlayerEntity) player, cte, buf -> {
+					buf.writeBlockPos(pos);
+					buf.writeString(cte.getChatMessage());
+				});
 			}
 		}
 

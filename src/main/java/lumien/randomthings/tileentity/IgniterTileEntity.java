@@ -25,7 +25,7 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 {
 	public enum MODE
 	{
-		TOGGLE, IGNITE, KEEP_IGNITED;
+		TOGGLE, IGNITE;
 	}
 
 	private MODE mode = MODE.TOGGLE;
@@ -73,18 +73,6 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 	}
 
 	/**
-	 * Called by the block's neighborChanged so KEEP_IGNITED mode relights
-	 * the fire in front of it if something put it out.
-	 */
-	public void checkKeepIgnited()
-	{
-		if (mode == MODE.KEEP_IGNITED)
-		{
-			ignite(frontPos());
-		}
-	}
-
-	/**
 	 * Called by the block's neighborChanged whenever the block's own redstone
 	 * power state may have changed (there is no ASM/Forge hook that fires only
 	 * on an actual transition in 1.14.4, so we track the previous state
@@ -105,10 +93,7 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 		}
 		else if (newPowered && !oldPowered)
 		{
-			if (mode != MODE.KEEP_IGNITED)
-			{
-				ignite(frontPos());
-			}
+			ignite(frontPos());
 		}
 	}
 
@@ -120,10 +105,6 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 				mode = MODE.IGNITE;
 				break;
 			case IGNITE:
-				mode = MODE.KEEP_IGNITED;
-				ignite(frontPos());
-				break;
-			case KEEP_IGNITED:
 				mode = MODE.TOGGLE;
 				break;
 		}

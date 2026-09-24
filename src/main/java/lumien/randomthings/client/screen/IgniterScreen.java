@@ -44,8 +44,6 @@ public class IgniterScreen extends ContainerScreen<IgniterContainer>
 		{
 			case IGNITE:
 				return I18n.format("gui.igniter.ignite");
-			case KEEP_IGNITED:
-				return I18n.format("gui.igniter.keepIgnited");
 			case TOGGLE:
 			default:
 				return I18n.format("gui.igniter.toggle");

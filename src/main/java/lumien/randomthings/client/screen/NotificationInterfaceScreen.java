@@ -64,14 +64,20 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 			return true;
 		}
 
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		boolean consumed = super.keyPressed(keyCode, scanCode, modifiers);
+
+		// TextFieldWidget.keyPressed only handles special keys (backspace, arrows,
+		// etc.) - plain characters are consumed separately via charTyped, so an
+		// unconsumed keyPressed here (e.g. plain "e") would otherwise fall through
+		// to global keybinds (opening the inventory) while still typing normally.
+		return this.titleField.isFocused() || this.descriptionField.isFocused() || consumed;
 	}
 
 	@Override
-	public void onClose()
+	public void removed()
 	{
 		submit();
-		super.onClose();
+		super.removed();
 	}
 
 	private void submit()

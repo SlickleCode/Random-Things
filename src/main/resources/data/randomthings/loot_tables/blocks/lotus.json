@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "randomthings:custom_workbench"
+          "name": "randomthings:lotus_seeds"
         }
       ],
       "conditions": [

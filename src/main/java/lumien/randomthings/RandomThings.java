@@ -40,6 +40,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.monster.SlimeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -401,6 +402,51 @@ public class RandomThings
 				if (cube.isInChunk((World) event.getWorld(), chunkPos))
 				{
 					event.setResult(cube.isPowered() ? Result.DENY : Result.ALLOW);
+					return;
+				}
+			}
+		});
+
+		// Lapis Lamp (bright to the player, but shouldn't block hostile spawns) and
+		// Quartz Lamp (dark-looking, but should) both used 1.12.2's ASM patch to make
+		// Block.getLightValue return a different value per logical side - bright on
+		// the client, dark on the server, or vice versa - since spawn-checks run
+		// server-side and rendering reads the client's own value. That trick has no
+		// equivalent in 1.14.4: confirmed via `javap -c` that BlockState.getLightValue()
+		// reads a single cached field baked in once from Block.Properties, and the
+		// light engine's propagation (which both rendering brightness AND the
+		// mob-spawn light check read from) always uses that one cached value - there's
+		// no side-branching point left to hook. Replaced with the same event-based
+		// approach already used for Slime Cube above: scan a small radius around the
+		// spawn attempt for either lamp and force the result, independent of the
+		// block's actual (now perfectly normal, single-value) light emission.
+		// Disclosed simplification: 1.12.2's version affected anywhere actual light
+		// propagation reached (up to 15 blocks in the open); this uses a fixed
+		// 4-block proximity radius instead - matches the spirit for a placed
+		// decorative light source without an expensive per-spawn light-propagation
+		// recomputation.
+		MinecraftForge.EVENT_BUS.addListener((LivingSpawnEvent.CheckSpawn event) -> {
+			if (!(event.getEntityLiving() instanceof MonsterEntity))
+			{
+				return;
+			}
+
+			World world = (World) event.getWorld();
+			BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
+
+			for (BlockPos p : BlockPos.getAllInBoxMutable(spawnPos.add(-4, -4, -4), spawnPos.add(4, 4, 4)))
+			{
+				Block block = world.getBlockState(p).getBlock();
+
+				if (block == ModBlocks.LAPIS_LAMP)
+				{
+					event.setResult(Result.ALLOW);
+					return;
+				}
+
+				if (block == ModBlocks.QUARTZ_LAMP)
+				{
+					event.setResult(Result.DENY);
 					return;
 				}
 			}

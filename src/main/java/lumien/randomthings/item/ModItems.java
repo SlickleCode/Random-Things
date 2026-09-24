@@ -145,7 +145,14 @@ public class ModItems
 		registerItemForBlock(registry, ModBlocks.SUPER_LUBRICENT_ICE);
 		registerItemForBlock(registry, ModBlocks.SUPER_LUBRICENT_PLATFORM);
 		registerItemForBlock(registry, ModBlocks.TRIGGER_GLASS);
-		registerItemForBlock(registry, ModBlocks.COMPRESSED_SLIME_BLOCK);
+		// No creative-tab group: only obtainable in-world by right-clicking a Slime
+		// Block with a shovel (see RandomThings.java), not meant to be handed out
+		// directly.
+		{
+			Item compressedSlimeBlockItem = new BlockItem(ModBlocks.COMPRESSED_SLIME_BLOCK, new Item.Properties());
+			compressedSlimeBlockItem.setRegistryName(ModBlocks.COMPRESSED_SLIME_BLOCK.getRegistryName());
+			registry.register(compressedSlimeBlockItem);
+		}
 		registerItemForBlock(registry, ModBlocks.CONTACT_BUTTON);
 		registerItemForBlock(registry, ModBlocks.CONTACT_LEVER);
 		registerItemForBlock(registry, ModBlocks.SPECTRE_BLOCK);
@@ -171,7 +178,17 @@ public class ModItems
 
 		registerItemForBlock(registry, ModBlocks.BIOME_GLASS);
 		registerItemForBlock(registry, ModBlocks.BIOME_STONE_COBBLE, ModBlocks.BIOME_STONE_SMOOTH, ModBlocks.BIOME_STONE_BRICK, ModBlocks.BIOME_STONE_CRACKED, ModBlocks.BIOME_STONE_CHISELED);
-		registerItemForBlock(registry, ModBlocks.COLORED_GRASS);
+		// No creative-tab group: the real 1.12.2 acquisition path is planting a
+		// colored Grass Seeds item (16 dye-color variants) - that item, and the
+		// matching 16-color version of this block, aren't ported yet (this port
+		// currently only has the single default-white variant). Not craftable
+		// either in the original - hidden here rather than left reachable through
+		// a path (creative search) that doesn't exist upstream.
+		{
+			Item coloredGrassItem = new BlockItem(ModBlocks.COLORED_GRASS, new Item.Properties());
+			coloredGrassItem.setRegistryName(ModBlocks.COLORED_GRASS.getRegistryName());
+			registry.register(coloredGrassItem);
+		}
 
 		for (DyeColor color : DyeColor.values())
 		{
@@ -190,7 +207,6 @@ public class ModItems
 		registerItemForBlock(registry, ModBlocks.PLATE_PROCESSING);
 		registerItemForBlock(registry, ModBlocks.ADVANCED_REDSTONE_REPEATER);
 		registerItemForBlock(registry, ModBlocks.IRON_DROPPER);
-		registerItemForBlock(registry, ModBlocks.CUSTOM_WORKBENCH);
 		registerItemForBlock(registry, ModBlocks.PLAYER_INTERFACE);
 		registerItemForBlock(registry, ModBlocks.INVENTORY_TESTER);
 		registerItemForBlock(registry, ModBlocks.INVENTORY_REROUTER);

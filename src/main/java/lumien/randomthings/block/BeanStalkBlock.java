@@ -94,8 +94,12 @@ public class BeanStalkBlock extends Block
 	@Override
 	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
 	{
+		// 1.12.2 checked "instanceof BlockGrass || instanceof BlockDirt" - in that
+		// version BlockDirt was one class backing dirt/coarse dirt/podzol as
+		// variants of a single block. 1.14.4 split those into separate Block
+		// instances, so matching the same soil range needs all three explicitly.
 		Block below = worldIn.getBlockState(pos.down()).getBlock();
-		return below == this || below == Blocks.GRASS_BLOCK || below == Blocks.DIRT;
+		return below == this || below == Blocks.GRASS_BLOCK || below == Blocks.DIRT || below == Blocks.COARSE_DIRT || below == Blocks.PODZOL;
 	}
 
 	@Override

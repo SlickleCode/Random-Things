@@ -64,8 +64,6 @@ public class IronDropperScreen extends ContainerScreen<IronDropperContainer>
 		{
 			case PULSE:
 				return I18n.format("gui.randomthings.iron_dropper.pulse");
-			case REPEAT:
-				return I18n.format("gui.randomthings.iron_dropper.repeat");
 			case REPEAT_POWERED:
 			default:
 				return I18n.format("gui.randomthings.iron_dropper.repeat_powered");

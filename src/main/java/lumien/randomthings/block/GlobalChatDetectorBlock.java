@@ -87,7 +87,12 @@ public class GlobalChatDetectorBlock extends Block
 
 			if (te instanceof GlobalChatDetectorTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (GlobalChatDetectorTileEntity) te);
+				GlobalChatDetectorTileEntity gcte = (GlobalChatDetectorTileEntity) te;
+
+				NetworkHooks.openGui((ServerPlayerEntity) player, gcte, buf -> {
+					buf.writeBlockPos(pos);
+					buf.writeString(gcte.getChatMessage());
+				});
 			}
 		}
 

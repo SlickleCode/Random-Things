@@ -74,31 +74,6 @@ public class IgniterBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, java.util.Random rand)
-	{
-		TileEntity te = worldIn.getTileEntity(pos);
-
-		if (te instanceof IgniterTileEntity)
-		{
-			((IgniterTileEntity) te).checkKeepIgnited();
-		}
-
-		if (!worldIn.isRemote)
-		{
-			worldIn.getPendingBlockTicks().scheduleTick(pos, this, 10);
-		}
-	}
-
-	@Override
-	public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving)
-	{
-		if (!worldIn.isRemote)
-		{
-			worldIn.getPendingBlockTicks().scheduleTick(pos, this, 10);
-		}
-	}
-
-	@Override
 	public BlockState getStateForPlacement(BlockItemUseContext context)
 	{
 		LivingEntity placer = context.getPlayer();

@@ -222,9 +222,6 @@ public class ModBlocks
 	@ObjectHolder("iron_dropper")
 	public static Block IRON_DROPPER;
 
-	@ObjectHolder("custom_workbench")
-	public static Block CUSTOM_WORKBENCH;
-
 	@ObjectHolder("player_interface")
 	public static Block PLAYER_INTERFACE;
 
@@ -378,7 +375,6 @@ public class ModBlocks
 
 		registry.register(new AdvancedRedstoneRepeaterBlock().setRegistryName("advanced_redstone_repeater"));
 		registry.register(new IronDropperBlock().setRegistryName("iron_dropper"));
-		registry.register(new CustomWorkbenchBlock().setRegistryName("custom_workbench"));
 
 		registry.register(new PlayerInterfaceBlock().setRegistryName("player_interface"));
 		registry.register(new InventoryTesterBlock().setRegistryName("inventory_tester"));
