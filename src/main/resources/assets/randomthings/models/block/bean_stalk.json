@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cross",
+  "parent": "block/cube_all",
   "textures": {
-    "cross": "randomthings:block/bean_stalk"
+    "all": "randomthings:block/bean_stalk"
   }
 }

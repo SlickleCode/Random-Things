@@ -1,6 +1,5 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -13,13 +12,14 @@ import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 
 /**
- * Right-click while submerged to drink; while active, tops up the drinker's
- * air every 5 ticks. 1.12.2 used reflection into a private "use count" field
- * to keep the drink action alive indefinitely past its short 32-tick base
- * duration (no clean API existed for "hold to keep using" back then). 1.14.4
- * doesn't need that hack: {@link #getUseDuration} simply returns a duration
- * long enough that the item is never actually consumed by finishing its use,
- * so holding right-click keeps drinking for as long as the player wants.
+ * Right-click while submerged to drink; fully refills the drinker's air in
+ * one go and is consumed (shrinks by 1) in the process.
+ * <p>
+ * Deliberate deviation from 1.12.2, per explicit user direction: the
+ * original was a reusable tool - hold right-click to continuously top up air
+ * for as long as you wanted, never consumed. Per testing feedback, this port
+ * instead makes it a proper single-use consumable with an instant full
+ * refill, closer to how a "bottle" item conventionally behaves.
  */
 public class BottleOfAirItem extends Item
 {
@@ -31,7 +31,7 @@ public class BottleOfAirItem extends Item
 	@Override
 	public int getUseDuration(ItemStack stack)
 	{
-		return 72000;
+		return 32;
 	}
 
 	@Override
@@ -56,26 +56,14 @@ public class BottleOfAirItem extends Item
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected)
+	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity livingEntity)
 	{
-		super.inventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
-
-		if (worldIn.isRemote || !(entityIn instanceof LivingEntity))
+		if (!worldIn.isRemote)
 		{
-			return;
+			livingEntity.setAir(livingEntity.getMaxAir());
 		}
 
-		LivingEntity livingEntity = (LivingEntity) entityIn;
-
-		if (livingEntity.isHandActive() && livingEntity.getActiveItemStack() == stack)
-		{
-			if ((livingEntity.isInWater() || livingEntity.getAir() < 270) && worldIn.getGameTime() % 5 == 0)
-			{
-				if (livingEntity.getAir() < 270)
-				{
-					livingEntity.setAir(livingEntity.getAir() + 20);
-				}
-			}
-		}
+		stack.shrink(1);
+		return stack;
 	}
 }

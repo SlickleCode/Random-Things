@@ -5,7 +5,8 @@
   "refmap": "randomthings.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "FireBlockMixin"
+    "FireBlockMixin",
+    "SuperLubricentBootsMixin"
   ],
   "client": [],
   "server": []

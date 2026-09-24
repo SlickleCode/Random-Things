@@ -55,13 +55,13 @@ public class AdvancedRedstoneRepeaterTileEntity extends TileEntity implements IN
 
 	public void adjustTurnOnDelay(int amount)
 	{
-		turnOnDelay = Math.max(2, Math.min(10000, turnOnDelay + amount));
+		turnOnDelay = Math.max(0, Math.min(120, turnOnDelay + amount));
 		this.markDirty();
 	}
 
 	public void adjustTurnOffDelay(int amount)
 	{
-		turnOffDelay = Math.max(2, Math.min(10000, turnOffDelay + amount));
+		turnOffDelay = Math.max(0, Math.min(120, turnOffDelay + amount));
 		this.markDirty();
 	}
 

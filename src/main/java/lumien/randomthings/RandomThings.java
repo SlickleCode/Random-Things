@@ -1,6 +1,5 @@
 package lumien.randomthings;
 
-import java.lang.reflect.Field;
 import java.util.Random;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +11,12 @@ import lumien.randomthings.block.ContactButtonBlock;
 import lumien.randomthings.block.ContactLeverBlock;
 import lumien.randomthings.block.FertilizedDirtBlock;
 import lumien.randomthings.block.ModBlocks;
+import lumien.randomthings.block.SuperLubricentIceBlock;
+import lumien.randomthings.block.SuperLubricentPhysics;
+import lumien.randomthings.block.SuperLubricentPlatformBlock;
+import lumien.randomthings.block.SuperLubricentStoneBlock;
 import lumien.randomthings.client.renderer.DiviningRodRenderer;
+import lumien.randomthings.client.renderer.RedstoneObserverLineRenderer;
 import lumien.randomthings.client.renderer.SpecialChestTileEntityRenderer;
 import lumien.randomthings.client.screen.ModScreens;
 import lumien.randomthings.client.vfx.VFXHandler;
@@ -98,27 +102,6 @@ public class RandomThings
 	private static final Random RNG = new Random();
 
 	public static RandomThings INSTANCE;
-
-	/**
-	 * {@code LivingEntity.isJumping} has no public getter in this Forge build
-	 * (only a {@code setJumping} setter) - unlike 1.12.2's equivalent
-	 * reflection hack, this doesn't need an obfuscation-name lookup since
-	 * we're already in a deobfuscated MCP-mapped dev environment, just plain
-	 * reflection into the field by its real name.
-	 */
-	private static boolean isJumping(LivingEntity entity)
-	{
-		try
-		{
-			Field field = LivingEntity.class.getDeclaredField("isJumping");
-			field.setAccessible(true);
-			return field.getBoolean(entity);
-		}
-		catch (ReflectiveOperationException e)
-		{
-			return false;
-		}
-	}
 
 	public RandomThings()
 	{
@@ -301,13 +284,13 @@ public class RandomThings
 		});
 
 		// Water Walking Boots, Obsidian Water Walking Boots, and Lava Wader
-		// (lava too, for the latter): while jumping and standing in the liquid with
-		// clear air above, nudge the wearer up each tick instead of letting them
-		// sink - a repeated small hop rather than true buoyancy. Client-side only,
-		// matching 1.12.2 (this is a movement-prediction nicety, not physics the
-		// server needs to arbitrate), and works off each living entity's own
-		// synced `isJumping` flag so it applies to any wearer you can see, not
-		// just the local player.
+		// (lava too, for the latter): while standing in the liquid with clear air
+		// above, nudge the wearer up each tick instead of letting them sink - a
+		// repeated small hop rather than true buoyancy. Passive by default (per
+		// user direction, deviating from 1.12.2's hold-jump-to-float original) -
+		// sneaking opts back out and lets the wearer sink normally. Client-side
+		// only (this is a movement-prediction nicety, not physics the server needs
+		// to arbitrate).
 		MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
 			if (!event.getEntityLiving().world.isRemote || !(event.getEntityLiving() instanceof PlayerEntity))
 			{
@@ -335,9 +318,35 @@ public class RandomThings
 
 			boolean overLiquid = liquidMaterial == Material.WATER || (boots.getItem() == ModItems.LAVA_WADER && liquidMaterial == Material.LAVA);
 
-			if (overLiquid && player.world.getBlockState(airPos).getBlock().isAir(player.world.getBlockState(airPos), player.world, airPos) && isJumping(player))
+			if (overLiquid && player.world.getBlockState(airPos).getBlock().isAir(player.world.getBlockState(airPos), player.world, airPos))
 			{
 				player.move(MoverType.SELF, new Vec3d(0, 0.22, 0));
+			}
+		});
+
+		// Super Lubricent Ice/Platform/Stone speed cap - see SuperLubricentPhysics's
+		// javadoc. onEntityCollision doesn't fire for an entity merely resting on
+		// top of a block (only for actual hitbox overlap), so the cap is enforced
+		// here instead, via the same underfoot-block lookup vanilla's own friction
+		// code uses in LivingEntity.travel: one full block below the entity's
+		// bounding box, confirmed via javap -c disassembly. Registered
+		// unconditionally (not gated on isRemote like the water-walking listener
+		// above) since this is physics both sides need to agree on, matching how
+		// the blocks' own slipperiness applies identically on client and server.
+		MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
+			LivingEntity entity = event.getEntityLiving();
+
+			if (!entity.onGround)
+			{
+				return;
+			}
+
+			BlockPos underfoot = new BlockPos(entity.posX, entity.getBoundingBox().minY - 1.0D, entity.posZ);
+			Block block = entity.world.getBlockState(underfoot).getBlock();
+
+			if (block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock)
+			{
+				SuperLubricentPhysics.capHorizontalSpeed(entity);
 			}
 		});
 
@@ -483,6 +492,7 @@ public class RandomThings
 		MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
 			DiviningRodRenderer.get().render();
 			VFXHandler.INSTANCE.render(rwl.getPartialTicks());
+			RedstoneObserverLineRenderer.render();
 		});
 	}
 

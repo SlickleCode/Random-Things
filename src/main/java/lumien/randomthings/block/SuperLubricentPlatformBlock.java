@@ -1,22 +1,16 @@
 package lumien.randomthings.block;
 
-import lumien.randomthings.item.SuperLubricentBootsItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
 import net.minecraft.util.BlockRenderLayer;
 
 /**
@@ -34,28 +28,17 @@ import net.minecraft.util.BlockRenderLayer;
  * value (matching vanilla ice's raw slipperiness field, inverted) came up
  * short of that by design intent, not necessity.
  * <p>
- * One real consequence worth knowing: true zero friction means the
- * acceleration-while-holding-a-direction math (also slipperiness-scaled)
- * has no opposing decay to reach a steady-state top speed against anymore -
- * holding a movement key on this platform now accelerates without bound for
- * as long as you hold it, not just "stops decelerating once you let go".
- * That's an inherent property of true zero friction, not a bug.
- * <p>
- * <b>Speed cap is a deliberate deviation from 1.12.2, not a port of it.</b>
- * Traced the original's ASM patch ({@code ClassTransformer.patchEntityLivingBase}
- * -&gt; {@code AsmHandler.slipFix}) in full: it forces the exact same friction
- * factor to {@code 1.0F} and does nothing else - 1.12.2 had no max-speed
- * clamp on this block either, so unbounded acceleration was already the
- * original's actual (if perhaps unintended) behavior. {@link #onEntityCollision}
- * below adds a new horizontal-speed clamp per the user's explicit request,
- * independent of anything in the original mod.
+ * The speed cap is new behavior beyond 1.12.2, not a port of it - see
+ * {@link SuperLubricentPhysics}, which also backs {@link SuperLubricentIceBlock}
+ * and {@link SuperLubricentStoneBlock} so all three Super Lubricent blocks
+ * behave identically, and is enforced by a {@code LivingUpdateEvent} listener
+ * in {@code RandomThings}, not here - see {@link SuperLubricentPhysics}'s
+ * javadoc for why. Boots-negation doesn't live here at all -
+ * {@code SuperLubricentBootsMixin} intercepts friction globally instead.
  */
 public class SuperLubricentPlatformBlock extends Block
 {
 	protected static final VoxelShape SHAPE = Block.makeCuboidShape(0, 14, 0, 16, 16, 16);
-
-	/** Blocks/tick (20 m/s, ~72 km/h) - fast, but bounded. Tune freely. */
-	private static final double MAX_HORIZONTAL_SPEED = 1.0D;
 
 	public SuperLubricentPlatformBlock()
 	{
@@ -96,31 +79,5 @@ public class SuperLubricentPlatformBlock extends Block
 	public BlockRenderLayer getRenderLayer()
 	{
 		return BlockRenderLayer.TRANSLUCENT;
-	}
-
-	@Override
-	public float getSlipperiness(BlockState state, IWorldReader worldIn, BlockPos pos, Entity entity)
-	{
-		if (entity instanceof LivingEntity && !entity.isSneaking() && ((LivingEntity) entity).getItemStackFromSlot(EquipmentSlotType.FEET).getItem() instanceof SuperLubricentBootsItem)
-		{
-			return 0.6F;
-		}
-
-		return super.getSlipperiness(state, worldIn, pos, entity);
-	}
-
-	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
-	{
-		super.onEntityCollision(state, worldIn, pos, entityIn);
-
-		Vec3d motion = entityIn.getMotion();
-		double horizontalSpeedSq = motion.x * motion.x + motion.z * motion.z;
-
-		if (horizontalSpeedSq > MAX_HORIZONTAL_SPEED * MAX_HORIZONTAL_SPEED)
-		{
-			double scale = MAX_HORIZONTAL_SPEED / Math.sqrt(horizontalSpeedSq);
-			entityIn.setMotion(motion.x * scale, motion.y, motion.z * scale);
-		}
 	}
 }

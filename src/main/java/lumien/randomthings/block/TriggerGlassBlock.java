@@ -1,6 +1,10 @@
 package lumien.randomthings.block;
 
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -11,6 +15,7 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.StateContainer.Builder;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
@@ -39,6 +44,18 @@ import net.minecraft.world.World;
 public class TriggerGlassBlock extends Block
 {
 	public static final BooleanProperty TRIGGERED = BooleanProperty.create("triggered");
+
+	/**
+	 * Per user testing feedback: a large connected mass of Trigger Glass could
+	 * lag the game, since triggering one block used to chain-react through
+	 * every touching block via recursive neighborChanged reentrancy (block A
+	 * triggers -> notifies neighbor B -> B sees a triggered TriggerGlass
+	 * neighbor and triggers itself -> notifies ITS neighbors -> ...), with no
+	 * limit on how far a single redstone pulse could propagate. Replaced with
+	 * a single iterative, capped breadth-first flood fill (see
+	 * {@link #triggerConnected}) from the block that was actually powered.
+	 */
+	private static final int MAX_CHAIN = 20;
 
 	public TriggerGlassBlock()
 	{
@@ -76,16 +93,49 @@ public class TriggerGlassBlock extends Block
 	@Override
 	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
-		if (!worldIn.isRemote && !state.get(TRIGGERED))
+		if (!worldIn.isRemote && !state.get(TRIGGERED) && worldIn.isBlockPowered(pos))
 		{
-			boolean powered = worldIn.isBlockPowered(pos);
+			triggerConnected(worldIn, pos);
+		}
+	}
 
-			BlockState fromState = worldIn.getBlockState(fromPos);
+	/**
+	 * Iterative, capped breadth-first flood fill starting from the directly-
+	 * powered block: triggers it, then spreads to touching untriggered
+	 * TriggerGlass blocks, stopping once {@link #MAX_CHAIN} blocks total have
+	 * been triggered.
+	 */
+	private void triggerConnected(World world, BlockPos origin)
+	{
+		Queue<BlockPos> queue = new ArrayDeque<>();
+		Set<BlockPos> seen = new HashSet<>();
+		queue.add(origin);
+		seen.add(origin);
 
-			if (powered || (fromState.getBlock() == this && fromState.get(TRIGGERED)))
+		int triggeredCount = 0;
+
+		while (!queue.isEmpty() && triggeredCount < MAX_CHAIN)
+		{
+			BlockPos pos = queue.poll();
+			BlockState state = world.getBlockState(pos);
+
+			if (state.getBlock() != this || state.get(TRIGGERED))
 			{
-				worldIn.setBlockState(pos, state.with(TRIGGERED, true));
-				worldIn.getPendingBlockTicks().scheduleTick(pos, this, 60);
+				continue;
+			}
+
+			world.setBlockState(pos, state.with(TRIGGERED, true), 3);
+			world.getPendingBlockTicks().scheduleTick(pos, this, 60);
+			triggeredCount++;
+
+			for (Direction direction : Direction.values())
+			{
+				BlockPos neighborPos = pos.offset(direction);
+
+				if (seen.add(neighborPos) && world.getBlockState(neighborPos).getBlock() == this)
+				{
+					queue.add(neighborPos);
+				}
 			}
 		}
 	}
