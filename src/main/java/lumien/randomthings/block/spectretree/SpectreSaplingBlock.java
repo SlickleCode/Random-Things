@@ -82,7 +82,7 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 	{
 		if (state.get(STAGE) == 0)
 		{
-			worldIn.setBlockState(pos, state.with(STAGE, 1), 4);
+			worldIn.setBlockState(pos, state.with(STAGE, 1), 3);
 		}
 		else
 		{
@@ -97,11 +97,11 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 		BlockState log = ModBlocks.SPECTRE_LOG.getDefaultState();
 		BlockState leaves = ModBlocks.SPECTRE_LEAF.getDefaultState();
 
-		worldIn.setBlockState(pos, log, 4);
+		worldIn.setBlockState(pos, log, 3);
 
 		for (int y = 1; y < height; y++)
 		{
-			worldIn.setBlockState(pos.up(y), log, 4);
+			worldIn.setBlockState(pos.up(y), log, 3);
 		}
 
 		for (int dx = -2; dx <= 2; dx++)
@@ -119,7 +119,7 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 
 					if (worldIn.getBlockState(leafPos).getBlock().isAir(worldIn.getBlockState(leafPos), worldIn, leafPos))
 					{
-						worldIn.setBlockState(leafPos, leaves, 4);
+						worldIn.setBlockState(leafPos, leaves, 3);
 					}
 				}
 			}

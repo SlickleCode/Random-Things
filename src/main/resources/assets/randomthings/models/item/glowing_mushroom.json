@@ -1,3 +1,6 @@
 {
-  "parent": "randomthings:block/glowing_mushroom"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "randomthings:block/glowing_mushroom"
+  }
 }

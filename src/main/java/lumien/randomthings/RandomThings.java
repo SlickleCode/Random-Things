@@ -1,9 +1,15 @@
 package lumien.randomthings;
 
+import java.lang.reflect.Field;
+import java.util.Random;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import lumien.randomthings.asm.AsmHandler;
+import lumien.randomthings.block.CompressedSlimeBlock;
+import lumien.randomthings.block.ContactButtonBlock;
+import lumien.randomthings.block.ContactLeverBlock;
 import lumien.randomthings.block.FertilizedDirtBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.client.renderer.DiviningRodRenderer;
@@ -12,6 +18,7 @@ import lumien.randomthings.client.screen.ModScreens;
 import lumien.randomthings.client.vfx.VFXHandler;
 import lumien.randomthings.container.ModContainerTypes;
 import lumien.randomthings.item.ModItems;
+import lumien.randomthings.item.StableEnderpearlItem;
 import lumien.randomthings.lib.IRTBlockColor;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.lib.ModConstants;
@@ -22,23 +29,38 @@ import lumien.randomthings.tileentity.ModTileEntityTypes;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
 import lumien.randomthings.tileentity.SpecialChestTileEntity;
+import lumien.randomthings.util.InventoryUtil;
 import lumien.randomthings.worldgen.BloodRoseFeature;
 import lumien.randomthings.worldgen.ModFeatures;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MoverType;
+import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.monster.SlimeEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.ShovelItem;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.GenerationStage;
 import net.minecraft.world.gen.feature.Feature;
@@ -51,8 +73,11 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.UseHoeEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
@@ -69,8 +94,30 @@ import net.minecraftforge.registries.ForgeRegistries;
 public class RandomThings
 {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Random RNG = new Random();
 
 	public static RandomThings INSTANCE;
+
+	/**
+	 * {@code LivingEntity.isJumping} has no public getter in this Forge build
+	 * (only a {@code setJumping} setter) - unlike 1.12.2's equivalent
+	 * reflection hack, this doesn't need an obfuscation-name lookup since
+	 * we're already in a deobfuscated MCP-mapped dev environment, just plain
+	 * reflection into the field by its real name.
+	 */
+	private static boolean isJumping(LivingEntity entity)
+	{
+		try
+		{
+			Field field = LivingEntity.class.getDeclaredField("isJumping");
+			field.setAccessible(true);
+			return field.getBoolean(entity);
+		}
+		catch (ReflectiveOperationException e)
+		{
+			return false;
+		}
+	}
 
 	public RandomThings()
 	{
@@ -97,12 +144,221 @@ public class RandomThings
 			}
 		});
 
+		// A shovel right-clicked on a Slime Block compacts it into a Compressed Slime
+		// Block (compression 0); right-clicking an existing Compressed Slime Block
+		// compacts it further, up to compression 2. There's no generic Forge event
+		// for "tool X used on block Y" the way UseHoeEvent covers hoes, so this
+		// mirrors 1.12.2's own approach of hooking the raw right-click event directly.
+		MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+			ItemStack equipped = event.getItemStack();
+
+			if (equipped.isEmpty() || !(equipped.getItem() instanceof ShovelItem))
+			{
+				return;
+			}
+
+			World world = event.getWorld();
+			BlockPos pos = event.getPos();
+			BlockState targetState = world.getBlockState(pos);
+			PlayerEntity player = event.getPlayer();
+
+			if (targetState.getBlock() == Blocks.SLIME_BLOCK)
+			{
+				player.swingArm(event.getHand());
+
+				if (!world.isRemote)
+				{
+					world.setBlockState(pos, ModBlocks.COMPRESSED_SLIME_BLOCK.getDefaultState());
+					world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundCategory.PLAYERS, 1.0F, 0.8F);
+					equipped.damageItem(1, player, (p) -> p.sendBreakAnimation(event.getHand()));
+				}
+			}
+			else if (targetState.getBlock() == ModBlocks.COMPRESSED_SLIME_BLOCK)
+			{
+				int currentCompression = targetState.get(CompressedSlimeBlock.COMPRESSION);
+
+				if (currentCompression < 2)
+				{
+					player.swingArm(event.getHand());
+
+					if (!world.isRemote)
+					{
+						world.setBlockState(pos, targetState.with(CompressedSlimeBlock.COMPRESSION, currentCompression + 1));
+						world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundCategory.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
+						equipped.damageItem(1, player, (p) -> p.sendBreakAnimation(event.getHand()));
+					}
+				}
+			}
+		});
+
+		// Contact Button/Lever aren't triggered by clicking them directly - they're
+		// mounted facing another block, and right-clicking THAT block is what
+		// activates them (like a hidden pressure sensor). Ported straight from
+		// 1.12.2's RTEventHandler.playerInteract: right-clicking any block scans
+		// its 6 neighbors for a Contact Button/Lever whose FACING points back at
+		// the clicked block, and activates the first match found (button checked
+		// before lever, matching the original's ordering).
+		MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+			World world = event.getWorld();
+
+			if (world.isRemote || event.getHand() != Hand.MAIN_HAND)
+			{
+				return;
+			}
+
+			BlockPos clickedPos = event.getPos();
+
+			for (Direction facing : Direction.values())
+			{
+				BlockPos neighborPos = clickedPos.offset(facing);
+				BlockState neighborState = world.getBlockState(neighborPos);
+				Block neighborBlock = neighborState.getBlock();
+
+				if (neighborBlock instanceof ContactButtonBlock && neighborState.get(ContactButtonBlock.FACING) == facing.getOpposite())
+				{
+					((ContactButtonBlock) neighborBlock).activate(world, neighborPos, facing.getOpposite());
+					break;
+				}
+				else if (neighborBlock instanceof ContactLeverBlock && neighborState.get(ContactLeverBlock.FACING) == facing.getOpposite())
+				{
+					((ContactLeverBlock) neighborBlock).activate(world, neighborPos, facing.getOpposite());
+					break;
+				}
+			}
+		});
+
+		// Fire/lava protection: Obsidian Skull (carried anywhere in the inventory),
+		// Obsidian Water Walking Boots and Lava Wader (worn as boots) all give a
+		// chance to shrug off any fire-type damage entirely, scaling with how much
+		// damage would've been dealt (chance = amount^3 / 100 - small burns are
+		// usually blocked, a big single hit usually isn't). Lava Wader additionally
+		// fully cancels LAVA damage specifically by spending its own charge meter
+		// (see LavaWaderItem.onArmorTick), independent of the chance-based roll.
+		MinecraftForge.EVENT_BUS.addListener((LivingAttackEvent event) -> {
+			if (event.getEntityLiving().world.isRemote || event.isCanceled() || event.getAmount() <= 0 || !(event.getEntityLiving() instanceof PlayerEntity))
+			{
+				return;
+			}
+
+			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+
+			if (event.getSource() == DamageSource.LAVA)
+			{
+				ItemStack lavaProtector = ItemStack.EMPTY;
+				ItemStack lavaCharm = InventoryUtil.getPlayerInventoryItem(ModItems.LAVA_CHARM, player);
+
+				if (!lavaCharm.isEmpty())
+				{
+					lavaProtector = lavaCharm;
+				}
+
+				ItemStack boots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
+
+				if (!boots.isEmpty() && boots.getItem() == ModItems.LAVA_WADER)
+				{
+					lavaProtector = boots;
+				}
+
+				if (!lavaProtector.isEmpty() && lavaProtector.hasTag())
+				{
+					CompoundNBT compound = lavaProtector.getTag();
+					int charge = compound.getInt("charge");
+
+					if (charge > 0)
+					{
+						compound.putInt("charge", charge - 1);
+						compound.putInt("chargeCooldown", 40);
+						event.setCanceled(true);
+						return;
+					}
+				}
+			}
+
+			if (event.getSource().isFireDamage() && event.getSource() != DamageSource.LAVA)
+			{
+				ItemStack inventorySkull = InventoryUtil.getPlayerInventoryItem(ModItems.OBSIDIAN_SKULL, player);
+				ItemStack obsidianBoots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
+
+				if (!obsidianBoots.isEmpty() && !(obsidianBoots.getItem() == ModItems.OBSIDIAN_WATER_WALKING_BOOTS || obsidianBoots.getItem() == ModItems.LAVA_WADER))
+				{
+					obsidianBoots = ItemStack.EMPTY;
+				}
+
+				ItemStack skull = inventorySkull.isEmpty() ? obsidianBoots : inventorySkull;
+
+				if (!skull.isEmpty())
+				{
+					float amount = event.getAmount();
+					float chance = amount / 100 * amount * amount;
+
+					if (RNG.nextFloat() > chance)
+					{
+						event.setCanceled(true);
+					}
+				}
+			}
+		});
+
+		// Water Walking Boots, Obsidian Water Walking Boots, and Lava Wader
+		// (lava too, for the latter): while jumping and standing in the liquid with
+		// clear air above, nudge the wearer up each tick instead of letting them
+		// sink - a repeated small hop rather than true buoyancy. Client-side only,
+		// matching 1.12.2 (this is a movement-prediction nicety, not physics the
+		// server needs to arbitrate), and works off each living entity's own
+		// synced `isJumping` flag so it applies to any wearer you can see, not
+		// just the local player.
+		MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
+			if (!event.getEntityLiving().world.isRemote || !(event.getEntityLiving() instanceof PlayerEntity))
+			{
+				return;
+			}
+
+			PlayerEntity player = (PlayerEntity) event.getEntityLiving();
+
+			if (player.isSneaking())
+			{
+				return;
+			}
+
+			ItemStack boots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
+
+			if (boots.isEmpty() || !(boots.getItem() == ModItems.WATER_WALKING_BOOTS || boots.getItem() == ModItems.OBSIDIAN_WATER_WALKING_BOOTS || boots.getItem() == ModItems.LAVA_WADER))
+			{
+				return;
+			}
+
+			BlockPos liquidPos = new BlockPos(Math.floor(player.posX), Math.floor(player.posY), Math.floor(player.posZ));
+			BlockPos airPos = new BlockPos(player.posX, player.posY + player.getHeight(), player.posZ);
+			BlockState liquidState = player.world.getBlockState(liquidPos);
+			Material liquidMaterial = liquidState.getMaterial();
+
+			boolean overLiquid = liquidMaterial == Material.WATER || (boots.getItem() == ModItems.LAVA_WADER && liquidMaterial == Material.LAVA);
+
+			if (overLiquid && player.world.getBlockState(airPos).getBlock().isAir(player.world.getBlockState(airPos), player.world, airPos) && isJumping(player))
+			{
+				player.move(MoverType.SELF, new Vec3d(0, 0.22, 0));
+			}
+		});
+
 		MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
 			if (event.phase == TickEvent.Phase.END)
 			{
 				DiviningRodRenderer.get().tick();
 				VFXHandler.INSTANCE.tick();
 			}
+		});
+
+		// Drives StableEnderpearlItem's dropped-pearl countdown - see the javadoc on
+		// StableEnderpearlItem.tickDroppedPearl for why this lives here instead of
+		// on the item itself (Item.onEntityItemUpdate doesn't exist in this Forge
+		// build).
+		MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
+			if (event.phase != TickEvent.Phase.END || event.world.isRemote)
+			{
+				return;
+			}
+
+			((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
 		});
 
 		MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {

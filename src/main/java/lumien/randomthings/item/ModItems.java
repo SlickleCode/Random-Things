@@ -53,6 +53,39 @@ public class ModItems
 	@ObjectHolder("sakanade_spores")
 	public static Item SAKANADE_SPORES;
 
+	@ObjectHolder("ectoplasm")
+	public static Item ECTOPLASM;
+
+	@ObjectHolder("bean_stew")
+	public static Item BEAN_STEW;
+
+	@ObjectHolder("blaze_and_steel")
+	public static Item BLAZE_AND_STEEL;
+
+	@ObjectHolder("bottle_of_air")
+	public static Item BOTTLE_OF_AIR;
+
+	@ObjectHolder("stable_enderpearl")
+	public static Item STABLE_ENDERPEARL;
+
+	@ObjectHolder("obsidian_skull")
+	public static Item OBSIDIAN_SKULL;
+
+	@ObjectHolder("lava_charm")
+	public static Item LAVA_CHARM;
+
+	@ObjectHolder("lava_wader")
+	public static Item LAVA_WADER;
+
+	@ObjectHolder("water_walking_boots")
+	public static Item WATER_WALKING_BOOTS;
+
+	@ObjectHolder("obsidian_water_walking_boots")
+	public static Item OBSIDIAN_WATER_WALKING_BOOTS;
+
+	@ObjectHolder("super_lubricent_boots")
+	public static Item SUPER_LUBRICENT_BOOTS;
+
 	public static ItemGroup RT_ITEM_GROUP;
 
 	public static void registerItems(Register<Item> itemRegistryEvent)
@@ -69,6 +102,19 @@ public class ModItems
 		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_blossom"));
 		registry.register(new LotusSeedsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_seeds"));
 		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("sakanade_spores"));
+		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("ectoplasm"));
+
+		registry.register(new BeanStewItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).food(new net.minecraft.item.Food.Builder().hunger(8).saturation(0.6F).build())).setRegistryName("bean_stew"));
+		registry.register(new BlazeAndSteelItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).maxDamage(64)).setRegistryName("blaze_and_steel"));
+		registry.register(new BottleOfAirItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("bottle_of_air"));
+		registry.register(new StableEnderpearlItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("stable_enderpearl"));
+
+		registry.register(new ObsidianSkullItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("obsidian_skull"));
+		registry.register(new LavaCharmItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lava_charm"));
+		registry.register(new LavaWaderItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lava_wader"));
+		registry.register(new WaterWalkingBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("water_walking_boots"));
+		registry.register(new ObsidianWaterWalkingBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("obsidian_water_walking_boots"));
+		registry.register(new SuperLubricentBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("super_lubricent_boots"));
 
 		// Divining Rods
 		registerDiviningRod(registry, "coal", new Color(20, 20, 20, 50), Tags.Blocks.ORES_COAL.getId().toString());

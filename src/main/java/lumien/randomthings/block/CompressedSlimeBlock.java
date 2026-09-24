@@ -1,26 +1,28 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.lib.IRTBlockColor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
 import net.minecraft.state.IntegerProperty;
 import net.minecraft.state.StateContainer.Builder;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IEnviromentBlockReader;
 import net.minecraft.world.World;
 
-public class CompressedSlimeBlock extends Block
+public class CompressedSlimeBlock extends Block implements IRTBlockColor
 {
 	protected static final VoxelShape SHAPE_0 = Block.makeCuboidShape(0, 0, 0, 16, 8, 16);
 	protected static final VoxelShape SHAPE_1 = Block.makeCuboidShape(0, 0, 0, 16, 4, 16);
 	protected static final VoxelShape SHAPE_2 = Block.makeCuboidShape(0, 0, 0, 16, 2, 16);
+
+	private static final int[] COMPRESSION_COLORS = new int[] { 0xC8C8C8, 0x969696, 0x646464 };
 
 	public static final IntegerProperty COMPRESSION = IntegerProperty.create("compression", 0, 2);
 
@@ -35,12 +37,6 @@ public class CompressedSlimeBlock extends Block
 	protected void fillStateContainer(Builder<Block, BlockState> builder)
 	{
 		builder.add(COMPRESSION);
-	}
-
-	@Override
-	public Item asItem()
-	{
-		return Blocks.SLIME_BLOCK.asItem();
 	}
 
 	@Override
@@ -72,5 +68,11 @@ public class CompressedSlimeBlock extends Block
 			entityIn.setMotion(entityIn.getMotion().x, motionY, entityIn.getMotion().z);
 			entityIn.fallDistance = 0;
 		}
+	}
+
+	@Override
+	public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex)
+	{
+		return COMPRESSION_COLORS[state.get(COMPRESSION)];
 	}
 }
