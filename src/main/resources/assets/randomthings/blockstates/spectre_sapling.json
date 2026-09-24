@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "stage=0": { "model": "randomthings:block/spectre_sapling" },
+        "stage=1": { "model": "randomthings:block/spectre_sapling" }
+    }
+}

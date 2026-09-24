@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "inputfacing=north,outputfacing=north": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=north,outputfacing=south": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=north,outputfacing=west": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=north,outputfacing=east": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=south,outputfacing=north": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=south,outputfacing=south": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=south,outputfacing=west": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=south,outputfacing=east": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=west,outputfacing=north": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=west,outputfacing=south": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=west,outputfacing=west": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=west,outputfacing=east": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=east,outputfacing=north": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=east,outputfacing=south": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=east,outputfacing=west": { "model": "randomthings:block/plate_redirector" },
+        "inputfacing=east,outputfacing=east": { "model": "randomthings:block/plate_redirector" }
+    }
+}

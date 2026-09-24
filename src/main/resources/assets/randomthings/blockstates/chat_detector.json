@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "powered=true": { "model": "randomthings:block/chat_detector_on" },
+        "powered=false": { "model": "randomthings:block/chat_detector_off" }
+    }
+}

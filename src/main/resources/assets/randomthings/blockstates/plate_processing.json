@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "outputfacing=north": { "model": "randomthings:block/plate_processing" },
+        "outputfacing=south": { "model": "randomthings:block/plate_processing", "y": 180 },
+        "outputfacing=west": { "model": "randomthings:block/plate_processing", "y": 270 },
+        "outputfacing=east": { "model": "randomthings:block/plate_processing", "y": 90 }
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "particle": "randomthings:block/global_chat_detector/side_off",
+        "down": "randomthings:block/global_chat_detector/down",
+        "up": "randomthings:block/global_chat_detector/top",
+        "north": "randomthings:block/global_chat_detector/side_off",
+        "east": "randomthings:block/global_chat_detector/side_off",
+        "south": "randomthings:block/global_chat_detector/side_off",
+        "west": "randomthings:block/global_chat_detector/side_off"
+    }
+}

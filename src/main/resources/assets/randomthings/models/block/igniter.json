@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "particle": "randomthings:block/igniter/side",
+    "down": "randomthings:block/igniter/side",
+    "up": "randomthings:block/igniter/side",
+    "north": "randomthings:block/igniter/front",
+    "south": "randomthings:block/igniter/back",
+    "west": "randomthings:block/igniter/side",
+    "east": "randomthings:block/igniter/side"
+  }
+}

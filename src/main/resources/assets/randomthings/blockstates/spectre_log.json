@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "axis=y": { "model": "randomthings:block/spectre_log" },
+        "axis=z": { "model": "randomthings:block/spectre_log", "x": 90 },
+        "axis=x": { "model": "randomthings:block/spectre_log", "x": 90, "y": 90 }
+    }
+}

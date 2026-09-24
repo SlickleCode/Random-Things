@@ -1,0 +1,30 @@
+package lumien.randomthings.block.plates;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.SoundType;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.material.MaterialColor;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+
+public class ItemRejuvenatorPlateBlock extends PlateBlock
+{
+	public ItemRejuvenatorPlateBlock()
+	{
+		super(Block.Properties.create(Material.EARTH, MaterialColor.STONE).hardnessAndResistance(0.3F).sound(SoundType.STONE));
+	}
+
+	@Override
+	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
+	{
+		super.onEntityCollision(state, worldIn, pos, entityIn);
+
+		if (entityIn instanceof ItemEntity)
+		{
+			((ItemEntity) entityIn).setAgeToCreativeDespawnTime();
+		}
+	}
+}

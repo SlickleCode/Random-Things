@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "randomthings:block/plate_accelerator_directional" },
+        "facing=south": { "model": "randomthings:block/plate_accelerator_directional", "y": 180 },
+        "facing=west": { "model": "randomthings:block/plate_accelerator_directional", "y": 270 },
+        "facing=east": { "model": "randomthings:block/plate_accelerator_directional", "y": 90 }
+    }
+}

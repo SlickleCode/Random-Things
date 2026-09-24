@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "lumien.randomthings.mixin",
+  "refmap": "randomthings.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "FireBlockMixin"
+  ],
+  "client": [],
+  "server": []
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "particle": "randomthings:block/analog_emitter/side",
+    "down": "randomthings:block/analog_emitter/side",
+    "up": "randomthings:block/analog_emitter/side",
+    "north": "randomthings:block/analog_emitter/front",
+    "south": "randomthings:block/analog_emitter/side",
+    "west": "randomthings:block/analog_emitter/side",
+    "east": "randomthings:block/analog_emitter/side"
+  }
+}

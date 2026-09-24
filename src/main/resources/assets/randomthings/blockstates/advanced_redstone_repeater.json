@@ -1,0 +1,23 @@
+{
+    "variants": {
+        "facing=south,powered=false,locked=false": { "model": "randomthings:block/advanced_redstone_repeater_off" },
+        "facing=west,powered=false,locked=false":  { "model": "randomthings:block/advanced_redstone_repeater_off", "y": 90 },
+        "facing=north,powered=false,locked=false": { "model": "randomthings:block/advanced_redstone_repeater_off", "y": 180 },
+        "facing=east,powered=false,locked=false":  { "model": "randomthings:block/advanced_redstone_repeater_off", "y": 270 },
+
+        "facing=south,powered=false,locked=true": { "model": "randomthings:block/advanced_redstone_repeater_off_locked" },
+        "facing=west,powered=false,locked=true":  { "model": "randomthings:block/advanced_redstone_repeater_off_locked", "y": 90 },
+        "facing=north,powered=false,locked=true": { "model": "randomthings:block/advanced_redstone_repeater_off_locked", "y": 180 },
+        "facing=east,powered=false,locked=true":  { "model": "randomthings:block/advanced_redstone_repeater_off_locked", "y": 270 },
+
+        "facing=south,powered=true,locked=false": { "model": "randomthings:block/advanced_redstone_repeater_on" },
+        "facing=west,powered=true,locked=false":  { "model": "randomthings:block/advanced_redstone_repeater_on", "y": 90 },
+        "facing=north,powered=true,locked=false": { "model": "randomthings:block/advanced_redstone_repeater_on", "y": 180 },
+        "facing=east,powered=true,locked=false":  { "model": "randomthings:block/advanced_redstone_repeater_on", "y": 270 },
+
+        "facing=south,powered=true,locked=true": { "model": "randomthings:block/advanced_redstone_repeater_on_locked" },
+        "facing=west,powered=true,locked=true":  { "model": "randomthings:block/advanced_redstone_repeater_on_locked", "y": 90 },
+        "facing=north,powered=true,locked=true": { "model": "randomthings:block/advanced_redstone_repeater_on_locked", "y": 180 },
+        "facing=east,powered=true,locked=true":  { "model": "randomthings:block/advanced_redstone_repeater_on_locked", "y": 270 }
+    }
+}

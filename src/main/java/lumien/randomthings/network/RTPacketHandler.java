@@ -1,7 +1,9 @@
 package lumien.randomthings.network;
 
 import lumien.randomthings.network.messages.ContainerSignalMessage;
+import lumien.randomthings.network.messages.NotificationMessage;
 import lumien.randomthings.network.messages.VisualEffectMessage;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -26,6 +28,12 @@ public class RTPacketHandler
 
 		register(disc++, ContainerSignalMessage.class);
 		register(disc++, VisualEffectMessage.class);
+		register(disc++, NotificationMessage.class);
+	}
+
+	public static void sendTo(IRTMessage message, ServerPlayerEntity player)
+	{
+		HANDLER.send(PacketDistributor.PLAYER.with(() -> player), message);
 	}
 
 	public static void sendToServer(IRTMessage message)

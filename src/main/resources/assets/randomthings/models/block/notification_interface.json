@@ -1,0 +1,12 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "particle": "randomthings:block/notification_interface/side",
+        "down": "randomthings:block/notification_interface/down",
+        "up": "randomthings:block/notification_interface/up",
+        "north": "randomthings:block/notification_interface/side",
+        "east": "randomthings:block/notification_interface/side",
+        "south": "randomthings:block/notification_interface/side",
+        "west": "randomthings:block/notification_interface/side"
+    }
+}

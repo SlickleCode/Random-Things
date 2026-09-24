@@ -1,0 +1,9 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "particle": "randomthings:block/online_detector/side_off",
+    "bottom": "randomthings:block/online_detector/down",
+    "top": "randomthings:block/online_detector/top",
+    "side": "randomthings:block/online_detector/side_off"
+  }
+}

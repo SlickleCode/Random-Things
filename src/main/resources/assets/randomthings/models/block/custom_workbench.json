@@ -1,0 +1,12 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "particle": "randomthings:block/custom_workbench/crafting_front",
+        "north": "randomthings:block/custom_workbench/crafting_front",
+        "west": "randomthings:block/custom_workbench/crafting_front",
+        "south": "randomthings:block/custom_workbench/crafting_side",
+        "east": "randomthings:block/custom_workbench/crafting_side",
+        "up": "randomthings:block/custom_workbench/crafting_top",
+        "down": "block/oak_planks"
+    }
+}

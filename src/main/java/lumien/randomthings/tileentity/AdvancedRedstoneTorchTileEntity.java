@@ -58,7 +58,7 @@ public class AdvancedRedstoneTorchTileEntity extends TileEntity implements IName
 	@Override
 	public ITextComponent getDisplayName()
 	{
-		return new TranslationTextComponent("randomthings.block.advanced_redstone_torch");
+		return new TranslationTextComponent("block.randomthings.advanced_redstone_torch");
 	}
 
 	public void setSignalStrengthGreen(int newValue)

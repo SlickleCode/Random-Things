@@ -1,0 +1,12 @@
+{
+    "parent": "block/cube",
+    "textures": {
+        "particle": "randomthings:block/player_interface/side",
+        "down": "randomthings:block/player_interface/bottom",
+        "up": "randomthings:block/player_interface/top",
+        "north": "randomthings:block/player_interface/side_shield",
+        "east": "randomthings:block/player_interface/side",
+        "south": "randomthings:block/player_interface/side",
+        "west": "randomthings:block/player_interface/side"
+    }
+}

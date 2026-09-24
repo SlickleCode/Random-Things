@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "inputfacing=north,outputfacing=north": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=north,outputfacing=south": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=north,outputfacing=west": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=north,outputfacing=east": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=south,outputfacing=north": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=south,outputfacing=south": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=south,outputfacing=west": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=south,outputfacing=east": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=west,outputfacing=north": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=west,outputfacing=south": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=west,outputfacing=west": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=west,outputfacing=east": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=east,outputfacing=north": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=east,outputfacing=south": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=east,outputfacing=west": { "model": "randomthings:block/plate_redstone_powered" },
+        "inputfacing=east,outputfacing=east": { "model": "randomthings:block/plate_redstone_powered" }
+    }
+}

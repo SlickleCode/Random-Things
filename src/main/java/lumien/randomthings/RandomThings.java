@@ -7,25 +7,37 @@ import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.FertilizedDirtBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.client.renderer.DiviningRodRenderer;
+import lumien.randomthings.client.renderer.SpecialChestTileEntityRenderer;
 import lumien.randomthings.client.screen.ModScreens;
 import lumien.randomthings.client.vfx.VFXHandler;
 import lumien.randomthings.container.ModContainerTypes;
 import lumien.randomthings.item.ModItems;
+import lumien.randomthings.lib.IRTBlockColor;
+import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.lib.ModConstants;
 import lumien.randomthings.network.RTPacketHandler;
+import lumien.randomthings.tileentity.ChatDetectorTileEntity;
+import lumien.randomthings.tileentity.GlobalChatDetectorTileEntity;
 import lumien.randomthings.tileentity.ModTileEntityTypes;
+import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
+import lumien.randomthings.tileentity.SlimeCubeTileEntity;
+import lumien.randomthings.tileentity.SpecialChestTileEntity;
 import lumien.randomthings.worldgen.BloodRoseFeature;
 import lumien.randomthings.worldgen.ModFeatures;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.monster.SlimeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.GenerationStage;
@@ -33,14 +45,19 @@ import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.IFeatureConfig;
 import net.minecraft.world.gen.placement.FrequencyConfig;
 import net.minecraft.world.gen.placement.Placement;
+import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.entity.player.UseHoeEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -87,6 +104,62 @@ public class RandomThings
 				VFXHandler.INSTANCE.tick();
 			}
 		});
+
+		MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
+			boolean consumed = false;
+
+			for (ChatDetectorTileEntity detector : ChatDetectorTileEntity.detectors)
+			{
+				if (detector.checkMessage(event.getPlayer(), event.getMessage()))
+				{
+					consumed = true;
+				}
+			}
+
+			for (GlobalChatDetectorTileEntity detector : GlobalChatDetectorTileEntity.detectors)
+			{
+				if (detector.checkMessage(event.getPlayer(), event.getMessage()))
+				{
+					consumed = true;
+				}
+			}
+
+			if (consumed)
+			{
+				event.setCanceled(true);
+			}
+		});
+
+		MinecraftForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
+
+		MinecraftForge.EVENT_BUS.addListener((LivingSpawnEvent.CheckSpawn event) -> {
+			if (!(event.getEntityLiving() instanceof SlimeEntity))
+			{
+				return;
+			}
+
+			ChunkPos chunkPos = new ChunkPos(new BlockPos(event.getX(), event.getY(), event.getZ()));
+
+			for (SlimeCubeTileEntity cube : SlimeCubeTileEntity.cubes)
+			{
+				if (cube.isInChunk((World) event.getWorld(), chunkPos))
+				{
+					event.setResult(cube.isPowered() ? Result.DENY : Result.ALLOW);
+					return;
+				}
+			}
+		});
+
+		// Was ASM patch #12 (WorldGenAbstractTree.setDirtAt): natural tree growth used
+		// to hard-revert the soil block under a sapling to plain Dirt. Forge fires a
+		// BlockEvent for each block a world-gen feature places, so we can veto that
+		// specific replacement without any bytecode patching.
+		MinecraftForge.EVENT_BUS.addListener((BlockEvent.EntityPlaceEvent event) -> {
+			if (event.getPlacedBlock().getBlock() == net.minecraft.block.Blocks.DIRT && event.getBlockSnapshot().getReplacedBlock().getBlock() == ModBlocks.FERTILIZED_DIRT)
+			{
+				event.setCanceled(true);
+			}
+		});
 	}
 
 	private void setupCommon(final FMLCommonSetupEvent event)
@@ -102,6 +175,8 @@ public class RandomThings
 	private void setupClient(final FMLClientSetupEvent event)
 	{
 		ModScreens.register();
+
+		ClientRegistry.bindTileEntitySpecialRenderer(SpecialChestTileEntity.class, new SpecialChestTileEntityRenderer());
 
 		MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
 			DiviningRodRenderer.get().render();
@@ -143,6 +218,56 @@ public class RandomThings
 		@SubscribeEvent
 		public static void onFeaturesRegistry(final RegistryEvent.Register<Feature<?>> featureRegistryEvent) {
 			ModFeatures.registerFeatures(featureRegistryEvent);
+		}
+
+		/**
+		 * Generic bridge from the mod's own {@link IRTBlockColor} interface to
+		 * Forge's {@code BlockColors} system: any registered randomthings block
+		 * implementing it gets wired up here automatically, so individual blocks
+		 * never need their own {@code ColorHandlerEvent} listener.
+		 */
+		@SubscribeEvent
+		public static void onBlockColorHandler(final ColorHandlerEvent.Block event)
+		{
+			for (Block block : ForgeRegistries.BLOCKS.getValues())
+			{
+				if (block instanceof IRTBlockColor && block.getRegistryName() != null && ModConstants.MOD_ID.equals(block.getRegistryName().getNamespace()))
+				{
+					event.getBlockColors().register((state, worldIn, pos, tintIndex) -> ((IRTBlockColor) block).colorMultiplier(state, worldIn, pos, tintIndex), block);
+				}
+			}
+		}
+
+		/**
+		 * Same bridge for item icon tinting: any randomthings {@link BlockItem}
+		 * whose block implements {@link IRTBlockColor} gets its inventory icon
+		 * tinted using the client player's current world/position, matching the
+		 * 1.12.2 behavior of {@code ItemBlockColored}/{@code ItemBlockBiomeStone}.
+		 */
+		@SubscribeEvent
+		public static void onItemColorHandler(final ColorHandlerEvent.Item event)
+		{
+			for (Item item : ForgeRegistries.ITEMS.getValues())
+			{
+				if (item instanceof BlockItem && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace()))
+				{
+					Block block = ((BlockItem) item).getBlock();
+
+					if (block instanceof IRTBlockColor)
+					{
+						event.getItemColors().register((stack, tintIndex) -> {
+							Minecraft mc = Minecraft.getInstance();
+
+							if (mc.world == null || mc.player == null)
+							{
+								return 0xFFFFFF;
+							}
+
+							return ((IRTBlockColor) block).colorMultiplier(block.getDefaultState(), mc.world, mc.player.getPosition(), tintIndex);
+						}, item);
+					}
+				}
+			}
 		}
 	}
 }

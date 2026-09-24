@@ -1,0 +1,6 @@
+{
+  "parent": "block/button_pressed",
+  "textures": {
+    "texture": "randomthings:block/contact_button/side_active"
+  }
+}

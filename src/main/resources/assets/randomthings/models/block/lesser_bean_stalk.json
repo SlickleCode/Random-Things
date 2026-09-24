@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "randomthings:block/lesser_bean_stalk"
+  }
+}
