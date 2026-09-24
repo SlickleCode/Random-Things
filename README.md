@@ -9,15 +9,8 @@ Ender and Floo networks, and more).
 This repository is [SlickleCode](https://github.com/SlickleCode)'s fork of
 the [original mod](https://github.com/lumien231/Random-Things), currently
 being used to port the mod from 1.12.2 to modern Forge (1.14.4 and beyond).
-
-## Branches
-
-| Branch | Purpose |
-| --- | --- |
-| `main` | Default branch. Mirrors upstream's last released state (1.12.2-era source) — the stable base this fork's work branches from. |
-| `1.14.4` | **Active work.** In-progress port of the mod to Forge 1.14.4, built package-by-package on top of `main`. Not yet feature-complete — see [TESTING_CHECKLIST.md](https://github.com/SlickleCode/Random-Things/blob/1.14.4/TESTING_CHECKLIST.md) on that branch for what's migrated vs. still deferred. |
-| `master` | Upstream's old default branch name, kept around unchanged after `main` was introduced as the new default. Same content as `main`; not actively used going forward. |
-| `1.8.9`, `1.9`, `1.9.4`, `1.10.2`, `1.11.2`, `1.12.2` | Upstream's historical per-Minecraft-version release branches, inherited as-is from the original repository. |
+This `main` branch is a landing page only — it holds no source or build
+config. Check out one of the version branches below for actual code.
 
 ## Supported Minecraft versions
 
@@ -28,5 +21,14 @@ being used to port the mod from 1.12.2 to modern Forge (1.14.4 and beyond).
 | 1.9.4 | [`1.9.4`](https://github.com/SlickleCode/Random-Things/tree/1.9.4) | Legacy release (upstream) |
 | 1.10.2 | [`1.10.2`](https://github.com/SlickleCode/Random-Things/tree/1.10.2) | Legacy release (upstream) |
 | 1.11.2 | [`1.11.2`](https://github.com/SlickleCode/Random-Things/tree/1.11.2) | Legacy release (upstream) |
-| 1.12.2 | [`1.12.2`](https://github.com/SlickleCode/Random-Things/tree/1.12.2) / `main` | Last complete, fully-released version (upstream) |
+| 1.12.2 | [`1.12.2`](https://github.com/SlickleCode/Random-Things/tree/1.12.2) | Last complete, fully-released version (upstream) |
 | 1.14.4 | [`1.14.4`](https://github.com/SlickleCode/Random-Things/tree/1.14.4) | **In-progress port** (this fork) — most standalone and tile-entity-backed blocks/items are ported; worldgen, potions/enchantments, recipes, and a few subsystems (Spectre energy, Ender network, Floo network, Rain Shield) are still outstanding |
+
+## Branches
+
+| Branch | Purpose |
+| --- | --- |
+| `main` | Default branch. Landing page only (this README) — no source or build config lives here. |
+| `1.14.4` | **Active work.** In-progress port of the mod to Forge 1.14.4, built package-by-package off of upstream's last `1.12.2` source. Not yet feature-complete — see [TESTING_CHECKLIST.md](https://github.com/SlickleCode/Random-Things/blob/1.14.4/TESTING_CHECKLIST.md) on that branch for what's migrated vs. still deferred. |
+| `master` | Upstream's old default branch name, kept around unchanged after `main` was repurposed as a landing page. Holds the same 1.12.2-era source `main` used to hold. |
+| `1.8.9`, `1.9`, `1.9.4`, `1.10.2`, `1.11.2`, `1.12.2` | Upstream's historical per-Minecraft-version release branches, inherited as-is from the original repository. |
