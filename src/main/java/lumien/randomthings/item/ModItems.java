@@ -86,6 +86,21 @@ public class ModItems
 	@ObjectHolder("super_lubricent_boots")
 	public static Item SUPER_LUBRICENT_BOOTS;
 
+	@ObjectHolder("id_card")
+	public static Item ID_CARD;
+
+	@ObjectHolder("position_filter")
+	public static Item POSITION_FILTER;
+
+	@ObjectHolder("golden_compass")
+	public static Item GOLDEN_COMPASS;
+
+	@ObjectHolder("emerald_compass")
+	public static Item EMERALD_COMPASS;
+
+	@ObjectHolder("biome_crystal")
+	public static Item BIOME_CRYSTAL;
+
 	public static ItemGroup RT_ITEM_GROUP;
 
 	public static void registerItems(Register<Item> itemRegistryEvent)
@@ -103,6 +118,7 @@ public class ModItems
 		registry.register(new LotusSeedsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_seeds"));
 		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("sakanade_spores"));
 		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("ectoplasm"));
+		registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("biome_sensor"));
 
 		registry.register(new BeanStewItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).food(new net.minecraft.item.Food.Builder().hunger(8).saturation(0.6F).build())).setRegistryName("bean_stew"));
 		registry.register(new BlazeAndSteelItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).maxDamage(64)).setRegistryName("blaze_and_steel"));
@@ -228,7 +244,16 @@ public class ModItems
 		registerItemForBlock(registry, ModBlocks.FILTERED_SUPER_LUBRICENT_PLATFORM);
 		registerItemForBlock(registry, ModBlocks.NOTIFICATION_INTERFACE);
 		registerItemForBlock(registry, ModBlocks.GLOBAL_CHAT_DETECTOR);
+		registerItemForBlock(registry, ModBlocks.BIOME_RADAR);
+
+		registry.register(new BiomeCrystalItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("biome_crystal"));
 		registry.register(new IdCardItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("id_card"));
+
+		registry.register(new PositionFilterItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("position_filter"));
+		registry.register(new GoldenCompassItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("golden_compass"));
+		registry.register(new EmeraldCompassItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("emerald_compass"));
+		registry.register(new EscapeRopeItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).maxDamage(20)).setRegistryName("escape_rope"));
+		registry.register(new ChunkAnalyzerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("chunk_analyzer"));
 	}
 
 	private static Block lookupBlock(String name)

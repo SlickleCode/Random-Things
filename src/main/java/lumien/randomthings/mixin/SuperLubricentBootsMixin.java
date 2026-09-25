@@ -1,15 +1,22 @@
 package lumien.randomthings.mixin;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import lumien.randomthings.item.SuperLubricentBootsItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IWorldReader;
 
 /**
@@ -36,22 +43,60 @@ import net.minecraft.world.IWorldReader;
  * {@code 1F / 0.91F} derivation), so standing on one of them with the boots
  * on is simply a no-op redirect (same value either way).
  */
-@Mixin(value = LivingEntity.class, remap = false)
+@Mixin(LivingEntity.class)
 public abstract class SuperLubricentBootsMixin
 {
+	// TEMPORARY diagnostic logging for TESTING_CHECKLIST.md #134 - remove once the boots are
+	// confirmed working in-game. Throttled to ~once/sec/player so it stays readable instead of
+	// spamming once per tick (travel() runs every tick regardless of movement).
+	private static final Logger RT_BOOTS_DEBUG_LOG = LogManager.getLogger("RandomThings-SuperLubricentBootsMixin");
+	private static int randomthings_debugCounter = 0;
+	private static int randomthings_debugHeadCounter = 0;
+
+	// TEMPORARY: unconditional entry-point probe, independent of the @Redirect below - proves
+	// whether this Mixin is woven into LivingEntity's travel() at all, regardless of whether the
+	// @Redirect's own @At(INVOKE) target ever matches.
+	@Inject(method = "travel", at = @At("HEAD"))
+	private void randomthings_bootsTravelHeadProbe(Vec3d motion, CallbackInfo ci)
+	{
+		if ((Object) this instanceof PlayerEntity && (randomthings_debugHeadCounter++ % 20 == 0))
+		{
+			RT_BOOTS_DEBUG_LOG.info("travel() HEAD probe fired for {}", ((PlayerEntity) (Object) this).getScoreboardName());
+		}
+	}
+
 	@Redirect(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getSlipperiness(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)F"))
 	private float randomthings_bootsMaxSlip(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
 	{
 		float original = state.getSlipperiness(world, pos, entity);
 
+		boolean logThisCall = entity instanceof PlayerEntity && (randomthings_debugCounter++ % 20 == 0);
+
 		if (entity.isSneaking() || !(entity instanceof LivingEntity))
 		{
+			if (logThisCall)
+			{
+				RT_BOOTS_DEBUG_LOG.info("redirect fired for {}: sneaking={}, isLivingEntity={} -> returning original {}", entity.getScoreboardName(), entity.isSneaking(), entity instanceof LivingEntity, original);
+			}
 			return original;
 		}
 
-		if (((LivingEntity) entity).getItemStackFromSlot(EquipmentSlotType.FEET).getItem() instanceof SuperLubricentBootsItem)
+		ItemStack boots = ((LivingEntity) entity).getItemStackFromSlot(EquipmentSlotType.FEET);
+		boolean wearingBoots = boots.getItem() instanceof SuperLubricentBootsItem;
+
+		if (logThisCall)
 		{
-			return 1F / 0.91F;
+			RT_BOOTS_DEBUG_LOG.info("redirect fired for {}: sneaking=false, feetSlot={}, wearingBoots={}, original={}", entity.getScoreboardName(), boots, wearingBoots, original);
+		}
+
+		if (wearingBoots)
+		{
+			float boosted = 1F / 0.91F;
+			if (logThisCall)
+			{
+				RT_BOOTS_DEBUG_LOG.info("boosting slipperiness for {}: {} -> {}", entity.getScoreboardName(), original, boosted);
+			}
+			return boosted;
 		}
 
 		return original;

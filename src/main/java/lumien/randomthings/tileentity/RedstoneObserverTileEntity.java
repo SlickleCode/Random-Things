@@ -100,7 +100,7 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 			for (Direction f : Direction.values())
 			{
 				strongPower.put(f, targetState.getStrongPower(this.world, target, f));
-				weakPower.put(f, targetState.getWeakPower(this.world, target, f));
+				weakPower.put(f, this.world.getRedstonePower(target, f));
 			}
 
 			this.world.notifyNeighborsOfStateChange(this.pos, ModBlocks.REDSTONE_OBSERVER);

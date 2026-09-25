@@ -85,6 +85,9 @@ public class ModTileEntityTypes
 	@ObjectHolder("global_chat_detector")
 	public static TileEntityType<GlobalChatDetectorTileEntity> GLOBAL_CHAT_DETECTOR;
 
+	@ObjectHolder("biome_radar")
+	public static TileEntityType<BiomeRadarTileEntity> BIOME_RADAR;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
@@ -114,6 +117,7 @@ public class ModTileEntityTypes
 		registerSimple(registry, "filtered_super_lubricent_platform", FilteredSuperLubricentPlatformTileEntity::new, ModBlocks.FILTERED_SUPER_LUBRICENT_PLATFORM);
 		registerSimple(registry, "notification_interface", NotificationInterfaceTileEntity::new, ModBlocks.NOTIFICATION_INTERFACE);
 		registerSimple(registry, "global_chat_detector", GlobalChatDetectorTileEntity::new, ModBlocks.GLOBAL_CHAT_DETECTOR);
+		registerSimple(registry, "biome_radar", BiomeRadarTileEntity::new, ModBlocks.BIOME_RADAR);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)

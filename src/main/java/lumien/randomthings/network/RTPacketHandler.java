@@ -1,5 +1,6 @@
 package lumien.randomthings.network;
 
+import lumien.randomthings.network.messages.BiomeRadarAntennaMessage;
 import lumien.randomthings.network.messages.ContainerSignalMessage;
 import lumien.randomthings.network.messages.NotificationMessage;
 import lumien.randomthings.network.messages.VisualEffectMessage;
@@ -29,6 +30,7 @@ public class RTPacketHandler
 		register(disc++, ContainerSignalMessage.class);
 		register(disc++, VisualEffectMessage.class);
 		register(disc++, NotificationMessage.class);
+		register(disc++, BiomeRadarAntennaMessage.class);
 	}
 
 	public static void sendTo(IRTMessage message, ServerPlayerEntity player)

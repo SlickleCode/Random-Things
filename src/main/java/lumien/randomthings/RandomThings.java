@@ -17,6 +17,7 @@ import lumien.randomthings.block.SuperLubricentPlatformBlock;
 import lumien.randomthings.block.SuperLubricentStoneBlock;
 import lumien.randomthings.client.renderer.DiviningRodRenderer;
 import lumien.randomthings.client.renderer.RedstoneObserverLineRenderer;
+import lumien.randomthings.client.renderer.BiomeRadarTileEntityRenderer;
 import lumien.randomthings.client.renderer.SpecialChestTileEntityRenderer;
 import lumien.randomthings.client.screen.ModScreens;
 import lumien.randomthings.client.vfx.VFXHandler;
@@ -27,12 +28,15 @@ import lumien.randomthings.lib.IRTBlockColor;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.lib.ModConstants;
 import lumien.randomthings.network.RTPacketHandler;
+import lumien.randomthings.recipes.ModRecipeSerializers;
 import lumien.randomthings.tileentity.ChatDetectorTileEntity;
 import lumien.randomthings.tileentity.GlobalChatDetectorTileEntity;
 import lumien.randomthings.tileentity.ModTileEntityTypes;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
+import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import lumien.randomthings.tileentity.SpecialChestTileEntity;
+import lumien.randomthings.util.EscapeRopeHandler;
 import lumien.randomthings.util.InventoryUtil;
 import lumien.randomthings.worldgen.BloodRoseFeature;
 import lumien.randomthings.worldgen.ModFeatures;
@@ -54,6 +58,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.item.ShovelItem;
+import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.DamageSource;
@@ -371,6 +376,18 @@ public class RandomThings
 			((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
 		});
 
+		// Drives EscapeRopeHandler's "find the nearest path to daylight" search -
+		// runs once per server tick regardless of how many dimensions are loaded,
+		// matching the original's own ServerTickEvent call site.
+		MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
+			if (event.phase != TickEvent.Phase.END)
+			{
+				return;
+			}
+
+			EscapeRopeHandler.getInstance().tick();
+		});
+
 		MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
 			boolean consumed = false;
 
@@ -488,6 +505,7 @@ public class RandomThings
 		ModScreens.register();
 
 		ClientRegistry.bindTileEntitySpecialRenderer(SpecialChestTileEntity.class, new SpecialChestTileEntityRenderer());
+		ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
 
 		MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
 			DiviningRodRenderer.get().render();
@@ -530,6 +548,12 @@ public class RandomThings
 		@SubscribeEvent
 		public static void onFeaturesRegistry(final RegistryEvent.Register<Feature<?>> featureRegistryEvent) {
 			ModFeatures.registerFeatures(featureRegistryEvent);
+		}
+
+		@SubscribeEvent
+		public static void onRecipeSerializersRegistry(final RegistryEvent.Register<IRecipeSerializer<?>> recipeSerializerRegistryEvent)
+		{
+			ModRecipeSerializers.registerRecipeSerializers(recipeSerializerRegistryEvent);
 		}
 
 		/**
@@ -578,6 +602,24 @@ public class RandomThings
 							return ((IRTBlockColor) block).colorMultiplier(block.getDefaultState(), mc.world, mc.player.getPosition(), tintIndex);
 						}, item);
 					}
+				}
+			}
+		}
+
+		/**
+		 * Same bridge, but for a plain {@link Item} that implements
+		 * {@link IRTItemColor} directly (not a {@link BlockItem}) - e.g.
+		 * {@link lumien.randomthings.item.BiomeCrystalItem}, which tints
+		 * itself from its own stored biome rather than from a block.
+		 */
+		@SubscribeEvent
+		public static void onPlainItemColorHandler(final ColorHandlerEvent.Item event)
+		{
+			for (Item item : ForgeRegistries.ITEMS.getValues())
+			{
+				if (item instanceof IRTItemColor && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace()))
+				{
+					event.getItemColors().register((stack, tintIndex) -> ((IRTItemColor) item).getColorFromItemstack(stack, tintIndex), item);
 				}
 			}
 		}

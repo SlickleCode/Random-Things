@@ -29,5 +29,6 @@ public class ModScreens
 		ScreenManager.registerFactory(ModContainerTypes.FILTERED_SUPER_LUBRICENT_PLATFORM, FilteredSuperLubricentPlatformScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.NOTIFICATION_INTERFACE, NotificationInterfaceScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.GLOBAL_CHAT_DETECTOR, GlobalChatDetectorScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.CHUNK_ANALYZER, ChunkAnalyzerScreen::new);
 	}
 }

@@ -64,6 +64,9 @@ public class ModContainerTypes
 	@ObjectHolder("global_chat_detector")
 	public static ContainerType<GlobalChatDetectorContainer> GLOBAL_CHAT_DETECTOR;
 
+	@ObjectHolder("chunk_analyzer")
+	public static ContainerType<ChunkAnalyzerContainer> CHUNK_ANALYZER;
+
 	public static void registerContainerTypes(Register<ContainerType<?>> containerTypeRegistryEvent)
 	{
 		IForgeRegistry<ContainerType<?>> registry = containerTypeRegistryEvent.getRegistry();
@@ -86,5 +89,6 @@ public class ModContainerTypes
 		registry.register(IForgeContainerType.create(FilteredSuperLubricentPlatformContainer::new).setRegistryName("filtered_super_lubricent_platform"));
 		registry.register(IForgeContainerType.create(NotificationInterfaceContainer::new).setRegistryName("notification_interface"));
 		registry.register(IForgeContainerType.create(GlobalChatDetectorContainer::new).setRegistryName("global_chat_detector"));
+		registry.register(IForgeContainerType.create(ChunkAnalyzerContainer::new).setRegistryName("chunk_analyzer"));
 	}
 }

@@ -56,7 +56,7 @@ public class ItemCollectorTileEntity extends TileEntity implements ITickableTile
 
 		if (target != null)
 		{
-			LazyOptional<IItemHandler> capability = target.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing.getOpposite());
+			LazyOptional<IItemHandler> capability = target.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing);
 			IItemHandler itemHandler = capability.orElse(null);
 
 			if (itemHandler != null)

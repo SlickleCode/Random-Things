@@ -72,7 +72,7 @@ public class StableEnderpearlItem extends Item
 	 */
 	public void tickDroppedPearl(ItemEntity entityItem)
 	{
-		CompoundNBT data = entityItem.getEntityData();
+		CompoundNBT data = entityItem.getPersistentData();
 		int counter = data.getInt("counter");
 
 		if (counter == 140)

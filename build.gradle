@@ -82,9 +82,26 @@ mixin {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.0.49'
+    // Pinned to 28.2.26 specifically (not just "1.14.4 latest") because Mixin 0.8 requires
+    // ModLauncher's declared spec version to be >= 4.0 (javap/manifest-confirmed via
+    // MixinServiceModLauncher.isValid()) - 28.0.49 ships ModLauncher 3.2.0 (spec 3.0, too old) and
+    // crashes the dev client with "MixinService [ModLauncher] is not valid"; 28.2.26 ships
+    // ModLauncher 4.1.0 (spec 4.0, confirmed via that jar's own manifest), which satisfies it. This
+    // also matches the Forge version the user's real test install (PrismLauncher) actually runs.
+    minecraft 'net.minecraftforge:forge:1.14.4-28.2.26'
     annotationProcessor 'org.spongepowered:mixin:0.8:processor'
     compileOnly 'org.spongepowered:mixin:0.8:processor'
+    // NOT shaded into the shipped jar (see the `jar { from {...} }` block below, currently disabled) -
+    // confirmed 2026-09-25 that bundling Mixin's runtime in the mod jar alone isn't sufficient: it
+    // satisfies ModLauncher's ITransformationService discovery, but Mixin also needs an
+    // ILaunchPluginService registered, which ModLauncher only discovers from an EARLY classpath scan
+    // (before the mods folder is even scanned) - a mods-folder jar structurally cannot provide that
+    // half, confirmed via Mixin's own source (MixinTransformationService.initialize() calls
+    // environment.findLaunchPlugin(), no fallback). Shading it in without that piece just changes the
+    // failure from "silently does nothing" to "crashes on launch" (MixinInitialisationError), which is
+    // worse. Paused here per user request - see TESTING_CHECKLIST.md #134 and the plan file for the
+    // full chain of findings before re-enabling this.
+    // implementation 'org.spongepowered:mixin:0.8'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -100,4 +117,18 @@ jar {
 			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
 			"MixinConfigs": "randomthings.mixins.json"],)
     }
+
+    // The MixinConfigs manifest attribute above is necessary but not sufficient: Mixin's actual
+    // bootstrap (its cpw.mods.modlauncher.api.ITransformationService implementation, discovered by
+    // ModLauncher's own ServiceLoader scan) has to physically be present somewhere on the game's
+    // classpath too. Forge 1.14.4 doesn't bundle Mixin itself (confirmed: no org/spongepowered
+    // classes in forge's launcher/universal jars), and this project previously only declared
+    // org.spongepowered:mixin:0.8 as compileOnly/annotationProcessor - never on the runtime
+    // classpath, never shaded into the shipped jar - so neither Mixin here ever had its bootstrap
+    // machinery available at actual game launch, in dev or production. Bundling the real runtime
+    // artifact's classes directly into this jar so they ship with the mod.
+    from({ configurations.runtimeClasspath.filter { it.name.startsWith('mixin-0.8') }.collect { zipTree(it) } }) {
+        exclude 'META-INF/MANIFEST.MF', 'META-INF/maven/**'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

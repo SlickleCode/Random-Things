@@ -267,6 +267,9 @@ public class ModBlocks
 	@ObjectHolder("global_chat_detector")
 	public static Block GLOBAL_CHAT_DETECTOR;
 
+	@ObjectHolder("biome_radar")
+	public static Block BIOME_RADAR;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -393,5 +396,7 @@ public class ModBlocks
 		registry.register(new FilteredSuperLubricentPlatformBlock().setRegistryName("filtered_super_lubricent_platform"));
 		registry.register(new NotificationInterfaceBlock().setRegistryName("notification_interface"));
 		registry.register(new GlobalChatDetectorBlock().setRegistryName("global_chat_detector"));
+
+		registry.register(new BiomeRadarBlock().setRegistryName("biome_radar"));
 	}
 }
