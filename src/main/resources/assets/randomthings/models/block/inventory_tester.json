@@ -2,7 +2,7 @@
 	"textures": {
 		"particle": "randomthings:block/inventory_tester",
 		"front": "randomthings:block/inventory_tester",
-		"sides": "block/stone_slab_top"
+		"sides": "block/stone"
 	},
 	"elements": [
 		{

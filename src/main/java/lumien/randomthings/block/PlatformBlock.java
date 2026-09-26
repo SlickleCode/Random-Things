@@ -14,37 +14,31 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.ToolType;
 
-public class PlatformBlock extends Block
-{
-	protected static final VoxelShape SHAPE = Block.makeCuboidShape(0, 14, 0, 16, 16, 16);
+public class PlatformBlock extends Block {
+    protected static final VoxelShape SHAPE = Block.makeCuboidShape(0, 14, 0, 16, 16, 16);
 
-	public PlatformBlock()
-	{
-		super(Block.Properties.create(Material.WOOD, MaterialColor.WOOD).hardnessAndResistance(2.0F, 3.0F).sound(SoundType.WOOD));
-	}
+    public PlatformBlock() {
+        super(Block.Properties.create(Material.WOOD, MaterialColor.WOOD).hardnessAndResistance(2.0F, 3.0F).sound(SoundType.WOOD));
+    }
 
-	@Override
-	public boolean isToolEffective(BlockState state, ToolType tool)
-	{
-		return tool == ToolType.AXE;
-	}
+    @Override
+    public boolean isToolEffective(BlockState state, ToolType tool) {
+        return tool == ToolType.AXE;
+    }
 
-	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
-	{
-		return SHAPE;
-	}
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        return SHAPE;
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
-	{
-		Entity entity = context.getEntity();
+    @Override
+    @SuppressWarnings("deprecation")
+    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+        Entity entity = context.getEntity();
 
-		if (entity instanceof PlayerEntity && ((PlayerEntity) entity).isSneaking() || entity != null && entity.posY < pos.getY() + 14F / 16F)
-		{
-			return VoxelShapes.empty();
-		}
-		return super.getCollisionShape(state, worldIn, pos, context);
-	}
+        if (entity instanceof PlayerEntity && entity.isSneaking() || entity != null && entity.posY < pos.getY() + 14F / 16F) {
+            return VoxelShapes.empty();
+        }
+        return super.getCollisionShape(state, worldIn, pos, context);
+    }
 }

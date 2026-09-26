@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PWP",
+    "WDW",
+    "PWP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:oak_planks"
+    },
+    "D": {
+      "item": "randomthings:portable_sound_dampener"
+    },
+    "W": {
+      "item": "minecraft:white_wool"
+    }
+  },
+  "result": {
+    "item": "randomthings:sound_dampener"
+  }
+}

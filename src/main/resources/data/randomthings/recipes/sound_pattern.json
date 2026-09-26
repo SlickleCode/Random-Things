@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    " P ",
+    " L "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    }
+  },
+  "result": {
+    "item": "randomthings:sound_pattern"
+  }
+}

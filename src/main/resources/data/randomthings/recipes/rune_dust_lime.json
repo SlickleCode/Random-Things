@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:clay_ball"
+    },
+    {
+      "item": "randomthings:luminous_powder"
+    },
+    {
+      "item": "minecraft:lime_dye"
+    }
+  ],
+  "result": {
+    "item": "randomthings:rune_dust_lime",
+    "count": 8
+  }
+}

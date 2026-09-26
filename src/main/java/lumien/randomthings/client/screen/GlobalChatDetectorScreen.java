@@ -56,19 +56,26 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
 	{
-		if (this.messageField.isFocused() && keyCode == 257 /* GLFW_KEY_ENTER */)
+		if (this.messageField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE - still closes normally */)
 		{
-			submitMessage();
+			if (keyCode == 257 /* GLFW_KEY_ENTER */)
+			{
+				submitMessage();
+				return true;
+			}
+
+			// Route straight to the field instead of calling
+			// ContainerScreen.keyPressed(): that method treats any keypress its
+			// own super.keyPressed() didn't consume as the inventory keybind and
+			// closes the screen right there - and TextFieldWidget.keyPressed only
+			// consumes *special* keys (backspace, arrows, etc), not plain
+			// characters (those go through charTyped instead), so typing a plain
+			// "e" was being read as "close the GUI" mid-sentence.
+			this.messageField.keyPressed(keyCode, scanCode, modifiers);
 			return true;
 		}
 
-		boolean consumed = super.keyPressed(keyCode, scanCode, modifiers);
-
-		// TextFieldWidget.keyPressed only handles special keys (backspace, arrows,
-		// etc.) - plain characters are consumed separately via charTyped, so an
-		// unconsumed keyPressed here (e.g. plain "e") would otherwise fall through
-		// to global keybinds (opening the inventory) while still typing normally.
-		return this.messageField.isFocused() || consumed;
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
 	@Override

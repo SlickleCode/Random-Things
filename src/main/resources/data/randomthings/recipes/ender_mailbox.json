@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EHE",
+    "III",
+    " F "
+  ],
+  "key": {
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "F": {
+      "item": "minecraft:oak_fence"
+    }
+  },
+  "result": {
+    "item": "randomthings:ender_mailbox"
+  }
+}

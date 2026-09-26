@@ -27,38 +27,31 @@ import net.minecraftforge.fml.network.NetworkHooks;
  * {@link INamedContainerProvider} is built inline here rather than
  * implemented by a tile entity.
  */
-public class ChunkAnalyzerItem extends Item
-{
-	public ChunkAnalyzerItem(Item.Properties properties)
-	{
-		super(properties);
-	}
+public class ChunkAnalyzerItem extends Item {
+    public ChunkAnalyzerItem(Item.Properties properties) {
+        super(properties);
+    }
 
-	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand)
-	{
-		ItemStack stack = playerIn.getHeldItem(hand);
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
+        ItemStack stack = playerIn.getHeldItem(hand);
 
-		if (!worldIn.isRemote && hand == Hand.MAIN_HAND)
-		{
-			NetworkHooks.openGui((ServerPlayerEntity) playerIn, new INamedContainerProvider()
-			{
-				@Override
-				public ITextComponent getDisplayName()
-				{
-					return new TranslationTextComponent("item.randomthings.chunk_analyzer");
-				}
+        if (!worldIn.isRemote && hand == Hand.MAIN_HAND) {
+            NetworkHooks.openGui((ServerPlayerEntity) playerIn, new INamedContainerProvider() {
+                @Override
+                public ITextComponent getDisplayName() {
+                    return new TranslationTextComponent("item.randomthings.chunk_analyzer");
+                }
 
-				@Override
-				public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player)
-				{
-					return new ChunkAnalyzerContainer(windowId, playerInventory, null);
-				}
-			});
+                @Override
+                public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+                    return new ChunkAnalyzerContainer(windowId, playerInventory, null);
+                }
+            });
 
-			return new ActionResult<>(ActionResultType.SUCCESS, stack);
-		}
+            return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        }
 
-		return new ActionResult<>(ActionResultType.FAIL, stack);
-	}
+        return new ActionResult<>(ActionResultType.FAIL, stack);
+    }
 }

@@ -30,5 +30,11 @@ public class ModScreens
 		ScreenManager.registerFactory(ModContainerTypes.NOTIFICATION_INTERFACE, NotificationInterfaceScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.GLOBAL_CHAT_DETECTOR, GlobalChatDetectorScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.CHUNK_ANALYZER, ChunkAnalyzerScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.SOUND_RECORDER, SoundRecorderScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.SOUND_DAMPENER, SoundDampenerScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.PORTABLE_SOUND_DAMPENER, PortableSoundDampenerScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.IMBUING_STATION, ImbuingStationScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.ENDER_LETTER, EnderLetterScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.ENDER_MAILBOX, EnderMailboxScreen::new);
 	}
 }

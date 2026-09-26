@@ -8,7 +8,6 @@ import net.minecraft.item.ItemStack;
  * this apply to" filter (see {@code EntityDetectorTileEntity}'s CUSTOM
  * filter mode).
  */
-public interface IEntityFilterItem
-{
-	boolean apply(ItemStack me, Entity entity);
+public interface IEntityFilterItem {
+    boolean apply(ItemStack me, Entity entity);
 }

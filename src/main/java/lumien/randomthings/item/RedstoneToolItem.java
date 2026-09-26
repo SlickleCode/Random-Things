@@ -18,72 +18,60 @@ import net.minecraft.world.World;
  * Observer case (the original also linked the wireless Redstone Interface,
  * which is still deferred pending Mixin work).
  */
-public class RedstoneToolItem extends Item
-{
-	public RedstoneToolItem(Item.Properties properties)
-	{
-		super(properties);
-	}
+public class RedstoneToolItem extends Item {
+    public RedstoneToolItem(Item.Properties properties) {
+        super(properties);
+    }
 
-	@Override
-	public boolean hasEffect(ItemStack stack)
-	{
-		CompoundNBT tag = stack.getTag();
-		return tag != null && tag.getBoolean("linking");
-	}
+    @Override
+    public boolean hasEffect(ItemStack stack) {
+        CompoundNBT tag = stack.getTag();
+        return tag != null && tag.getBoolean("linking");
+    }
 
-	@Override
-	public ActionResultType onItemUse(ItemUseContext context)
-	{
-		World world = context.getWorld();
-		BlockPos pos = context.getPos();
-		ItemStack stack = context.getItem();
-		BlockState state = world.getBlockState(pos);
+    @Override
+    public ActionResultType onItemUse(ItemUseContext context) {
+        World world = context.getWorld();
+        BlockPos pos = context.getPos();
+        ItemStack stack = context.getItem();
+        BlockState state = world.getBlockState(pos);
 
-		if (!stack.hasTag())
-		{
-			if (state.getBlock() != ModBlocks.REDSTONE_OBSERVER)
-			{
-				return ActionResultType.FAIL;
-			}
+        if (!stack.hasTag()) {
+            if (state.getBlock() != ModBlocks.REDSTONE_OBSERVER) {
+                return ActionResultType.FAIL;
+            }
 
-			stack.setTag(new CompoundNBT());
-		}
+            stack.setTag(new CompoundNBT());
+        }
 
-		CompoundNBT tag = stack.getTag();
-		boolean linking = tag.getBoolean("linking");
+        CompoundNBT tag = stack.getTag();
+        boolean linking = tag.getBoolean("linking");
 
-		if (linking)
-		{
-			BlockPos linkingFrom = new BlockPos(tag.getInt("oX"), tag.getInt("oY"), tag.getInt("oZ"));
+        if (linking) {
+            BlockPos linkingFrom = new BlockPos(tag.getInt("oX"), tag.getInt("oY"), tag.getInt("oZ"));
 
-			if (!linkingFrom.equals(pos))
-			{
-				BlockState linkingState = world.getBlockState(linkingFrom);
+            if (!linkingFrom.equals(pos)) {
+                BlockState linkingState = world.getBlockState(linkingFrom);
 
-				if (linkingState.getBlock() == ModBlocks.REDSTONE_OBSERVER)
-				{
-					TileEntity te = world.getTileEntity(linkingFrom);
+                if (linkingState.getBlock() == ModBlocks.REDSTONE_OBSERVER) {
+                    TileEntity te = world.getTileEntity(linkingFrom);
 
-					if (te instanceof RedstoneObserverTileEntity)
-					{
-						((RedstoneObserverTileEntity) te).setTarget(pos);
-					}
-				}
-			}
+                    if (te instanceof RedstoneObserverTileEntity) {
+                        ((RedstoneObserverTileEntity) te).setTarget(pos);
+                    }
+                }
+            }
 
-			tag.putBoolean("linking", false);
-			return ActionResultType.SUCCESS;
-		}
-		else if (state.getBlock() == ModBlocks.REDSTONE_OBSERVER)
-		{
-			tag.putBoolean("linking", true);
-			tag.putInt("oX", pos.getX());
-			tag.putInt("oY", pos.getY());
-			tag.putInt("oZ", pos.getZ());
-			return ActionResultType.SUCCESS;
-		}
+            tag.putBoolean("linking", false);
+            return ActionResultType.SUCCESS;
+        } else if (state.getBlock() == ModBlocks.REDSTONE_OBSERVER) {
+            tag.putBoolean("linking", true);
+            tag.putInt("oX", pos.getX());
+            tag.putInt("oY", pos.getY());
+            tag.putInt("oZ", pos.getZ());
+            return ActionResultType.SUCCESS;
+        }
 
-		return ActionResultType.FAIL;
-	}
+        return ActionResultType.FAIL;
+    }
 }

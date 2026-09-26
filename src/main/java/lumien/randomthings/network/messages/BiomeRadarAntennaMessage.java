@@ -14,75 +14,62 @@ import net.minecraftforge.fml.network.NetworkEvent.Context;
  * the client can render the antenna's colored particle feedback. Direct port
  * of 1.12.2's {@code MessageBiomeRadarAntenna}.
  */
-public class BiomeRadarAntennaMessage implements IRTMessage
-{
-	private BlockPos pos;
-	private String[] antennaBiomes = new String[4];
+public class BiomeRadarAntennaMessage implements IRTMessage {
+    private BlockPos pos;
+    private String[] antennaBiomes = new String[4];
 
-	public BiomeRadarAntennaMessage()
-	{
-	}
+    public BiomeRadarAntennaMessage() {
+    }
 
-	public BiomeRadarAntennaMessage(BlockPos pos, String[] antennaBiomes)
-	{
-		this.pos = pos;
-		this.antennaBiomes = antennaBiomes;
-	}
+    public BiomeRadarAntennaMessage(BlockPos pos, String[] antennaBiomes) {
+        this.pos = pos;
+        this.antennaBiomes = antennaBiomes;
+    }
 
-	@Override
-	public void read(PacketBuffer pb)
-	{
-		this.pos = pb.readBlockPos();
+    @Override
+    public void read(PacketBuffer pb) {
+        this.pos = pb.readBlockPos();
 
-		int amount = pb.readInt();
+        int amount = pb.readInt();
 
-		for (int i = 0; i < amount; i++)
-		{
-			antennaBiomes[i] = pb.readString();
-		}
-	}
+        for (int i = 0; i < amount; i++) {
+            antennaBiomes[i] = pb.readString();
+        }
+    }
 
-	@Override
-	public void write(PacketBuffer pb)
-	{
-		pb.writeBlockPos(pos);
+    @Override
+    public void write(PacketBuffer pb) {
+        pb.writeBlockPos(pos);
 
-		int amount = 0;
+        int amount = 0;
 
-		for (String antennaBiome : antennaBiomes)
-		{
-			if (antennaBiome != null)
-			{
-				amount++;
-			}
-		}
+        for (String antennaBiome : antennaBiomes) {
+            if (antennaBiome != null) {
+                amount++;
+            }
+        }
 
-		pb.writeInt(amount);
+        pb.writeInt(amount);
 
-		for (String antennaBiome : antennaBiomes)
-		{
-			if (antennaBiome != null)
-			{
-				pb.writeString(antennaBiome);
-			}
-		}
-	}
+        for (String antennaBiome : antennaBiomes) {
+            if (antennaBiome != null) {
+                pb.writeString(antennaBiome);
+            }
+        }
+    }
 
-	@Override
-	public void handle(Context ctx)
-	{
-		ctx.enqueueWork(() -> {
-			if (Minecraft.getInstance().world == null)
-			{
-				return;
-			}
+    @Override
+    public void handle(Context ctx) {
+        ctx.enqueueWork(() -> {
+            if (Minecraft.getInstance().world == null) {
+                return;
+            }
 
-			TileEntity te = Minecraft.getInstance().world.getTileEntity(pos);
+            TileEntity te = Minecraft.getInstance().world.getTileEntity(pos);
 
-			if (te instanceof BiomeRadarTileEntity)
-			{
-				((BiomeRadarTileEntity) te).setAntennaBiomes(antennaBiomes);
-			}
-		});
-	}
+            if (te instanceof BiomeRadarTileEntity) {
+                ((BiomeRadarTileEntity) te).setAntennaBiomes(antennaBiomes);
+            }
+        });
+    }
 }

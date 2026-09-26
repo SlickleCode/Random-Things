@@ -16,9 +16,6 @@ public class ModTileEntityTypes
 	@ObjectHolder("advanced_redstone_torch")
 	public static TileEntityType<AdvancedRedstoneTorchTileEntity> ADVANCED_REDSTONE_TORCH;
 
-	@ObjectHolder("blood_rose")
-	public static TileEntityType<BloodRoseTileEntity> BLOOD_ROSE;
-
 	@ObjectHolder("analog_emitter")
 	public static TileEntityType<AnalogEmitterTileEntity> ANALOG_EMITTER;
 
@@ -88,13 +85,30 @@ public class ModTileEntityTypes
 	@ObjectHolder("biome_radar")
 	public static TileEntityType<BiomeRadarTileEntity> BIOME_RADAR;
 
+	@ObjectHolder("sound_box")
+	public static TileEntityType<SoundBoxTileEntity> SOUND_BOX;
+
+	@ObjectHolder("sound_dampener")
+	public static TileEntityType<SoundDampenerTileEntity> SOUND_DAMPENER;
+
+	@ObjectHolder("rune_base")
+	public static TileEntityType<RuneBaseTileEntity> RUNE_BASE;
+
+	@ObjectHolder("imbuing_station")
+	public static TileEntityType<ImbuingStationTileEntity> IMBUING_STATION;
+
+	@ObjectHolder("floo_brick")
+	public static TileEntityType<FlooBrickTileEntity> FLOO_BRICK;
+
+	@ObjectHolder("ender_mailbox")
+	public static TileEntityType<EnderMailboxTileEntity> ENDER_MAILBOX;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
 		IForgeRegistry<TileEntityType<?>> registry = typeRegistryEvent.getRegistry();
 
 		registerSimple(registry, "advanced_redstone_torch", AdvancedRedstoneTorchTileEntity::new, ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH);
-		registerSimple(registry, "blood_rose", BloodRoseTileEntity::new, ModBlocks.BLOOD_ROSE);
 		registerSimple(registry, "analog_emitter", AnalogEmitterTileEntity::new, ModBlocks.ANALOG_EMITTER);
 		registerSimple(registry, "igniter", IgniterTileEntity::new, ModBlocks.IGNITER);
 		registerSimple(registry, "online_detector", OnlineDetectorTileEntity::new, ModBlocks.ONLINE_DETECTOR);
@@ -118,6 +132,12 @@ public class ModTileEntityTypes
 		registerSimple(registry, "notification_interface", NotificationInterfaceTileEntity::new, ModBlocks.NOTIFICATION_INTERFACE);
 		registerSimple(registry, "global_chat_detector", GlobalChatDetectorTileEntity::new, ModBlocks.GLOBAL_CHAT_DETECTOR);
 		registerSimple(registry, "biome_radar", BiomeRadarTileEntity::new, ModBlocks.BIOME_RADAR);
+		registerSimple(registry, "sound_box", SoundBoxTileEntity::new, ModBlocks.SOUND_BOX);
+		registerSimple(registry, "sound_dampener", SoundDampenerTileEntity::new, ModBlocks.SOUND_DAMPENER);
+		registerSimple(registry, "rune_base", RuneBaseTileEntity::new, ModBlocks.RUNE_BASE);
+		registerSimple(registry, "imbuing_station", ImbuingStationTileEntity::new, ModBlocks.IMBUING_STATION);
+		registerSimple(registry, "floo_brick", FlooBrickTileEntity::new, ModBlocks.FLOO_BRICK);
+		registerSimple(registry, "ender_mailbox", EnderMailboxTileEntity::new, ModBlocks.ENDER_MAILBOX);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)

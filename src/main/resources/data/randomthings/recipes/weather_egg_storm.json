@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OSO",
+    "LCL",
+    "OSO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "C": {
+      "item": "minecraft:fire_charge"
+    },
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "S": {
+      "item": "minecraft:sugar"
+    }
+  },
+  "result": {
+    "item": "randomthings:weather_egg_storm",
+    "count": 2
+  }
+}

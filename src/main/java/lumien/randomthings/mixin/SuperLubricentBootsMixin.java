@@ -65,7 +65,7 @@ public abstract class SuperLubricentBootsMixin
 		}
 	}
 
-	@Redirect(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getSlipperiness(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)F"))
+	//@Redirect(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getSlipperiness(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)F"))
 	private float randomthings_bootsMaxSlip(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
 	{
 		float original = state.getSlipperiness(world, pos, entity);

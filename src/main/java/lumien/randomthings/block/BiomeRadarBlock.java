@@ -28,137 +28,110 @@ import net.minecraft.world.World;
  * {@link lumien.randomthings.item.PositionFilterItem} pointing at that spot.
  * Direct port of 1.12.2's {@code BlockBiomeRadar}.
  */
-public class BiomeRadarBlock extends Block implements IRTBlockColor
-{
-	public BiomeRadarBlock()
-	{
-		super(Block.Properties.create(Material.IRON).hardnessAndResistance(5.0F));
-	}
+public class BiomeRadarBlock extends Block implements IRTBlockColor {
+    public BiomeRadarBlock() {
+        super(Block.Properties.create(Material.IRON).hardnessAndResistance(5.0F));
+    }
 
-	@Override
-	public boolean hasTileEntity(BlockState state)
-	{
-		return true;
-	}
+    @Override
+    public boolean hasTileEntity(BlockState state) {
+        return true;
+    }
 
-	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
-	{
-		return new BiomeRadarTileEntity();
-	}
+    @Override
+    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
+        return new BiomeRadarTileEntity();
+    }
 
-	@Override
-	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
-	{
-		if (state.getBlock() != newState.getBlock())
-		{
-			TileEntity te = worldIn.getTileEntity(pos);
+    @Override
+    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (state.getBlock() != newState.getBlock()) {
+            TileEntity te = worldIn.getTileEntity(pos);
 
-			if (te instanceof BiomeRadarTileEntity)
-			{
-				ItemStack crystal = ((BiomeRadarTileEntity) te).getCurrentCrystal();
+            if (te instanceof BiomeRadarTileEntity) {
+                ItemStack crystal = ((BiomeRadarTileEntity) te).getCurrentCrystal();
 
-				if (!crystal.isEmpty())
-				{
-					Block.spawnAsEntity(worldIn, pos, crystal);
-				}
-			}
+                if (!crystal.isEmpty()) {
+                    Block.spawnAsEntity(worldIn, pos, crystal);
+                }
+            }
 
-			super.onReplaced(state, worldIn, pos, newState, isMoving);
-		}
-	}
+            super.onReplaced(state, worldIn, pos, newState, isMoving);
+        }
+    }
 
-	@Override
-	public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex)
-	{
-		if (pos == null)
-		{
-			return 0xFFFFFF;
-		}
+    @Override
+    public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex) {
+        if (pos == null) {
+            return 0xFFFFFF;
+        }
 
-		int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(worldIn, worldIn.getBiome(pos), pos);
-		return new java.awt.Color(rgb).brighter().getRGB();
-	}
+        int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(worldIn, worldIn.getBiome(pos), pos);
+        return new java.awt.Color(rgb).brighter().getRGB();
+    }
 
-	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean isMoving)
-	{
-		TileEntity te = worldIn.getTileEntity(pos);
+    @Override
+    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean isMoving) {
+        TileEntity te = worldIn.getTileEntity(pos);
 
-		if (te instanceof BiomeRadarTileEntity)
-		{
-			((BiomeRadarTileEntity) te).neighborChanged(neighborBlock);
-		}
-	}
+        if (te instanceof BiomeRadarTileEntity) {
+            ((BiomeRadarTileEntity) te).neighborChanged(neighborBlock);
+        }
+    }
 
-	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit)
-	{
-		ItemStack equipped = player.getHeldItem(hand);
-		TileEntity te = worldIn.getTileEntity(pos);
+    @Override
+    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+        ItemStack equipped = player.getHeldItem(hand);
+        TileEntity te = worldIn.getTileEntity(pos);
 
-		if (!(te instanceof BiomeRadarTileEntity))
-		{
-			return false;
-		}
+        if (!(te instanceof BiomeRadarTileEntity)) {
+            return false;
+        }
 
-		BiomeRadarTileEntity biomeRadar = (BiomeRadarTileEntity) te;
+        BiomeRadarTileEntity biomeRadar = (BiomeRadarTileEntity) te;
 
-		if (biomeRadar.getState() == STATE.IDLE)
-		{
-			if (biomeRadar.getCurrentCrystal().isEmpty())
-			{
-				if (!equipped.isEmpty() && equipped.getItem() == ModItems.BIOME_CRYSTAL)
-				{
-					if (!worldIn.isRemote)
-					{
-						biomeRadar.setCrystal(equipped.copy());
-						equipped.shrink(1);
-						worldIn.addBlockEvent(pos, this, 1037, 0);
-					}
+        if (biomeRadar.getState() == STATE.IDLE) {
+            if (biomeRadar.getCurrentCrystal().isEmpty()) {
+                if (!equipped.isEmpty() && equipped.getItem() == ModItems.BIOME_CRYSTAL) {
+                    if (!worldIn.isRemote) {
+                        biomeRadar.setCrystal(equipped.copy());
+                        equipped.shrink(1);
+                        worldIn.addBlockEvent(pos, this, 1037, 0);
+                    }
 
-					return true;
-				}
-			}
-			else
-			{
-				if (equipped.isEmpty())
-				{
-					if (!worldIn.isRemote)
-					{
-						ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
+                    return true;
+                }
+            } else {
+                if (equipped.isEmpty()) {
+                    if (!worldIn.isRemote) {
+                        ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
 
-						player.inventory.setInventorySlotContents(player.inventory.currentItem, currentCrystal);
-						biomeRadar.setCrystal(ItemStack.EMPTY);
-						worldIn.addBlockEvent(pos, this, 1036, 0);
-					}
+                        player.inventory.setInventorySlotContents(player.inventory.currentItem, currentCrystal);
+                        biomeRadar.setCrystal(ItemStack.EMPTY);
+                        worldIn.addBlockEvent(pos, this, 1036, 0);
+                    }
 
-					return true;
-				}
-			}
-		}
-		else if (biomeRadar.getState() == STATE.FINISHED)
-		{
-			if (!equipped.isEmpty() && equipped.getItem() == Items.PAPER)
-			{
-				if (!worldIn.isRemote)
-				{
-					ItemStack positionFilter = biomeRadar.generatePositionFilter();
+                    return true;
+                }
+            }
+        } else if (biomeRadar.getState() == STATE.FINISHED) {
+            if (!equipped.isEmpty() && equipped.getItem() == Items.PAPER) {
+                if (!worldIn.isRemote) {
+                    ItemStack positionFilter = biomeRadar.generatePositionFilter();
 
-					equipped.shrink(1);
-					player.inventory.addItemStackToInventory(positionFilter);
-				}
+                    equipped.shrink(1);
+                    player.inventory.addItemStackToInventory(positionFilter);
+                }
 
-				return true;
-			}
-		}
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
-	}
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
+    }
 }

@@ -1,8 +1,5 @@
 package lumien.randomthings.item;
 
-import java.util.List;
-import java.util.Optional;
-
 import lumien.randomthings.lib.IEntityFilterItem;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
@@ -17,6 +14,9 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Right-click (attack) any living entity to "capture" its exact type as this
  * item's filter target; it then matches only entities of that same type
@@ -30,62 +30,50 @@ import net.minecraft.world.World;
  * equivalent, and arguably more correct given how entities are structured
  * in this version.
  */
-public class EntityFilterItem extends Item implements IEntityFilterItem
-{
-	public EntityFilterItem(Item.Properties properties)
-	{
-		super(properties);
-	}
+public class EntityFilterItem extends Item implements IEntityFilterItem {
+    public EntityFilterItem(Item.Properties properties) {
+        super(properties);
+    }
 
-	private static Optional<EntityType<?>> getFilterType(ItemStack filter)
-	{
-		CompoundNBT tag = filter.getTag();
+    private static Optional<EntityType<?>> getFilterType(ItemStack filter) {
+        CompoundNBT tag = filter.getTag();
 
-		if (tag == null || !tag.contains("entityType"))
-		{
-			return Optional.empty();
-		}
+        if (tag == null || !tag.contains("entityType")) {
+            return Optional.empty();
+        }
 
-		return EntityType.byKey(tag.getString("entityType"));
-	}
+        return EntityType.byKey(tag.getString("entityType"));
+    }
 
-	@Override
-	public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand)
-	{
-		if (!playerIn.world.isRemote)
-		{
-			if (!stack.hasTag())
-			{
-				stack.setTag(new CompoundNBT());
-			}
+    @Override
+    public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
+        if (!playerIn.world.isRemote) {
+            if (!stack.hasTag()) {
+                stack.setTag(new CompoundNBT());
+            }
 
-			stack.getTag().putString("entityType", EntityType.getKey(target.getType()).toString());
-		}
+            stack.getTag().putString("entityType", EntityType.getKey(target.getType()).toString());
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag advanced)
-	{
-		super.addInformation(stack, world, tooltip, advanced);
+    @Override
+    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag advanced) {
+        super.addInformation(stack, world, tooltip, advanced);
 
-		Optional<EntityType<?>> filterType = getFilterType(stack);
+        Optional<EntityType<?>> filterType = getFilterType(stack);
 
-		if (filterType.isPresent())
-		{
-			tooltip.add(filterType.get().getName());
-		}
-		else
-		{
-			tooltip.add(new TranslationTextComponent("tooltip.randomthings.entity_filter.invalid_entity"));
-		}
-	}
+        if (filterType.isPresent()) {
+            tooltip.add(filterType.get().getName());
+        } else {
+            tooltip.add(new TranslationTextComponent("tooltip.randomthings.entity_filter.invalid_entity"));
+        }
+    }
 
-	@Override
-	public boolean apply(ItemStack me, Entity entity)
-	{
-		Optional<EntityType<?>> filterType = getFilterType(me);
-		return !filterType.isPresent() || filterType.get() == entity.getType();
-	}
+    @Override
+    public boolean apply(ItemStack me, Entity entity) {
+        Optional<EntityType<?>> filterType = getFilterType(me);
+        return !filterType.isPresent() || filterType.get() == entity.getType();
+    }
 }

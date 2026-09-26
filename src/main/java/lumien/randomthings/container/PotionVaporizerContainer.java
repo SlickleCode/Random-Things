@@ -1,6 +1,7 @@
 package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
+import lumien.randomthings.tileentity.PotionVaporizerItemHandler;
 import lumien.randomthings.tileentity.PotionVaporizerTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -13,7 +14,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.IntReferenceHolder;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 /**
@@ -31,7 +31,7 @@ public class PotionVaporizerContainer extends Container
 
 	public PotionVaporizerContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(3), IWorldPosCallable.DUMMY);
+		this(windowId, (PlayerInventory) playerInventory, new PotionVaporizerItemHandler(), IWorldPosCallable.DUMMY);
 	}
 
 	public PotionVaporizerContainer(int windowId, PlayerInventory playerInventory, IItemHandler itemHandler, IWorldPosCallable pos)

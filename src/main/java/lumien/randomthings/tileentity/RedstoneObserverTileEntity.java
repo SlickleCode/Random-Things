@@ -14,6 +14,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IWorldPosCallable;
@@ -107,7 +108,26 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 		}
 
 		this.markDirty();
+
+		// markDirty() alone only flags the chunk for a disk resave - it does
+		// not push anything to already-connected clients. Within a single
+		// singleplayer session this went unnoticed (the integrated server
+		// shares this exact TE object with the "client" side, so the line
+		// renderer already sees the change), but a real dedicated server
+		// would never tell a watching client about a newly-set target
+		// without this.
+		if (this.world != null)
+		{
+			this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+		}
+
 		updating = false;
+	}
+
+	@Override
+	public SUpdateTileEntityPacket getUpdatePacket()
+	{
+		return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
 	}
 
 	public int getWeakPower(Direction side)
@@ -133,6 +153,24 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 		}
 
 		return compound;
+	}
+
+	/**
+	 * {@code TileEntity.getUpdateTag()}'s default implementation calls the
+	 * *private* {@code writeInternal()} directly (confirmed via `javap -c`),
+	 * not the public, overridable {@code write()} - so it silently carries
+	 * only the base id/position, never a subclass's own fields, unless a
+	 * subclass overrides this too. That's exactly why a target set *during*
+	 * an active session rendered fine (singleplayer's integrated server
+	 * shares the same TE object between "client" and "server" logic, no
+	 * networking involved) but reloading the world lost it: a genuine reload
+	 * re-syncs tile entities to the client over the loopback channel using
+	 * this method, and the target was never actually in that payload.
+	 */
+	@Override
+	public CompoundNBT getUpdateTag()
+	{
+		return write(new CompoundNBT());
 	}
 
 	@Override

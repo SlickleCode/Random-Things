@@ -4,8 +4,10 @@ import lumien.randomthings.tileentity.SpecialChestTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.state.properties.ChestType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -28,11 +30,22 @@ import net.minecraftforge.fml.network.NetworkHooks;
 /**
  * A re-skinned, non-merging (always single, never becomes a double chest)
  * vanilla-style chest. Deliberately does NOT extend vanilla
- * {@code ChestBlock} - that class bakes in the double-chest {@code TYPE}
- * property and adjacency-merging logic (`updatePostPlacement`), which
- * 1.12.2's original never had; this keeps that same simpler single-chest-only
- * behavior instead of picking up double-chest merging as an unintended
- * bonus feature.
+ * {@code ChestBlock} - that class bakes in adjacency-merging logic
+ * (`updatePostPlacement`) that 1.12.2's original never had; this keeps that
+ * same simpler single-chest-only behavior instead of picking up double-chest
+ * merging as an unintended bonus feature.
+ * <p>
+ * It does still need to carry {@link ChestBlock#TYPE} itself, always fixed to
+ * {@link ChestType#SINGLE} and never read or written beyond that: vanilla's
+ * {@code ChestTileEntity} (which {@link SpecialChestTileEntity} extends
+ * directly for its lid-animation/open-sound logic) unconditionally calls
+ * {@code getBlockState().get(ChestBlock.TYPE)} in a few places - e.g. the
+ * open/close sound - with no {@code instanceof ChestBlock} guard, so a block
+ * that doesn't register this property crashes the moment the chest is opened
+ * (`IllegalArgumentException: Cannot get property ... TYPE ... as it does
+ * not exist`). Registering it - without ever implementing the merging logic
+ * that would let it become anything other than SINGLE - satisfies that
+ * assumption while keeping this block's own always-single behavior exactly.
  */
 public class SpecialChestBlock extends Block
 {
@@ -45,13 +58,13 @@ public class SpecialChestBlock extends Block
 		super(Block.Properties.create(Material.WOOD).hardnessAndResistance(2.5F));
 
 		this.chestType = chestType;
-		this.setDefaultState(this.stateContainer.getBaseState().with(HorizontalBlock.HORIZONTAL_FACING, Direction.NORTH));
+		this.setDefaultState(this.stateContainer.getBaseState().with(HorizontalBlock.HORIZONTAL_FACING, Direction.NORTH).with(ChestBlock.TYPE, ChestType.SINGLE));
 	}
 
 	@Override
 	protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
 	{
-		builder.add(HorizontalBlock.HORIZONTAL_FACING);
+		builder.add(HorizontalBlock.HORIZONTAL_FACING, ChestBlock.TYPE);
 	}
 
 	@Override

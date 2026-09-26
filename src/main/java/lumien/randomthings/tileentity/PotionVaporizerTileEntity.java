@@ -6,6 +6,7 @@ import java.util.List;
 
 import lumien.randomthings.block.PotionVaporizerBlock;
 import lumien.randomthings.container.PotionVaporizerContainer;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -62,29 +63,12 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 	private int checkCounter;
 	private boolean firstCheck = true;
 
-	private final ItemStackHandler itemHandler = new ItemStackHandler(3)
+	private final ItemStackHandler itemHandler = new PotionVaporizerItemHandler()
 	{
 		@Override
 		protected void onContentsChanged(int slot)
 		{
 			markDirty();
-		}
-
-		@Override
-		public boolean isItemValid(int slot, ItemStack stack)
-		{
-			switch (slot)
-			{
-				case 0:
-					return AbstractFurnaceTileEntity.isFuel(stack);
-				case 1:
-					List<EffectInstance> effects = PotionUtils.getEffectsFromStack(stack);
-					return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getPotion().isInstant();
-				case 2:
-					return false;
-				default:
-					return false;
-			}
 		}
 	};
 
@@ -313,7 +297,7 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 			{
 				checkedBlocks.add(toCheck);
 
-				if (this.world.isBlockLoaded(toCheck) && this.world.isAirBlock(toCheck))
+				if (this.world.isBlockLoaded(toCheck) && isRoomSpace(toCheck))
 				{
 					validBlocks.add(toCheck);
 					checkCounter++;
@@ -334,6 +318,28 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 		{
 			resetSearch();
 		}
+	}
+
+	/**
+	 * Whether the flood-fill should treat this position as part of the
+	 * enclosed room (continuing the search through it, and including it in
+	 * {@link #affectedBlocks} so entities standing in it get the potion
+	 * effect). 1.12.2's original (and this port, until now) used a plain
+	 * {@code world.isAirBlock(pos)} check here - confirmed via
+	 * {@code git show origin/1.12.2}, not a porting gap - so a torch, sign,
+	 * button, or any other non-full block placed inside the room would stop
+	 * the flood-fill right there, treating it like a solid wall. Changed per
+	 * explicit user request ("ignore non-full blocks like torches") to also
+	 * accept any block with no collision shape (torches, signs, buttons,
+	 * levers, flowers, tripwire, etc. all qualify; slabs/stairs/fences do
+	 * not, since they DO have real collision) - a deliberate divergence from
+	 * both the original and this port's own prior behavior, not a bug fix.
+	 */
+	private boolean isRoomSpace(BlockPos pos)
+	{
+		BlockState state = this.world.getBlockState(pos);
+
+		return state.isAir() || state.getCollisionShape(this.world, pos).isEmpty();
 	}
 
 	private void resetSearch()

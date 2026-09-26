@@ -66,9 +66,6 @@ public class ModBlocks
 
 	@ObjectHolder("platform_darkoak")
 	public static Block PLATFORM_DARKOAK;
-	
-	@ObjectHolder("blood_rose")
-	public static Block BLOOD_ROSE;
 
 
 	@ObjectHolder("lapis_glass")
@@ -270,6 +267,24 @@ public class ModBlocks
 	@ObjectHolder("biome_radar")
 	public static Block BIOME_RADAR;
 
+	@ObjectHolder("sound_box")
+	public static Block SOUND_BOX;
+
+	@ObjectHolder("sound_dampener")
+	public static Block SOUND_DAMPENER;
+
+	@ObjectHolder("rune_base")
+	public static Block RUNE_BASE;
+
+	@ObjectHolder("imbuing_station")
+	public static Block IMBUING_STATION;
+
+	@ObjectHolder("floo_brick")
+	public static Block FLOO_BRICK;
+
+	@ObjectHolder("ender_mailbox")
+	public static Block ENDER_MAILBOX;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -307,8 +322,6 @@ public class ModBlocks
 		registry.register(new PlatformBlock().setRegistryName("platform_jungle"));
 		registry.register(new PlatformBlock().setRegistryName("platform_acacia"));
 		registry.register(new PlatformBlock().setRegistryName("platform_darkoak"));
-		
-		registry.register(new BloodRoseBlock().setRegistryName("blood_rose"));
 
 		registry.register(new LapisGlassBlock().setRegistryName("lapis_glass"));
 		registry.register(new LapisLampBlock().setRegistryName("lapis_lamp"));
@@ -398,5 +411,16 @@ public class ModBlocks
 		registry.register(new GlobalChatDetectorBlock().setRegistryName("global_chat_detector"));
 
 		registry.register(new BiomeRadarBlock().setRegistryName("biome_radar"));
+
+		registry.register(new SoundBoxBlock().setRegistryName("sound_box"));
+		registry.register(new SoundDampenerBlock().setRegistryName("sound_dampener"));
+
+		registry.register(new RuneBaseBlock().setRegistryName("rune_base"));
+
+		registry.register(new ImbuingStationBlock().setRegistryName("imbuing_station"));
+
+		registry.register(new FlooBrickBlock().setRegistryName("floo_brick"));
+
+		registry.register(new EnderMailboxBlock().setRegistryName("ender_mailbox"));
 	}
 }

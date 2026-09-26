@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DDD",
+    "DPD",
+    "DDD"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "D": {
+      "item": "randomthings:floo_powder"
+    }
+  },
+  "result": {
+    "item": "randomthings:floo_token",
+    "count": 2
+  }
+}

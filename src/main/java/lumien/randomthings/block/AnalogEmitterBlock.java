@@ -26,107 +26,90 @@ import net.minecraftforge.fml.network.NetworkHooks;
  * side and, while powered, re-emits a player-configurable strength (0-15)
  * out every other side.
  */
-public class AnalogEmitterBlock extends Block
-{
-	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
+public class AnalogEmitterBlock extends Block {
+    public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
-	public AnalogEmitterBlock()
-	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(3.0F, 5.0F));
+    public AnalogEmitterBlock() {
+        super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(3.0F, 5.0F));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH));
-	}
+        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH));
+    }
 
-	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
-	{
-		builder.add(FACING);
-	}
+    @Override
+    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+        builder.add(FACING);
+    }
 
-	@Override
-	public boolean hasTileEntity(BlockState state)
-	{
-		return true;
-	}
+    @Override
+    public boolean hasTileEntity(BlockState state) {
+        return true;
+    }
 
-	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
-	{
-		return new AnalogEmitterTileEntity();
-	}
+    @Override
+    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
+        return new AnalogEmitterTileEntity();
+    }
 
-	@Override
-	public boolean canProvidePower(BlockState state)
-	{
-		return true;
-	}
+    @Override
+    public boolean canProvidePower(BlockState state) {
+        return true;
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
-	{
-		TileEntity te = blockAccess.getTileEntity(pos);
+    @Override
+    @SuppressWarnings("deprecation")
+    public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
+        TileEntity te = blockAccess.getTileEntity(pos);
 
-		if (!(te instanceof AnalogEmitterTileEntity))
-		{
-			return 0;
-		}
+        if (!(te instanceof AnalogEmitterTileEntity)) {
+            return 0;
+        }
 
-		Direction facing = blockState.get(FACING);
+        Direction facing = blockState.get(FACING);
 
-		return side != facing ? ((AnalogEmitterTileEntity) te).getOutput() : 0;
-	}
+        return side != facing ? ((AnalogEmitterTileEntity) te).getOutput() : 0;
+    }
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
-	{
-		return getWeakPower(blockState, blockAccess, pos, side);
-	}
+    @Override
+    @SuppressWarnings("deprecation")
+    public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
+        return getWeakPower(blockState, blockAccess, pos, side);
+    }
 
-	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
-	{
-		TileEntity te = worldIn.getTileEntity(pos);
+    @Override
+    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        TileEntity te = worldIn.getTileEntity(pos);
 
-		if (te instanceof AnalogEmitterTileEntity)
-		{
-			((AnalogEmitterTileEntity) te).updateInput(worldIn, state.get(FACING));
-		}
-	}
+        if (te instanceof AnalogEmitterTileEntity) {
+            ((AnalogEmitterTileEntity) te).updateInput(worldIn, state.get(FACING));
+        }
+    }
 
-	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context)
-	{
-		LivingEntity placer = context.getPlayer();
-		Direction facing = placer != null ? Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z) : Direction.NORTH;
+    @Override
+    public BlockState getStateForPlacement(BlockItemUseContext context) {
+        LivingEntity placer = context.getPlayer();
+        Direction facing = placer != null ? Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z) : Direction.NORTH;
 
-		return this.getDefaultState().with(FACING, facing);
-	}
+        return this.getDefaultState().with(FACING, facing);
+    }
 
-	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
-	{
-		if (placer != null)
-		{
-			Direction facing = Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z);
-			worldIn.setBlockState(pos, state.with(FACING, facing), 2);
-		}
-	}
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (placer != null) {
+            Direction facing = Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z);
+            worldIn.setBlockState(pos, state.with(FACING, facing), 2);
+        }
+    }
 
-	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
-	{
-		if (!worldIn.isRemote)
-		{
-			TileEntity te = worldIn.getTileEntity(pos);
+    @Override
+    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (!worldIn.isRemote) {
+            TileEntity te = worldIn.getTileEntity(pos);
 
-			if (te instanceof AnalogEmitterTileEntity)
-			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (AnalogEmitterTileEntity) te);
-			}
-		}
+            if (te instanceof AnalogEmitterTileEntity) {
+                NetworkHooks.openGui((ServerPlayerEntity) player, (AnalogEmitterTileEntity) te);
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 }

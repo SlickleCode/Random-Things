@@ -2,9 +2,9 @@
     "ambientocclusion": false,
     "textures": {
         "particle": "block/repeater_on",
-        "slab": "block/stone_slab_top",
+        "slab": "block/stone",
         "top": "randomthings:block/advanced_redstone_repeater/on",
-        "lit": "block/redstone_torch_on"
+        "lit": "block/redstone_torch"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

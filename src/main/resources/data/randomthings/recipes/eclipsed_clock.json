@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OGO",
+    "GEG",
+    "OGO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "E": {
+      "item": "minecraft:ghast_tear"
+    }
+  },
+  "result": {
+    "item": "randomthings:eclipsed_clock"
+  }
+}

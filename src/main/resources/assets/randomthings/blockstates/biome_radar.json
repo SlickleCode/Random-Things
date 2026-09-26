@@ -1,5 +1,7 @@
 {
-    "variants": {
-        "": { "model": "randomthings:block/biome_radar" }
+  "variants": {
+    "": {
+      "model": "randomthings:block/biome_radar"
     }
+  }
 }

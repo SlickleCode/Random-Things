@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "randomthings:block/imbuing_station/top",
+    "down": "randomthings:block/imbuing_station/bottom",
+    "up": "randomthings:block/imbuing_station/top",
+    "north": "randomthings:block/imbuing_station/side",
+    "east": "randomthings:block/imbuing_station/side",
+    "south": "randomthings:block/imbuing_station/side",
+    "west": "randomthings:block/imbuing_station/side"
+  }
+}

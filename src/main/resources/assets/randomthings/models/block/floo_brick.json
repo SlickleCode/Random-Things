@@ -1,0 +1,80 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "base": "randomthings:block/floo_brick/base",
+    "tint": "randomthings:block/floo_brick/tint",
+    "particle": "randomthings:block/floo_brick/base"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#base",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#base",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#base",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#base",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#base",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#base",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        -0.01,
+        -0.01,
+        -0.01
+      ],
+      "to": [
+        16.01,
+        16.01,
+        16.01
+      ],
+      "faces": {
+        "down": {
+          "texture": "#tint"
+        },
+        "up": {
+          "texture": "#tint"
+        },
+        "north": {
+          "texture": "#tint"
+        },
+        "south": {
+          "texture": "#tint"
+        },
+        "west": {
+          "texture": "#tint"
+        },
+        "east": {
+          "texture": "#tint"
+        }
+      }
+    }
+  ]
+}

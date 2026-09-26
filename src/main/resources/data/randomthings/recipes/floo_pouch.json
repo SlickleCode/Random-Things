@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    "LFL",
+    "LLL"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "F": {
+      "item": "randomthings:floo_powder"
+    }
+  },
+  "result": {
+    "item": "randomthings:floo_pouch"
+  }
+}

@@ -11,7 +11,6 @@ import net.minecraft.world.IEnviromentBlockReader;
  * single {@code ColorHandlerEvent.Block} listener in {@code RandomThings}
  * rather than needing a bespoke registration per block.
  */
-public interface IRTBlockColor
-{
-	int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex);
+public interface IRTBlockColor {
+    int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex);
 }
