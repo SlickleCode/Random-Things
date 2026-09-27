@@ -109,7 +109,7 @@ public class ReinforcedEnderBucketItem extends Item {
         Block hitBlock = world.getBlockState(blockResult.getPos()).getBlock();
 
         if (isFluidBlock(hitBlock)) {
-            return pickUp(world, player, stack);
+            return pickUp(world, player, stack, blockResult.getPos());
         }
 
         FluidStack contained = getContainedFluid(stack);
@@ -143,12 +143,9 @@ public class ReinforcedEnderBucketItem extends Item {
         return new ActionResult<>(ActionResultType.FAIL, stack);
     }
 
-    private ActionResult<ItemStack> pickUp(World world, PlayerEntity player, ItemStack stackIn) {
+    private ActionResult<ItemStack> pickUp(World world, PlayerEntity player, ItemStack stackIn, BlockPos startPos) {
         boolean collectAll = player.isSneaking();
         ItemStack stack = stackIn;
-
-        RayTraceResult result = rayTrace(world, player, RayTraceContext.FluidMode.ANY);
-        BlockPos startPos = ((BlockRayTraceResult) result).getPos();
 
         List<BlockPos> toCheck = new ArrayList<>();
         Set<BlockPos> checked = new HashSet<>();
