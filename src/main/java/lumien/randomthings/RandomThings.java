@@ -479,12 +479,22 @@ public class RandomThings {
      * than filtering which biomes got the generator at all) rather than
      * filtering here, so registration stays the same simple unconditional
      * loop for all three, and behaves identically to the original per-biome.
+     * <p>
+     * Ancient Furnace is registered the same unconditional way - its "cold
+     * biomes only" restriction (see the wiki) is a per-attempt {@code
+     * biome.getTemperature(pos)} check inside {@link
+     * lumien.randomthings.worldgen.AncientFurnaceFeature#place}, the same
+     * division of labor {@link lumien.randomthings.worldgen.PitcherPlantFeature}
+     * already uses for its own (opposite) "warm biomes only" restriction. The
+     * {@code ChanceConfig} here is a hand-picked "rare" value - the wiki
+     * gives no exact rarity to match.
      */
     private void registerWorldgenFeatures() {
         ForgeRegistries.BIOMES.forEach(biome -> {
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.BEAN_SPROUT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(2)));
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.PITCHER_PLANT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.LOTUS, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
+            biome.addFeature(GenerationStage.Decoration.LOCAL_MODIFICATIONS, Biome.createDecoratedFeature(ModFeatures.ANCIENT_FURNACE, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(400)));
         });
     }
 

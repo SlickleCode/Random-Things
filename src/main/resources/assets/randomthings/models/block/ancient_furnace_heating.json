@@ -1,0 +1,8 @@
+{
+    "parent": "block/cube_bottom_top",
+    "textures": {
+        "top": "randomthings:block/ancient_furnace_top_lit",
+        "bottom": "randomthings:block/ancient_furnace_bottom",
+        "side": "randomthings:block/ancient_furnace_side"
+    }
+}

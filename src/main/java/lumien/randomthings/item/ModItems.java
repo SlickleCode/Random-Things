@@ -357,6 +357,7 @@ public class ModItems {
         registry.register(new MagicHoodItem(new Item.Properties().group(RT_ITEM_GROUP).rarity(net.minecraft.item.Rarity.RARE)).setRegistryName("magic_hood"));
         registerItemForBlock(registry, ModBlocks.RAIN_SHIELD);
         registerItemForBlock(registry, ModBlocks.ENDER_BRIDGE, ModBlocks.PRISMARINE_ENDER_BRIDGE, ModBlocks.ENDER_ANCHOR);
+        registerItemForBlock(registry, ModBlocks.PEACE_CANDLE, ModBlocks.ANCIENT_FURNACE);
     }
 
     private static Block lookupBlock(String name) {

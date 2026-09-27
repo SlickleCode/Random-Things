@@ -4,6 +4,7 @@ import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.item.MagicHoodItem;
 import lumien.randomthings.item.SuperLubricentBootsItem;
+import lumien.randomthings.tileentity.PeaceCandleTileEntity;
 import lumien.randomthings.tileentity.RainShieldTileEntity;
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
 import net.minecraft.block.Block;
@@ -124,7 +125,16 @@ public class AsmHandler {
      * {@code LivingSpawnEvent.CheckSpawn} listeners this used to live in
      * ({@code RandomThings}'s constructor) were removed entirely rather
      * than kept alongside this as duplicate logic.
+     * <p>
+     * Peace Candle's "no natural mob spawning in a 3 chunk radius" (see
+     * {@code PeaceCandleTileEntity}) reuses this exact same dispatch point
+     * rather than a new coremod - it's just another DENY source for {@code
+     * MONSTER}-classified spawns, checked before the existing lamp scan
+     * (tracked-TE lookup instead of a block scan, since a 3-chunk radius is
+     * 2016 blocks on a side - far too wide to scan per spawn attempt).
      */
+    private static final int PEACE_CANDLE_CHUNK_RADIUS = 3;
+
     public static boolean overrideSpawnResult(boolean original, EntityType<?> type, IWorld iWorld, BlockPos pos) {
         World world = iWorld.getWorld();
 
@@ -141,6 +151,12 @@ public class AsmHandler {
         }
 
         if (type.getClassification() == EntityClassification.MONSTER) {
+            for (PeaceCandleTileEntity candle : PeaceCandleTileEntity.candles) {
+                if (candle.isInRange(world, pos, PEACE_CANDLE_CHUNK_RADIUS)) {
+                    return false;
+                }
+            }
+
             for (BlockPos p : BlockPos.getAllInBoxMutable(pos.add(-4, -4, -4), pos.add(4, 4, 4))) {
                 Block block = world.getBlockState(p).getBlock();
 

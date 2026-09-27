@@ -24,7 +24,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Advanced Redstone Repeater | BlockAdvancedRedstoneRepeater, TileEntityAdvancedRedstoneRepeater | DONE | No |
 | Advanced Redstone Torch | BlockAdvancedRedstoneTorch, TileEntityAdvancedRedstoneTorch | DONE-UNTESTED | No |
 | Analog Emitter | BlockAnalogEmitter, TileEntityAnalogEmitter | DONE | No |
-| Ancient Furnace | BlockAncientFurnace, TileEntityAncientFurnace, WorldGenAncientFurnace | NOT STARTED | No |
+| Ancient Furnace | BlockAncientFurnace, TileEntityAncientFurnace, WorldGenAncientFurnace | DONE-UNTESTED (worldgen batch, #262-267) | No |
 | Artificial End Portal | EntityArtificialEndPortal, ItemIngredient.EVIL_TEAR | DONE-UNTESTED (#238-243) | No |
 | Beans | BlockBeanSprout/BeanStalk/Pod, ItemBean, ItemBeanStew | DONE | No |
 | Biome Blocks | BlockBiomeStone, BlockBiomeGlass, ItemBiomeCrystal | DONE-UNTESTED | No |
@@ -79,7 +79,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Obsidian Skull | ItemObsidianSkull | DONE (#126); Baubles ring variant moot (Baubles dropped project-wide) | No |
 | Obsidian Water Walking Boots | ItemObsidianWaterWalkingBoots | DONE (#131-132) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Online Detector | BlockOnlineDetector, TileEntityOnlineDetector | BUGGY (#75, GUI-close bug + text field not saving) | No |
-| Peace Candle | BlockPeaceCandle, TileEntityPeaceCandle, WorldGenPeaceCandle | NOT STARTED | Yes (WorldEntitySpawner mob-suppression + StructureVillagePieces$Church worldgen) |
+| Peace Candle | BlockPeaceCandle, TileEntityPeaceCandle, WorldGenPeaceCandle | PARTIAL, DONE-UNTESTED (worldgen batch, #268-270 - mob-suppression only, no village-church generation, see note below) | No (reuses the existing `SpawnPlacementTransformer` coremod hook, not a new one) |
 | Pitcher Plant | BlockPitcherPlant | DONE-UNTESTED (decorative only so far) | No |
 | Platforms | BlockPlatform (6 wood types) | DONE-UNTESTED | No |
 | Player Interface | BlockPlayerInterface, TileEntityPlayerInterface | DONE-UNTESTED | No |
@@ -121,7 +121,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Water Walking Boots | ItemWaterWalkingBoots | DONE, needs retest (#130) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Weather Eggs | ItemWeatherEgg, EntityThrownWeatherEgg | DONE-UNTESTED (#193-205) | No |
 
-Rough tally: ~72 of 100 have some 1.14.4 code (many untested); ~27 not started; 1 removed per
+Rough tally: ~74 of 100 have some 1.14.4 code (many untested); ~25 not started; 1 removed per
 explicit request.
 
 **Item Filter, deliberately skipped (2026-09-26):** its only two 1.12.2 consumers - Advanced Item
@@ -131,6 +131,23 @@ item-type equality) instead of consuming the fully configurable `ItemItemFilter`
 Filter now would produce an item nothing in this codebase actually uses. User chose to leave it
 NOT STARTED rather than build an orphaned item or retrofit the two already-shipped consumers - revisit
 if a future feature actually needs the fully configurable version.
+
+**Peace Candle's village-church generation, deferred (2026-09-27):** the wiki gives Peace Candle a
+"~33% chance to generate inside a village church" - 1.12.2 built that church as a brand-new
+`StructureVillagePieces` piece via ASM, since 1.12.2's village generator was hardcoded Java piece
+classes. 1.14.4's village generator is a completely different, fully data-driven jigsaw/structure-
+template system with no hardcoded piece classes left to hook into; reproducing a whole custom
+building would mean hand-authoring NBT structure data and a template-pool override with no in-game
+structure-block tooling available in this environment to build or export it correctly. Shipped
+instead: the block and its "no natural mob spawning in a 3 chunk radius" behavior, fully working,
+creative-menu only until natural generation exists. Revisit with real structure-block access.
+
+**Ancient Furnace's biome conversion, disclosed simplification (2026-09-27):** the wiki's "turn an
+area... into a warmer biome" is ported as its concretely observable effect (melts surface snow back
+to the block underneath, melts ice to water, within a ~56-block radius of the wiki's own "10000
+blocks" default) rather than a literal biome-registry reassignment - 1.14.4 bakes biomes into each
+chunk's `BiomeContainer` at generation time with no supported public API to reassign them at runtime.
+See `AncientFurnaceTileEntity`'s own javadoc for the full reasoning.
 
 ## Not migrating
 

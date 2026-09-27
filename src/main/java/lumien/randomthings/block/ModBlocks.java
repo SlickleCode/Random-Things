@@ -303,6 +303,12 @@ public class ModBlocks
 	@ObjectHolder("rain_shield")
 	public static Block RAIN_SHIELD;
 
+	@ObjectHolder("peace_candle")
+	public static Block PEACE_CANDLE;
+
+	@ObjectHolder("ancient_furnace")
+	public static Block ANCIENT_FURNACE;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -450,5 +456,8 @@ public class ModBlocks
 		registry.register(new EnderAnchorBlock().setRegistryName("ender_anchor"));
 
 		registry.register(new RainShieldBlock().setRegistryName("rain_shield"));
+
+		registry.register(new PeaceCandleBlock().setRegistryName("peace_candle"));
+		registry.register(new AncientFurnaceBlock().setRegistryName("ancient_furnace"));
 	}
 }

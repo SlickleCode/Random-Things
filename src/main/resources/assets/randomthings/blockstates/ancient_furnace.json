@@ -1,0 +1,6 @@
+{
+    "variants": {
+        "heating=false": { "model": "randomthings:block/ancient_furnace" },
+        "heating=true": { "model": "randomthings:block/ancient_furnace_heating" }
+    }
+}

@@ -121,6 +121,12 @@ public class ModTileEntityTypes
 	@ObjectHolder("rain_shield")
 	public static TileEntityType<RainShieldTileEntity> RAIN_SHIELD;
 
+	@ObjectHolder("peace_candle")
+	public static TileEntityType<PeaceCandleTileEntity> PEACE_CANDLE;
+
+	@ObjectHolder("ancient_furnace")
+	public static TileEntityType<AncientFurnaceTileEntity> ANCIENT_FURNACE;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
@@ -162,6 +168,8 @@ public class ModTileEntityTypes
 		registerSimple(registry, "prismarine_ender_bridge", PrismarineEnderBridgeTileEntity::new, ModBlocks.PRISMARINE_ENDER_BRIDGE);
 		registerSimple(registry, "ender_anchor", EnderAnchorTileEntity::new, ModBlocks.ENDER_ANCHOR);
 		registerSimple(registry, "rain_shield", RainShieldTileEntity::new, ModBlocks.RAIN_SHIELD);
+		registerSimple(registry, "peace_candle", PeaceCandleTileEntity::new, ModBlocks.PEACE_CANDLE);
+		registerSimple(registry, "ancient_furnace", AncientFurnaceTileEntity::new, ModBlocks.ANCIENT_FURNACE);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)

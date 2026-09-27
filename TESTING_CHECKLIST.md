@@ -427,6 +427,20 @@ Advanced Redstone Repeater Notes: Add a minimum and maximum cap on the delays fo
 | 260 | Rain Shield — while raining, shows a ring of flame/smoke particles swirling around its candle, regardless of whether the shield is currently active or powered | | |
 | 261 | Rain Shield — the falling rain/snow visual itself is NOT locally hidden near the shield (you'll still see rain appear to fall through the shielded area even though it has no mechanical effect there) | | Disclosed simplification - the client-side visual suppression 1.12.2 had would need patching deep inside a ~300-line vanilla rendering method's own loop body (confirmed via `javap -c`), not a simple return-value wrap like every other Batch 7 redirect - not implemented. Not a bug if reported. |
 
+### Slice 25 — Ancient Furnace, Peace Candle (worldgen batch)
+
+| #   | Feature | Result | Feedback |
+| --- | --- | --- | --- |
+| 262 | Ancient Furnace — rarely found naturally embedded (top face flush with the ground) in cold biomes (snowy tundra, taiga, mountains, etc.) - creative-menu obtainable too, for testing without world-searching | | New this session. |
+| 263 | Ancient Furnace — right-clicking the top opening with a Nether Star consumes it (unless creative) and starts it heating; its top texture changes to a lit/glowing variant and it emits rising flame/smoke particles | | |
+| 264 | Ancient Furnace — right-clicking with anything else, or right-clicking one already heating, does nothing | | |
+| 265 | Ancient Furnace — after a multi-minute heat-up, it melts surface snow (and ice, to water) in a large radius around itself, then explodes and is destroyed | | Disclosed simplification: this melts the visible snow/ice ("removing any surface snow", per the wiki) rather than reassigning the area's actual biome ID - see `AncientFurnaceTileEntity`'s javadoc. Heating duration/explosion strength are hand-picked defaults, not verified against 1.12.2. |
+| 266 | Ancient Furnace — very hard to break with a pickaxe if left un-activated; breaking it before activation drops itself | | |
+| 267 | Ancient Furnace — heating state (and progress) survives a world save/reload while mid-heat-up | | |
+| 268 | Peace Candle — standalone decorative candle, creative-menu obtainable; needs solid ground underneath (auto-breaks and drops otherwise, like a torch) | | New this session. No natural village generation yet - see feedback. |
+| 269 | Peace Candle — no hostile mobs naturally spawn within a 3-chunk radius of one (test by placing one down and waiting/forcing a spawn attempt nearby) | | Reuses the existing `SpawnPlacementTransformer` coremod hook (shared with Lapis Lamp/Slime Cube), not a new one. |
+| 270 | Peace Candle — does NOT yet have a ~33% chance to generate inside a village church, unlike 1.12.2 | | Disclosed simplification, not a bug if reported - see `WIKI_FEATURE_STATUS.md`'s Peace Candle note: 1.14.4's fully data-driven village generator has no hardcoded piece classes left to hook a custom building into the way 1.12.2's ASM patch did, and hand-authoring the NBT structure data for a whole new building isn't feasible without in-game structure-block tooling this environment doesn't have. |
+
 ---
 
 ## 6. Not implemented yet — don't test these, they don't exist
@@ -434,10 +448,10 @@ Advanced Redstone Repeater Notes: Add a minimum and maximum cap on the delays fo
 Deliberately deferred, each for a stated reason (see the plan file for full
 detail) — no point filing a bug against these:
 
-- **Ancient Furnace** — never player-placeable in 1.12.2 either; belongs with a future worldgen batch.
 - **Block Diaphanous, Light Redirector, Voxel Projector** — need a generic runtime block-model renderer.
 - **Block Destabilizer** — needs a new custom falling-entity type.
 - **Block Breaker** — needs an enchantment system that doesn't exist yet.
-- **Spectre energy network, Ender network, wireless Redstone Interface, Rain Shield, Peace Candle worldgen** — all need Mixin/worldgen work, none started.
+- **Spectre energy network, Ender network, wireless Redstone Interface** — need Mixin/worldgen work, none started.
+- **Peace Candle's village-church generation** — see Slice 25 (#270) and `WIKI_FEATURE_STATUS.md` for why this specific piece is deferred rather than started.
 - **Item Filter** — deliberately skipped: its only two consumers (Advanced Item Collector, Filtered Super Lubricent Platform) are already shipped with their own simplified built-in filters, so a standalone Item Filter item would be orphaned. See `WIKI_FEATURE_STATUS.md` for the full note.
 - Worldgen/biomes, potions, enchantments, most crafting recipes, remaining non-block items — future batches, not started.
