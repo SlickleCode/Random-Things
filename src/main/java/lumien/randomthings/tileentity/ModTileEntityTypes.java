@@ -103,6 +103,24 @@ public class ModTileEntityTypes
 	@ObjectHolder("ender_mailbox")
 	public static TileEntityType<EnderMailboxTileEntity> ENDER_MAILBOX;
 
+	@ObjectHolder("fluid_display")
+	public static TileEntityType<FluidDisplayTileEntity> FLUID_DISPLAY;
+
+	@ObjectHolder("creative_player_interface")
+	public static TileEntityType<CreativePlayerInterfaceTileEntity> CREATIVE_PLAYER_INTERFACE;
+
+	@ObjectHolder("ender_bridge")
+	public static TileEntityType<EnderBridgeTileEntity> ENDER_BRIDGE;
+
+	@ObjectHolder("prismarine_ender_bridge")
+	public static TileEntityType<PrismarineEnderBridgeTileEntity> PRISMARINE_ENDER_BRIDGE;
+
+	@ObjectHolder("ender_anchor")
+	public static TileEntityType<EnderAnchorTileEntity> ENDER_ANCHOR;
+
+	@ObjectHolder("rain_shield")
+	public static TileEntityType<RainShieldTileEntity> RAIN_SHIELD;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
@@ -138,6 +156,12 @@ public class ModTileEntityTypes
 		registerSimple(registry, "imbuing_station", ImbuingStationTileEntity::new, ModBlocks.IMBUING_STATION);
 		registerSimple(registry, "floo_brick", FlooBrickTileEntity::new, ModBlocks.FLOO_BRICK);
 		registerSimple(registry, "ender_mailbox", EnderMailboxTileEntity::new, ModBlocks.ENDER_MAILBOX);
+		registerSimple(registry, "fluid_display", FluidDisplayTileEntity::new, ModBlocks.FLUID_DISPLAY);
+		registerSimple(registry, "creative_player_interface", CreativePlayerInterfaceTileEntity::new, ModBlocks.CREATIVE_PLAYER_INTERFACE);
+		registerSimple(registry, "ender_bridge", EnderBridgeTileEntity::new, ModBlocks.ENDER_BRIDGE);
+		registerSimple(registry, "prismarine_ender_bridge", PrismarineEnderBridgeTileEntity::new, ModBlocks.PRISMARINE_ENDER_BRIDGE);
+		registerSimple(registry, "ender_anchor", EnderAnchorTileEntity::new, ModBlocks.ENDER_ANCHOR);
+		registerSimple(registry, "rain_shield", RainShieldTileEntity::new, ModBlocks.RAIN_SHIELD);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)

@@ -292,5 +292,20 @@
   "gui.randomthings.advanced_item_collector.range_z": "Z Radius: %s",
   "gui.randomthings.notification_interface.title": "Title",
   "gui.randomthings.notification_interface.description": "Description",
-  "gui.randomthings.global_chat_detector.message": "Chat Message"
+  "gui.randomthings.global_chat_detector.message": "Chat Message",
+  "item.randomthings.summoning_pendulum": "Summoning Pendulum",
+  "tooltip.randomthings.summoning_pendulum.entity_count.singular": "§5Holding %d Entity",
+  "tooltip.randomthings.summoning_pendulum.entity_count.plural": "§5Holding %d Entities",
+  "item.randomthings.golden_egg": "Golden Egg",
+  "entity.randomthings.golden_chicken": "Golden Chicken",
+  "entity.randomthings.thrown_golden_egg": "Golden Egg",
+  "block.randomthings.fluid_display": "Fluid Display",
+  "item.randomthings.evil_tear": "Evil Tear",
+  "entity.randomthings.artificial_end_portal": "Artificial End Portal",
+  "block.randomthings.creative_player_interface": "Creative Player Interface",
+  "block.randomthings.ender_bridge": "Ender Bridge",
+  "block.randomthings.prismarine_ender_bridge": "Prismarine Ender Bridge",
+  "block.randomthings.ender_anchor": "Ender Anchor",
+  "item.randomthings.magic_hood": "Magic Hood",
+  "block.randomthings.rain_shield": "Rain Shield"
 }

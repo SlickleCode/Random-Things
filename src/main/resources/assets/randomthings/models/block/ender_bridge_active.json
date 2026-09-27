@@ -1,0 +1,8 @@
+{
+    "parent": "block/orientable",
+    "textures": {
+        "top": "randomthings:block/ender_bridge/side",
+        "front": "randomthings:block/ender_bridge/front_active",
+        "side": "randomthings:block/ender_bridge/side"
+    }
+}

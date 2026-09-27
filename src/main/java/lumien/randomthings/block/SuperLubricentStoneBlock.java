@@ -12,7 +12,9 @@ import net.minecraft.block.material.MaterialColor;
  * beyond 1.12.2, enforced by a {@code LivingUpdateEvent} listener in
  * {@code RandomThings} rather than here - see {@link SuperLubricentPhysics}'s
  * javadoc for why. Boots-negation doesn't live here at all -
- * {@code SuperLubricentBootsMixin} intercepts friction globally instead.
+ * {@code SuperLubricentBootsTransformer.js} (a coremod, see
+ * {@code lumien.randomthings.asm.AsmHandler#bootsMaxSlip}) intercepts
+ * friction globally instead.
  */
 public class SuperLubricentStoneBlock extends Block
 {

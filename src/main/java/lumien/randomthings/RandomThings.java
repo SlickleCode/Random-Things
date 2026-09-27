@@ -19,6 +19,7 @@ import lumien.randomthings.recipes.imbuing.ImbuingRecipeHandler;
 import lumien.randomthings.tileentity.*;
 import lumien.randomthings.util.EscapeRopeHandler;
 import lumien.randomthings.util.InventoryUtil;
+import lumien.randomthings.worldgen.ModFeatures;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -30,8 +31,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.monster.SlimeEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -44,9 +43,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.feature.Feature;
+import net.minecraft.world.gen.feature.IFeatureConfig;
+import net.minecraft.world.gen.placement.ChanceConfig;
+import net.minecraft.world.gen.placement.Placement;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -417,59 +421,30 @@ public class RandomThings {
 
         MinecraftForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
 
-        MinecraftForge.EVENT_BUS.addListener((LivingSpawnEvent.CheckSpawn event) -> {
-            if (!(event.getEntityLiving() instanceof SlimeEntity)) {
+        // Slime Cube's spawn-ALLOW and Lapis Lamp's spawn-prevention used to live here as
+        // LivingSpawnEvent.CheckSpawn listeners, but that event fires too late for the ALLOW
+        // direction: SlimeEntity's and MonsterEntity's own registered spawn-placement predicates
+        // exit early and return false well before CheckSpawn ever gets a chance to run (confirmed
+        // via javap -c - see TESTING_CHECKLIST.md #29/#110-111 for the full trace). Both are now
+        // handled by AsmHandler#overrideSpawnResult instead, a coremod redirect
+        // (SpawnPlacementTransformer.js) into EntitySpawnPlacementRegistry's own single shared
+        // predicate-dispatch point, which intercepts before that early exit for every mob type at
+        // once and subsumes the DENY direction too - no event listener needed here anymore.
+
+        // Magic Hood's particle-hiding half - unlike its nametag half (see AsmHandler
+        // #overrideCanRenderName's javadoc, needs a coremod), this one has a genuine clean Forge
+        // event: PotionColorCalculationEvent already exists specifically to let something override
+        // whether an entity's potion-particle swirl renders, confirmed via javap -c. No coremod
+        // needed for this half at all.
+        MinecraftForge.EVENT_BUS.addListener((PotionColorCalculationEvent event) -> {
+            if (!(event.getEntityLiving() instanceof PlayerEntity)) {
                 return;
             }
 
-            ChunkPos chunkPos = new ChunkPos(new BlockPos(event.getX(), event.getY(), event.getZ()));
+            ItemStack helmet = event.getEntityLiving().getItemStackFromSlot(EquipmentSlotType.HEAD);
 
-            for (SlimeCubeTileEntity cube : SlimeCubeTileEntity.cubes) {
-                if (cube.isInChunk((World) event.getWorld(), chunkPos)) {
-                    event.setResult(cube.isPowered() ? Result.DENY : Result.ALLOW);
-                    return;
-                }
-            }
-        });
-
-        // Lapis Lamp (bright to the player, but shouldn't block hostile spawns) and
-        // Quartz Lamp (dark-looking, but should) both used 1.12.2's ASM patch to make
-        // Block.getLightValue return a different value per logical side - bright on
-        // the client, dark on the server, or vice versa - since spawn-checks run
-        // server-side and rendering reads the client's own value. That trick has no
-        // equivalent in 1.14.4: confirmed via `javap -c` that BlockState.getLightValue()
-        // reads a single cached field baked in once from Block.Properties, and the
-        // light engine's propagation (which both rendering brightness AND the
-        // mob-spawn light check read from) always uses that one cached value - there's
-        // no side-branching point left to hook. Replaced with the same event-based
-        // approach already used for Slime Cube above: scan a small radius around the
-        // spawn attempt for either lamp and force the result, independent of the
-        // block's actual (now perfectly normal, single-value) light emission.
-        // Disclosed simplification: 1.12.2's version affected anywhere actual light
-        // propagation reached (up to 15 blocks in the open); this uses a fixed
-        // 4-block proximity radius instead - matches the spirit for a placed
-        // decorative light source without an expensive per-spawn light-propagation
-        // recomputation.
-        MinecraftForge.EVENT_BUS.addListener((LivingSpawnEvent.CheckSpawn event) -> {
-            if (!(event.getEntityLiving() instanceof MonsterEntity)) {
-                return;
-            }
-
-            World world = (World) event.getWorld();
-            BlockPos spawnPos = new BlockPos(event.getX(), event.getY(), event.getZ());
-
-            for (BlockPos p : BlockPos.getAllInBoxMutable(spawnPos.add(-4, -4, -4), spawnPos.add(4, 4, 4))) {
-                Block block = world.getBlockState(p).getBlock();
-
-                if (block == ModBlocks.LAPIS_LAMP) {
-                    event.setResult(Result.ALLOW);
-                    return;
-                }
-
-                if (block == ModBlocks.QUARTZ_LAMP) {
-                    event.setResult(Result.DENY);
-                    return;
-                }
+            if (helmet.getItem() == ModItems.MAGIC_HOOD) {
+                event.shouldHideParticles(true);
             }
         });
 
@@ -489,6 +464,28 @@ public class RandomThings {
         RTPacketHandler.register();
 
         registerImbuingRecipes();
+        registerWorldgenFeatures();
+    }
+
+    /**
+     * Injects this port's natural-surface-plant features into every already-
+     * registered biome. Forge 1.14.4/28.2.26 has no {@code BiomeLoadingEvent}
+     * (confirmed via a jar-content check - that's a later-Forge addition),
+     * so the only mechanism available is mutating live {@code Biome}
+     * instances directly, matching how this project's own (since-deleted)
+     * Blood Rose feature already did this. Each feature's own {@code place}
+     * does the actual biome/temperature gating (matching 1.12.2's {@code
+     * WorldGenPlants} exactly, which checked conditions per-attempt rather
+     * than filtering which biomes got the generator at all) rather than
+     * filtering here, so registration stays the same simple unconditional
+     * loop for all three, and behaves identically to the original per-biome.
+     */
+    private void registerWorldgenFeatures() {
+        ForgeRegistries.BIOMES.forEach(biome -> {
+            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.BEAN_SPROUT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(2)));
+            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.PITCHER_PLANT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
+            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.LOTUS, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
+        });
     }
 
     /**
@@ -514,12 +511,16 @@ public class RandomThings {
         ClientRegistry.bindTileEntitySpecialRenderer(SpecialChestTileEntity.class, new SpecialChestTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(RuneBaseTileEntity.class, new RuneBaseTileEntityRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.FluidDisplayTileEntity.class, new lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer());
 
         RenderingRegistry.registerEntityRenderingHandler(FlooFireplaceEntity.class, FlooFireplaceEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(EclipsedClockEntity.class, EclipsedClockEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ThrownWeatherEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
         RenderingRegistry.registerEntityRenderingHandler(WeatherCloudEntity.class, WeatherCloudEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(TimeAcceleratorEntity.class, TimeAcceleratorEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ThrownGoldenEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.GoldenChickenEntity.class, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ArtificialEndPortalEntity.class, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
 
         MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
             DiviningRodRenderer.get().render();
@@ -705,6 +706,11 @@ public class RandomThings {
         @SubscribeEvent
         public static void onEntityTypesRegistry(final RegistryEvent.Register<EntityType<?>> entityTypeRegistryEvent) {
             ModEntityTypes.registerEntityTypes(entityTypeRegistryEvent);
+        }
+
+        @SubscribeEvent
+        public static void onFeaturesRegistry(final RegistryEvent.Register<Feature<?>> featureRegistryEvent) {
+            ModFeatures.registerFeatures(featureRegistryEvent);
         }
 
         /**

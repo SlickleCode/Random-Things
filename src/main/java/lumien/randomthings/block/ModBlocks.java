@@ -285,6 +285,24 @@ public class ModBlocks
 	@ObjectHolder("ender_mailbox")
 	public static Block ENDER_MAILBOX;
 
+	@ObjectHolder("fluid_display")
+	public static Block FLUID_DISPLAY;
+
+	@ObjectHolder("creative_player_interface")
+	public static Block CREATIVE_PLAYER_INTERFACE;
+
+	@ObjectHolder("ender_bridge")
+	public static Block ENDER_BRIDGE;
+
+	@ObjectHolder("prismarine_ender_bridge")
+	public static Block PRISMARINE_ENDER_BRIDGE;
+
+	@ObjectHolder("ender_anchor")
+	public static Block ENDER_ANCHOR;
+
+	@ObjectHolder("rain_shield")
+	public static Block RAIN_SHIELD;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -422,5 +440,15 @@ public class ModBlocks
 		registry.register(new FlooBrickBlock().setRegistryName("floo_brick"));
 
 		registry.register(new EnderMailboxBlock().setRegistryName("ender_mailbox"));
+
+		registry.register(new FluidDisplayBlock().setRegistryName("fluid_display"));
+
+		registry.register(new CreativePlayerInterfaceBlock().setRegistryName("creative_player_interface"));
+
+		registry.register(new EnderBridgeBlock().setRegistryName("ender_bridge"));
+		registry.register(new PrismarineEnderBridgeBlock().setRegistryName("prismarine_ender_bridge"));
+		registry.register(new EnderAnchorBlock().setRegistryName("ender_anchor"));
+
+		registry.register(new RainShieldBlock().setRegistryName("rain_shield"));
 	}
 }

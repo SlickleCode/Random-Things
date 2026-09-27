@@ -1,7 +1,7 @@
 package lumien.randomthings.block;
 
-import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.RuneDustItem;
+import lumien.randomthings.item.RuneDustItems;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
@@ -92,7 +92,7 @@ public class RuneBaseBlock extends Block {
                 for (int x = 0; x < 4; x++) {
                     for (int y = 0; y < 4; y++) {
                         if (runeData[x][y] != null) {
-                            ItemStack dustStack = new ItemStack(ModItems.RUNE_DUST.get(runeData[x][y]));
+                            ItemStack dustStack = new ItemStack(RuneDustItems.BY_COLOR.get(runeData[x][y]));
 
                             ItemEntity itemEntity = new ItemEntity(worldIn, pos.getX() + x / 4.0 + 0.125, pos.getY() + 0.1, pos.getZ() + y / 4.0 + 0.125, dustStack);
                             itemEntity.setNoPickupDelay();
@@ -130,7 +130,7 @@ public class RuneBaseBlock extends Block {
                 int y = net.minecraft.util.math.MathHelper.clamp((int) Math.floor(hitVec.z * 4), 0, 3);
 
                 if (runeData[x][y] != null) {
-                    ItemEntity itemEntity = new ItemEntity(worldIn, pos.getX() + hitVec.x, pos.getY() + 0.1, pos.getZ() + hitVec.z, new ItemStack(ModItems.RUNE_DUST.get(runeData[x][y])));
+                    ItemEntity itemEntity = new ItemEntity(worldIn, pos.getX() + hitVec.x, pos.getY() + 0.1, pos.getZ() + hitVec.z, new ItemStack(RuneDustItems.BY_COLOR.get(runeData[x][y])));
                     itemEntity.setNoPickupDelay();
                     worldIn.addEntity(itemEntity);
 

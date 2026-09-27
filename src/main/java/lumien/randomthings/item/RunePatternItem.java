@@ -154,7 +154,7 @@ public class RunePatternItem extends Item {
             return false;
         }
 
-        Item dustItem = ModItems.RUNE_DUST.get(color);
+        Item dustItem = RuneDustItems.BY_COLOR.get(color);
 
         for (int s = 0; s < player.inventory.getSizeInventory(); s++) {
             ItemStack stack = player.inventory.getStackInSlot(s);

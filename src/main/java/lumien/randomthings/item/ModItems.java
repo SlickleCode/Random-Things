@@ -145,6 +145,12 @@ public class ModItems {
     @ObjectHolder("time_in_a_bottle")
     public static Item TIME_IN_A_BOTTLE;
 
+    @ObjectHolder("golden_egg")
+    public static Item GOLDEN_EGG;
+
+    @ObjectHolder("magic_hood")
+    public static Item MAGIC_HOOD;
+
     @ObjectHolder("ender_letter")
     public static Item ENDER_LETTER;
 
@@ -153,13 +159,6 @@ public class ModItems {
 
     @ObjectHolder("reinforced_ender_bucket")
     public static Item REINFORCED_ENDER_BUCKET;
-
-    /**
-     * Filled directly during registration (16 distinct registry names, one
-     * per {@link DyeColor}) rather than via {@code @ObjectHolder}, which only
-     * covers single fixed names.
-     */
-    public static final java.util.Map<DyeColor, Item> RUNE_DUST = new java.util.EnumMap<>(DyeColor.class);
 
     public static ItemGroup RT_ITEM_GROUP;
 
@@ -198,10 +197,10 @@ public class ModItems {
         registerDiviningRod(registry, "redstone", new Color(211, 1, 1, 50), Tags.Blocks.ORES_REDSTONE.getId().toString());
         registerDiviningRod(registry, "emerald", new Color(0, 220, 0, 50), Tags.Blocks.ORES_EMERALD.getId().toString());
         registerDiviningRod(registry, "diamond", new Color(87, 221, 229, 50), Tags.Blocks.ORES_DIAMOND.getId().toString());
-        registerDiviningRod(registry, "vanilla", colorHolder.toArray(new Color[0]), tagHolder.toArray(new String[0]));
+        registerDiviningRod(registry, "vanilla", DiviningRodScratch.COLOR_HOLDER.toArray(new Color[0]), DiviningRodScratch.TAG_HOLDER.toArray(new String[0]));
 
-        tagHolder.clear();
-        colorHolder.clear();
+        DiviningRodScratch.TAG_HOLDER.clear();
+        DiviningRodScratch.COLOR_HOLDER.clear();
 
         // Item Blocks
         registerItemForBlock(registry, ModBlocks.FERTILIZED_DIRT);
@@ -321,7 +320,7 @@ public class ModItems {
             RuneDustItem dust = new RuneDustItem(new Item.Properties().group(RT_ITEM_GROUP), color);
             dust.setRegistryName("rune_dust_" + color.getName());
             registry.register(dust);
-            RUNE_DUST.put(color, dust);
+            RuneDustItems.BY_COLOR.put(color, dust);
         }
 
         registry.register(new RunePatternItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("rune_pattern"));
@@ -348,18 +347,25 @@ public class ModItems {
 
         registry.register(new EnderBucketItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(16)).setRegistryName("ender_bucket"));
         registry.register(new ReinforcedEnderBucketItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("reinforced_ender_bucket"));
+
+        registry.register(new SummoningPendulumItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("summoning_pendulum"));
+        registry.register(new GoldenEggItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("golden_egg"));
+        registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
+
+        registry.register(new EvilTearItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("evil_tear"));
+        registerItemForBlock(registry, ModBlocks.CREATIVE_PLAYER_INTERFACE);
+        registry.register(new MagicHoodItem(new Item.Properties().group(RT_ITEM_GROUP).rarity(net.minecraft.item.Rarity.RARE)).setRegistryName("magic_hood"));
+        registerItemForBlock(registry, ModBlocks.RAIN_SHIELD);
+        registerItemForBlock(registry, ModBlocks.ENDER_BRIDGE, ModBlocks.PRISMARINE_ENDER_BRIDGE, ModBlocks.ENDER_ANCHOR);
     }
 
     private static Block lookupBlock(String name) {
         return ForgeRegistries.BLOCKS.getValue(new ResourceLocation(ModConstants.MOD_ID, name));
     }
 
-    static ArrayList<Color> colorHolder = new ArrayList<Color>();
-    static ArrayList<String> tagHolder = new ArrayList<String>();
-
     private static void registerDiviningRod(IForgeRegistry<Item> registry, String name, Color[] colors, String[] tags) {
-        tagHolder.addAll(Arrays.asList(tags));
-        colorHolder.addAll(Arrays.asList(colors));
+        DiviningRodScratch.TAG_HOLDER.addAll(Arrays.asList(tags));
+        DiviningRodScratch.COLOR_HOLDER.addAll(Arrays.asList(colors));
 
         registry.register(new DiviningRodItem(new Item.Properties().group(RT_ITEM_GROUP), colors, tags).setRegistryName("divining_rod_" + name));
     }

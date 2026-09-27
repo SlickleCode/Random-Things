@@ -25,7 +25,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Advanced Redstone Torch | BlockAdvancedRedstoneTorch, TileEntityAdvancedRedstoneTorch | DONE-UNTESTED | No |
 | Analog Emitter | BlockAnalogEmitter, TileEntityAnalogEmitter | DONE | No |
 | Ancient Furnace | BlockAncientFurnace, TileEntityAncientFurnace, WorldGenAncientFurnace | NOT STARTED | No |
-| Artificial End Portal | EntityArtificialEndPortal, ItemIngredient.EVIL_TEAR | NOT STARTED | No |
+| Artificial End Portal | EntityArtificialEndPortal, ItemIngredient.EVIL_TEAR | DONE-UNTESTED (#238-243) | No |
 | Beans | BlockBeanSprout/BeanStalk/Pod, ItemBean, ItemBeanStew | DONE | No |
 | Biome Blocks | BlockBiomeStone, BlockBiomeGlass, ItemBiomeCrystal | DONE-UNTESTED | No |
 | Biome Radar | BlockBiomeRadar, TileEntityBiomeRadar, ItemIngredient.BIOME_SENSOR | DONE-UNTESTED | No |
@@ -38,42 +38,42 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Colored Grass | BlockColoredGrass, ItemGrassSeeds | PARTIAL (single white variant only, matches original's own unreachability) | No |
 | Compressed Slime Block | BlockCompressedSlimeBlock | DONE (#33) | No |
 | Contact Button & Lever | BlockContactButton, BlockContactLever | DONE (#1-3, #34) | No |
-| Creative Player Interface | BlockCreativePlayerInterface, TileEntityCreativePlayerInterface | NOT STARTED | No |
+| Creative Player Interface | BlockCreativePlayerInterface, TileEntityCreativePlayerInterface | DONE-UNTESTED (#244) | No |
 | Custom Crafting Tables | BlockCustomWorkbench, ContainerCustomWorkbench | **REMOVED** (ported then explicitly deleted, #88) | No |
 | Diaphanous Blocks | BlockBlockDiaphanous, TileEntityBlockDiaphanous | NOT STARTED (needs generic runtime block-model renderer) | No |
 | Divining Rods | item/diviningrod/* | DONE | No |
 | Dyeing Machine | BlockDyeingMachine, ContainerDyeingMachine | NOT STARTED | Yes (RenderItem+LayerArmorBase recolor) |
-| Eclipsed Clock | ItemEclipsedClock, EntityEclipsedClock | NOT STARTED (needs new custom Entity) | No |
+| Eclipsed Clock | ItemEclipsedClock, EntityEclipsedClock | DONE-UNTESTED (#193-205) | No |
 | Ectoplasm | ItemIngredient.ECTO_PLASM (now "ectoplasm"), EntitySpirit | PARTIAL (item exists; the Spirit mob that drops it has no 1.14.4 entity yet) | No |
 | Emerald Compass | ItemEmeraldCompass | DONE (#139-141) | No |
-| Ender Bridge | BlockEnderBridge, BlockEnderAnchor, EntityEnderConnection | NOT STARTED | No |
-| Ender Bucket | ItemEnderBucket, ItemReinforcedEnderBucket | NOT STARTED | No |
-| Ender Letter | ItemEnderLetter, BlockEnderMailbox, EnderLetterHandler | NOT STARTED | No |
+| Ender Bridge | BlockEnderBridge, BlockEnderAnchor, EntityEnderConnection | DONE-UNTESTED (#245-251) | No |
+| Ender Bucket | ItemEnderBucket, ItemReinforcedEnderBucket | DONE-UNTESTED (#218-224) | No |
+| Ender Letter | ItemEnderLetter, BlockEnderMailbox, EnderLetterHandler | DONE-UNTESTED (#206-217) | No |
 | Entity Detector | BlockEntityDetector, TileEntityEntityDetector | DONE-UNTESTED | No |
 | Entity Filter | ItemEntityFilter | DONE-UNTESTED | No |
 | Escape Rope | ItemEscapeRope, EscapeRopeHandler | DONE-UNTESTED | Yes (RenderItem yellow enchant-glow - cosmetic only, not yet re-added) |
 | Fertilized Dirt | BlockFertilizedDirt | DONE-UNTESTED | Yes (WorldGenAbstractTree.setDirtAt - clean replacement used) |
 | Floo Teleportation | handler/floo/*, BlockFlooBrick, ItemFlooPouch/Sign/Token | DONE-UNTESTED (#180-192) | Yes (VertexLighterFlat glow - dropped, disclosed) |
-| Fluid Display | BlockFluidDisplay, TileEntityFluidDisplay | NOT STARTED (blocked on fluid API research) | No |
+| Fluid Display | BlockFluidDisplay, TileEntityFluidDisplay | DONE-UNTESTED (#233-237) | No |
 | Glowing Mushrooms | BlockGlowingMushroom | DONE-UNTESTED | Yes (VertexLighterFlat glow - dropped, disclosed) |
 | Golden Compass | ItemGoldenCompass | DONE (#137-138) | No |
-| Golden Egg | ItemIngredient.GOLDEN_EGG, EntityGoldenEgg, EntityGoldenChicken | NOT STARTED | No |
+| Golden Egg | ItemIngredient.GOLDEN_EGG, EntityGoldenEgg, EntityGoldenChicken | DONE-UNTESTED (#230-232) | No |
 | Igniter | BlockIgniter, TileEntityIgniter | DONE (#72-73; Keep-Ignited mode removed per request, #74) | No |
 | Imbuing Station | BlockImbuingStation, TileEntityImbuingStation | DONE-UNTESTED (#168-179) | No |
 | Inventory Rerouter | BlockInventoryRerouter, TileEntityInventoryRerouter | DONE-UNTESTED | No |
 | Inventory Tester | BlockInventoryTester, TileEntityInventoryTester | DONE-UNTESTED | No |
 | Iron Dropper | BlockIronDropper, TileEntityIronDropper | DONE (#82-87) | No |
 | Item Collector | BlockItemCollector, BlockAdvancedItemCollector | BUGGY (#76 texture issue) | No |
-| Item Filter | ItemItemFilter, ContainerItemFilter | NOT STARTED | No |
+| Item Filter | ItemItemFilter, ContainerItemFilter | NOT STARTED (deliberately skipped, 2026-09-26 - see note below) | No |
 | Lapis Glass | BlockLapisGlass | DONE (#21-23, 27) | No |
-| Lapis Lamp | BlockLapisLamp | DONE block / BLOCKED spawn-prevention (#29, needs Mixin) | Yes (Block.getLightValue is Spectre Illuminator's, NOT this - lamp itself needs no ASM; the BLOCKED half is WorldEntitySpawner, shared with Slime Cube) |
+| Lapis Lamp | BlockLapisLamp | DONE-UNTESTED (#29 - unblocked 2026-09-26 via `EntitySpawnPlacementRegistry` coremod, shared with Slime Cube) | Yes (Block.getLightValue is Spectre Illuminator's, NOT this - lamp itself needs no ASM; the spawn-prevention half needed the shared coremod, now built) |
 | Lava Charm | ItemLavaCharm | DONE (#127) | No |
 | Lava Waders | ItemLavaWader | DONE, needs retest (#128-129, 133) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Light Redirector | BlockLightRedirector, TileEntityLightRedirector | NOT STARTED (needs generic runtime block-model renderer) | Yes (BlockRendererDispatcher) |
 | Lotus | BlockLotus, LotusBlossomItem | DONE (#66-67.1) | No |
 | Luminous Blocks | BlockBlockLuminous(Translucent) | DONE (#57-58) | No |
 | Luminous Powder | ItemIngredient.LUMINOUS_POWDER (now "luminous_powder") | DONE-UNTESTED | No |
-| Magic Hood | ItemMagicHood | NOT STARTED | Yes (RenderLivingBase nametag + EntityLivingBase potion-particle hiding) |
+| Magic Hood | ItemMagicHood | DONE-UNTESTED (#252-255) | Partially - nametag half needed a coremod (confirmed no clean event exists in this Forge version); particle half found a real Forge event instead (`PotionColorCalculationEvent`), no ASM needed there |
 | Magnetic Enchantment | EnchantmentMagnetic | NOT STARTED (no enchantment package exists yet) | Yes (PlayerInteractionManager.tryHarvestBlock) |
 | Notification Interface | BlockNotificationInterface, TileEntityNotificationInterface | BUGGY (#114, same GUI-open bug family) | No |
 | Obsidian Skull | ItemObsidianSkull | DONE (#126); Baubles ring variant moot (Baubles dropped project-wide) | No |
@@ -89,7 +89,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Potion Vaporizer | BlockPotionVaporizer, TileEntityPotionVaporizer | DONE (#96-99.1) | No |
 | Quartz Glass | BlockQuartzGlass | DONE (#24-26, 28) | No |
 | Quartz Lamp | BlockQuartzLamp | DONE (#30) | No |
-| Rain Shield | BlockRainShield, TileEntityRainShield | NOT STARTED | Yes (World rain/snow suppression + EntityRenderer client rendering) |
+| Rain Shield | BlockRainShield, TileEntityRainShield | PARTIAL, DONE-UNTESTED (#256-261 - mechanical suppression via coremod; client-side visual rain/snow rendering deliberately not ported, see #261) | Yes (World rain/snow suppression + EntityRenderer client rendering) |
 | Rainbow Lamp | BlockRainbowLamp | DONE-UNTESTED | No |
 | Redstone Activator | ItemRedstoneActivator | NOT STARTED | Yes (World wireless signal, shared with Redstone Interface) |
 | Redstone Interface | BlockBasicRedstoneInterface, RedstoneSignalHandler | NOT STARTED | Yes (World wireless signal) |
@@ -97,7 +97,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Redstone Remote | ItemRedstoneRemote | NOT STARTED | Yes (World wireless signal, shared with Redstone Interface) |
 | Runic Dust | ItemRuneDust, ItemRunePattern, BlockRuneBase | DONE-UNTESTED (#161-167) | Yes (old ModelRune ExtendedBlockState/VertexLighterFlat - replaced with a TESR, disclosed) |
 | Sided Block of Redstone | BlockSidedRedstone | DONE (#50) | No |
-| Slime Cube | BlockSlimeCube, TileEntitySlimeCube | DONE block / **BLOCKED** spawn-ALLOW (#110-111, confirmed needs Mixin - see correction note in plan) | Yes (EntitySlime + WorldEntitySpawner) |
+| Slime Cube | BlockSlimeCube, TileEntitySlimeCube | DONE-UNTESTED (#110-111 - unblocked 2026-09-26, same `EntitySpawnPlacementRegistry` coremod as Lapis Lamp) | Yes (EntitySlime + WorldEntitySpawner) |
 | Sound Box | BlockSoundBox, TileEntitySoundBox | DONE-UNTESTED | No |
 | Sound Dampener | BlockSoundDampener, TileEntitySoundDampener | DONE-UNTESTED | No |
 | Sound Pattern | ItemSoundPattern | DONE-UNTESTED | No |
@@ -112,17 +112,25 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Spectre Tools | item/spectretools/* | NOT STARTED | Yes (RenderItem white enchant-glow, Spectre Sword) |
 | Stable Ender Pearl | ItemStableEnderpearl | DONE (#124-125) | No |
 | Stained Bricks | BlockStainedBrick | DONE (#52-53) | Yes (VertexLighterFlat glow - dropped, disclosed) |
-| Summoning Pendulum | ItemSummoningPendulum | NOT STARTED | No |
+| Summoning Pendulum | ItemSummoningPendulum | DONE-UNTESTED (#225-229) | No |
 | Super Lubricent | BlockSuperLubricentIce/Platform, ItemIngredient.SUPERLUBRICENT_TINCTURE | DONE (#31-32, 113) | Yes (EntityLivingBase.travel friction - clean IForgeBlock.getSlipperiness replacement used) |
-| Super Lubricent Boots | ItemSuperLubricentBoots | **BLOCKED** (#134-135, launcher-level Mixin-bootstrap gap) | Yes (same friction hook) |
+| Super Lubricent Boots | ItemSuperLubricentBoots | DONE-UNTESTED (#134-135 - unblocked 2026-09-26, switched from a Mixin that could never bootstrap on this Forge version to a coremod instead) | Yes (same friction hook) |
 | Super Lubricent Stone | BlockSuperLubricentStone | DONE | Yes (same friction hook) |
-| Time in a Bottle | ItemTimeInABottle, EntityTimeAccelerator | NOT STARTED (needs new custom Entity) | No |
+| Time in a Bottle | ItemTimeInABottle, EntityTimeAccelerator | DONE-UNTESTED (#193-205) | No |
 | Trigger Glass | BlockTriggerGlass | DONE (#15-20) | Yes (BlockFalling.canFallThrough - clean Block.canFallThrough override used) |
 | Water Walking Boots | ItemWaterWalkingBoots | DONE, needs retest (#130) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
-| Weather Eggs | ItemWeatherEgg, EntityThrownWeatherEgg | NOT STARTED (needs new custom Entity) | No |
+| Weather Eggs | ItemWeatherEgg, EntityThrownWeatherEgg | DONE-UNTESTED (#193-205) | No |
 
-Rough tally: ~60 of 100 have some 1.14.4 code (many untested); ~40 not started; 1 removed per
+Rough tally: ~72 of 100 have some 1.14.4 code (many untested); ~27 not started; 1 removed per
 explicit request.
+
+**Item Filter, deliberately skipped (2026-09-26):** its only two 1.12.2 consumers - Advanced Item
+Collector and Filtered Super Lubricent Platform - are both already ported in this project, and both
+already made their own disclosed simplification: a single built-in example-item filter slot (plain
+item-type equality) instead of consuming the fully configurable `ItemItemFilter` item. Porting Item
+Filter now would produce an item nothing in this codebase actually uses. User chose to leave it
+NOT STARTED rather than build an orphaned item or retrofit the two already-shipped consumers - revisit
+if a future feature actually needs the fully configurable version.
 
 ## Not migrating
 

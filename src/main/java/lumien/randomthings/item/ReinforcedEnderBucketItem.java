@@ -199,6 +199,15 @@ public class ReinforcedEnderBucketItem extends Item {
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {
+        // See EnderBucketItem's identical guard: Forge's fluid-handler
+        // capability isn't registered until FMLCommonSetupEvent, but
+        // getDisplayName() (this method's caller) runs earlier than that
+        // during the client's initial search-tree build - confirmed via a
+        // real crash log.
+        if (CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY == null) {
+            return null;
+        }
+
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
     }
 }

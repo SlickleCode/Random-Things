@@ -170,6 +170,18 @@ public class EnderBucketItem extends Item {
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {
+        // Forge doesn't register its own built-in fluid-handler capability
+        // until FMLCommonSetupEvent, but the client already needs every
+        // registered item's getDisplayName() (this method's only caller)
+        // for its search tree well before that, during Minecraft.init() -
+        // confirmed via a real crash log, not assumed: FLUID_HANDLER_ITEM_CAPABILITY
+        // is still null at that point, and calling getCapability at all
+        // NPEs inside Forge's own code before this method is even entered.
+        // Guard against it rather than the capability itself.
+        if (CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY == null) {
+            return null;
+        }
+
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
     }
 }

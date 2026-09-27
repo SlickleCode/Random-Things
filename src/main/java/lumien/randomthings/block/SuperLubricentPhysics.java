@@ -12,9 +12,11 @@ import net.minecraft.util.math.Vec3d;
  * disclosed-deviation details.
  * <p>
  * Boots-negation used to live here too, but it was backwards: see
- * {@code SuperLubricentBootsMixin} for the real 1.12.2 behavior (the boots
- * make every surface maximally slippery, not just these three blocks) and
- * why that requires a Mixin instead of a per-block override.
+ * {@code SuperLubricentBootsTransformer.js} (a coremod, see
+ * {@code lumien.randomthings.asm.AsmHandler#bootsMaxSlip}) for the real
+ * 1.12.2 behavior (the boots make every surface maximally slippery, not just
+ * these three blocks) and why that requires intercepting {@code
+ * LivingEntity.travel} itself instead of a per-block override.
  * <p>
  * {@link #capHorizontalSpeed} is public and called from a
  * {@code LivingUpdateEvent} listener in {@code RandomThings}'s constructor,
