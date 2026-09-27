@@ -19,3 +19,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Disclaimer regarding prior history
+
+This repository is forked from Lumien231/Random-Things
+(https://github.com/lumien231/Random-Things). All rights to the original
+"Random Things" mod, and to all versions of its code predating this fork's
+1.14.4 branch, remain reserved to Lumien; no license from Lumien has been
+granted for that prior work, and the MIT License above does not apply to it.
+
+The MIT License above applies only to changes made in this repository from
+the point of the fork onward. This notice is included for transparency, to
+keep the ownership chain of the original work clear and separate from the
+license terms governing this fork's own contributions.
