@@ -1,0 +1,85 @@
+name: Build and Release
+
+# Each branch in this repo tracks one Minecraft version, named after that
+# version (e.g. "1.14.4", "1.20.1"). A push to one of those branches builds
+# the mod with that branch's own toolchain and publishes/updates a GitHub
+# Release tagged with the branch name + the mod version from build.gradle.
+#
+# master/main is excluded since it isn't itself a version branch.
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - main
+      - 'claude/**'
+      - 'dependabot/**'
+      - 'renovate/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read required JDK version
+        id: jdk
+        run: |
+          if [ -f .java-version ]; then
+            echo "version=$(cat .java-version | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=17" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ steps.jdk.outputs.version }}
+
+      - name: Cache Gradle/Forge files
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ github.ref_name }}-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties', 'build.gradle') }}
+          restore-keys: |
+            gradle-${{ github.ref_name }}-
+
+      - name: Build
+        run: ./gradlew build --no-daemon
+
+      - name: Read mod version
+        id: modversion
+        run: |
+          MOD_VERSION=$(grep -m1 -E "^version\s*=" build.gradle | sed -E "s/^version\s*=\s*['\"]([^'\"]+)['\"].*/\1/")
+          echo "version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Locate built jar
+        id: jar
+        run: |
+          JAR_PATH=$(find build/libs -maxdepth 1 -name '*.jar' ! -iname '*sources*' | head -n1)
+          if [ -z "$JAR_PATH" ]; then
+            echo "No built jar found in build/libs" >&2
+            exit 1
+          fi
+          echo "path=$JAR_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Create/update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}-v${{ steps.modversion.outputs.version }}
+          name: MC ${{ github.ref_name }} - v${{ steps.modversion.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          files: ${{ steps.jar.outputs.path }}
+          generate_release_notes: true
