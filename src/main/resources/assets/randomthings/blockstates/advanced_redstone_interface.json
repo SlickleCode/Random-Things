@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "randomthings:block/advanced_redstone_interface" }
+    }
+}

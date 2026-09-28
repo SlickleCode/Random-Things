@@ -20,12 +20,6 @@ public class ModContainerTypes {
     @ObjectHolder("online_detector")
     public static ContainerType<OnlineDetectorContainer> ONLINE_DETECTOR;
 
-    @ObjectHolder("plate_extraction")
-    public static ContainerType<ExtractionPlateContainer> EXTRACTION_PLATE;
-
-    @ObjectHolder("plate_processing")
-    public static ContainerType<ProcessingPlateContainer> PROCESSING_PLATE;
-
     @ObjectHolder("advanced_redstone_repeater")
     public static ContainerType<AdvancedRedstoneRepeaterContainer> ADVANCED_REDSTONE_REPEATER;
 
@@ -41,14 +35,23 @@ public class ModContainerTypes {
     @ObjectHolder("redstone_observer")
     public static ContainerType<RedstoneObserverContainer> REDSTONE_OBSERVER;
 
+    @ObjectHolder("basic_redstone_interface")
+    public static ContainerType<BasicRedstoneInterfaceContainer> BASIC_REDSTONE_INTERFACE;
+
+    @ObjectHolder("advanced_redstone_interface")
+    public static ContainerType<AdvancedRedstoneInterfaceContainer> ADVANCED_REDSTONE_INTERFACE;
+
+    @ObjectHolder("redstone_remote_edit")
+    public static ContainerType<RedstoneRemoteEditContainer> REDSTONE_REMOTE_EDIT;
+
+    @ObjectHolder("redstone_remote_use")
+    public static ContainerType<RedstoneRemoteUseContainer> REDSTONE_REMOTE_USE;
+
     @ObjectHolder("potion_vaporizer")
     public static ContainerType<PotionVaporizerContainer> POTION_VAPORIZER;
 
     @ObjectHolder("entity_detector")
     public static ContainerType<EntityDetectorContainer> ENTITY_DETECTOR;
-
-    @ObjectHolder("plate_filtered_redirector")
-    public static ContainerType<FilteredRedirectorPlateContainer> FILTERED_REDIRECTOR_PLATE;
 
     @ObjectHolder("advanced_item_collector")
     public static ContainerType<AdvancedItemCollectorContainer> ADVANCED_ITEM_COLLECTOR;
@@ -90,16 +93,17 @@ public class ModContainerTypes {
         registry.register(IForgeContainerType.create(AnalogEmitterContainer::new).setRegistryName("analog_emitter"));
         registry.register(IForgeContainerType.create(IgniterContainer::new).setRegistryName("igniter"));
         registry.register(IForgeContainerType.create(OnlineDetectorContainer::new).setRegistryName("online_detector"));
-        registry.register(IForgeContainerType.create(ExtractionPlateContainer::new).setRegistryName("plate_extraction"));
-        registry.register(IForgeContainerType.create(ProcessingPlateContainer::new).setRegistryName("plate_processing"));
         registry.register(IForgeContainerType.create(AdvancedRedstoneRepeaterContainer::new).setRegistryName("advanced_redstone_repeater"));
         registry.register(IForgeContainerType.create(IronDropperContainer::new).setRegistryName("iron_dropper"));
         registry.register(IForgeContainerType.create(InventoryTesterContainer::new).setRegistryName("inventory_tester"));
         registry.register(IForgeContainerType.create(ChatDetectorContainer::new).setRegistryName("chat_detector"));
         registry.register(IForgeContainerType.create(RedstoneObserverContainer::new).setRegistryName("redstone_observer"));
+        registry.register(IForgeContainerType.create(BasicRedstoneInterfaceContainer::new).setRegistryName("basic_redstone_interface"));
+        registry.register(IForgeContainerType.create(AdvancedRedstoneInterfaceContainer::new).setRegistryName("advanced_redstone_interface"));
+        registry.register(IForgeContainerType.create(RedstoneRemoteEditContainer::new).setRegistryName("redstone_remote_edit"));
+        registry.register(IForgeContainerType.create(RedstoneRemoteUseContainer::new).setRegistryName("redstone_remote_use"));
         registry.register(IForgeContainerType.create(PotionVaporizerContainer::new).setRegistryName("potion_vaporizer"));
         registry.register(IForgeContainerType.create(EntityDetectorContainer::new).setRegistryName("entity_detector"));
-        registry.register(IForgeContainerType.create(FilteredRedirectorPlateContainer::new).setRegistryName("plate_filtered_redirector"));
         registry.register(IForgeContainerType.create(AdvancedItemCollectorContainer::new).setRegistryName("advanced_item_collector"));
         registry.register(IForgeContainerType.create(FilteredSuperLubricentPlatformContainer::new).setRegistryName("filtered_super_lubricent_platform"));
         registry.register(IForgeContainerType.create(NotificationInterfaceContainer::new).setRegistryName("notification_interface"));

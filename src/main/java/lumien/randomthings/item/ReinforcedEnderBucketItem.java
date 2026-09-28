@@ -1,8 +1,11 @@
 package lumien.randomthings.item;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.IBucketPickupHandler;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -143,9 +146,9 @@ public class ReinforcedEnderBucketItem extends Item {
         return new ActionResult<>(ActionResultType.FAIL, stack);
     }
 
-    private ActionResult<ItemStack> pickUp(World world, PlayerEntity player, ItemStack stackIn, BlockPos startPos) {
+    private ActionResult<ItemStack> pickUp(World world, PlayerEntity player, ItemStack stack, BlockPos startPos) {
         boolean collectAll = player.isSneaking();
-        ItemStack stack = stackIn;
+        boolean pickedAny = false;
 
         List<BlockPos> toCheck = new ArrayList<>();
         Set<BlockPos> checked = new HashSet<>();
@@ -163,19 +166,30 @@ public class ReinforcedEnderBucketItem extends Item {
                 continue;
             }
 
-            Block block = world.getBlockState(next).getBlock();
+            BlockState state = world.getBlockState(next);
+            Block block = state.getBlock();
 
             if (!isFluidBlock(block)) {
                 continue;
             }
 
-            FluidActionResult pickupResult = FluidUtil.tryPickUpFluid(stack, player, world, next, Direction.UP);
+            FluidStack alreadyContained = getContainedFluid(stack);
 
-            if (pickupResult.isSuccess()) {
-                stack = pickupResult.getResult();
+            if (alreadyContained != null && alreadyContained.getAmount() >= CAPACITY) {
+                break;
+            }
 
-                if (!collectAll) {
-                    return new ActionResult<>(ActionResultType.SUCCESS, stack);
+            FluidStack drained = drainSource(world, next, state, block);
+
+            if (drained != null) {
+                int filled = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.fill(drained, FluidAction.EXECUTE)).orElse(0);
+
+                if (filled > 0) {
+                    pickedAny = true;
+
+                    if (!collectAll || filled < drained.getAmount()) {
+                        break;
+                    }
                 }
             }
 
@@ -188,11 +202,30 @@ public class ReinforcedEnderBucketItem extends Item {
             }
         }
 
-        return new ActionResult<>(collectAll && stack != stackIn ? ActionResultType.SUCCESS : ActionResultType.PASS, stack);
+        return new ActionResult<>(pickedAny ? ActionResultType.SUCCESS : ActionResultType.PASS, stack);
     }
 
     private static boolean isFluidBlock(Block block) {
         return block instanceof IBucketPickupHandler || block instanceof IFluidBlock;
+    }
+
+    /**
+     * See {@link EnderBucketItem#drainSource} - this Forge build's own {@code FluidUtil.tryPickUpFluid}
+     * never actually handles a plain fluid block (ground-truthed via {@code javap -c}), so pickup is done
+     * directly against each interface's own self-contained drain method instead.
+     */
+    private static FluidStack drainSource(World world, BlockPos pos, BlockState state, Block block) {
+        if (block instanceof IFluidBlock) {
+            return ((IFluidBlock) block).drain(world, pos, FluidAction.EXECUTE);
+        }
+
+        if (block instanceof IBucketPickupHandler) {
+            Fluid fluid = ((IBucketPickupHandler) block).pickupFluid(world, pos, state);
+
+            return fluid == Fluids.EMPTY ? null : new FluidStack(fluid, 1000);
+        }
+
+        return null;
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {

@@ -22,6 +22,15 @@ import net.minecraft.util.math.BlockPos;
  * EclipsedClockEntity}'s javadoc for why that's dropped in favor of a plain
  * particle burst instead (spawned directly from the entity, not this
  * renderer).
+ * <p>
+ * Real bug found and fixed, 2026-09-27 (reported by user: the time display
+ * sits about a block too high). {@code renderLivingLabel}'s own vanilla
+ * implementation already adds {@code entity.getHeight() + 0.5} - 1.0 blocks,
+ * for this entity's registered 0.5-tall size - on top of whatever {@code y}
+ * it's given (confirmed via {@code javap -c}), so both call sites below were
+ * stacking their own manual offset on top of that baked-in one instead of
+ * accounting for it, landing the label roughly a block higher than intended.
+ * Both now subtract that same 1.0 to compensate.
  */
 public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEntity> {
     public EclipsedClockEntityRenderer(EntityRendererManager renderManager) {
@@ -52,7 +61,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
         GlStateManager.popMatrix();
 
         if (entity.shouldDisplayTime()) {
-            this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y + 0.45, z, 64);
+            this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y - 0.55, z, 64);
         }
     }
 
@@ -72,7 +81,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
             float range = entity.isSneaking() ? 32.0F : 64.0F;
 
             if (distanceSq < (double) (range * range)) {
-                this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y, z, 64);
+                this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y - 1.0, z, 64);
             }
         }
     }

@@ -131,7 +131,9 @@ public class FlooNetworkHandler extends WorldSavedData {
     }
 
     private static void spawnFlameBurst(ServerWorld world, BlockPos pos) {
-        world.spawnParticle(ParticleTypes.FLAME, pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5, 8, 0.3, 0.3, 0.3, 0.02);
+        // Raised from +0.6 (just above the brick) to +1.2 (roughly waist height on a standing
+        // player) per user request - more visible at a glance than a burst hugging the floor.
+        world.spawnParticle(ParticleTypes.FLAME, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 8, 0.3, 0.3, 0.3, 0.02);
     }
 
     @Override

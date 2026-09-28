@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "IEI",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "E": {
+      "item": "randomthings:ectoplasm"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_anchor"
+  }
+}

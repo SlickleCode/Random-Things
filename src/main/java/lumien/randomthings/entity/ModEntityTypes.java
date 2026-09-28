@@ -35,6 +35,9 @@ public class ModEntityTypes {
     @ObjectHolder("artificial_end_portal")
     public static EntityType<ArtificialEndPortalEntity> ARTIFICIAL_END_PORTAL;
 
+    @ObjectHolder("spectre_illuminator")
+    public static EntityType<SpectreIlluminatorEntity> SPECTRE_ILLUMINATOR;
+
     public static void registerEntityTypes(Register<EntityType<?>> entityTypeRegistryEvent) {
         IForgeRegistry<EntityType<?>> registry = entityTypeRegistryEvent.getRegistry();
 
@@ -61,5 +64,8 @@ public class ModEntityTypes {
 
         EntityType.Builder<ArtificialEndPortalEntity> endPortalBuilder = EntityType.Builder.create(ArtificialEndPortalEntity::new, EntityClassification.MISC);
         registry.register(endPortalBuilder.size(3.0F, 1.0F).disableSummoning().build("artificial_end_portal").setRegistryName("artificial_end_portal"));
+
+        EntityType.Builder<SpectreIlluminatorEntity> illuminatorBuilder = EntityType.Builder.create(SpectreIlluminatorEntity::new, EntityClassification.MISC);
+        registry.register(illuminatorBuilder.size(0.5F, 0.5F).disableSummoning().build("spectre_illuminator").setRegistryName("spectre_illuminator"));
     }
 }

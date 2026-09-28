@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EGE",
+    "GLG",
+    "EGE"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "E": {
+      "item": "randomthings:ectoplasm"
+    },
+    "L": {
+      "item": "randomthings:luminous_powder"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_illuminator"
+  }
+}

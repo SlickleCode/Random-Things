@@ -2,6 +2,7 @@ package lumien.randomthings.item;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
+import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,10 +14,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
- * Right-click a Redstone Observer to start linking, then right-click any
- * block to set that as its target. This port only wires up the Redstone
- * Observer case (the original also linked the wireless Redstone Interface,
- * which is still deferred pending Mixin work).
+ * Right-click a Redstone Observer or a Basic Redstone Interface to start
+ * linking, then right-click any block to set that as its target. The
+ * wireless Redstone Interface case (deferred when this javadoc was first
+ * written, pending the coremod {@code RedstoneSignalHandler}/{@code
+ * RedstoneInterfaceTileEntity} needed) is now wired up alongside the
+ * Redstone Observer one.
  */
 public class RedstoneToolItem extends Item {
     public RedstoneToolItem(Item.Properties properties) {
@@ -37,7 +40,7 @@ public class RedstoneToolItem extends Item {
         BlockState state = world.getBlockState(pos);
 
         if (!stack.hasTag()) {
-            if (state.getBlock() != ModBlocks.REDSTONE_OBSERVER) {
+            if (!isLinkStart(state.getBlock())) {
                 return ActionResultType.FAIL;
             }
 
@@ -52,19 +55,18 @@ public class RedstoneToolItem extends Item {
 
             if (!linkingFrom.equals(pos)) {
                 BlockState linkingState = world.getBlockState(linkingFrom);
+                TileEntity te = world.getTileEntity(linkingFrom);
 
-                if (linkingState.getBlock() == ModBlocks.REDSTONE_OBSERVER) {
-                    TileEntity te = world.getTileEntity(linkingFrom);
-
-                    if (te instanceof RedstoneObserverTileEntity) {
-                        ((RedstoneObserverTileEntity) te).setTarget(pos);
-                    }
+                if (linkingState.getBlock() == ModBlocks.REDSTONE_OBSERVER && te instanceof RedstoneObserverTileEntity) {
+                    ((RedstoneObserverTileEntity) te).setTarget(pos);
+                } else if (linkingState.getBlock() == ModBlocks.BASIC_REDSTONE_INTERFACE && te instanceof BasicRedstoneInterfaceTileEntity) {
+                    ((BasicRedstoneInterfaceTileEntity) te).setTarget(pos);
                 }
             }
 
             tag.putBoolean("linking", false);
             return ActionResultType.SUCCESS;
-        } else if (state.getBlock() == ModBlocks.REDSTONE_OBSERVER) {
+        } else if (isLinkStart(state.getBlock())) {
             tag.putBoolean("linking", true);
             tag.putInt("oX", pos.getX());
             tag.putInt("oY", pos.getY());
@@ -73,5 +75,9 @@ public class RedstoneToolItem extends Item {
         }
 
         return ActionResultType.FAIL;
+    }
+
+    private static boolean isLinkStart(net.minecraft.block.Block block) {
+        return block == ModBlocks.REDSTONE_OBSERVER || block == ModBlocks.BASIC_REDSTONE_INTERFACE;
     }
 }

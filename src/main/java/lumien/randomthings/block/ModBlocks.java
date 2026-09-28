@@ -1,17 +1,5 @@
 package lumien.randomthings.block;
 
-import lumien.randomthings.block.plates.AcceleratorPlateBlock;
-import lumien.randomthings.block.plates.BouncyPlateBlock;
-import lumien.randomthings.block.plates.CollectionPlateBlock;
-import lumien.randomthings.block.plates.CorrectorPlateBlock;
-import lumien.randomthings.block.plates.DirectionalAcceleratorPlateBlock;
-import lumien.randomthings.block.plates.ExtractionPlateBlock;
-import lumien.randomthings.block.plates.FilteredRedirectorPlateBlock;
-import lumien.randomthings.block.plates.ItemRejuvenatorPlateBlock;
-import lumien.randomthings.block.plates.ItemSealerPlateBlock;
-import lumien.randomthings.block.plates.ProcessingPlateBlock;
-import lumien.randomthings.block.plates.RedirectorPlateBlock;
-import lumien.randomthings.block.plates.RedstonePlateBlock;
 import lumien.randomthings.block.spectretree.SpectreLeafBlock;
 import lumien.randomthings.block.spectretree.SpectreLogBlock;
 import lumien.randomthings.block.spectretree.SpectrePlankBlock;
@@ -114,36 +102,6 @@ public class ModBlocks
 	public static Block SPECTRE_SAPLING;
 
 
-	@ObjectHolder("plate_accelerator")
-	public static Block PLATE_ACCELERATOR;
-
-	@ObjectHolder("plate_bouncy")
-	public static Block PLATE_BOUNCY;
-
-	@ObjectHolder("plate_collection")
-	public static Block PLATE_COLLECTION;
-
-	@ObjectHolder("plate_corrector")
-	public static Block PLATE_CORRECTOR;
-
-	@ObjectHolder("plate_accelerator_directional")
-	public static Block PLATE_ACCELERATOR_DIRECTIONAL;
-
-	@ObjectHolder("plate_itemrejuvenator")
-	public static Block PLATE_ITEMREJUVENATOR;
-
-	@ObjectHolder("plate_itemsealer")
-	public static Block PLATE_ITEMSEALER;
-
-	@ObjectHolder("plate_redirector")
-	public static Block PLATE_REDIRECTOR;
-
-	@ObjectHolder("plate_redstone")
-	public static Block REDSTONE_PLATE;
-
-	@ObjectHolder("plate_redstone_powered")
-	public static Block REDSTONE_PLATE_POWERED;
-
 	@ObjectHolder("glowing_mushroom")
 	public static Block GLOWING_MUSHROOM;
 
@@ -189,9 +147,6 @@ public class ModBlocks
 	@ObjectHolder("lotus")
 	public static Block LOTUS;
 
-	@ObjectHolder("sakanade")
-	public static Block SAKANADE;
-
 	@ObjectHolder("blazing_fire")
 	public static Block BLAZING_FIRE;
 
@@ -206,12 +161,6 @@ public class ModBlocks
 
 	@ObjectHolder("item_collector")
 	public static Block ITEM_COLLECTOR;
-
-	@ObjectHolder("plate_extraction")
-	public static Block PLATE_EXTRACTION;
-
-	@ObjectHolder("plate_processing")
-	public static Block PLATE_PROCESSING;
 
 	@ObjectHolder("advanced_redstone_repeater")
 	public static Block ADVANCED_REDSTONE_REPEATER;
@@ -234,20 +183,17 @@ public class ModBlocks
 	@ObjectHolder("redstone_observer")
 	public static Block REDSTONE_OBSERVER;
 
+	@ObjectHolder("basic_redstone_interface")
+	public static Block BASIC_REDSTONE_INTERFACE;
+
+	@ObjectHolder("advanced_redstone_interface")
+	public static Block ADVANCED_REDSTONE_INTERFACE;
+
 	@ObjectHolder("potion_vaporizer")
 	public static Block POTION_VAPORIZER;
 
-	@ObjectHolder("special_chest_nature")
-	public static Block SPECIAL_CHEST_NATURE;
-
-	@ObjectHolder("special_chest_water")
-	public static Block SPECIAL_CHEST_WATER;
-
 	@ObjectHolder("entity_detector")
 	public static Block ENTITY_DETECTOR;
-
-	@ObjectHolder("plate_filtered_redirector")
-	public static Block PLATE_FILTERED_REDIRECTOR;
 
 	@ObjectHolder("slime_cube")
 	public static Block SLIME_CUBE;
@@ -364,17 +310,6 @@ public class ModBlocks
 		registry.register(new SpectreLeafBlock().setRegistryName("spectre_leaf"));
 		registry.register(new SpectreSaplingBlock().setRegistryName("spectre_sapling"));
 
-		registry.register(new AcceleratorPlateBlock().setRegistryName("plate_accelerator"));
-		registry.register(new BouncyPlateBlock().setRegistryName("plate_bouncy"));
-		registry.register(new CollectionPlateBlock().setRegistryName("plate_collection"));
-		registry.register(new CorrectorPlateBlock().setRegistryName("plate_corrector"));
-		registry.register(new DirectionalAcceleratorPlateBlock().setRegistryName("plate_accelerator_directional"));
-		registry.register(new ItemRejuvenatorPlateBlock().setRegistryName("plate_itemrejuvenator"));
-		registry.register(new ItemSealerPlateBlock().setRegistryName("plate_itemsealer"));
-		registry.register(new RedirectorPlateBlock().setRegistryName("plate_redirector"));
-		registry.register(new RedstonePlateBlock(false).setRegistryName("plate_redstone"));
-		registry.register(new RedstonePlateBlock(true).setRegistryName("plate_redstone_powered"));
-
 		registry.register(new GlowingMushroomBlock().setRegistryName("glowing_mushroom"));
 		registry.register(new SidedRedstoneBlock().setRegistryName("sided_redstone"));
 		registry.register(new PitcherPlantBlock().setRegistryName("pitcher_plant"));
@@ -402,7 +337,6 @@ public class ModBlocks
 		registry.register(new PodBlock().setRegistryName("bean_pod"));
 
 		registry.register(new LotusBlock().setRegistryName("lotus"));
-		registry.register(new SakanadeBlock().setRegistryName("sakanade"));
 
 		registry.register(new BlazingFireBlock().setRegistryName("blazing_fire"));
 
@@ -410,8 +344,6 @@ public class ModBlocks
 		registry.register(new IgniterBlock().setRegistryName("igniter"));
 		registry.register(new OnlineDetectorBlock().setRegistryName("online_detector"));
 		registry.register(new ItemCollectorBlock().setRegistryName("item_collector"));
-		registry.register(new ExtractionPlateBlock().setRegistryName("plate_extraction"));
-		registry.register(new ProcessingPlateBlock().setRegistryName("plate_processing"));
 
 		registry.register(new AdvancedRedstoneRepeaterBlock().setRegistryName("advanced_redstone_repeater"));
 		registry.register(new IronDropperBlock().setRegistryName("iron_dropper"));
@@ -421,13 +353,11 @@ public class ModBlocks
 		registry.register(new InventoryRerouterBlock().setRegistryName("inventory_rerouter"));
 		registry.register(new ChatDetectorBlock().setRegistryName("chat_detector"));
 		registry.register(new RedstoneObserverBlock().setRegistryName("redstone_observer"));
+		registry.register(new lumien.randomthings.block.redstoneinterface.BasicRedstoneInterfaceBlock().setRegistryName("basic_redstone_interface"));
+		registry.register(new lumien.randomthings.block.redstoneinterface.AdvancedRedstoneInterfaceBlock().setRegistryName("advanced_redstone_interface"));
 		registry.register(new PotionVaporizerBlock().setRegistryName("potion_vaporizer"));
 
-		registry.register(new SpecialChestBlock(0).setRegistryName("special_chest_nature"));
-		registry.register(new SpecialChestBlock(1).setRegistryName("special_chest_water"));
-
 		registry.register(new EntityDetectorBlock().setRegistryName("entity_detector"));
-		registry.register(new FilteredRedirectorPlateBlock().setRegistryName("plate_filtered_redirector"));
 		registry.register(new SlimeCubeBlock().setRegistryName("slime_cube"));
 		registry.register(new AdvancedItemCollectorBlock().setRegistryName("advanced_item_collector"));
 		registry.register(new FilteredSuperLubricentPlatformBlock().setRegistryName("filtered_super_lubricent_platform"));

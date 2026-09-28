@@ -9,6 +9,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
@@ -78,6 +79,21 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
         return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    }
+
+    /**
+     * Real bug, found 2026-09-27 (see {@code RuneBaseTileEntity} for the full
+     * story): {@code TileEntity.onDataPacket} doesn't exist in this Forge
+     * version - it's a Forge-added default method on {@code
+     * IForgeTileEntity} whose default is an empty no-op, unlike {@code
+     * handleUpdateTag}'s default (initial chunk-load sync only), which
+     * already calls {@code read(tag)}. Without this override, every live
+     * update sent via {@code getUpdatePacket} above silently did nothing on
+     * arrival until the next relog/rejoin.
+     */
+    @Override
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+        this.read(pkt.getNbtCompound());
     }
 
     /**

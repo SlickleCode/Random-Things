@@ -4,6 +4,7 @@ import lumien.randomthings.network.messages.BiomeRadarAntennaMessage;
 import lumien.randomthings.network.messages.ContainerSignalMessage;
 import lumien.randomthings.network.messages.NotificationMessage;
 import lumien.randomthings.network.messages.PlayedSoundMessage;
+import lumien.randomthings.network.messages.RedstoneRemoteActivateMessage;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
@@ -31,6 +32,7 @@ public class RTPacketHandler
 		register(disc++, NotificationMessage.class);
 		register(disc++, BiomeRadarAntennaMessage.class);
 		register(disc++, PlayedSoundMessage.class);
+		register(disc++, RedstoneRemoteActivateMessage.class);
 	}
 
 	public static void sendTo(IRTMessage message, ServerPlayerEntity player)

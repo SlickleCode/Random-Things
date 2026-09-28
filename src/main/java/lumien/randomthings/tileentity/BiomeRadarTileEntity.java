@@ -9,6 +9,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.particles.RedstoneParticleData;
 import net.minecraft.tileentity.ITickableTileEntity;
@@ -249,6 +250,22 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
         return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    }
+
+    /**
+     * Real bug, found 2026-09-27 (same category as {@code RuneBaseTileEntity}'s
+     * identical fix, found while chasing that one's own "doesn't update without
+     * a relog" report): {@code TileEntity.onDataPacket} doesn't exist in this
+     * Forge version - it's a Forge-added default method on {@code
+     * IForgeTileEntity}, and that default is an empty no-op (confirmed by
+     * reading its source), unlike {@code handleUpdateTag}'s default (initial
+     * chunk-load sync only, e.g. on rejoin), which already calls {@code
+     * read(tag)}. Without this override, every live update sent via {@code
+     * getUpdatePacket} above silently did nothing on arrival.
+     */
+    @Override
+    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
+        this.read(pkt.getNbtCompound());
     }
 
     /**

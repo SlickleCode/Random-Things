@@ -4,5 +4,9 @@
 	"SuperLubricentBootsTransformer": "transformer/SuperLubricentBootsTransformer.js",
 	"SpawnPlacementTransformer": "transformer/SpawnPlacementTransformer.js",
 	"MagicHoodTransformer": "transformer/MagicHoodTransformer.js",
-	"RainShieldTransformer": "transformer/RainShieldTransformer.js"
+	"RainShieldTransformer": "transformer/RainShieldTransformer.js",
+	"IBlockReaderTransformer": "transformer/IBlockReaderTransformer.js",
+	"PlayerEntityTransformer": "transformer/PlayerEntityTransformer.js",
+	"WorldRedstonePowerTransformer": "transformer/WorldRedstonePowerTransformer.js",
+	"WorldReaderStrongPowerTransformer": "transformer/WorldReaderStrongPowerTransformer.js"
 }

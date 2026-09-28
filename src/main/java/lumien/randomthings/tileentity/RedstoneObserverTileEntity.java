@@ -14,6 +14,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -110,12 +111,15 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 		this.markDirty();
 
 		// markDirty() alone only flags the chunk for a disk resave - it does
-		// not push anything to already-connected clients. Within a single
-		// singleplayer session this went unnoticed (the integrated server
-		// shares this exact TE object with the "client" side, so the line
-		// renderer already sees the change), but a real dedicated server
-		// would never tell a watching client about a newly-set target
-		// without this.
+		// not push anything to already-connected clients. A real dedicated
+		// server would never tell a watching client about a newly-set target
+		// without this. (Correction, 2026-09-27: the comment this replaced
+		// claimed singleplayer's integrated server shares this exact TE
+		// object with the client, making a live update unnecessary there -
+		// that was never actually true, client and integrated server always
+		// have separate World/TileEntity instances even over the loopback
+		// connection; see onDataPacket below for the real reason a live
+		// update silently did nothing without further changes.)
 		if (this.world != null)
 		{
 			this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
@@ -128,6 +132,26 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 	public SUpdateTileEntityPacket getUpdatePacket()
 	{
 		return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+	}
+
+	/**
+	 * Real bug, found 2026-09-27 while chasing an identical live-sync report
+	 * on {@code RuneBaseTileEntity}: {@code TileEntity.onDataPacket} doesn't
+	 * exist in this Forge version - it's a Forge-added default method on
+	 * {@code IForgeTileEntity} whose default is an empty no-op, unlike
+	 * {@code handleUpdateTag}'s default (initial chunk-load sync only, e.g.
+	 * on rejoin), which already calls {@code read(tag)}. Without this
+	 * override, every live update sent via {@code getUpdatePacket} above -
+	 * including the one #94's fix above added - silently did nothing on
+	 * arrival; #94 fixed the packet's *payload* ({@code getUpdateTag}) but
+	 * not this half of actually applying it client-side, so a target set
+	 * live (no reload) very likely still didn't reach the line renderer
+	 * before this.
+	 */
+	@Override
+	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
+	{
+		this.read(pkt.getNbtCompound());
 	}
 
 	public int getWeakPower(Direction side)

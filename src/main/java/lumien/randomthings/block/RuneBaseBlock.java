@@ -27,8 +27,10 @@ import net.minecraft.world.World;
 /**
  * A paper-thin decal placed on top of a solid block, holding a 4x4 grid of
  * colored rune pixels ({@link RuneDustItem} places them, see that class).
- * Left-click (not break) removes one pixel at a time; the block itself
- * vanishes once emptied out, or if its support block is removed. Never drops
+ * Left-click (not break) drops every pixel at once and removes the block
+ * (see {@link #onBlockClicked}'s javadoc - a deliberate 2026-09-27 deviation
+ * from 1.12.2's real one-pixel-per-click behavior, per user request); it
+ * also vanishes if its support block is removed. Never drops
  * as an item itself (1.12.2's {@code INoItem}/{@code quantityDropped() == 0}
  * - only its individual rune-dust pixels do). Direct port of 1.12.2's
  * {@code BlockRuneBase}; the rendering itself (both the colored pixels and
@@ -106,6 +108,19 @@ public class RuneBaseBlock extends Block {
         }
     }
 
+    /**
+     * Left-click (not fully breaking) drops every pixel on the block at once
+     * and removes it, rather than one pixel per click - per explicit user
+     * request, 2026-09-27, a deliberate deviation from 1.12.2's real
+     * behavior (ground-truthed from the actual {@code BlockRuneBase
+     * #onBlockClicked} source: it only ever removed the single cell under
+     * the cursor, same as this port originally matched). Reuses {@link
+     * #onReplaced}'s existing "drop every pixel" loop via {@code
+     * world.removeBlock} instead of duplicating it - that method already
+     * runs whenever this block is removed for any reason (support gone,
+     * explicit break, this), so there's one single source of truth for the
+     * drop logic.
+     */
     @Override
     public void onBlockClicked(BlockState state, World worldIn, BlockPos pos, PlayerEntity playerIn) {
         if (!worldIn.isRemote) {
@@ -115,34 +130,14 @@ public class RuneBaseBlock extends Block {
             RayTraceResult result = worldIn.rayTraceBlocks(new RayTraceContext(start, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, playerIn));
 
             if (result.getType() == RayTraceResult.Type.BLOCK && ((net.minecraft.util.math.BlockRayTraceResult) result).getPos().equals(pos)) {
-                Vec3d hitVec = result.getHitVec().subtract(new Vec3d(pos.getX(), pos.getY(), pos.getZ()));
-
                 TileEntity te = worldIn.getTileEntity(pos);
 
-                if (!(te instanceof RuneBaseTileEntity)) {
+                if (!(te instanceof RuneBaseTileEntity) || ((RuneBaseTileEntity) te).isEmpty()) {
                     return;
                 }
 
-                RuneBaseTileEntity runeTe = (RuneBaseTileEntity) te;
-                DyeColor[][] runeData = runeTe.getRuneData();
-
-                int x = net.minecraft.util.math.MathHelper.clamp((int) Math.floor(hitVec.x * 4), 0, 3);
-                int y = net.minecraft.util.math.MathHelper.clamp((int) Math.floor(hitVec.z * 4), 0, 3);
-
-                if (runeData[x][y] != null) {
-                    ItemEntity itemEntity = new ItemEntity(worldIn, pos.getX() + hitVec.x, pos.getY() + 0.1, pos.getZ() + hitVec.z, new ItemStack(RuneDustItems.BY_COLOR.get(runeData[x][y])));
-                    itemEntity.setNoPickupDelay();
-                    worldIn.addEntity(itemEntity);
-
-                    runeData[x][y] = null;
-                    runeTe.syncTE();
-
-                    worldIn.playSound(null, pos, SoundEvents.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1F, 0.8F);
-
-                    if (runeTe.isEmpty()) {
-                        worldIn.removeBlock(pos, false);
-                    }
-                }
+                worldIn.playSound(null, pos, SoundEvents.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1F, 0.8F);
+                worldIn.removeBlock(pos, false);
             }
         }
 

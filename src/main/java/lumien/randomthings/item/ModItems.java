@@ -1,7 +1,6 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.block.ModBlocks;
-import lumien.randomthings.client.renderer.SpecialChestItemRenderer;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.block.Block;
 import net.minecraft.item.*;
@@ -42,9 +41,6 @@ public class ModItems {
 
     @ObjectHolder("lotus_seeds")
     public static Item LOTUS_SEEDS;
-
-    @ObjectHolder("sakanade_spores")
-    public static Item SAKANADE_SPORES;
 
     @ObjectHolder("ectoplasm")
     public static Item ECTOPLASM;
@@ -160,6 +156,21 @@ public class ModItems {
     @ObjectHolder("reinforced_ender_bucket")
     public static Item REINFORCED_ENDER_BUCKET;
 
+    @ObjectHolder("spectre_illuminator")
+    public static Item SPECTRE_ILLUMINATOR;
+
+    @ObjectHolder("portkey")
+    public static Item PORTKEY;
+
+    @ObjectHolder("spectre_anchor")
+    public static Item SPECTRE_ANCHOR;
+
+    @ObjectHolder("redstone_activator")
+    public static Item REDSTONE_ACTIVATOR;
+
+    @ObjectHolder("redstone_remote")
+    public static Item REDSTONE_REMOTE;
+
     public static ItemGroup RT_ITEM_GROUP;
 
     public static void registerItems(Register<Item> itemRegistryEvent) {
@@ -172,7 +183,6 @@ public class ModItems {
 
         registry.register(new LotusBlossomItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_blossom"));
         registry.register(new LotusSeedsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_seeds"));
-        registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("sakanade_spores"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("ectoplasm"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("biome_sensor"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("luminous_powder"));
@@ -234,16 +244,6 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.SPECTRE_LEAF);
         registerItemForBlock(registry, ModBlocks.SPECTRE_SAPLING);
 
-        registerItemForBlock(registry, ModBlocks.PLATE_ACCELERATOR);
-        registerItemForBlock(registry, ModBlocks.PLATE_BOUNCY);
-        registerItemForBlock(registry, ModBlocks.PLATE_COLLECTION);
-        registerItemForBlock(registry, ModBlocks.PLATE_CORRECTOR);
-        registerItemForBlock(registry, ModBlocks.PLATE_ACCELERATOR_DIRECTIONAL);
-        registerItemForBlock(registry, ModBlocks.PLATE_ITEMREJUVENATOR);
-        registerItemForBlock(registry, ModBlocks.PLATE_ITEMSEALER);
-        registerItemForBlock(registry, ModBlocks.PLATE_REDIRECTOR);
-        registerItemForBlock(registry, ModBlocks.REDSTONE_PLATE);
-
         registerItemForBlock(registry, ModBlocks.GLOWING_MUSHROOM);
         registerItemForBlock(registry, ModBlocks.SIDED_REDSTONE);
         registerItemForBlock(registry, ModBlocks.PITCHER_PLANT);
@@ -274,8 +274,6 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.IGNITER);
         registerItemForBlock(registry, ModBlocks.ONLINE_DETECTOR);
         registerItemForBlock(registry, ModBlocks.ITEM_COLLECTOR);
-        registerItemForBlock(registry, ModBlocks.PLATE_EXTRACTION);
-        registerItemForBlock(registry, ModBlocks.PLATE_PROCESSING);
         registerItemForBlock(registry, ModBlocks.ADVANCED_REDSTONE_REPEATER);
         registerItemForBlock(registry, ModBlocks.IRON_DROPPER);
         registerItemForBlock(registry, ModBlocks.PLAYER_INTERFACE);
@@ -283,17 +281,14 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.INVENTORY_REROUTER);
         registerItemForBlock(registry, ModBlocks.CHAT_DETECTOR);
         registerItemForBlock(registry, ModBlocks.REDSTONE_OBSERVER);
+        registerItemForBlock(registry, ModBlocks.BASIC_REDSTONE_INTERFACE, ModBlocks.ADVANCED_REDSTONE_INTERFACE);
         registry.register(new RedstoneToolItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_tool"));
         registerItemForBlock(registry, ModBlocks.POTION_VAPORIZER);
-
-        registry.register(new BlockItem(ModBlocks.SPECIAL_CHEST_NATURE, new Item.Properties().group(RT_ITEM_GROUP).setTEISR(() -> SpecialChestItemRenderer::new)).setRegistryName(ModBlocks.SPECIAL_CHEST_NATURE.getRegistryName()));
-        registry.register(new BlockItem(ModBlocks.SPECIAL_CHEST_WATER, new Item.Properties().group(RT_ITEM_GROUP).setTEISR(() -> SpecialChestItemRenderer::new)).setRegistryName(ModBlocks.SPECIAL_CHEST_WATER.getRegistryName()));
 
         registerItemForBlock(registry, ModBlocks.ENTITY_DETECTOR);
 
         registry.register(new EntityFilterItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("entity_filter"));
 
-        registerItemForBlock(registry, ModBlocks.PLATE_FILTERED_REDIRECTOR);
         registerItemForBlock(registry, ModBlocks.SLIME_CUBE);
         registerItemForBlock(registry, ModBlocks.ADVANCED_ITEM_COLLECTOR);
         registerItemForBlock(registry, ModBlocks.FILTERED_SUPER_LUBRICENT_PLATFORM);
@@ -358,6 +353,12 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.RAIN_SHIELD);
         registerItemForBlock(registry, ModBlocks.ENDER_BRIDGE, ModBlocks.PRISMARINE_ENDER_BRIDGE, ModBlocks.ENDER_ANCHOR);
         registerItemForBlock(registry, ModBlocks.PEACE_CANDLE, ModBlocks.ANCIENT_FURNACE);
+
+        registry.register(new SpectreIlluminatorItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_illuminator"));
+        registry.register(new PortkeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).setTEISR(() -> lumien.randomthings.client.renderer.PortkeyItemRenderer::new)).setRegistryName("portkey"));
+        registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_anchor"));
+        registry.register(new lumien.randomthings.item.RedstoneActivatorItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_activator"));
+        registry.register(new lumien.randomthings.item.RedstoneRemoteItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_remote"));
     }
 
     private static Block lookupBlock(String name) {

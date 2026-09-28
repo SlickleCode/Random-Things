@@ -1,8 +1,11 @@
 package lumien.randomthings.item;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.IBucketPickupHandler;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -141,16 +144,17 @@ public class EnderBucketItem extends Item {
                 continue;
             }
 
-            Block block = world.getBlockState(next).getBlock();
+            BlockState state = world.getBlockState(next);
+            Block block = state.getBlock();
 
             if (!isFluidBlock(block)) {
                 continue;
             }
 
-            FluidActionResult pickupResult = FluidUtil.tryPickUpFluid(stack, player, world, next, Direction.UP);
+            FluidStack drained = drainSource(world, next, state, block);
 
-            if (pickupResult.isSuccess()) {
-                return new ActionResult<>(ActionResultType.SUCCESS, pickupResult.getResult());
+            if (drained != null) {
+                return finishPickup(player, stack, drained);
             }
 
             for (Direction facing : Direction.values()) {
@@ -167,6 +171,47 @@ public class EnderBucketItem extends Item {
 
     private static boolean isFluidBlock(Block block) {
         return block instanceof IBucketPickupHandler || block instanceof IFluidBlock;
+    }
+
+    /**
+     * This Forge build's own {@code FluidUtil.tryPickUpFluid} (ground-truthed via {@code javap -c}) only
+     * ever resolves a tile-entity-backed fluid capability at the target position, for both branches
+     * (including its {@code IFluidBlock} check) - it has no code path at all for vanilla water/lava
+     * ({@code IBucketPickupHandler}) or for a real modded fluid block without a TE, so pickup always
+     * failed. Draining directly against each interface's own self-contained method instead - both mutate
+     * the world themselves on success, no capability lookup needed.
+     */
+    private static FluidStack drainSource(World world, BlockPos pos, BlockState state, Block block) {
+        if (block instanceof IFluidBlock) {
+            return ((IFluidBlock) block).drain(world, pos, FluidAction.EXECUTE);
+        }
+
+        if (block instanceof IBucketPickupHandler) {
+            Fluid fluid = ((IBucketPickupHandler) block).pickupFluid(world, pos, state);
+
+            return fluid == Fluids.EMPTY ? null : new FluidStack(fluid, CAPACITY);
+        }
+
+        return null;
+    }
+
+    private ActionResult<ItemStack> finishPickup(PlayerEntity player, ItemStack stack, FluidStack drained) {
+        ItemStack filled = stack.copy();
+        filled.setCount(1);
+        filled.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).ifPresent(handler -> handler.fill(drained, FluidAction.EXECUTE));
+
+        if (stack.getCount() > 1) {
+            ItemStack remaining = stack.copy();
+            remaining.shrink(1);
+
+            if (!player.inventory.addItemStackToInventory(filled)) {
+                player.dropItem(filled, false);
+            }
+
+            return new ActionResult<>(ActionResultType.SUCCESS, remaining);
+        }
+
+        return new ActionResult<>(ActionResultType.SUCCESS, filled);
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {

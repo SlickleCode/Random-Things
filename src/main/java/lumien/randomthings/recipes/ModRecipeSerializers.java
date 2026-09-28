@@ -14,5 +14,7 @@ public class ModRecipeSerializers
 
 		registry.register(GoldenCompassSetPositionRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "golden_compass_set_position")));
 		registry.register(EmeraldCompassSetTargetRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "emerald_compass_set_target")));
+		registry.register(PortkeyCamoRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "portkey_camo")));
+		registry.register(SpectreAnchorCombineRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "spectre_anchor_combine")));
 	}
 }

@@ -42,6 +42,7 @@ import net.minecraft.potion.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -92,6 +93,7 @@ public class RandomThings {
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupCommon);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupClient);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerModels);
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -340,6 +342,12 @@ public class RandomThings {
         // unconditionally (not gated on isRemote like the water-walking listener
         // above) since this is physics both sides need to agree on, matching how
         // the blocks' own slipperiness applies identically on client and server.
+        // Also applies while wearing Super Lubricent Boots and not sneaking,
+        // regardless of the block underfoot - AsmHandler#bootsMaxSlip makes every
+        // surface maximally slippery for the wearer, so without this the boots
+        // would accelerate without limit on ordinary ground. Same condition
+        // (worn + not sneaking) as bootsMaxSlip itself, and the same cap the
+        // blocks use, per user direction.
         MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
             LivingEntity entity = event.getEntityLiving();
 
@@ -347,18 +355,46 @@ public class RandomThings {
                 return;
             }
 
-            BlockPos underfoot = new BlockPos(entity.posX, entity.getBoundingBox().minY - 1.0D, entity.posZ);
-            Block block = entity.world.getBlockState(underfoot).getBlock();
+            boolean wearingLubricentBoots = !entity.isSneaking() && entity.getItemStackFromSlot(EquipmentSlotType.FEET).getItem() instanceof SuperLubricentBootsItem;
 
-            if (block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock) {
-                SuperLubricentPhysics.capHorizontalSpeed(entity);
+            if (!wearingLubricentBoots) {
+                BlockPos underfoot = new BlockPos(entity.posX, entity.getBoundingBox().minY - 1.0D, entity.posZ);
+                Block block = entity.world.getBlockState(underfoot).getBlock();
+
+                if (!(block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock)) {
+                    return;
+                }
             }
+
+            SuperLubricentPhysics.capHorizontalSpeed(entity);
         });
 
         MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
             if (event.phase == TickEvent.Phase.END) {
                 DiviningRodRenderer.get().tick();
             }
+        });
+
+        // Drains lumien.randomthings.entity.SpectreIlluminatorRelight's queued
+        // light-recheck work on the CLIENT side specifically. Real bug found and
+        // fixed, 2026-09-27 (reported by user, confirmed via log: server-side
+        // draining completed in ~5 seconds every time, but the client-side queue
+        // - keyed by the client's own separate ClientWorld instance, a totally
+        // different object from the server's ServerWorld even in singleplayer's
+        // integrated server - never showed a single drain in 30+ seconds; only a
+        // full relog, which resyncs already-correct server light data fresh, ever
+        // made the change visible). The WorldTickEvent listener below evidently
+        // doesn't fire for the client world the way the other WorldTickEvent
+        // listeners' defensive `isRemote` checks implied it might - ClientTickEvent
+        // is what this project already uses elsewhere for exactly this "runs on
+        // the client every tick" need (see DiviningRodRenderer.get().tick() right
+        // above).
+        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
+                return;
+            }
+
+            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(Minecraft.getInstance().world);
         });
 
         // Drives StableEnderpearlItem's dropped-pearl countdown - see the javadoc on
@@ -384,6 +420,128 @@ public class RandomThings {
             ((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
         });
 
+        // Drives PortkeyItem's "sitting on the ground, priming" countdown - same
+        // "no Item.onEntityItemUpdate hook in this Forge build" finding as
+        // StableEnderpearlItem/FlooTokenItem above, same fix.
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+                return;
+            }
+
+            ((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
+        });
+
+        // Teleports whoever picks up a primed, bound PortkeyItem to its target
+        // instead of letting them collect it - matches 1.12.2's own
+        // RTEventHandler#itemPickup exactly (same safe-landing-spot search: a
+        // 5x5 column around the target, scanning down to 10 blocks below it for
+        // a solid-topped position with 2 air blocks above).
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.EntityItemPickupEvent event) -> {
+            ItemEntity ei = event.getItem();
+            ItemStack stack = ei.getItem();
+
+            if (ei.world.isRemote || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
+                return;
+            }
+
+            CompoundNBT compound = stack.getTag();
+
+            if (compound == null || !compound.getBoolean("hasTarget") || compound.getInt("dropCounter") <= 100) {
+                return;
+            }
+
+            PlayerEntity player = event.getPlayer();
+
+            if (!(player instanceof ServerPlayerEntity) || player.world.getDimension().getType().getId() != compound.getInt("dimension")) {
+                return;
+            }
+
+            int targetX = compound.getInt("targetX");
+            int targetY = compound.getInt("targetY");
+            int targetZ = compound.getInt("targetZ");
+
+            java.util.List<BlockPos> possiblePositions = new java.util.ArrayList<>();
+
+            for (int modX = -2; modX <= 2; modX++) {
+                for (int modZ = -2; modZ <= 2; modZ++) {
+                    for (int y = targetY; y >= 0 && y >= targetY - 10; y--) {
+                        BlockPos evPos = new BlockPos(targetX + modX, y, targetZ + modZ);
+                        BlockState belowState = ei.world.getBlockState(evPos);
+
+                        if (Block.hasSolidSide(belowState, ei.world, evPos, net.minecraft.util.Direction.UP) && ei.world.isAirBlock(evPos.up()) && ei.world.isAirBlock(evPos.up().up())) {
+                            possiblePositions.add(evPos);
+                        }
+                    }
+                }
+            }
+
+            if (!possiblePositions.isEmpty()) {
+                java.util.Collections.shuffle(possiblePositions);
+
+                BlockPos teleportTarget = possiblePositions.get(0);
+                ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+
+                player.world.playSound(null, player.getPosition(), net.minecraft.util.SoundEvents.ENTITY_ENDERMAN_TELEPORT, net.minecraft.util.SoundCategory.PLAYERS, 1, 1);
+                serverPlayer.connection.setPlayerLocation(teleportTarget.getX() + 0.5, teleportTarget.getY() + 1, teleportTarget.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
+
+                ei.remove();
+                event.setCanceled(true);
+            }
+        });
+
+        // Spectre Anchor's "survive death" mechanic, part 2: the coremod
+        // (PlayerEntityTransformer.js -> AsmHandler.dropAllItemsExceptAnchored)
+        // skips dropping AND clearing any "spectreAnchor"-tagged stack still
+        // in the OLD player's inventory array at death, so it's still sitting
+        // there (in its original slot) by the time this fires. Matches
+        // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
+        // inventory only - Baubles isn't present in this port).
+        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGHEST, (net.minecraftforge.event.entity.player.PlayerEvent.Clone event) -> {
+            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getPlayer() instanceof net.minecraftforge.common.util.FakePlayer || event.getPlayer().world.getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY)) {
+                return;
+            }
+
+            PlayerEntity oldPlayer = event.getOriginal();
+            PlayerEntity newPlayer = event.getPlayer();
+
+            for (int i = 0; i < oldPlayer.inventory.getSizeInventory(); i++) {
+                ItemStack stack = oldPlayer.inventory.getStackInSlot(i);
+
+                if (stack.isEmpty() || !stack.hasTag() || !stack.getTag().contains("spectreAnchor")) {
+                    continue;
+                }
+
+                ItemStack newStackInSlot = newPlayer.inventory.getStackInSlot(i);
+
+                if (newStackInSlot.isEmpty()) {
+                    newPlayer.inventory.setInventorySlotContents(i, stack.copy());
+                } else {
+                    // Another mod put an ItemStack into the slot first.
+                    int emptySlot = newPlayer.inventory.getFirstEmptyStack();
+
+                    if (emptySlot != -1) {
+                        newPlayer.inventory.setInventorySlotContents(emptySlot, newStackInSlot);
+                        newPlayer.inventory.setInventorySlotContents(i, stack.copy());
+                    } else {
+                        LOGGER.info("Couldn't keep Anchored Item in the Inventory");
+                        net.minecraft.inventory.InventoryHelper.spawnItemStack(oldPlayer.world, oldPlayer.posX, oldPlayer.posY, oldPlayer.posZ, stack);
+                    }
+                }
+            }
+        });
+
+        // Spectre Anchor's tooltip: "Anchored" on any stack carrying the
+        // "spectreAnchor" NBT tag, regardless of which item it is. Matches
+        // 1.12.2's own RTEventHandler#itemTooltip (inserted at index 1, right
+        // after the item's display name).
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> {
+            ItemStack stack = event.getItemStack();
+
+            if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
+                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").applyTextStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
+            }
+        });
+
         // Drives EscapeRopeHandler's "find the nearest path to daylight" search -
         // runs once per server tick regardless of how many dimensions are loaded,
         // matching the original's own ServerTickEvent call site.
@@ -393,6 +551,19 @@ public class RandomThings {
             }
 
             EscapeRopeHandler.getInstance().tick();
+        });
+
+        // Drains lumien.randomthings.entity.SpectreIlluminatorRelight's queued
+        // light-recheck work a bounded amount per tick, on whichever World ticked -
+        // server or client (WorldTickEvent fires for both, unlike ServerTickEvent) -
+        // see that class's own javadoc for why this is spread out instead of done
+        // all at once.
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END) {
+                return;
+            }
+
+            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(event.world);
         });
 
         MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
@@ -420,6 +591,19 @@ public class RandomThings {
         });
 
         MinecraftForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
+        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity::notifyNeighbor);
+
+        // Drives RedstoneSignalHandler's timed-pulse expiry (Redstone Activator/Remote) -
+        // same "no Item.onEntityItemUpdate hook" WorldTickEvent precedent used for
+        // StableEnderpearlItem/FlooTokenItem/PortkeyItem above, just per-world state
+        // instead of per-entity.
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+                return;
+            }
+
+            lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(event.world).tick(event.world);
+        });
 
         // Slime Cube's spawn-ALLOW and Lapis Lamp's spawn-prevention used to live here as
         // LivingSpawnEvent.CheckSpawn listeners, but that event fires too late for the ALLOW
@@ -445,6 +629,31 @@ public class RandomThings {
 
             if (helmet.getItem() == ModItems.MAGIC_HOOD) {
                 event.shouldHideParticles(true);
+            }
+        });
+
+        // Magic Hood particle-hiding, continued: LivingEntity only recalculates the synced
+        // HIDE_PARTICLES flag (firing the event above) from its own per-tick effect-duration
+        // bookkeeping - confirmed via javap -c that it's gated behind a private
+        // "potionsNeedUpdate" flag, set only when an effect is added/removed/expires, or every
+        // 600 ticks for one still active. Putting the hood on WHILE an effect is already active
+        // (the exact scenario reported broken - "still see very faint potion particles") doesn't
+        // touch that flag at all, so the stale pre-hood value could stay synced for up to 30
+        // seconds. No public API forces a recalculation and no clean event fills the gap either
+        // (confirmed via javap -p), so this reflectively flips that one private boolean - the
+        // same thing vanilla's own effect-changed path does - whenever the head slot's Magic
+        // Hood state actually changes, letting the very next tick's already-correct vanilla
+        // logic (and the listener above) do the real work.
+        MinecraftForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
+            if (event.getEntityLiving().world.isRemote || event.getSlot() != EquipmentSlotType.HEAD) {
+                return;
+            }
+
+            boolean hadHood = event.getFrom().getItem() == ModItems.MAGIC_HOOD;
+            boolean hasHood = event.getTo().getItem() == ModItems.MAGIC_HOOD;
+
+            if (hadHood != hasHood) {
+                lumien.randomthings.util.PotionMetadataUtil.forceRecalculation(event.getEntityLiving());
             }
         });
 
@@ -518,7 +727,6 @@ public class RandomThings {
     private void setupClient(final FMLClientSetupEvent event) {
         ModScreens.register();
 
-        ClientRegistry.bindTileEntitySpecialRenderer(SpecialChestTileEntity.class, new SpecialChestTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(RuneBaseTileEntity.class, new RuneBaseTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.FluidDisplayTileEntity.class, new lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer());
@@ -527,10 +735,19 @@ public class RandomThings {
         RenderingRegistry.registerEntityRenderingHandler(EclipsedClockEntity.class, EclipsedClockEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(ThrownWeatherEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
         RenderingRegistry.registerEntityRenderingHandler(WeatherCloudEntity.class, WeatherCloudEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(TimeAcceleratorEntity.class, TimeAcceleratorEntityRenderer::new);
+        // Custom renderer draws the bottle icon on all 6 faces of the target
+        // block - per user request, 2026-09-27, replacing a brief SpriteRenderer
+        // first pass (which can only billboard at one fixed spot) - see
+        // TimeAcceleratorEntityRenderer's own javadoc.
+        RenderingRegistry.registerEntityRenderingHandler(TimeAcceleratorEntity.class, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ThrownGoldenEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
         RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.GoldenChickenEntity.class, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ArtificialEndPortalEntity.class, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
+        // Item-icon billboard via vanilla's SpriteRenderer, same mechanism already
+        // used for ThrownGoldenEggEntity/ThrownWeatherEggEntity above - per user
+        // request, 2026-09-27, replacing the earlier no-visible-model design (see
+        // SpectreIlluminatorEntity's own javadoc).
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpectreIlluminatorEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
 
         MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
             DiviningRodRenderer.get().render();
@@ -538,6 +755,19 @@ public class RandomThings {
         });
 
         MinecraftForge.EVENT_BUS.addListener(RandomThings::onPlaySound);
+    }
+
+    /**
+     * Registers {@code randomthings:portkey_base} as an extra "special"
+     * model - not tied to any block or item's own auto-resolved model, just
+     * an auxiliary resource {@link lumien.randomthings.client.renderer.PortkeyItemRenderer}
+     * fetches directly via {@code ModelManager#getModel} at render time. See
+     * that class's javadoc for why this indirection exists (rendering the
+     * plain, uncamouflaged Portkey appearance from inside its own {@code
+     * ItemStackTileEntityRenderer} without recursing back into itself).
+     */
+    private void registerModels(final net.minecraftforge.client.event.ModelRegistryEvent event) {
+        net.minecraftforge.client.model.ModelLoader.addSpecialModel(new net.minecraft.client.renderer.model.ModelResourceLocation(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "portkey_base"), "inventory"));
     }
 
     /**

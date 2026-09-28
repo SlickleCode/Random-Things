@@ -21,7 +21,10 @@ import java.util.Random;
  * anything within its (config-free, fixed) radius - see {@link
  * lumien.randomthings.asm.AsmHandler#overrideIsRainingAt} for how. Needs a
  * solid block underneath (auto-breaks and drops otherwise, like a torch -
- * enforced by {@link #isValidPosition}, not manual neighbor-change bookkeeping).
+ * {@link #neighborChanged} checks {@link #isValidPosition} itself and drops
+ * the block, matching 1.12.2's own {@code checkForDrop}; overriding
+ * {@code isValidPosition} alone only blocks survival placement, it doesn't
+ * make an already-placed block react to its support disappearing).
  * Direct port of 1.12.2's {@code BlockRainShield}.
  * <p>
  * Disclosed simplification: this only fixes the mechanical side (no wetting,
@@ -81,6 +84,12 @@ public class RainShieldBlock extends Block {
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!isValidPosition(state, worldIn, pos)) {
+            spawnDrops(state, worldIn, pos);
+            worldIn.removeBlock(pos, isMoving);
+            return;
+        }
+
         TileEntity te = worldIn.getTileEntity(pos);
 
         if (te instanceof RainShieldTileEntity) {

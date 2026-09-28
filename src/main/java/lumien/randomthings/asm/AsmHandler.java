@@ -2,6 +2,7 @@ package lumien.randomthings.asm;
 
 import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ModBlocks;
+import lumien.randomthings.entity.SpectreIlluminatorEntity;
 import lumien.randomthings.item.MagicHoodItem;
 import lumien.randomthings.item.SuperLubricentBootsItem;
 import lumien.randomthings.tileentity.PeaceCandleTileEntity;
@@ -15,15 +16,18 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 
 /**
  * Static targets the coremod transformers in {@code src/main/resources/transformer/} redirect
@@ -121,17 +125,39 @@ public class AsmHandler {
      * the single place every predicate's raw boolean result flows through,
      * regardless of which mob - fixes the ALLOW direction for both Slime
      * Cube and Lapis Lamp at the actual source, and subsumes the DENY
-     * direction too (Quartz Lamp, powered Slime Cube), so the two
-     * {@code LivingSpawnEvent.CheckSpawn} listeners this used to live in
-     * ({@code RandomThings}'s constructor) were removed entirely rather
-     * than kept alongside this as duplicate logic.
+     * direction too (Quartz Lamp, powered Slime Cube).
+     * <p>
+     * Lapis Lamp/Quartz Lamp's mechanism history, 2026-09-27 (two reverts in
+     * one day, both real bugs, both found by the user's own testing): this
+     * force-ALLOW/DENY via a 4-block proximity scan is what originally
+     * shipped, but it bypassed vanilla's own placement predicate entirely -
+     * including the natural spawn cycle's peaceful-difficulty gate - so mobs
+     * could spawn under a Lapis Lamp even on Peaceful, only to be instantly
+     * removed again by vanilla's own peaceful despawn check a tick later
+     * (bug #1, {@code TESTING_CHECKLIST.md} #29). Tried switching to 1.12.2's
+     * actual original mechanism instead (a per-side {@code getLightValue}
+     * trick - report 0 to the server so the *real* placement predicate does
+     * the ALLOW/DENY itself, respecting every other rule for free) - reverted
+     * the same day after real in-game testing showed it backwards (Lapis
+     * blocking spawns, Quartz not blocking them; bug #2). Root cause of bug
+     * #2: {@code net.minecraftforge.fml.common.thread.EffectiveSide#get()}
+     * returns {@code LogicalSide.CLIENT} for any thread that isn't part of
+     * FML's own {@code SidedThreadGroup} (read straight from its source -
+     * {@code return group instanceof SidedThreadGroup ? ... : LogicalSide.CLIENT;}),
+     * and 1.14.4's block-light propagation doesn't reliably run on that
+     * specific thread, so the "server" branch silently never fired where it
+     * mattered - not a viable mechanism for this Forge version regardless of
+     * how faithfully it matches 1.12.2's source. **Back to this force-ALLOW/
+     * DENY scan, now with an explicit {@code Difficulty.PEACEFUL} guard on
+     * the ALLOW branch** - fixes bug #1's actual root cause (a missing check)
+     * without depending on side-detection that's proven unreliable here.
      * <p>
      * Peace Candle's "no natural mob spawning in a 3 chunk radius" (see
      * {@code PeaceCandleTileEntity}) reuses this exact same dispatch point
      * rather than a new coremod - it's just another DENY source for {@code
-     * MONSTER}-classified spawns, checked before the existing lamp scan
-     * (tracked-TE lookup instead of a block scan, since a 3-chunk radius is
-     * 2016 blocks on a side - far too wide to scan per spawn attempt).
+     * MONSTER}-classified spawns, checked before the lamp scan (tracked-TE
+     * lookup instead of a block scan, since a 3-chunk radius is 2016 blocks
+     * on a side - far too wide to scan per spawn attempt).
      */
     private static final int PEACE_CANDLE_CHUNK_RADIUS = 3;
 
@@ -161,7 +187,7 @@ public class AsmHandler {
                 Block block = world.getBlockState(p).getBlock();
 
                 if (block == ModBlocks.LAPIS_LAMP) {
-                    return true;
+                    return world.getWorldInfo().getDifficulty() != Difficulty.PEACEFUL;
                 }
 
                 if (block == ModBlocks.QUARTZ_LAMP) {
@@ -220,4 +246,133 @@ public class AsmHandler {
 
         return true;
     }
+
+    /**
+     * Redirect target for the {@code ireturn} in {@code IBlockReader
+     * .getLightValue(BlockPos)}'s default body - see {@code
+     * IBlockReaderTransformer.js}. Ground-truthed via {@code javap -c} that
+     * {@code BlockLightEngine.getLightValue(long)} (the block-light engine's
+     * own light lookup) calls exactly this default method
+     * ({@code getBlockState(pos).getLightValue()}), on a {@code Chunk}
+     * instance every time - a single shared choke point inherited by every
+     * {@code IBlockReader} implementor with no override of its own, same
+     * "one dispatch point" pattern as {@code overrideSpawnResult}. 1.12.2's
+     * equivalent ASM-patched {@code Block.getLightValue(state, world, pos)}
+     * directly; that 3-argument overload doesn't exist in this version
+     * ({@code Block.getLightValue} now takes only a {@code BlockState}, with
+     * no {@code world}/{@code pos} to inspect at all - confirmed via
+     * {@code javap -p}), which is why this redirect had to move up to the
+     * caller instead. See {@link SpectreIlluminatorEntity}'s own javadoc for
+     * the full simplification story (this also replaces 1.12.2's separate
+     * persisted "illuminated chunks" registry + client-sync network
+     * message - both sides just scan the same live-entity set).
+     */
+    public static int overrideLightValue(int original, IBlockReader world, BlockPos pos) {
+        if (!(world instanceof Chunk)) {
+            return original;
+        }
+
+        World realWorld = ((Chunk) world).getWorld();
+
+        if (realWorld == null) {
+            return original;
+        }
+
+        ChunkPos chunkPos = new ChunkPos(pos);
+
+        for (SpectreIlluminatorEntity illuminator : SpectreIlluminatorEntity.ILLUMINATORS) {
+            if (illuminator.isInChunk(realWorld, chunkPos)) {
+                return 14;
+            }
+        }
+
+        return original;
+    }
+
+    /**
+     * Injection target for the sole {@code IRETURN} in {@code World
+     * .getRedstonePower(BlockPos, Direction)} - see {@code
+     * WorldRedstonePowerTransformer.js}. Matches the max of vanilla's own
+     * computed weak power against both wireless-redstone sources this port
+     * adds: {@link lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity}
+     * (Basic/Advanced Redstone Interface, a live per-tick sensor+broadcaster)
+     * and {@link lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler}
+     * (Redstone Activator/Remote, a fixed-duration timed pulse). Direct port
+     * of 1.12.2's {@code AsmHandler#getRedstonePower} - same two sources,
+     * same {@code Math.max}, same client-side short-circuit for the signal
+     * handler (server-only {@code WorldSavedData}, never synced - the
+     * Redstone Interface registry IS synced per-TE, so it stays live on both
+     * sides). No 1.14.4 API change forced anything here; this is purely new
+     * scope (Redstone Interface family was never ported before this slice).
+     */
+    public static int overrideRedstonePower(int computed, World world, BlockPos pos, Direction facing) {
+        int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(world, pos, facing);
+        int fromSignals = world.isRemote ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+
+        return Math.max(computed, Math.max(fromInterfaces, fromSignals));
+    }
+
+    /**
+     * Injection target for the sole {@code IRETURN} in {@code IWorldReader
+     * .getStrongPower(BlockPos, Direction)} (a default method - {@code World}
+     * doesn't override it, confirmed via {@code javap -c}: the only concrete
+     * {@code getStrongPower} overload actually declared on {@code World}
+     * itself takes just a {@code BlockPos}, aggregating all 6 directions
+     * internally by calling this default once per direction) - see {@code
+     * WorldReaderStrongPowerTransformer.js}. Same two sources and same
+     * {@code Math.max} as {@link #overrideRedstonePower}, just against the
+     * strong-power side of each source instead of the weak-power side.
+     * {@code IWorldReader} covers more than just {@code World} (e.g.
+     * structure-generation-time block readers), so this only applies the
+     * override when the receiver is actually a real {@code World} - anything
+     * else can't sensibly hold either registry.
+     */
+    public static int overrideStrongPower(int computed, IWorldReader worldReader, BlockPos pos, Direction facing) {
+        if (!(worldReader instanceof World)) {
+            return computed;
+        }
+
+        World world = (World) worldReader;
+
+        int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getStrongPower(world, pos, facing);
+        int fromSignals = world.isRemote ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+
+        return Math.max(computed, Math.max(fromInterfaces, fromSignals));
+    }
+
+    /**
+     * Redirect target for the single {@code INVOKEVIRTUAL PlayerInventory
+     * .dropAllItems} call inside {@code PlayerEntity.dropInventory()} - see
+     * {@code PlayerEntityTransformer.js}. Reimplements that same per-slot
+     * drop+clear loop (ground-truthed from its own bytecode via {@code javap
+     * -c}: iterate every slot across main/armor/offhand, and for each
+     * non-empty one, drop it into the world then clear the slot) but skips
+     * - leaves untouched, no drop, no clear - any stack tagged {@code
+     * spectreAnchor}, matching 1.12.2's own ASM patch exactly. The skipped
+     * stack stays sitting in the (soon-to-be-discarded) dying player's
+     * inventory array, which {@code RandomThings}'s {@code PlayerEvent
+     * .Clone} listener then copies onto the respawned player - the same
+     * two-piece "leave it in place, then copy it across" shape 1.12.2 used,
+     * just via a coremod that has to reimplement the loop itself since 1.12.2's
+     * own version could get away with a single early-return special case
+     * inside the original loop, and this version's loop has no comparable
+     * per-item exit point to patch without redoing the whole thing anyway.
+     */
+    public static void dropAllItemsExceptAnchored(PlayerInventory inventory) {
+        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+            ItemStack stack = inventory.getStackInSlot(i);
+
+            if (stack.isEmpty()) {
+                continue;
+            }
+
+            if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
+                continue;
+            }
+
+            inventory.player.dropItem(stack, true, false);
+            inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+        }
+    }
+
 }

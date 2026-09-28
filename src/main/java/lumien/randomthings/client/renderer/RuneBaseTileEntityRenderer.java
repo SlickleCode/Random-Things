@@ -19,7 +19,7 @@ import net.minecraft.util.Direction;
  * driven by {@code ExtendedBlockState}/{@code IUnlistedProperty} (removed in
  * 1.14.4) - this port's established fix for exactly that kind of per-instance
  * dynamic render data is a custom {@code TileEntityRenderer} instead (see
- * {@code SpecialChestTileEntityRenderer}/{@code BiomeRadarTileEntityRenderer}).
+ * {@code BiomeRadarTileEntityRenderer}).
  * <p>
  * Disclosed simplification: the original additionally sampled a random 2x2
  * sub-region out of an 8x8 noise-variation grid baked into its texture, so no
@@ -40,8 +40,32 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
 
         this.setLightmapDisabled(true);
         GlStateManager.disableTexture();
+        // Real bug #2, found 2026-09-27 (the color4f reset below wasn't enough on its
+        // own): TileEntityRendererDispatcher.render() calls RenderHelper
+        // .enableStandardItemLighting() (real GL_LIGHTING, with fixed-function light
+        // positions) right before invoking any TESR's own render() - confirmed by
+        // reading the dispatcher's own decompiled source. That's fine for baked-model
+        // TESRs (their quads carry proper normals), but this renderer's raw
+        // POSITION_COLOR vertices carry no normal data at all, so the lighting math
+        // ran against whatever normal happened to be left set globally, darkening
+        // every pixel toward invisible on top of the alpha issue below.
+        // RedstoneObserverLineRenderer - this project's other raw-colored-primitive
+        // TESR-adjacent renderer - already disables lighting for exactly this reason;
+        // missed here since it wasn't obviously needed for what looked like a plain
+        // "flat color" draw.
+        GlStateManager.disableLighting();
         GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GlStateManager.disableCull();
+        // Real bug #1, found 2026-09-27: every vertex color below is multiplied by
+        // this global GL color state, which isn't reset between renderers - without
+        // setting it to opaque white here, whatever alpha was left over from the last
+        // thing drawn that frame (often near-zero) made every rune pixel invisible
+        // despite the tile entity/data placing correctly. Every other custom TESR in
+        // this project that draws its own colors already does this - missed here
+        // specifically because this is the only one using per-vertex BufferBuilder.color(...) instead of a single
+        // GlStateManager.color4f(...) call per shape.
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -71,6 +95,7 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         tessellator.draw();
 
         GlStateManager.enableCull();
+        GlStateManager.enableLighting();
         GlStateManager.enableTexture();
         this.setLightmapDisabled(false);
     }

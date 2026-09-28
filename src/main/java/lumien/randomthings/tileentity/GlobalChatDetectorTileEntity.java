@@ -148,7 +148,7 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 			}
 		}
 
-		return player.hasPermissionLevel(2);
+		return false;
 	}
 
 	@Override

@@ -14,6 +14,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
@@ -28,6 +29,30 @@ import java.util.List;
  * charge. Also works with {@link
  * lumien.randomthings.entity.EclipsedClockEntity} to fast-forward the world
  * clock - see that class. Direct port of 1.12.2's {@code ItemTimeInABottle}.
+ * <p>
+ * Both "not enough stored time" cases (placing a new accelerator, upgrading
+ * an existing one) send the player an action-bar-adjacent status message
+ * instead of silently doing nothing - per user request, 2026-09-27, not
+ * something 1.12.2 did either, but matching this port's own established
+ * feedback convention ({@code EnderMailboxBlock}/{@code EnderLetterItem}'s
+ * {@code sendStatusMessage} calls).
+ * <p>
+ * Real bug found and fixed, 2026-09-27 (reported by user, after the
+ * {@link TimeAcceleratorEntity} billboard was added): the new marker spawned
+ * at the clicked block's exact center - fine while invisible, but the
+ * targeted block is very often a full solid block (a hopper, a furnace, ...)
+ * once the billboard was added, so the icon (and the particles that
+ * originally followed it) rendered clipped inside solid geometry. First
+ * fixed by offsetting toward whichever face was actually clicked; per a
+ * follow-up user request the same day, the marker is back at the block
+ * center and {@link lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer}
+ * now draws the icon on all 6 faces instead of just one, close to each
+ * face's own surface - see that class and {@link TimeAcceleratorEntity
+ * #spawnParticles()} for the rest of that redesign. The "is there already
+ * one here" detection matches by {@link TimeAcceleratorEntity#getTarget()}
+ * (the block whose tile entity actually gets force-ticked) rather than
+ * scanning by position, so none of this visual back-and-forth needed to
+ * touch that logic again.
  */
 public class TimeInABottleItem extends Item {
     private static final int SECOND_WORTH = 20;
@@ -97,7 +122,7 @@ public class TimeInABottleItem extends Item {
         BlockPos pos = context.getPos();
         PlayerEntity player = context.getPlayer();
 
-        java.util.Optional<TimeAcceleratorEntity> existing = world.getEntitiesWithinAABB(TimeAcceleratorEntity.class, new AxisAlignedBB(pos).shrink(0.2)).stream().findFirst();
+        java.util.Optional<TimeAcceleratorEntity> existing = world.getEntitiesWithinAABB(TimeAcceleratorEntity.class, new AxisAlignedBB(pos).grow(1.0)).stream().filter(e -> pos.equals(e.getTarget())).findFirst();
 
         if (existing.isPresent()) {
             TimeAcceleratorEntity eta = existing.get();
@@ -143,6 +168,8 @@ public class TimeInABottleItem extends Item {
                     }
 
                     world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, pitch);
+                } else if (player != null) {
+                    player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").applyTextStyle(TextFormatting.RED), false);
                 }
             }
         } else {
@@ -160,6 +187,8 @@ public class TimeInABottleItem extends Item {
 
                 world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, 0.749154F);
                 world.addEntity(n);
+            } else if (player != null) {
+                player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").applyTextStyle(TextFormatting.RED), false);
             }
         }
 

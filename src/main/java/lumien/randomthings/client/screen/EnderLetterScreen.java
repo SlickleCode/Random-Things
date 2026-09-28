@@ -22,6 +22,7 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
     private final boolean received;
 
     private TextFieldWidget receiverField;
+    private String lastSentReceiver = "";
 
     public EnderLetterScreen(EnderLetterContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
         super(screenContainer, inv, titleIn);
@@ -45,12 +46,24 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
         this.receiverField.setEnabled(!received);
         this.receiverField.setText(receiver);
         this.addButton(this.receiverField);
+        this.lastSentReceiver = receiver;
     }
 
     @Override
     public void tick() {
         super.tick();
         this.receiverField.tick();
+
+        // Sending only from removed() raced the vanilla close-window packet - the server could
+        // already have swapped player.openContainer back to the plain inventory container by the
+        // time this signal arrived, silently dropping it (matches the reported "does not save,
+        // even after hitting enter" - closing the GUI is the only thing that ever sent it at
+        // all). Syncing on every text change instead means the server already has the latest
+        // value long before the GUI ever starts closing.
+        if (!received && !this.receiverField.getText().equals(this.lastSentReceiver)) {
+            this.lastSentReceiver = this.receiverField.getText();
+            submitReceiver();
+        }
     }
 
     @Override
