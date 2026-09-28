@@ -666,6 +666,31 @@ public class RandomThings {
                 event.setCanceled(true);
             }
         });
+
+        // Magnetic Enchantment. 1.12.2 caught the drop entities via an ASM patch into
+        // PlayerInteractionManager.tryHarvestBlock (ItemCatcher). This Forge version's
+        // BlockEvent.HarvestDropsEvent already exposes the same pre-spawn, mutable drop
+        // list - canceling it clears that list before the caller spawns anything
+        // (ForgeEventFactory.fireBlockHarvesting), so the pickup can be done directly
+        // here with no coremod, unlike the wiki's own "ASM?" note for this feature.
+        MinecraftForge.EVENT_BUS.addListener((BlockEvent.HarvestDropsEvent event) -> {
+            PlayerEntity harvester = event.getHarvester();
+            if (harvester == null || event.getWorld().isRemote()) {
+                return;
+            }
+
+            ItemStack tool = harvester.getHeldItemMainhand();
+            if (net.minecraft.enchantment.EnchantmentHelper.getEnchantmentLevel(lumien.randomthings.enchantment.ModEnchantments.MAGNETIC, tool) <= 0) {
+                return;
+            }
+
+            java.util.List<ItemStack> drops = new java.util.ArrayList<>(event.getDrops());
+            event.setCanceled(true);
+
+            for (ItemStack drop : drops) {
+                net.minecraftforge.items.ItemHandlerHelper.giveItemToPlayer(harvester, drop);
+            }
+        });
     }
 
     private void setupCommon(final FMLCommonSetupEvent event) {
@@ -941,6 +966,11 @@ public class RandomThings {
         @SubscribeEvent
         public static void onEffectsRegistry(final RegistryEvent.Register<Effect> effectRegistryEvent) {
             ModEffects.registerEffects(effectRegistryEvent);
+        }
+
+        @SubscribeEvent
+        public static void onEnchantmentsRegistry(final RegistryEvent.Register<net.minecraft.enchantment.Enchantment> enchantmentRegistryEvent) {
+            lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(enchantmentRegistryEvent);
         }
 
         @SubscribeEvent

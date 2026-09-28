@@ -255,6 +255,12 @@ public class ModBlocks
 	@ObjectHolder("ancient_furnace")
 	public static Block ANCIENT_FURNACE;
 
+	@ObjectHolder("block_breaker")
+	public static Block BLOCK_BREAKER;
+
+	@ObjectHolder("block_destabilizer")
+	public static Block BLOCK_DESTABILIZER;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -389,5 +395,8 @@ public class ModBlocks
 
 		registry.register(new PeaceCandleBlock().setRegistryName("peace_candle"));
 		registry.register(new AncientFurnaceBlock().setRegistryName("ancient_furnace"));
+
+		registry.register(new BlockBreakerBlock().setRegistryName("block_breaker"));
+		registry.register(new BlockDestabilizerBlock().setRegistryName("block_destabilizer"));
 	}
 }

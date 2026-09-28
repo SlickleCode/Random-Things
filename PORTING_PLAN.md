@@ -125,6 +125,58 @@ verification, match 1.12.2 unless told otherwise, never commit/push without an e
 previously lived only in Claude's external memory. The external memory/plan files still exist but now
 just point here rather than duplicating content.
 
+**Update, 2026-09-28 (new session, cloud sandbox): continued the migration - Magnetic Enchantment,
+Block Breaker, Block Destabilizer.** This session started in a fresh cloud container with **no**
+Forge/Mojang Maven access at all (unlike the usual local dev machine) - `./gradlew build` fails
+immediately trying to resolve `ForgeGradle` itself (403 from `files.minecraftforge.net` through this
+sandbox's network policy), and there's no cached mapped jar to `javap` either. That means this
+session's own working rule (ground-truth every uncertain API against the real jar before writing code)
+could not be followed - everything below is written from strong prior knowledge of stable, long-lived
+Forge 1.14.4 APIs and cross-checked against this codebase's own already-proven usages wherever
+possible, but **none of it has been compiled or run**. Flagged per-row in `TESTING_CHECKLIST.md`
+(#288-296) and in `WIKI_FEATURE_STATUS.md`'s own note - please build and retest before trusting it.
+
+First found and pulled in a fair amount of work from three separate branches
+(`claude/worldgen-continuation-r6u8yj` fast-forwarded into `1.14.4` locally, then `origin/1.14.4` had
+already moved further ahead with the Redstone Wireless cluster/Portkey camo/Spectre Anchor batch and
+this plan file's own move into the repo) - all fast-forward, no conflicts, nothing lost.
+
+Then picked two NOT-STARTED wiki features that shared a prerequisite (a `magnetic` enchantment
+package, `enchantment/` - didn't exist in this port yet) and did both in one pass:
+- **Magnetic Enchantment**: a plain `DIGGER`-type `Enchantment` plus a `BlockEvent.HarvestDropsEvent`
+  listener that redirects a Magnetic harvester's drops straight into their inventory. Turns out this
+  needs **no coremod at all** in 1.14.4 (contrary to the wiki's own "ASM?" flag, which describes
+  1.12.2's need) - canceling that event already clears its own drop list before anything spawns.
+- **Block Breaker**: the FakePlayer-driven continuous-mining machine. Reuses the Magnetic listener
+  above instead of porting 1.12.2's own separate drop-catching path, since its FakePlayer's pickaxe is
+  itself Magnetic-enchanted. The riskiest unverified surface in this session: `FakePlayerFactory`,
+  `PlayerInteractionManager#tryHarvestBlock`, `BlockState#getPlayerRelativeBlockHardness` - all used
+  with high confidence but zero ability to confirm this build's exact method signatures.
+- **Block Destabilizer**: the BFS-flood-fill demolition machine. Real finding here: 1.12.2's own
+  `EntityFallingBlockSpecial` (listed on the wiki as "needs a new falling-entity type") turns out to
+  have been a near line-for-line copy of vanilla's own falling-block entity, apparently written only to
+  expose a public `shouldDropItem` field - which is already public and mutable on this Forge version's
+  real `net.minecraft.entity.item.FallingBlockEntity`. Spawns that directly; no new entity class needed
+  at all. Disclosed simplifications: plain text Lazy/Fuzzy toggle buttons instead of 1.12.2's custom
+  icon-toggle widget (reusing the real 1.12.2 GUI background texture at its original 85x35 size), and
+  the always-on glow overlay dropped rather than guessing at a `VertexLighterFlat`-style tint blind.
+
+Both blocks' real 1.12.2 crafting recipes, block/item models, and textures were pulled directly from
+the `origin/1.12.2` branch (`git show origin/1.12.2:<path>`) rather than reinvented, so those parts are
+exact, verified-against-source ports, not guesses - only the Java logic and the two new GUI/asset files
+(Block Destabilizer's screen text, both blocks' 1.14.4-style blockstate/model JSON restructuring) are
+new-and-unverified.
+
+**Next scoped-and-ready work, if the network/build situation doesn't improve this session:** the
+remaining NOT-STARTED wiki features left after this batch (Diaphanous Blocks, Light Redirector, Dyeing
+Machine, Magnetic Enchantment's own now-done, Spectre energy network/Spectre Key/Spectre Tools) all
+need either a generic runtime block-model renderer, a brand-new render-time item-recolor coremod, or a
+whole new energy-network/custom-dimension subsystem - all considerably higher-risk to ship blind than
+this batch was. Recommend pausing new ASM/coremod-dependent or custom-dimension work until a session
+has real build access again, and using that time instead on anything not requiring compilation
+verification (further disclosure/documentation passes, asset-only ports, etc.) if the network policy
+doesn't change.
+
 **Repo:** `D:\Projects\Clauding\Random-Things`, fork at
 [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things). Branches: `main` is a
 landing-page-only README (no code); `1.14.4` is where all active port work lives (checked out by

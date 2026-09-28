@@ -30,8 +30,8 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Biome Blocks | BlockBiomeStone, BlockBiomeGlass, ItemBiomeCrystal | DONE-UNTESTED | No |
 | Biome Radar | BlockBiomeRadar, TileEntityBiomeRadar, ItemIngredient.BIOME_SENSOR | DONE-UNTESTED | No |
 | Blaze and Steel | ItemBlazeAndSteel, BlockBlazingFire | DONE | No |
-| Block Breaker | BlockBlockBreaker, TileEntityBlockBreaker | NOT STARTED (needs enchantment system) | No |
-| Block Destabilizer | BlockBlockDestabilizer, TileEntityBlockDestabilizer, EntityFallingBlockSpecial | NOT STARTED (needs new falling-entity type) | Yes (VertexLighterFlat glow) |
+| Block Breaker | BlockBlockBreaker, TileEntityBlockBreaker | DONE-UNTESTED (#289-291, 2026-09-28) | No (uses the new Magnetic listener instead of a coremod - see Magnetic Enchantment's own row) |
+| Block Destabilizer | BlockBlockDestabilizer, TileEntityBlockDestabilizer, EntityFallingBlockSpecial | DONE-UNTESTED (#292-296, 2026-09-28) | No (spawns vanilla's own `FallingBlockEntity` directly - see its own note below; dropped the cosmetic VertexLighterFlat glow overlay as a disclosed simplification) |
 | Block of Sticks | BlockBlockOfSticks | DONE-UNTESTED | No |
 | Chat Detector | BlockChatDetector, TileEntityChatDetector | BUGGY (#93 GUI-close bug) | No |
 | Chunk Analyzer | ItemChunkAnalyzer | DONE (#145) | No |
@@ -74,7 +74,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Luminous Blocks | BlockBlockLuminous(Translucent) | DONE (#57-58) | No |
 | Luminous Powder | ItemIngredient.LUMINOUS_POWDER (now "luminous_powder") | DONE-UNTESTED | No |
 | Magic Hood | ItemMagicHood | DONE-UNTESTED (#252-255) | Partially - nametag half needed a coremod (confirmed no clean event exists in this Forge version); particle half found a real Forge event instead (`PotionColorCalculationEvent`), no ASM needed there |
-| Magnetic Enchantment | EnchantmentMagnetic | NOT STARTED (no enchantment package exists yet) | Yes (PlayerInteractionManager.tryHarvestBlock) |
+| Magnetic Enchantment | EnchantmentMagnetic | DONE-UNTESTED (#288, 2026-09-28) | No (a plain `BlockEvent.HarvestDropsEvent` listener replaces the 1.12.2 ASM hook entirely - see the note below) |
 | Notification Interface | BlockNotificationInterface, TileEntityNotificationInterface | BUGGY (#114, same GUI-open bug family) | No |
 | Obsidian Skull | ItemObsidianSkull | DONE (#126); Baubles ring variant moot (Baubles dropped project-wide) | No |
 | Obsidian Water Walking Boots | ItemObsidianWaterWalkingBoots | DONE (#131-132) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
@@ -121,8 +121,40 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Water Walking Boots | ItemWaterWalkingBoots | DONE, needs retest (#130) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Weather Eggs | ItemWeatherEgg, EntityThrownWeatherEgg | DONE-UNTESTED (#193-205) | No |
 
-Rough tally: ~74 of 100 have some 1.14.4 code (many untested); ~25 not started; 1 removed per
+Rough tally: ~77 of 100 have some 1.14.4 code (many untested); ~22 not started; 1 removed per
 explicit request.
+
+**Magnetic Enchantment, Block Breaker, Block Destabilizer implemented (2026-09-28):** this session
+ran with no Forge/Mojang Maven access at all (a cloud sandbox, not the usual local dev machine - see
+`PORTING_PLAN.md`'s handoff note), so none of this could be `javap`-ground-truthed or build-verified
+per this project's own working rule; flag everything below for a real retest before trusting it.
+Picked up two of the "needs infrastructure" NOT-STARTED items in one pass since they share that
+infrastructure:
+- **Magnetic Enchantment** ported as a plain `Enchantment` (`EnchantmentType.DIGGER`, matching
+  1.12.2's min/max enchantability and max-level-1 exactly) plus a `BlockEvent.HarvestDropsEvent`
+  listener in `RandomThings` - canceling that event clears its own drop list before anything spawns
+  (see `ForgeEventFactory.fireBlockHarvesting`), so the listener just redirects the copied drops into
+  the harvester's inventory via `ItemHandlerHelper.giveItemToPlayer`. Replaces 1.12.2's ASM hook into
+  `PlayerInteractionManager.tryHarvestBlock` (an `ItemCatcher`) entirely - no coremod needed, contrary
+  to the wiki's own "ASM?" flag for this feature, because this Forge version's event already exposes
+  the same pre-spawn mutable list.
+- **Block Breaker** reuses that same listener rather than porting 1.12.2's own dedicated catch path:
+  its `FakePlayer` holds an unbreakable pickaxe enchanted with Magnetic, so harvested drops land
+  straight in the fake player's inventory the same way a real player's would, and the tile entity only
+  has to drain that inventory into the target side afterward. The mining loop itself (per-tick real
+  block-hardness accumulation via `BlockState#getPlayerRelativeBlockHardness`, a `FakePlayer` from
+  `FakePlayerFactory`, `PlayerInteractionManager#tryHarvestBlock`) is the single riskiest piece of API
+  surface in this batch to have shipped unverified.
+- **Block Destabilizer** ported its BFS flood-fill/sorted-drop state machine near line-for-line, but
+  spawns vanilla's own `net.minecraft.entity.item.FallingBlockEntity` directly instead of maintaining
+  1.12.2's `EntityFallingBlockSpecial` (a parallel copy of vanilla's own falling-block entity that only
+  existed to expose a public, settable `shouldDropItem` field) - that field is already public and
+  mutable on this Forge version's vanilla class, so the custom entity class this feature was flagged
+  as needing turns out to be unnecessary here. Disclosed simplifications: dropped the "lazy"/"fuzzy"
+  toggle buttons' custom icon textures for plain text buttons (matching `IgniterScreen`'s own proven
+  style) rather than porting a bespoke image-toggle-button widget, and dropped the always-on glow
+  overlay (`VertexLighterFlat`-tinted texture layer in 1.12.2) since replicating it blind without build
+  access risked shipping a subtly-wrong render layer for a purely cosmetic detail.
 
 **Item Filter, deliberately skipped (2026-09-26):** its only two 1.12.2 consumers - Advanced Item
 Collector and Filtered Super Lubricent Platform - are both already ported in this project, and both

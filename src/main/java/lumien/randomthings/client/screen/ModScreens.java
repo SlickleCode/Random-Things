@@ -37,5 +37,6 @@ public class ModScreens
 		ScreenManager.registerFactory(ModContainerTypes.IMBUING_STATION, ImbuingStationScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.ENDER_LETTER, EnderLetterScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.ENDER_MAILBOX, EnderMailboxScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.BLOCK_DESTABILIZER, BlockDestabilizerScreen::new);
 	}
 }

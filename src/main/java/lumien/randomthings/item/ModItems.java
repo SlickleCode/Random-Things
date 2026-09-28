@@ -353,6 +353,8 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.RAIN_SHIELD);
         registerItemForBlock(registry, ModBlocks.ENDER_BRIDGE, ModBlocks.PRISMARINE_ENDER_BRIDGE, ModBlocks.ENDER_ANCHOR);
         registerItemForBlock(registry, ModBlocks.PEACE_CANDLE, ModBlocks.ANCIENT_FURNACE);
+        registerItemForBlock(registry, ModBlocks.BLOCK_BREAKER);
+        registerItemForBlock(registry, ModBlocks.BLOCK_DESTABILIZER);
 
         registry.register(new SpectreIlluminatorItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_illuminator"));
         registry.register(new PortkeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).setTEISR(() -> lumien.randomthings.client.renderer.PortkeyItemRenderer::new)).setRegistryName("portkey"));

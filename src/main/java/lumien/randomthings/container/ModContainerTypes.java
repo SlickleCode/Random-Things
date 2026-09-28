@@ -86,6 +86,9 @@ public class ModContainerTypes {
     @ObjectHolder("ender_mailbox")
     public static ContainerType<EnderMailboxContainer> ENDER_MAILBOX;
 
+    @ObjectHolder("block_destabilizer")
+    public static ContainerType<BlockDestabilizerContainer> BLOCK_DESTABILIZER;
+
     public static void registerContainerTypes(Register<ContainerType<?>> containerTypeRegistryEvent) {
         IForgeRegistry<ContainerType<?>> registry = containerTypeRegistryEvent.getRegistry();
 
@@ -115,5 +118,6 @@ public class ModContainerTypes {
         registry.register(IForgeContainerType.create(ImbuingStationContainer::new).setRegistryName("imbuing_station"));
         registry.register(IForgeContainerType.create(EnderLetterContainer::new).setRegistryName("ender_letter"));
         registry.register(IForgeContainerType.create(EnderMailboxContainer::new).setRegistryName("ender_mailbox"));
+        registry.register(IForgeContainerType.create(BlockDestabilizerContainer::new).setRegistryName("block_destabilizer"));
     }
 }

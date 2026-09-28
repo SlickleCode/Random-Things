@@ -121,6 +121,12 @@ public class ModTileEntityTypes
 	@ObjectHolder("ancient_furnace")
 	public static TileEntityType<AncientFurnaceTileEntity> ANCIENT_FURNACE;
 
+	@ObjectHolder("block_breaker")
+	public static TileEntityType<BlockBreakerTileEntity> BLOCK_BREAKER;
+
+	@ObjectHolder("block_destabilizer")
+	public static TileEntityType<BlockDestabilizerTileEntity> BLOCK_DESTABILIZER;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
@@ -162,6 +168,8 @@ public class ModTileEntityTypes
 		registerSimple(registry, "rain_shield", RainShieldTileEntity::new, ModBlocks.RAIN_SHIELD);
 		registerSimple(registry, "peace_candle", PeaceCandleTileEntity::new, ModBlocks.PEACE_CANDLE);
 		registerSimple(registry, "ancient_furnace", AncientFurnaceTileEntity::new, ModBlocks.ANCIENT_FURNACE);
+		registerSimple(registry, "block_breaker", BlockBreakerTileEntity::new, ModBlocks.BLOCK_BREAKER);
+		registerSimple(registry, "block_destabilizer", BlockDestabilizerTileEntity::new, ModBlocks.BLOCK_DESTABILIZER);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)
