@@ -127,6 +127,21 @@ public class ModTileEntityTypes
 	@ObjectHolder("block_destabilizer")
 	public static TileEntityType<BlockDestabilizerTileEntity> BLOCK_DESTABILIZER;
 
+	@ObjectHolder("spectre_energy_injector")
+	public static TileEntityType<SpectreEnergyInjectorTileEntity> SPECTRE_ENERGY_INJECTOR;
+
+	@ObjectHolder("spectre_coil")
+	public static TileEntityType<SpectreCoilTileEntity> SPECTRE_COIL;
+
+	@ObjectHolder("spectre_lens")
+	public static TileEntityType<SpectreLensTileEntity> SPECTRE_LENS;
+
+	@ObjectHolder("light_redirector")
+	public static TileEntityType<LightRedirectorTileEntity> LIGHT_REDIRECTOR;
+
+	@ObjectHolder("diaphanous_block")
+	public static TileEntityType<DiaphanousBlockTileEntity> DIAPHANOUS_BLOCK;
+
 
 	public static void registerTypes(RegistryEvent.Register<TileEntityType<?>> typeRegistryEvent)
 	{
@@ -170,6 +185,13 @@ public class ModTileEntityTypes
 		registerSimple(registry, "ancient_furnace", AncientFurnaceTileEntity::new, ModBlocks.ANCIENT_FURNACE);
 		registerSimple(registry, "block_breaker", BlockBreakerTileEntity::new, ModBlocks.BLOCK_BREAKER);
 		registerSimple(registry, "block_destabilizer", BlockDestabilizerTileEntity::new, ModBlocks.BLOCK_DESTABILIZER);
+
+		registerSimple(registry, "spectre_energy_injector", SpectreEnergyInjectorTileEntity::new, ModBlocks.SPECTRE_ENERGY_INJECTOR);
+		registerSimple(registry, "spectre_coil", SpectreCoilTileEntity::new, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+		registerSimple(registry, "spectre_lens", SpectreLensTileEntity::new, ModBlocks.SPECTRE_LENS);
+
+		registerSimple(registry, "light_redirector", LightRedirectorTileEntity::new, ModBlocks.LIGHT_REDIRECTOR);
+		registerSimple(registry, "diaphanous_block", DiaphanousBlockTileEntity::new, ModBlocks.DIAPHANOUS_BLOCK);
 	}
 
 	private static void registerSimple(IForgeRegistry<TileEntityType<?>> registry, String name, Supplier<? extends TileEntity> factoryIn, Block... validBlocks)

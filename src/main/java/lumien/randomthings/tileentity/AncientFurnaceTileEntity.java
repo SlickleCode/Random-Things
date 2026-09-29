@@ -3,6 +3,7 @@ package lumien.randomthings.tileentity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.network.play.server.SChunkDataPacket;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
@@ -13,9 +14,12 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.server.ServerWorld;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityAncientFurnace} heating/explosion
@@ -55,15 +59,17 @@ import java.util.Map;
  * end result for a roughly-10000-block area, just not identically paced) -
  * revisit if the user wants the exact flood-fill pacing reproduced.
  * <p>
- * Disclosed gap: the biome mutation is server-authoritative and correct
- * immediately for anything that reads it server-side (spawn tables, weather,
- * this feature's own re-runs) - but a client already standing in the area
- * won't see the visual grass/foliage/fog color shift until the chunk
- * reloads (leaving and rejoining, or the chunk unloading), since that's
- * driven by the client's own separate copy of the chunk's biome data and
- * nothing here re-sends it. Not attempted this session - a full per-chunk
- * resync would need the server to resend `SChunkDataPacket` to every
- * tracking player, a meaningfully bigger change than the mutation itself.
+ * Real bug, found 2026-09-28 (reported by user: waited out a full heat-up,
+ * saw the snow melt and the explosion, but no visible biome/color change).
+ * The gap above ("not attempted this session") is exactly what that was -
+ * the mutation was already server-authoritative-correct, but nothing told an
+ * already-connected client's own separate copy of the chunk's biome data to
+ * update. Fixed via {@link #resyncBiomesToClients}: resends each touched
+ * chunk's real {@code SChunkDataPacket} (ground-truthed via source that it
+ * always serializes {@code Chunk#getBiomes()} regardless of section filter,
+ * so a full resend is the correct, working mechanism) to every player
+ * currently tracking it - the same packet vanilla's own {@code ChunkManager
+ * #sendChunkData} sends when a chunk first loads for a player.
  */
 public class AncientFurnaceTileEntity extends TileEntity implements ITickableTileEntity {
     /** ~56 blocks, the radius of a circle with area 10000 (the wiki's own default). */
@@ -146,6 +152,8 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
         int cx = center.getX();
         int cz = center.getZ();
 
+        Set<Chunk> touchedChunks = new HashSet<>();
+
         for (int dx = -RADIUS; dx <= RADIUS; dx++) {
             for (int dz = -RADIUS; dz <= RADIUS; dz++) {
                 if (dx * dx + dz * dz > RADIUS * RADIUS) {
@@ -169,6 +177,7 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
                 Chunk chunk = world.getChunkAt(columnPos);
                 chunk.getBiomes()[(z & 15) << 4 | (x & 15)] = warmBiome;
                 chunk.markDirty();
+                touchedChunks.add(chunk);
 
                 int top = world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
 
@@ -183,6 +192,38 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
                     }
                 }
             }
+        }
+
+        resyncBiomesToClients(world, touchedChunks);
+    }
+
+    /**
+     * Closes the gap this class's own javadoc previously disclosed and left
+     * unattempted: the biome-array mutation above is a real, correct write
+     * on the server, but a client's own separate copy of each chunk's biome
+     * data never learns about it on its own - nothing re-sends it. Real bug,
+     * found 2026-09-28 (reported by user, waited out a full heat-up and saw
+     * the snow melt but no biome/color change). Fixed by resending each
+     * touched chunk's full {@code SChunkDataPacket} (ground-truthed via
+     * source that it always serializes {@code Chunk#getBiomes()} regardless
+     * of the passed section filter, so a full resend is the real, working
+     * mechanism - not something narrower) to every player currently tracking
+     * it, the same packet/audience vanilla's own {@code ChunkManager
+     * #sendChunkData} uses when a chunk first loads for a player, just
+     * invoked directly since that method itself is private.
+     */
+    private static void resyncBiomesToClients(World world, Set<Chunk> touchedChunks) {
+        if (!(world instanceof ServerWorld) || touchedChunks.isEmpty()) {
+            return;
+        }
+
+        ServerWorld serverWorld = (ServerWorld) world;
+
+        for (Chunk chunk : touchedChunks) {
+            SChunkDataPacket packet = new SChunkDataPacket(chunk, 65535);
+
+            serverWorld.getChunkProvider().chunkManager.getTrackingPlayers(chunk.getPos(), false)
+                    .forEach(player -> player.connection.sendPacket(packet));
         }
     }
 

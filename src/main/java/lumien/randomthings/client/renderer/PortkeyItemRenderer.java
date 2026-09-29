@@ -1,5 +1,7 @@
 package lumien.randomthings.client.renderer;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import lumien.randomthings.item.PortkeyItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.model.IBakedModel;
@@ -47,6 +49,20 @@ import net.minecraft.util.ResourceLocation;
  * {@code builtin/entity} item). {@code portkey.json} had no {@code display}
  * block at all, so every context got an identity transform - fixed by giving
  * it the same transform numbers as {@code template_shulker_box.json}.
+ * <p>
+ * **2026-09-28, a second real bug found and fixed (reported by user): both renders were still
+ * off-center, even after the above.** Root cause: {@code ItemRenderer.renderItem(ItemStack,
+ * IBakedModel)} - what this method is already being called *from* (confirmed via its own
+ * decompiled source) - unconditionally applies its own {@code GlStateManager.translatef(-0.5,
+ * -0.5, -0.5)} centering offset before ever checking whether the model is builtin-rendered,
+ * i.e. before calling into {@code renderByItem} at all. Every overload this class calls back
+ * out to in order to draw the camo'd/plain stack ({@code renderItem(stack, TransformType)} and
+ * {@code renderItem(stack, IBakedModel)} alike) funnels through that exact same method again,
+ * applying that exact same -0.5 offset a *second* time on top of the first - a real
+ * double-translate, independent of whatever the display-transform fix above corrected.
+ * {@code ItemRenderer#renderModel} - the one true no-offset primitive - is private, so there's
+ * no way to skip the inner call's own offset directly; instead this cancels the *outer* one
+ * first (+0.5 on all three axes) so the inner call's own -0.5 is the only one that survives.
  */
 public class PortkeyItemRenderer extends ItemStackTileEntityRenderer {
     private static final ModelResourceLocation BASE_MODEL = new ModelResourceLocation(new ResourceLocation("randomthings", "portkey_base"), "inventory");
@@ -55,6 +71,9 @@ public class PortkeyItemRenderer extends ItemStackTileEntityRenderer {
     public void renderByItem(ItemStack stack) {
         ItemStack camo = PortkeyItem.getCamoStack(stack);
 
+        GlStateManager.pushMatrix();
+        GlStateManager.translatef(0.5F, 0.5F, 0.5F);
+
         if (!camo.isEmpty()) {
             Minecraft.getInstance().getItemRenderer().renderItem(camo, ItemCameraTransforms.TransformType.NONE);
         } else {
@@ -62,5 +81,7 @@ public class PortkeyItemRenderer extends ItemStackTileEntityRenderer {
 
             Minecraft.getInstance().getItemRenderer().renderItem(stack, baseModel);
         }
+
+        GlStateManager.popMatrix();
     }
 }

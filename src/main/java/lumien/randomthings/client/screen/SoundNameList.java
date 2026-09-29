@@ -32,6 +32,32 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         }
     }
 
+    /**
+     * Real bug, found 2026-09-28 (reported by user): sound name text ran off
+     * the edge of the GUI. Two compounding causes, found by checking 1.12.2's
+     * real {@code GuiStringList} first: (1) {@code AbstractList.getRowWidth()}
+     * defaults to a hardcoded {@code 220} - vanilla's own width for the
+     * full-screen-style lists (resource packs, server list) this class was
+     * designed for - which is wider than this whole GUI panel, so {@code
+     * getRowLeft()}'s centering math (built around that 220) placed rows
+     * noticeably left of where they should sit; (2) nothing clipped or
+     * truncated a sound name longer than the available row width at all -
+     * 1.12.2's own version explicitly {@code GL11.glScissor}-clipped each row
+     * to the list's real bounds specifically to prevent this, which this
+     * port's rewrite (targeting vanilla's modern {@code ExtendedList}
+     * instead) dropped without a replacement. Fixed by overriding {@code
+     * getRowWidth()} to the list's own real width instead of the vanilla
+     * default, and by trimming the drawn text to the actual available pixel
+     * width (matching {@code ChunkAnalyzerScanResultList}'s own established
+     * truncation precedent in this project, just pixel-accurate via {@code
+     * FontRenderer#trimStringToWidth} instead of a fixed character count,
+     * since sound names vary a lot in length).
+     */
+    @Override
+    public int getRowWidth() {
+        return this.width - 10;
+    }
+
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
         int rowLeft = this.getRowLeft();
@@ -49,7 +75,9 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
 
         @Override
         public void render(int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
-            Minecraft.getInstance().fontRenderer.drawString(sound, left + 2, top + 2, isMouseOver ? 0xFFFF00 : 0xFFFFFF);
+            net.minecraft.client.gui.FontRenderer font = Minecraft.getInstance().fontRenderer;
+            String trimmed = font.trimStringToWidth(sound, width - 4);
+            font.drawString(trimmed, left + 2, top + 2, isMouseOver ? 0xFFFF00 : 0xFFFFFF);
         }
 
         @Override

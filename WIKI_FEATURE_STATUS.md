@@ -40,7 +40,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Contact Button & Lever | BlockContactButton, BlockContactLever | DONE (#1-3, #34) | No |
 | Creative Player Interface | BlockCreativePlayerInterface, TileEntityCreativePlayerInterface | DONE-UNTESTED (#244) | No |
 | Custom Crafting Tables | BlockCustomWorkbench, ContainerCustomWorkbench | **REMOVED** (ported then explicitly deleted, #88) | No |
-| Diaphanous Blocks | BlockBlockDiaphanous, TileEntityBlockDiaphanous | NOT STARTED (needs generic runtime block-model renderer) | No |
+| Diaphanous Blocks | BlockBlockDiaphanous, TileEntityBlockDiaphanous | DONE-UNTESTED (#314-317, 2026-09-28) | No (this port's own `checkSides`-driven `BlockModelRenderer.renderModel` call replaces 1.12.2's hand-rolled per-face AO renderer entirely - see the note below) |
 | Divining Rods | item/diviningrod/* | DONE | No |
 | Dyeing Machine | BlockDyeingMachine, ContainerDyeingMachine | NOT STARTED | Yes (RenderItem+LayerArmorBase recolor) |
 | Eclipsed Clock | ItemEclipsedClock, EntityEclipsedClock | DONE-UNTESTED (#193-205) | No |
@@ -67,20 +67,20 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Item Filter | ItemItemFilter, ContainerItemFilter | NOT STARTED (deliberately skipped, 2026-09-26 - see note below) | No |
 | Lapis Glass | BlockLapisGlass | DONE (#21-23, 27) | No |
 | Lapis Lamp | BlockLapisLamp | DONE (#29 - confirmed working 2026-09-27 after two reverts, see `AsmHandler#overrideSpawnResult`'s javadoc for the full story) | Yes (`EntitySpawnPlacementRegistry` coremod, shared with Slime Cube/Peace Candle - a 1.12.2-faithful `getLightValue`-per-side trick was tried instead but proved unreliable in this Forge version, see the javadoc) |
-| Lava Charm | ItemLavaCharm | DONE (#127) | No |
-| Lava Waders | ItemLavaWader | DONE, needs retest (#128-129, 133) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
-| Light Redirector | BlockLightRedirector, TileEntityLightRedirector | NOT STARTED (needs generic runtime block-model renderer) | Yes (BlockRendererDispatcher) |
+| Lava Charm | ItemLavaCharm | **REMOVED** (ported then explicitly deleted, #127) | No |
+| Lava Waders | ItemLavaWader | **REMOVED** (ported then explicitly deleted, #128-129, 133) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
+| Light Redirector | BlockLightRedirector, TileEntityLightRedirector | DONE-UNTESTED (#318-319, 2026-09-28) | Yes (new `BlockRendererDispatcherTransformer` coremod - see the note below) |
 | Lotus | BlockLotus, LotusBlossomItem | DONE (#66-67.1) | No |
 | Luminous Blocks | BlockBlockLuminous(Translucent) | DONE (#57-58) | No |
 | Luminous Powder | ItemIngredient.LUMINOUS_POWDER (now "luminous_powder") | DONE-UNTESTED | No |
 | Magic Hood | ItemMagicHood | DONE-UNTESTED (#252-255) | Partially - nametag half needed a coremod (confirmed no clean event exists in this Forge version); particle half found a real Forge event instead (`PotionColorCalculationEvent`), no ASM needed there |
 | Magnetic Enchantment | EnchantmentMagnetic | DONE-UNTESTED (#288, 2026-09-28) | No (a plain `BlockEvent.HarvestDropsEvent` listener replaces the 1.12.2 ASM hook entirely - see the note below) |
 | Notification Interface | BlockNotificationInterface, TileEntityNotificationInterface | BUGGY (#114, same GUI-open bug family) | No |
-| Obsidian Skull | ItemObsidianSkull | DONE (#126); Baubles ring variant moot (Baubles dropped project-wide) | No |
-| Obsidian Water Walking Boots | ItemObsidianWaterWalkingBoots | DONE (#131-132) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
+| Obsidian Skull | ItemObsidianSkull | **REMOVED** (ported then explicitly deleted, #126) | No |
+| Obsidian Water Walking Boots | ItemObsidianWaterWalkingBoots | **REMOVED** (ported then explicitly deleted, #131-132) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Online Detector | BlockOnlineDetector, TileEntityOnlineDetector | BUGGY (#75, GUI-close bug + text field not saving) | No |
 | Peace Candle | BlockPeaceCandle, TileEntityPeaceCandle, WorldGenPeaceCandle | PARTIAL, DONE-UNTESTED (worldgen batch, #268-270 - mob-suppression only, no village-church generation, see note below) | No (reuses the existing `SpawnPlacementTransformer` coremod hook, not a new one) |
-| Pitcher Plant | BlockPitcherPlant | DONE-UNTESTED (decorative only so far) | No |
+| Pitcher Plant | BlockPitcherPlant | **REMOVED** (ported then explicitly deleted, #51) | No |
 | Platforms | BlockPlatform (6 wood types) | DONE-UNTESTED | No |
 | Player Interface | BlockPlayerInterface, TileEntityPlayerInterface | DONE-UNTESTED | No |
 | Portable Sound Dampener | ItemPortableSoundDampener | DONE-UNTESTED | No |
@@ -89,7 +89,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Potion Vaporizer | BlockPotionVaporizer, TileEntityPotionVaporizer | DONE (#96-99.1) | No |
 | Quartz Glass | BlockQuartzGlass | DONE (#24-26, 28) | No |
 | Quartz Lamp | BlockQuartzLamp | DONE (#30 - confirmed working 2026-09-27, back to the original mechanism after a same-day detour, see Lapis Lamp's note) | Yes (same `EntitySpawnPlacementRegistry` coremod as Lapis Lamp) |
-| Rain Shield | BlockRainShield, TileEntityRainShield | PARTIAL, DONE-UNTESTED (#256-261 - mechanical suppression via coremod; client-side visual rain/snow rendering deliberately not ported, see #261) | Yes (World rain/snow suppression + EntityRenderer client rendering) |
+| Rain Shield | BlockRainShield, TileEntityRainShield | DONE-UNTESTED (#256-261, 2026-09-28 - mechanical suppression AND client-side visual rain/snow suppression both implemented via coremods, per explicit user request for the visual half) | Yes (World rain/snow suppression + a new GameRenderer.renderRainSnow coremod for the visual half) |
 | Rainbow Lamp | BlockRainbowLamp | DONE-UNTESTED | No |
 | Redstone Activator | RedstoneActivatorItem | DONE-UNTESTED (#283-286, 2026-09-27) | Yes (World wireless signal, shared with Redstone Interface) |
 | Redstone Interface | BasicRedstoneInterfaceBlock, RedstoneSignalHandler | DONE-UNTESTED (#283-286, 2026-09-27) | Yes (two new coremods: `WorldRedstonePowerTransformer`/`WorldReaderStrongPowerTransformer` patch `World.getRedstonePower`/`IWorldReader.getStrongPower` - the only way to make an arbitrary vanilla position appear powered with no real redstone source there, matching 1.12.2's own `World.getStrongPower`/`getRedstonePower` ASM patch; ground-truthed via `javap -c` that 1.14.4 moved strong-power computation onto a default `IWorldReader` method instead of a second `World` method - see `AsmHandler#overrideRedstonePower`/`overrideStrongPower`'s javadoc) |
@@ -103,13 +103,13 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Sound Pattern | ItemSoundPattern | DONE-UNTESTED | No |
 | Sound Recorder | ItemSoundRecorder | DONE-UNTESTED | No |
 | Spectre Anchor | ItemSpectreAnchor, SpectreAnchorCombineRecipe | DONE-UNTESTED (#281-282, 2026-09-27) | Yes (new `PlayerEntityTransformer` coremod redirecting `PlayerEntity.dropInventory()`'s call to `PlayerInventory.dropAllItems()` into `AsmHandler.dropAllItemsExceptAnchored` - `PlayerDropsEvent` no longer exists in this Forge version and `ItemTossEvent`/`LivingDropsEvent` don't cover the death-drop code path, confirmed via `javap -c` on all three before concluding a coremod was needed; verified via the standalone bytecode-verification harness against a full Gradle-resolved runtime classpath, and via a `runClient` boot smoke test) |
-| Spectre Charger | BlockSpectreEnergyInjector | NOT STARTED (Spectre energy network) | No |
-| Spectre Coils | BlockSpectreCoil, SpectreCoilHandler | NOT STARTED (Spectre energy network) | Yes (VertexLighterFlat glow) |
+| Spectre Charger | BlockSpectreEnergyInjector, ItemSpectreCharger | DONE-UNTESTED (#307-311, 2026-09-28) | No (dropped a purely cosmetic 3D mesh for both blocks - see the checklist slice's own note) |
+| Spectre Coils | BlockSpectreCoil, SpectreCoilHandler | DONE-UNTESTED, NORMAL/REDSTONE/ENDER/GENESIS only (#307-309, 2026-09-28) | No (same mesh simplification; also dropped the per-tier color tint - no `BlockColor` infra yet) |
 | Spectre Illuminator | SpectreIlluminatorItem, SpectreIlluminatorEntity | DONE-UNTESTED (#272-274, 2026-09-27) | Yes (new `IBlockReaderTransformer` coremod - `Block.getLightValue`'s 3-arg overload was removed in this Forge version, see `AsmHandler#overrideLightValue`'s javadoc) |
-| Spectre Key | ItemSpectreKey, BlockSpectreCore, custom dimension | NOT STARTED | Yes (RenderItem cyan enchant-glow) |
-| Spectre Lens | BlockSpectreLens, SpectreLensHandler | NOT STARTED | No |
+| Spectre Key | ItemSpectreKey, BlockSpectreCore, custom dimension | DONE-UNTESTED (#297-301, 2026-09-28) | Yes (vanilla enchant-glow via `hasEffect` - no `RenderItem` patch needed, cosmetic tint is automatic; new `TeleporterTransformer` coremod for cross-dimension teleport, see `AsmHandler#overrideMakePortal`'s javadoc) |
+| Spectre Lens | BlockSpectreLens, SpectreLensHandler | DONE-UNTESTED (#312-313, 2026-09-28) | No |
 | Spectre Sapling | block/spectretree/* | DONE (#36-39, simplified fixed-shape growth not worldgen-feature-based, disclosed divergence) | No |
-| Spectre Tools | item/spectretools/* | NOT STARTED | Yes (RenderItem white enchant-glow, Spectre Sword) |
+| Spectre Tools | item/spectretools/* | DONE-UNTESTED (#303-306, 2026-09-28) | Yes (RenderItem white enchant-glow on the sword - cosmetic detail, dropped same as Redstone Observer's own red-glow recolor; see that row and `TESTING_CHECKLIST.md` #303) |
 | Stable Ender Pearl | ItemStableEnderpearl | DONE (#124-125) | No |
 | Stained Bricks | BlockStainedBrick | DONE (#52-53) | Yes (VertexLighterFlat glow - dropped, disclosed) |
 | Summoning Pendulum | ItemSummoningPendulum | DONE-UNTESTED (#225-229) | No |
@@ -118,11 +118,141 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Super Lubricent Stone | BlockSuperLubricentStone | DONE | Yes (same friction hook) |
 | Time in a Bottle | ItemTimeInABottle, EntityTimeAccelerator | DONE-UNTESTED (#193-205) | No |
 | Trigger Glass | BlockTriggerGlass | DONE (#15-20) | Yes (BlockFalling.canFallThrough - clean Block.canFallThrough override used) |
-| Water Walking Boots | ItemWaterWalkingBoots | DONE, needs retest (#130) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
+| Water Walking Boots | ItemWaterWalkingBoots | **REMOVED** (ported then explicitly deleted, #130) | Yes (Block.addCollisionBoxesToList - port uses its own different design instead) |
 | Weather Eggs | ItemWeatherEgg, EntityThrownWeatherEgg | DONE-UNTESTED (#193-205) | No |
 
-Rough tally: ~77 of 100 have some 1.14.4 code (many untested); ~22 not started; 1 removed per
+Rough tally: ~83 of 100 have some 1.14.4 code (many untested); ~16 not started; 1 removed per
 explicit request.
+
+**Diaphanous Blocks + Light Redirector implemented (2026-09-28, local machine, full toolchain access),
+the last two wiki-tagged features that needed a "generic runtime block-model renderer":** user picked
+this pair from the 3 remaining NOT-STARTED wiki rows (paired for the same reason Magnetic Enchantment +
+Block Breaker were - they share infrastructure). Both needed real investigation of what that
+"infrastructure" actually was in 1.12.2 before writing anything, per this repo's working rule:
+- **Diaphanous Blocks** displays another block's appearance, ghost-fading in from mostly invisible up
+  close to fully opaque-looking at range (inverted mode flips the curve and gives it a real collision
+  box). 1.12.2's `RenderBlockDiaphanous` hand-reimplemented `BlockModelRenderer`'s *private*
+  `renderQuadsSmooth`/`renderQuadsFlat` internals just to filter which faces draw (tracking a per-face
+  `renderMap` in `neighborChanged`) and reflected into `BufferBuilder`'s private raw `IntBuffer` to force
+  per-vertex alpha after the fact. Neither workaround is needed in this version: `BlockModelRenderer
+  .renderModel`'s own `checkSides` parameter calls `Block.shouldSideBeRendered` against the *real* world
+  at the tile entity's *real* position for each face - ground-truthed from its own decompiled source -
+  which reproduces the exact same "don't draw a face touching a solid neighbor" culling for free, live,
+  every frame, no tracking/syncing needed (disclosed minor edge case: two Diaphanous blocks placed
+  directly touching each other both render their touching inner faces now, since neither is "solid" -
+  a harmless double-translucent overdraw 1.12.2's block-identity special case avoided). The alpha
+  override needs no reflection either: this version's `BufferBuilder` exposes the same raw storage
+  publicly (`getByteBuffer()` alongside the already-public `getColorIndex`/`putColorRGBA`), ground-truthed
+  by reading `BufferBuilder`'s own decompiled `getColorIndex`/`putColorRGBA` source to confirm the exact
+  int-buffer-index and endianness semantics before relying on them - see `DiaphanousBlockTileEntityRenderer`'s
+  own javadoc. Disclosed simplifications: metadata doesn't exist in this version, so the "set what to
+  display" crafting recipe (`DiaphanousSetRecipe`, same `SpecialRecipe`/donor-returned-unconsumed shape as
+  `PortkeyCamoRecipe`) always captures the target's plain default state rather than a specific
+  meta-variant; the item's own in-hand/inventory appearance is a plain flat icon (reusing Quartz Glass's
+  texture) instead of porting a second full ghost-preview `ItemStackTileEntityRenderer` on top of the
+  placed-block one; `addHitEffects` (per-mine-tap particles) is dropped, but `addLandingEffects`/
+  `addDestroyEffects` are ported using this version's real `ParticleManager` convenience methods.
+- **Light Redirector** is a full-cube "periscope": open faces (right-click to toggle, real texture swap
+  to a dimmer "disabled" look) show whatever's on the block's *opposite* side instead of the redirector's
+  own texture - a purely client-side rendering trick with no effect on actual block-light propagation,
+  confirmed by reading 1.12.2's own `AsmHandler#renderBlock`/`getSwitchedPosition` (reached via a
+  `BlockRendererDispatcher.func_175018_a` ASM patch) rather than assuming from the wiki name alone. Two
+  genuinely separate mechanisms, both needing real 1.14.4 replacements:
+  - The per-face open/closed *texture* swap used 1.12.2's Forge-only `forge_marker` blockstate shorthand
+    (doesn't exist here) to auto-combine partial per-property texture overrides. Replaced with real,
+    non-deprecated `BlockState` properties (reusing vanilla's own `BlockStateProperties.NORTH/EAST/SOUTH/
+    WEST/UP/DOWN` `BooleanProperty` constants, the same ones fences/glass panes use) - 64 real registered
+    states, each with its own tiny generated model JSON overriding just that combination's per-face
+    texture, kept in sync with the tile entity's own toggle via `World#setBlockState` same as
+    `AdvancedRedstoneRepeaterBlock`'s already-proven `POWERED` toggle.
+  - The actual periscope redirect is a new `BlockRendererDispatcherTransformer` coremod, the same "early
+    conditional-IRETURN at method entry" idiom `TeleporterTransformer` already established in this port -
+    confirmed via real decompiled source (not just javap signatures) which of `BlockRendererDispatcher`'s
+    two `renderBlock` overloads `ChunkRender` actually calls (the real 6-arg one with Forge's `IModelData`,
+    not the deprecated 5-arg one it delegates from). The redirect target method itself
+    (`ClientAsmHandler.renderBlock`) lives in a **new, separate** class from the existing `AsmHandler` -
+    every parameter type it needs (`BlockRendererDispatcher`, `BufferBuilder`, `IEnviromentBlockReader`)
+    is `@OnlyIn(Dist.CLIENT)` (confirmed via `javap -v`'s raw annotation dump), and `AsmHandler` itself is
+    loaded on both sides (several of its other redirect targets run on a dedicated server) - putting a
+    client-only method signature there would risk a dedicated server failing to verify/load `AsmHandler`
+    at all the first time anything touches it, purely because of one unrelated method's parameter types.
+  Verified via a real `runClient` boot: log confirms `Transforming net/minecraft/client/renderer
+  /BlockRendererDispatcher` with no `VerifyError`/`LinkageError`/`ClassFormatError` anywhere, both blocks'
+  registry entries and all 64 Light Redirector model variants baked cleanly into the 1024x512 block atlas
+  with no missing-model/missing-texture warnings, both new `SpecialRecipeSerializer`s registered. Not
+  independently testable further without a real world/interactive session. `TESTING_CHECKLIST.md`
+  #314-319 added. Please retest in-game.
+
+**Spectre Lens implemented (2026-09-28, local machine, full toolchain access), completing the whole
+"Spectre" wiki family except the never-started Ender network:** the follow-up slice deferred from the
+energy-network batch below. Unlike Coil/Injector, this one's real 1.12.2 model is already a single
+plain thin box (no Cubik Studio mesh, no obsolete Forge blockstate format), so it ported faithfully -
+same 1/16-tall shape, same real texture, same real recipe, no simplification needed. Ground-truthed
+`BeaconTileEntity` via `javap` before assuming 1.12.2's reflection approach still applied: the private
+"is the pyramid complete" flag it needed reflection for is gone entirely in this version -
+`BeaconTileEntity#getLevels()` (already public) is `0` exactly when incomplete, a genuine API
+simplification, not a choice. `primaryEffect`/`secondaryEffect` are still private with no getter, so
+those two still need reflection (using this build's own real MCP field names directly, no SRG lookup
+needed this time - the mapped jar already ships human-readable names). Also traced `Chunk`/`World`'s
+real source before relying on `TileEntity#remove()` as this version's replacement for 1.12.2's
+`breakBlock` hook, confirming it only fires on a genuine block-state removal, never on a chunk simply
+unloading. `SpectreLensHandler` kept the original's deliberate cross-dimension scoping (`getPerWorldStorage()`
+in 1.12.2, `server.getWorld(DimensionType.OVERWORLD).getSavedData()` here) - the opposite choice from
+`SpectreCoilHandler`'s deliberately-preserved per-dimension one, matching each handler's own original
+design rather than unifying them. Also added the Spectre Energy Injector's own real recipe now that its
+one missing prerequisite (this item) exists - it shipped without one in the previous slice.
+`./gradlew build -x test` clean; `runClient` smoke-verified through an actual world load again, no
+model/recipe errors. `TESTING_CHECKLIST.md` #312-313 added, #310 (Injector) updated for its new recipe.
+Not yet tested in-game.
+
+**Spectre energy network (Charger/Coils/Injector) implemented, Spectre Lens deferred (2026-09-28,
+local machine, full toolchain access):** user picked "Spectre energy network" as the next slice, then
+this session scoped it down to just the real Forge-Energy trio - a per-player pool
+(`SpectreCoilHandler`, ported onto 1.14.4's `WorldSavedData`/`DimensionSavedDataManager` the same way
+`SpectreHandler`/`FlooNetworkHandler` already were), its two "taps" (`SpectreEnergyInjectorBlock`
+receive-only, `SpectreCoilBlock` receive+extract into an external machine), and the wearable
+`SpectreChargerItem` - and left Spectre Lens for its own follow-up slice, since it turned out to share
+nothing with the energy network at all (it extends a Beacon's active buffs to its owner remotely,
+`SpectreLensHandler` is a completely separate `WorldSavedData`, no Forge Energy involved) despite
+sharing one wiki row with the Charger/Coils. `NUMBER`-tier coils (config-gated dungeon loot in 1.12.2)
+also deferred - needs real loot-table-injection infrastructure this port hasn't built for anything yet.
+Ground-truthed `IEnergyStorage`/`CapabilityEnergy`/`WorldSavedData`/`LazyOptional` via `javap`/real
+source first - all near-unchanged from 1.12.2's own Forge Energy API, the most stable surface touched
+this session. Real research correction caught before shipping: a first pass concluded "Spectre String"
+(a required crafting ingredient for every real tier) had zero obtain path in 1.12.2 at all (grepping
+its Java enum constant name turned up nothing, and JEI even blacklists it as unobtainable) - reported
+that to the user as apparent dead content, but a second, more careful look at the actual `recipes/`
+folder (not just a Java-source grep) found a real, working recipe for it that the first pass had simply
+missed. See `TESTING_CHECKLIST.md`'s Slice 28 intro for the full story and the disclosed mesh/tint
+simplifications (both blocks' elaborate hand-modeled Cubik Studio meshes, which used a 1.12.2-only
+Forge blockstate format that doesn't exist in this version, replaced with plain full-cube blocks -
+matching this port's own established `ContactButtonBlock`/`ContactLeverBlock` precedent for the same
+class of simplification). `./gradlew build -x test` clean; `runClient` smoke-verified through an actual
+world load this time (not just the main menu), confirming clean `RecipeManager`/`ModelBakery` loading
+for all 7 new recipes and 9 new blocks/items with no parse errors or missing-asset warnings.
+`TESTING_CHECKLIST.md` #307-311 added. Not yet tested in-game - the Coil/Injector/Charger's actual FE
+transfer needs another Forge-Energy-capable mod installed to fully verify end-to-end, which this
+environment doesn't have.
+
+**Spectre Tools implemented (2026-09-28, local machine, full toolchain access):** picked from the
+NOT-STARTED list now that Spectre Ingot exists (crafted as part of Slice 26's Spectre Key batch). All
+four items (`SpectreSwordItem`/`SpectrePickaxeItem`/`SpectreAxeItem`/`SpectreShovelItem`, plus a shared
+`SpectreItemTier`) ground-truthed against the real 1.14.4 `IItemTier`/`ToolItem` hierarchy via `javap`/
+real source first. One real finding fell out of that: 1.12.2's `ItemSpectreAxe` had a custom
+`getDestroySpeed` override (full efficiency on wood/plant/vine materials) that turned out to need no
+equivalent here - vanilla's own `AxeItem#getDestroySpeed` already does exactly that check in this
+version. The other three tools needed no destroy-speed override either (matches 1.12.2, which never
+customized them). All four get the tier's real stats (harvest level 3/diamond-tier, 2000 uses, 22
+enchantability, Spectre Ingot repair via a `LazyLoadBase<Ingredient>` exactly like every vanilla
+`ItemTier` enum constant); pickaxe/axe/shovel (not sword, matching 1.12.2) get a +3 block reach
+`AttributeModifier` on `PlayerEntity.REACH_DISTANCE` while held in the mainhand. Recipes/models/textures
+pulled directly from `origin/1.12.2` and restructured into this port's asset layout, not reinvented.
+Disclosed simplification: dropped the sword's ASM-hook white-glow recolor (cosmetic only, no
+tint-recolor render-hook precedent in this port - same call already made for Redstone Observer's own
+dropped red-glow recolor); the sword's `EntitySpirit` tie-in also isn't wired up since that mob isn't
+ported yet. `./gradlew build -x test` clean, plus a `runClient` smoke boot confirming clean model/recipe
+loading (reached texture-atlas stitching with no missing-texture warnings for any of the four items).
+`TESTING_CHECKLIST.md` #303-306 added, not yet tested in-game.
 
 **Magnetic Enchantment, Block Breaker, Block Destabilizer implemented (2026-09-28):** this session
 ran with no Forge/Mojang Maven access at all (a cloud sandbox, not the usual local dev machine - see

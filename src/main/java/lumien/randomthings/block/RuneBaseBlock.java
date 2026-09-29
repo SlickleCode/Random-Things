@@ -53,13 +53,17 @@ public class RuneBaseBlock extends Block {
     }
 
     /**
-     * No baked model at all - every visible pixel is drawn by
+     * No real baked model - every visible pixel is drawn by
      * {@link lumien.randomthings.client.renderer.RuneBaseTileEntityRenderer},
      * which fires independently of this (TESR dispatch is keyed off the
      * registered tile entity type, not the block's render type - confirmed
      * already elsewhere in this port, e.g. Biome Radar's TESR runs
-     * alongside its own separate real baked model). No blockstate/model JSON
-     * exists for this block at all, matching how it needs none.
+     * alongside its own separate real baked model). The blockstate/model JSON
+     * that does exist (an empty-elements model, reusing Rune Dust's own
+     * texture only for the "particle" field) draws nothing - it's there
+     * purely so {@code ModelBakery} doesn't log a spurious "missing model"
+     * warning on every load and so breaking this block shows a themed
+     * particle effect instead of the default missing-texture one.
      */
     @Override
     public BlockRenderType getRenderType(BlockState state) {

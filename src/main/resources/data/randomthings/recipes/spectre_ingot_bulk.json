@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ELE",
+    "EIE",
+    "EEE"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:lapis_block"
+    },
+    "I": {
+      "item": "minecraft:gold_block"
+    },
+    "E": {
+      "item": "randomthings:ectoplasm"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_ingot",
+    "count": 9
+  }
+}

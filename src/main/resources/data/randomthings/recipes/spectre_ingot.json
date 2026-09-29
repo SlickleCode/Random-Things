@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " L ",
+    " I ",
+    " E "
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "I": {
+      "item": "minecraft:gold_ingot"
+    },
+    "E": {
+      "item": "randomthings:ectoplasm"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_ingot"
+  }
+}

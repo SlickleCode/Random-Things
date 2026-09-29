@@ -23,9 +23,6 @@ public class ModFeatures {
     @ObjectHolder("bean_sprout")
     public static BeanSproutFeature BEAN_SPROUT;
 
-    @ObjectHolder("pitcher_plant")
-    public static PitcherPlantFeature PITCHER_PLANT;
-
     @ObjectHolder("lotus")
     public static LotusFeature LOTUS;
 
@@ -34,7 +31,6 @@ public class ModFeatures {
 
     public static void registerFeatures(Register<Feature<?>> featureRegistryEvent) {
         featureRegistryEvent.getRegistry().register(new BeanSproutFeature(NoFeatureConfig::deserialize).setRegistryName("bean_sprout"));
-        featureRegistryEvent.getRegistry().register(new PitcherPlantFeature(NoFeatureConfig::deserialize).setRegistryName("pitcher_plant"));
         featureRegistryEvent.getRegistry().register(new LotusFeature(NoFeatureConfig::deserialize).setRegistryName("lotus"));
         featureRegistryEvent.getRegistry().register(new AncientFurnaceFeature(NoFeatureConfig::deserialize).setRegistryName("ancient_furnace"));
     }

@@ -70,6 +70,25 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
         this.blit(i, j, 0, 0, this.xSize, this.ySize);
     }
 
+    /**
+     * Real bug, found 2026-09-28 (reported by user, screenshot of a blank-
+     * looking GUI): this screen never drew its title at all - missing this
+     * override entirely, unlike every other ported container screen in this
+     * project (standard convention: {@code this.font.drawString(this.title
+     * .getString(), 8, 6, 4210752)}). Ground-truthed 1.12.2's own {@code
+     * GuiRedstoneRemoteUse#drawGuiContainerForegroundLayer} first - it drew
+     * the same title text - confirming this was a real gap, not something to
+     * silently add. The background texture itself is untouched: 1.12.2's own
+     * {@code redstoneremoteuse.png} (ground-truthed by extracting it directly
+     * from the {@code 1.12.2} branch) is *also* just a plain flat gray panel
+     * with no border/frame decoration - the blank-looking appearance is
+     * faithful to the original, not a missing-texture bug.
+     */
+    @Override
+    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        this.font.drawString(this.title.getString(), 8, 6, 4210752);
+    }
+
     @Override
     public void render(int p_render_1_, int p_render_2_, float p_render_3_) {
         this.renderBackground();

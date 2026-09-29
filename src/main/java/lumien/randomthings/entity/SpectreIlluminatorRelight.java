@@ -9,8 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
-import java.util.Queue;
 import java.util.WeakHashMap;
 
 /**
@@ -40,6 +40,28 @@ import java.util.WeakHashMap;
  * code never enqueues anywhere near this many light updates in a single
  * tick either. See {@link #PADDING}'s own javadoc for a third real bug
  * (found the same day) in how far this padded scan needs to reach.
+ * <p>
+ * Real bug found and fixed, 2026-09-28 (reported by user: many-illuminator
+ * worlds still stall the whole server for multiple seconds - "Can't keep up!
+ * ... 44 ticks behind" - right when a batch of them settle/load together,
+ * e.g. on world join): the per-tick draining above fixed the *processing*
+ * cost, but {@link #queue(World, BlockPos)} itself still built the entire
+ * padded column as real materialized {@code BlockPos} objects - up to ~185,000
+ * {@code new BlockPos(...)} allocations plus queue insertions in one
+ * synchronous call, done once per illuminator. A world-join burst of just
+ * 14 illuminators settling within the same second (an ordinary amount for a
+ * "lit up the whole base" setup, and exactly what the reported log showed)
+ * is therefore ~2 million object allocations dumped into one or two ticks -
+ * that allocation/GC burst, not the bounded per-tick drain, is what actually
+ * blocked the server thread. Fixed by replacing the materialized {@code
+ * Queue<BlockPos>} with a queue of lightweight {@link Job} bounds
+ * descriptors (six {@code int}s each) - {@link #queue} now only computes and
+ * stores those bounds (O(1) allocation, no loop), and {@link #tick} lazily
+ * generates the next {@code PER_TICK} {@code BlockPos} values on demand from
+ * whichever job is at the front of the queue, saving its cursor for the next
+ * tick. Total positions checked, their order, and the per-tick rate are all
+ * unchanged - this only moves *when* each position's {@code BlockPos} gets
+ * allocated, from "all up front" to "the tick it's actually used."
  */
 public class SpectreIlluminatorRelight {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -80,7 +102,7 @@ public class SpectreIlluminatorRelight {
      */
     private static final int PADDING = 15;
 
-    private static final Map<World, Queue<BlockPos>> PENDING = new WeakHashMap<>();
+    private static final Map<World, WorldQueue> PENDING = new WeakHashMap<>();
 
     public static void queue(World world, BlockPos center) {
         Chunk chunk = world.getChunk(center.getX() >> 4, center.getZ() >> 4);
@@ -100,37 +122,99 @@ public class SpectreIlluminatorRelight {
         int maxY = Math.min(255, highest + HEIGHT_BUFFER);
 
         ChunkPos chunkPos = new ChunkPos(center);
-        Queue<BlockPos> queue = PENDING.computeIfAbsent(world, w -> new ArrayDeque<>());
+        Job job = new Job(chunkPos.getXStart() - PADDING, chunkPos.getXEnd() + PADDING, chunkPos.getZStart() - PADDING, chunkPos.getZEnd() + PADDING, maxY);
 
-        int before = queue.size();
+        WorldQueue queue = PENDING.computeIfAbsent(world, w -> new WorldQueue());
+        long before = queue.totalRemaining;
+        queue.jobs.add(job);
+        queue.totalRemaining += job.remaining();
 
-        for (int x = chunkPos.getXStart() - PADDING; x <= chunkPos.getXEnd() + PADDING; x++) {
-            for (int z = chunkPos.getZStart() - PADDING; z <= chunkPos.getZEnd() + PADDING; z++) {
-                for (int y = 0; y <= maxY; y++) {
-                    queue.add(new BlockPos(x, y, z));
-                }
-            }
-        }
-
-        LOGGER.info("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", queue.size() - before, chunkPos, world.isRemote, maxY, before, queue.size());
+        LOGGER.info("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isRemote, maxY, before, queue.totalRemaining);
     }
 
     public static void tick(World world) {
-        Queue<BlockPos> queue = PENDING.get(world);
+        WorldQueue queue = PENDING.get(world);
 
-        if (queue == null || queue.isEmpty()) {
+        if (queue == null || queue.jobs.isEmpty()) {
             return;
         }
 
         int drained = 0;
 
-        for (int i = 0; i < PER_TICK && !queue.isEmpty(); i++) {
-            world.getChunkProvider().getLightManager().checkBlock(queue.poll());
+        for (int i = 0; i < PER_TICK; i++) {
+            Job job = queue.jobs.peek();
+
+            if (job == null) {
+                break;
+            }
+
+            world.getChunkProvider().getLightManager().checkBlock(job.next());
             drained++;
+            queue.totalRemaining--;
+
+            if (job.isDone()) {
+                queue.jobs.poll();
+            }
         }
 
-        if (queue.isEmpty()) {
+        if (queue.jobs.isEmpty()) {
             LOGGER.info("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimension().getType(), drained);
+        }
+    }
+
+    /** A world's pending relight jobs, plus a running total kept for logging (see {@link #queue}). */
+    private static final class WorldQueue {
+        final Deque<Job> jobs = new ArrayDeque<>();
+        long totalRemaining;
+    }
+
+    /**
+     * A padded column's bounds plus a cursor tracking how far {@link #tick}
+     * has worked through it - replaces what used to be millions of
+     * pre-allocated {@code BlockPos} objects sitting in a queue at once (see
+     * this class's own javadoc for why). {@code next()} walks the same x/z/y
+     * nesting order the old eager loop used, generating one {@code BlockPos}
+     * at a time only when it's actually about to be checked.
+     */
+    private static final class Job {
+        private final int xMin, xMax, zMin, zMax, yMax;
+        private int x, z, y;
+
+        Job(int xMin, int xMax, int zMin, int zMax, int yMax) {
+            this.xMin = xMin;
+            this.xMax = xMax;
+            this.zMin = zMin;
+            this.zMax = zMax;
+            this.yMax = yMax;
+            this.x = xMin;
+            this.z = zMin;
+            this.y = 0;
+        }
+
+        int remaining() {
+            long width = (long) (xMax - xMin + 1) * (zMax - zMin + 1) * (yMax + 1);
+            long done = (long) (x - xMin) * (zMax - zMin + 1) * (yMax + 1) + (long) (z - zMin) * (yMax + 1) + y;
+            return (int) Math.max(0, width - done);
+        }
+
+        boolean isDone() {
+            return x > xMax;
+        }
+
+        BlockPos next() {
+            BlockPos pos = new BlockPos(x, y, z);
+
+            y++;
+            if (y > yMax) {
+                y = 0;
+                z++;
+                if (z > zMax) {
+                    z = zMin;
+                    x++;
+                }
+            }
+
+            return pos;
         }
     }
 }

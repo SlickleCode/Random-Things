@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ESE",
+    "SDS",
+    "ESE"
+  ],
+  "key": {
+    "E": {
+      "item": "randomthings:ectoplasm"
+    },
+    "S": {
+      "item": "minecraft:string"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_string",
+    "count": 4
+  }
+}

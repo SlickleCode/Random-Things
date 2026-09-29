@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "particle": "randomthings:block/light_redirector",
+    "down": "randomthings:block/light_redirector",
+    "east": "randomthings:block/light_redirector",
+    "north": "randomthings:block/light_redirector_disabled",
+    "south": "randomthings:block/light_redirector_disabled",
+    "up": "randomthings:block/light_redirector",
+    "west": "randomthings:block/light_redirector"
+  }
+}

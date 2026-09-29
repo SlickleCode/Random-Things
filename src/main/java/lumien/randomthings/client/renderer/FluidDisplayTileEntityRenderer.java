@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
 
 /**
@@ -26,27 +27,53 @@ import net.minecraftforge.fluids.FluidStack;
  * instead physically rotates the whole rendered cube in world space each
  * 90-degree step, which looks equivalent for the fully-opaque single-texture
  * cube case but isn't byte-for-byte the same transform.
+ * <p>
+ * Real bug, found 2026-09-28: when empty, this returned without drawing
+ * anything at all, leaving the block fully invisible - ground-truthed against
+ * the real 1.12.2 {@code ModelFluidDisplay}, which falls back to a static
+ * {@code ModelCubeAll} textured with the mod's own {@code fluidDisplay}
+ * "empty tank" sprite (still present in this port's assets at
+ * {@code block/fluid_display}, wired into this block's own model JSON as its
+ * particle texture but otherwise unused since the block's baked model is
+ * empty geometry - this TESR is meant to cover 100% of the block's visuals,
+ * both empty and full). Fixed by drawing the same cube with that sprite and
+ * no tint when there's no fluid, instead of skipping the draw.
  */
 public class FluidDisplayTileEntityRenderer extends TileEntityRenderer<FluidDisplayTileEntity> {
+    private static final ResourceLocation EMPTY_SPRITE = new ResourceLocation("randomthings", "block/fluid_display");
+
     @Override
     public void render(FluidDisplayTileEntity te, double x, double y, double z, float partialTicks, int destroyStage) {
         FluidStack fluidStack = te.getFluidStack();
+        boolean empty = fluidStack == null || fluidStack.isEmpty();
 
-        if (fluidStack == null || fluidStack.isEmpty()) {
-            return;
+        TextureAtlasSprite sprite;
+        float r, g, b;
+
+        if (empty) {
+            sprite = Minecraft.getInstance().getTextureMap().getSprite(EMPTY_SPRITE);
+            r = g = b = 1.0F;
+        } else {
+            net.minecraftforge.fluids.FluidAttributes attributes = fluidStack.getFluid().getAttributes();
+            net.minecraft.util.ResourceLocation spriteLocation = te.flowing() ? attributes.getFlowingTexture() : attributes.getStillTexture();
+
+            sprite = Minecraft.getInstance().getTextureMap().getSprite(spriteLocation);
+            int color = attributes.getColor(fluidStack);
+            r = (color >> 16 & 0xFF) / 255F;
+            g = (color >> 8 & 0xFF) / 255F;
+            b = (color & 0xFF) / 255F;
         }
-
-        net.minecraftforge.fluids.FluidAttributes attributes = fluidStack.getFluid().getAttributes();
-        net.minecraft.util.ResourceLocation spriteLocation = te.flowing() ? attributes.getFlowingTexture() : attributes.getStillTexture();
-
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureMap().getSprite(spriteLocation);
-        int color = attributes.getColor(fluidStack);
-        float r = (color >> 16 & 0xFF) / 255F;
-        float g = (color >> 8 & 0xFF) / 255F;
-        float b = (color & 0xFF) / 255F;
 
         this.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
         GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        // Real bug, found 2026-09-28 (same category as RuneBaseTileEntityRenderer's
+        // "Real bug #1"): TileEntityRendererDispatcher.render() doesn't reset the
+        // global GL current-color between TESRs, and per-vertex BufferBuilder.color(...)
+        // is multiplied against it, not a replacement for it - so this cube rendered
+        // using whatever near-zero-alpha color was left over from the last thing drawn
+        // that frame, which is exactly what looked like "transparent, faintly tinted."
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         // Real bug, found 2026-09-27 (same category as RuneBaseTileEntityRenderer's
         // fix): TileEntityRendererDispatcher.render() enables real GL_LIGHTING right
         // before calling any TESR's own render(), but this renderer's POSITION_TEX_COLOR

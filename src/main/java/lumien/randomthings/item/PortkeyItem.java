@@ -140,20 +140,42 @@ public class PortkeyItem extends Item {
      * lives here instead of on the item type directly ({@code
      * Item.onEntityItemUpdate} doesn't exist in this Forge build). Called
      * from a {@code WorldTickEvent} listener in {@code RandomThings}.
+     * <p>
+     * Real bug, found 2026-09-28 (reported by user): the glint never stopped
+     * after priming, even once bound. Root cause: unlike {@code
+     * StableEnderpearlItem}'s counter (stored in {@code
+     * entityItem.getPersistentData()}, a server-only bookkeeping compound
+     * that was never meant to reach the client), this counter has to be
+     * client-visible - {@link #hasEffect(ItemStack)} only ever gets the
+     * stack, never the entity, so it lives on the stack's own tag instead
+     * (see this method's original 1.12.2 design too - same choice, same
+     * place). But mutating that tag *in place* on the exact {@code
+     * ItemStack} instance {@code ItemEntity}'s data manager already has
+     * cached never actually re-syncs it: {@code EntityDataManager.set}
+     * (ground-truthed via source) only marks its {@code ITEM} entry dirty
+     * when the new value is a genuinely different object from what's
+     * stored, and {@code ItemStack} doesn't override {@code equals()} - so
+     * handing back the *same* (now-mutated) reference always reads as "no
+     * change," and the client's original spawn-time snapshot (dropCounter
+     * frozen at whatever it was) never updates. Fixed by mutating a copy and
+     * calling {@code setItem} with that copy instead of the tag in place -
+     * a genuinely different object reference is what actually trips the
+     * dirty check and gets it sent.
      */
     public void tickDroppedPortkey(net.minecraft.entity.item.ItemEntity entityItem) {
         if (entityItem.world.isRemote) {
             return;
         }
 
-        ItemStack stack = entityItem.getItem();
-        CompoundNBT compound = stack.getOrCreateTag();
-        int counter = compound.getInt("dropCounter");
+        ItemStack original = entityItem.getItem();
+        int counter = original.hasTag() ? original.getTag().getInt("dropCounter") : 0;
 
         if (counter == 0) {
             entityItem.setNoDespawn();
         }
 
-        compound.putInt("dropCounter", counter + 1);
+        ItemStack updated = original.copy();
+        updated.getOrCreateTag().putInt("dropCounter", counter + 1);
+        entityItem.setItem(updated);
     }
 }

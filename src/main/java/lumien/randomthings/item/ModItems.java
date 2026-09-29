@@ -20,6 +20,9 @@ public class ModItems {
     @ObjectHolder("fertilized_dirt")
     public static Item FERTILIZED_DIRT;
 
+    @ObjectHolder("diaphanous_block")
+    public static Item DIAPHANOUS_BLOCK;
+
 
     @ObjectHolder("block_of_sticks")
     public static Item BLOCK_OF_STICKS;
@@ -57,20 +60,6 @@ public class ModItems {
     @ObjectHolder("stable_enderpearl")
     public static Item STABLE_ENDERPEARL;
 
-    @ObjectHolder("obsidian_skull")
-    public static Item OBSIDIAN_SKULL;
-
-    @ObjectHolder("lava_charm")
-    public static Item LAVA_CHARM;
-
-    @ObjectHolder("lava_wader")
-    public static Item LAVA_WADER;
-
-    @ObjectHolder("water_walking_boots")
-    public static Item WATER_WALKING_BOOTS;
-
-    @ObjectHolder("obsidian_water_walking_boots")
-    public static Item OBSIDIAN_WATER_WALKING_BOOTS;
 
     @ObjectHolder("super_lubricent_boots")
     public static Item SUPER_LUBRICENT_BOOTS;
@@ -116,6 +105,12 @@ public class ModItems {
 
     @ObjectHolder("floo_powder")
     public static Item FLOO_POWDER;
+
+    @ObjectHolder("spectre_ingot")
+    public static Item SPECTRE_INGOT;
+
+    @ObjectHolder("spectre_key")
+    public static Item SPECTRE_KEY;
 
     @ObjectHolder("floo_pouch")
     public static Item FLOO_POUCH;
@@ -171,6 +166,33 @@ public class ModItems {
     @ObjectHolder("redstone_remote")
     public static Item REDSTONE_REMOTE;
 
+    @ObjectHolder("spectre_sword")
+    public static Item SPECTRE_SWORD;
+
+    @ObjectHolder("spectre_pickaxe")
+    public static Item SPECTRE_PICKAXE;
+
+    @ObjectHolder("spectre_axe")
+    public static Item SPECTRE_AXE;
+
+    @ObjectHolder("spectre_shovel")
+    public static Item SPECTRE_SHOVEL;
+
+    @ObjectHolder("spectre_charger_normal")
+    public static Item SPECTRE_CHARGER_NORMAL;
+
+    @ObjectHolder("spectre_charger_redstone")
+    public static Item SPECTRE_CHARGER_REDSTONE;
+
+    @ObjectHolder("spectre_charger_ender")
+    public static Item SPECTRE_CHARGER_ENDER;
+
+    @ObjectHolder("spectre_charger_genesis")
+    public static Item SPECTRE_CHARGER_GENESIS;
+
+    @ObjectHolder("spectre_string")
+    public static Item SPECTRE_STRING;
+
     public static ItemGroup RT_ITEM_GROUP;
 
     public static void registerItems(Register<Item> itemRegistryEvent) {
@@ -184,6 +206,9 @@ public class ModItems {
         registry.register(new LotusBlossomItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_blossom"));
         registry.register(new LotusSeedsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lotus_seeds"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("ectoplasm"));
+        registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_ingot"));
+        registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_string"));
+        registry.register(new SpectreKeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("spectre_key"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("biome_sensor"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("luminous_powder"));
 
@@ -192,11 +217,6 @@ public class ModItems {
         registry.register(new BottleOfAirItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("bottle_of_air"));
         registry.register(new StableEnderpearlItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("stable_enderpearl"));
 
-        registry.register(new ObsidianSkullItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("obsidian_skull"));
-        registry.register(new LavaCharmItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lava_charm"));
-        registry.register(new LavaWaderItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("lava_wader"));
-        registry.register(new WaterWalkingBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("water_walking_boots"));
-        registry.register(new ObsidianWaterWalkingBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("obsidian_water_walking_boots"));
         registry.register(new SuperLubricentBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("super_lubricent_boots"));
 
         // Divining Rods
@@ -246,7 +266,6 @@ public class ModItems {
 
         registerItemForBlock(registry, ModBlocks.GLOWING_MUSHROOM);
         registerItemForBlock(registry, ModBlocks.SIDED_REDSTONE);
-        registerItemForBlock(registry, ModBlocks.PITCHER_PLANT);
 
         registerItemForBlock(registry, ModBlocks.BIOME_GLASS);
         registerItemForBlock(registry, ModBlocks.BIOME_STONE_COBBLE, ModBlocks.BIOME_STONE_SMOOTH, ModBlocks.BIOME_STONE_BRICK, ModBlocks.BIOME_STONE_CRACKED, ModBlocks.BIOME_STONE_CHISELED);
@@ -361,6 +380,25 @@ public class ModItems {
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_anchor"));
         registry.register(new lumien.randomthings.item.RedstoneActivatorItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_activator"));
         registry.register(new lumien.randomthings.item.RedstoneRemoteItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_remote"));
+
+        registry.register(new lumien.randomthings.item.spectretools.SpectreSwordItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_sword"));
+        registry.register(new lumien.randomthings.item.spectretools.SpectrePickaxeItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_pickaxe"));
+        registry.register(new lumien.randomthings.item.spectretools.SpectreAxeItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_axe"));
+        registry.register(new lumien.randomthings.item.spectretools.SpectreShovelItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_shovel"));
+
+        registerItemForBlock(registry, ModBlocks.SPECTRE_ENERGY_INJECTOR);
+        registerItemForBlock(registry, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+
+        registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.NORMAL).setRegistryName("spectre_charger_normal"));
+        registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.REDSTONE).setRegistryName("spectre_charger_redstone"));
+        registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.ENDER).setRegistryName("spectre_charger_ender"));
+        registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.GENESIS).setRegistryName("spectre_charger_genesis"));
+
+        registerItemForBlock(registry, ModBlocks.SPECTRE_LENS);
+
+        registerItemForBlock(registry, ModBlocks.LIGHT_REDIRECTOR);
+
+        registry.register(new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("diaphanous_block"));
     }
 
     private static Block lookupBlock(String name) {

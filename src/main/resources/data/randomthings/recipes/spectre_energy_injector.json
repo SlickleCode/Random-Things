@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "OLO",
+    "SBS",
+    "OSO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "L": {
+      "item": "randomthings:spectre_lens"
+    },
+    "B": {
+      "item": "minecraft:beacon"
+    },
+    "S": {
+      "item": "randomthings:spectre_string"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_energy_injector"
+  }
+}

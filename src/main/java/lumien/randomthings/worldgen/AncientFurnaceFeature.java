@@ -20,8 +20,8 @@ import java.util.function.Function;
  * ({@code RandomThings#registerWorldgenFeatures}'s {@code ChanceConfig});
  * "cold biomes" is this class's own {@code biome.getTemperature(pos) < 0.15F}
  * check - the same vanilla "cold enough to snow" threshold, and the same
- * per-attempt-gating division of labor {@link PitcherPlantFeature} already
- * uses for its own (opposite) warm-biome restriction.
+ * per-attempt-gating division of labor this file's now-removed Pitcher Plant
+ * counterpart used for its own (opposite) warm-biome restriction.
  */
 public class AncientFurnaceFeature extends Feature<NoFeatureConfig> {
     public AncientFurnaceFeature(Function<Dynamic<?>, ? extends NoFeatureConfig> deserializer) {

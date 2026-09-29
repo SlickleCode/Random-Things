@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " S ",
+    " O ",
+    " O "
+  ],
+  "key": {
+    "S": {
+      "item": "randomthings:spectre_ingot"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_shovel"
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "variants": {
+    "down=true,east=true,north=true,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tttttt"
+    },
+    "down=true,east=true,north=true,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tttttf"
+    },
+    "down=true,east=true,north=true,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ttttft"
+    },
+    "down=true,east=true,north=true,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ttttff"
+    },
+    "down=true,east=true,north=true,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tttftt"
+    },
+    "down=true,east=true,north=true,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tttftf"
+    },
+    "down=true,east=true,north=true,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/tttfft"
+    },
+    "down=true,east=true,north=true,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/tttfff"
+    },
+    "down=true,east=true,north=false,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/ttfttt"
+    },
+    "down=true,east=true,north=false,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/ttfttf"
+    },
+    "down=true,east=true,north=false,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ttftft"
+    },
+    "down=true,east=true,north=false,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ttftff"
+    },
+    "down=true,east=true,north=false,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/ttfftt"
+    },
+    "down=true,east=true,north=false,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/ttfftf"
+    },
+    "down=true,east=true,north=false,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ttffft"
+    },
+    "down=true,east=true,north=false,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ttffff"
+    },
+    "down=true,east=false,north=true,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tftttt"
+    },
+    "down=true,east=false,north=true,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tftttf"
+    },
+    "down=true,east=false,north=true,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/tfttft"
+    },
+    "down=true,east=false,north=true,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/tfttff"
+    },
+    "down=true,east=false,north=true,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tftftt"
+    },
+    "down=true,east=false,north=true,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tftftf"
+    },
+    "down=true,east=false,north=true,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/tftfft"
+    },
+    "down=true,east=false,north=true,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/tftfff"
+    },
+    "down=true,east=false,north=false,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tffttt"
+    },
+    "down=true,east=false,north=false,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tffttf"
+    },
+    "down=true,east=false,north=false,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/tfftft"
+    },
+    "down=true,east=false,north=false,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/tfftff"
+    },
+    "down=true,east=false,north=false,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/tffftt"
+    },
+    "down=true,east=false,north=false,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/tffftf"
+    },
+    "down=true,east=false,north=false,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/tfffft"
+    },
+    "down=true,east=false,north=false,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/tfffff"
+    },
+    "down=false,east=true,north=true,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fttttt"
+    },
+    "down=false,east=true,north=true,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fttttf"
+    },
+    "down=false,east=true,north=true,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ftttft"
+    },
+    "down=false,east=true,north=true,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ftttff"
+    },
+    "down=false,east=true,north=true,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fttftt"
+    },
+    "down=false,east=true,north=true,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fttftf"
+    },
+    "down=false,east=true,north=true,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/fttfft"
+    },
+    "down=false,east=true,north=true,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/fttfff"
+    },
+    "down=false,east=true,north=false,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/ftfttt"
+    },
+    "down=false,east=true,north=false,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/ftfttf"
+    },
+    "down=false,east=true,north=false,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ftftft"
+    },
+    "down=false,east=true,north=false,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ftftff"
+    },
+    "down=false,east=true,north=false,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/ftfftt"
+    },
+    "down=false,east=true,north=false,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/ftfftf"
+    },
+    "down=false,east=true,north=false,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ftffft"
+    },
+    "down=false,east=true,north=false,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ftffff"
+    },
+    "down=false,east=false,north=true,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fftttt"
+    },
+    "down=false,east=false,north=true,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fftttf"
+    },
+    "down=false,east=false,north=true,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ffttft"
+    },
+    "down=false,east=false,north=true,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ffttff"
+    },
+    "down=false,east=false,north=true,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fftftt"
+    },
+    "down=false,east=false,north=true,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fftftf"
+    },
+    "down=false,east=false,north=true,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/fftfft"
+    },
+    "down=false,east=false,north=true,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/fftfff"
+    },
+    "down=false,east=false,north=false,south=true,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fffttt"
+    },
+    "down=false,east=false,north=false,south=true,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fffttf"
+    },
+    "down=false,east=false,north=false,south=true,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ffftft"
+    },
+    "down=false,east=false,north=false,south=true,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ffftff"
+    },
+    "down=false,east=false,north=false,south=false,up=true,west=true": {
+      "model": "randomthings:block/light_redirector/fffftt"
+    },
+    "down=false,east=false,north=false,south=false,up=true,west=false": {
+      "model": "randomthings:block/light_redirector/fffftf"
+    },
+    "down=false,east=false,north=false,south=false,up=false,west=true": {
+      "model": "randomthings:block/light_redirector/ffffft"
+    },
+    "down=false,east=false,north=false,south=false,up=false,west=false": {
+      "model": "randomthings:block/light_redirector/ffffff"
+    }
+  }
+}

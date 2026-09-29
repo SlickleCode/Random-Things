@@ -31,6 +31,16 @@ public class RedstoneRemoteEditScreen extends ContainerScreen<RedstoneRemoteEdit
         this.blit(i, j, 0, 0, this.xSize, this.ySize);
     }
 
+    /**
+     * Real bug, found 2026-09-28 (same missing-title gap as {@code
+     * RedstoneRemoteUseScreen}, see its own javadoc for the full story) -
+     * this screen never drew its title either.
+     */
+    @Override
+    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        this.font.drawString(this.title.getString(), 8, 6, 4210752);
+    }
+
     @Override
     public void render(int p_render_1_, int p_render_2_, float p_render_3_) {
         this.renderBackground();

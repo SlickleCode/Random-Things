@@ -101,15 +101,15 @@ public class ModBlocks
 	@ObjectHolder("spectre_sapling")
 	public static Block SPECTRE_SAPLING;
 
+	@ObjectHolder("spectre_core")
+	public static Block SPECTRE_CORE;
+
 
 	@ObjectHolder("glowing_mushroom")
 	public static Block GLOWING_MUSHROOM;
 
 	@ObjectHolder("sided_redstone")
 	public static Block SIDED_REDSTONE;
-
-	@ObjectHolder("pitcher_plant")
-	public static Block PITCHER_PLANT;
 
 	@ObjectHolder("biome_glass")
 	public static Block BIOME_GLASS;
@@ -261,6 +261,30 @@ public class ModBlocks
 	@ObjectHolder("block_destabilizer")
 	public static Block BLOCK_DESTABILIZER;
 
+	@ObjectHolder("spectre_energy_injector")
+	public static Block SPECTRE_ENERGY_INJECTOR;
+
+	@ObjectHolder("spectre_coil_normal")
+	public static Block SPECTRE_COIL_NORMAL;
+
+	@ObjectHolder("spectre_coil_redstone")
+	public static Block SPECTRE_COIL_REDSTONE;
+
+	@ObjectHolder("spectre_coil_ender")
+	public static Block SPECTRE_COIL_ENDER;
+
+	@ObjectHolder("spectre_coil_genesis")
+	public static Block SPECTRE_COIL_GENESIS;
+
+	@ObjectHolder("spectre_lens")
+	public static Block SPECTRE_LENS;
+
+	@ObjectHolder("light_redirector")
+	public static Block LIGHT_REDIRECTOR;
+
+	@ObjectHolder("diaphanous_block")
+	public static Block DIAPHANOUS_BLOCK;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -315,10 +339,10 @@ public class ModBlocks
 		registry.register(new SpectrePlankBlock().setRegistryName("spectre_plank"));
 		registry.register(new SpectreLeafBlock().setRegistryName("spectre_leaf"));
 		registry.register(new SpectreSaplingBlock().setRegistryName("spectre_sapling"));
+		registry.register(new SpectreCoreBlock().setRegistryName("spectre_core"));
 
 		registry.register(new GlowingMushroomBlock().setRegistryName("glowing_mushroom"));
 		registry.register(new SidedRedstoneBlock().setRegistryName("sided_redstone"));
-		registry.register(new PitcherPlantBlock().setRegistryName("pitcher_plant"));
 
 		registry.register(new BiomeGlassBlock().setRegistryName("biome_glass"));
 		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_cobble"));
@@ -398,5 +422,16 @@ public class ModBlocks
 
 		registry.register(new BlockBreakerBlock().setRegistryName("block_breaker"));
 		registry.register(new BlockDestabilizerBlock().setRegistryName("block_destabilizer"));
+
+		registry.register(new SpectreEnergyInjectorBlock().setRegistryName("spectre_energy_injector"));
+		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.NORMAL).setRegistryName("spectre_coil_normal"));
+		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.REDSTONE).setRegistryName("spectre_coil_redstone"));
+		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.ENDER).setRegistryName("spectre_coil_ender"));
+		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.GENESIS).setRegistryName("spectre_coil_genesis"));
+
+		registry.register(new SpectreLensBlock().setRegistryName("spectre_lens"));
+
+		registry.register(new LightRedirectorBlock().setRegistryName("light_redirector"));
+		registry.register(new DiaphanousBlock().setRegistryName("diaphanous_block"));
 	}
 }

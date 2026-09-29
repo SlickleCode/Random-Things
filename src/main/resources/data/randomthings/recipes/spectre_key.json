@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I  ",
+    "IP ",
+    "  I"
+  ],
+  "key": {
+    "I": {
+      "item": "randomthings:spectre_ingot"
+    },
+    "P": {
+      "item": "randomthings:stable_enderpearl"
+    }
+  },
+  "result": {
+    "item": "randomthings:spectre_key"
+  }
+}

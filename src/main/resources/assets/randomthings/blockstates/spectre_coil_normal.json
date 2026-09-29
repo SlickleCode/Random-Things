@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "randomthings:block/spectre_coil" },
+    "facing=south": { "model": "randomthings:block/spectre_coil" },
+    "facing=west": { "model": "randomthings:block/spectre_coil" },
+    "facing=east": { "model": "randomthings:block/spectre_coil" },
+    "facing=up": { "model": "randomthings:block/spectre_coil" },
+    "facing=down": { "model": "randomthings:block/spectre_coil" }
+  }
+}

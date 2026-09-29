@@ -27,6 +27,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 
 /**
@@ -248,6 +249,39 @@ public class AsmHandler {
     }
 
     /**
+     * Redirect target for the one {@code World.getBiome} call inside {@code
+     * GameRenderer.renderRainSnow(float)}'s per-column loop - see {@code
+     * GameRendererTransformer.js}. Closes the gap {@code RainShieldBlock}'s
+     * own javadoc previously disclosed as not worth attempting: the falling
+     * rain/snow visual itself isn't gated through {@code World.isRainingAt}
+     * at all - {@code renderRainSnow} computes its own per-column {@code
+     * biome.getPrecipitation() != NONE} check directly against whatever
+     * {@code Biome} this call returns (ground-truthed via {@code javap -c}:
+     * offset 368, {@code invokevirtual World.getBiome}, immediately followed
+     * by {@code astore} into the local the precipitation check reads right
+     * after). Rather than patching mid-loop to skip a whole iteration (this
+     * project's usual "wrap the returned value" idiom doesn't fit a ~300-line
+     * method's inline loop body), this redirects that one call itself: real
+     * biome normally, or {@code Biomes.DESERT} - a real, already-registered
+     * biome with {@code RainType.NONE} baked in (confirmed via its own real
+     * source), used purely as a "no precipitation here" substitute - whenever
+     * the column falls inside an active Rain Shield's radius. Every other use
+     * of {@code World.getBiome} everywhere else in the game is untouched;
+     * this only ever fires from inside that one call site.
+     */
+    public static Biome getBiomeForRainRender(World world, BlockPos pos) {
+        Biome real = world.getBiome(pos);
+
+        for (RainShieldTileEntity shield : RainShieldTileEntity.shields) {
+            if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
+                return net.minecraft.world.biome.Biomes.DESERT;
+            }
+        }
+
+        return real;
+    }
+
+    /**
      * Redirect target for the {@code ireturn} in {@code IBlockReader
      * .getLightValue(BlockPos)}'s default body - see {@code
      * IBlockReaderTransformer.js}. Ground-truthed via {@code javap -c} that
@@ -287,6 +321,45 @@ public class AsmHandler {
         }
 
         return original;
+    }
+
+    /**
+     * Injection target for {@code Teleporter.makePortal(Entity)}'s method
+     * entry - see {@code TeleporterTransformer.js}. Ground-truthed via
+     * {@code javap -c}/source that this Forge version (28.2.26) has no
+     * {@code ITeleporter} hook at all (that's a later Forge addition) -
+     * {@code ServerWorld.getDefaultTeleporter()} always returns one plain
+     * {@code Teleporter} per world, unconditionally, with no override point.
+     * 1.12.2's own {@code SpectreHandler} sidestepped this entirely by
+     * passing a custom {@code SimpleTeleporter} into {@code
+     * PlayerList.transferPlayerToDimension}, a parameter this version's
+     * {@code PlayerList} no longer even has (confirmed via {@code javap -p} -
+     * only {@code recreatePlayerEntity} remains). Without a patch here,
+     * {@code Entity/ServerPlayerEntity#changeDimension}'s generic (non-
+     * Nether/End) travel path would search for a real nether-portal frame at
+     * the scaled destination coordinate and, finding none in the Spectre
+     * void, physically carve one out of obsidian - this early-returns
+     * {@code true} (success, no search/build needed) and places the entity
+     * at a safe filler position instead, whenever the *destination* world
+     * (the {@code Teleporter} instance's own world, not the entity's - this
+     * needs to catch travel in *both* directions, into and back out of
+     * Spectre) is the Spectre dimension. {@link lumien.randomthings.handler.spectre.SpectreHandler}
+     * immediately overwrites this filler position with the real target via
+     * {@code connection.setPlayerLocation} right after {@code
+     * changeDimension} returns, matching 1.12.2's own transfer-then-
+     * explicit-reposition pattern. Every other dimension (Nether/End/
+     * Overworld, and any other mod's) falls through to vanilla's completely
+     * unpatched original behavior.
+     */
+    public static boolean overrideMakePortal(net.minecraft.world.server.ServerWorld destWorld, Entity entity) {
+        if (destWorld.getDimension().getType() != lumien.randomthings.handler.ModDimensions.SPECTRE_TYPE) {
+            return false;
+        }
+
+        entity.setLocationAndAngles(8.5D, 1.0D, 8.5D, entity.rotationYaw, entity.rotationPitch);
+        entity.setMotion(net.minecraft.util.math.Vec3d.ZERO);
+
+        return true;
     }
 
     /**

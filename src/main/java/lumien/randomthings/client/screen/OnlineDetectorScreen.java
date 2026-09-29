@@ -38,6 +38,17 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 		this.usernameField.setText(this.container.getUsername());
 		this.addButton(this.usernameField);
 		this.setFocusedDefault(this.usernameField);
+		// Real bug, found 2026-09-28: setFocusedDefault only tells the Screen which
+		// widget should receive routed input - it does NOT set the widget's own
+		// internal isFocused() flag (a separate boolean on Widget, normally only set
+		// by mouseClicked). TextFieldWidget#keyPressed/#charTyped both gate on that
+		// same internal flag, and so does this class's own keyPressed override below,
+		// so typing immediately after opening the GUI (without first clicking into
+		// the field) fell straight through to ContainerScreen's "unhandled key =
+		// close on inventory keybind" check - explaining both "hitting the inventory
+		// button still closes the GUI" and "doesn't save unless you hit Enter" (the
+		// field never actually received any of the typed text to begin with).
+		this.usernameField.setFocused2(true);
 	}
 
 	// setFocusedDefault(IGuiEventListener) is inherited from INestedGuiEventHandler

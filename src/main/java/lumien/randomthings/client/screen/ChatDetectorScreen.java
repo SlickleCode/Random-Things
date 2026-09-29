@@ -39,6 +39,13 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 		this.messageField.setText(this.container.getChatMessage());
 		this.addButton(this.messageField);
 		this.setFocusedDefault(this.messageField);
+		// Real bug, found 2026-09-28 (see OnlineDetectorScreen for the full writeup):
+		// setFocusedDefault only sets the Screen's own input-routing pointer, not the
+		// widget's own internal isFocused() flag that TextFieldWidget's keyPressed/
+		// charTyped (and this class's own keyPressed override below) actually gate
+		// on - without this, typing immediately after opening the GUI fell straight
+		// through to ContainerScreen's close-on-inventory-key check instead.
+		this.messageField.setFocused2(true);
 
 		this.addButton(new Button(this.guiLeft + 8, this.guiTop + 44, 160, 20, "", (button) -> {
 			this.container.send(1, (pb) -> {

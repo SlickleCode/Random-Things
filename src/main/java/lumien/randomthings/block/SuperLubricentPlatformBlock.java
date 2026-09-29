@@ -11,6 +11,7 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraft.world.IWorldReader;
 import net.minecraft.util.BlockRenderLayer;
 
 /**
@@ -28,12 +29,16 @@ import net.minecraft.util.BlockRenderLayer;
  * value (matching vanilla ice's raw slipperiness field, inverted) came up
  * short of that by design intent, not necessity.
  * <p>
- * The speed cap is new behavior beyond 1.12.2, not a port of it - see
- * {@link SuperLubricentPhysics}, which also backs {@link SuperLubricentIceBlock}
+ * The speed/turn-rate cap is new behavior beyond 1.12.2, not a port of it -
+ * see {@link SuperLubricentPhysics}, which also backs {@link SuperLubricentIceBlock}
  * and {@link SuperLubricentStoneBlock} so all three Super Lubricent blocks
- * behave identically, and is enforced by a {@code LivingUpdateEvent} listener
- * in {@code RandomThings}, not here - see {@link SuperLubricentPhysics}'s
- * javadoc for why. Boots-negation doesn't live here at all -
+ * behave identically. A boat gets a different, exact slipperiness value than
+ * everyone else (see the {@code getSlipperiness} override below and {@link
+ * SuperLubricentPhysics}'s javadoc for why), with an external cap on top of
+ * that either way (a {@code LivingUpdateEvent} listener for living entities,
+ * paired {@code WorldTickEvent}/{@code ClientTickEvent} listeners for boats)
+ * in {@code RandomThings}, not here. Boots-negation doesn't live here at
+ * all -
  * {@code SuperLubricentBootsTransformer.js} (a coremod, see
  * {@code lumien.randomthings.asm.AsmHandler#bootsMaxSlip}) intercepts
  * friction globally instead.
@@ -45,6 +50,17 @@ public class SuperLubricentPlatformBlock extends Block
 	public SuperLubricentPlatformBlock()
 	{
 		super(Block.Properties.create(Material.ICE, MaterialColor.ICE).hardnessAndResistance(0.5F).slipperiness(1F / 0.91F));
+	}
+
+	/**
+	 * See {@link SuperLubricentPhysics}'s class javadoc for why a boat needs
+	 * exact {@code 1.0F} here instead of this block's normal zero-friction
+	 * value.
+	 */
+	@Override
+	public float getSlipperiness(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
+	{
+		return SuperLubricentPhysics.slipperinessFor(entity, super.getSlipperiness(state, world, pos, entity));
 	}
 
 	@Override

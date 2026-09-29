@@ -27,9 +27,11 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MoverType;
+import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -96,6 +98,10 @@ public class RandomThings {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerModels);
 
         MinecraftForge.EVENT_BUS.register(this);
+
+        // Must happen here, not FMLCommonSetupEvent - see ModDimensions#registerDimension's javadoc
+        // for why mod-loading time is too early for this specific registration.
+        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.ModDimensions::registerDimension);
 
         MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
             ItemUseContext context = event.getContext();
@@ -183,68 +189,6 @@ public class RandomThings {
             }
         });
 
-        // Fire/lava protection: Obsidian Skull (carried anywhere in the inventory),
-        // Obsidian Water Walking Boots and Lava Wader (worn as boots) all give a
-        // chance to shrug off any fire-type damage entirely, scaling with how much
-        // damage would've been dealt (chance = amount^3 / 100 - small burns are
-        // usually blocked, a big single hit usually isn't). Lava Wader additionally
-        // fully cancels LAVA damage specifically by spending its own charge meter
-        // (see LavaWaderItem.onArmorTick), independent of the chance-based roll.
-        MinecraftForge.EVENT_BUS.addListener((LivingAttackEvent event) -> {
-            if (event.getEntityLiving().world.isRemote || event.isCanceled() || event.getAmount() <= 0 || !(event.getEntityLiving() instanceof PlayerEntity)) {
-                return;
-            }
-
-            PlayerEntity player = (PlayerEntity) event.getEntityLiving();
-
-            if (event.getSource() == DamageSource.LAVA) {
-                ItemStack lavaProtector = ItemStack.EMPTY;
-                ItemStack lavaCharm = InventoryUtil.getPlayerInventoryItem(ModItems.LAVA_CHARM, player);
-
-                if (!lavaCharm.isEmpty()) {
-                    lavaProtector = lavaCharm;
-                }
-
-                ItemStack boots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
-
-                if (!boots.isEmpty() && boots.getItem() == ModItems.LAVA_WADER) {
-                    lavaProtector = boots;
-                }
-
-                if (!lavaProtector.isEmpty() && lavaProtector.hasTag()) {
-                    CompoundNBT compound = lavaProtector.getTag();
-                    int charge = compound.getInt("charge");
-
-                    if (charge > 0) {
-                        compound.putInt("charge", charge - 1);
-                        compound.putInt("chargeCooldown", 40);
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
-            }
-
-            if (event.getSource().isFireDamage() && event.getSource() != DamageSource.LAVA) {
-                ItemStack inventorySkull = InventoryUtil.getPlayerInventoryItem(ModItems.OBSIDIAN_SKULL, player);
-                ItemStack obsidianBoots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
-
-                if (!obsidianBoots.isEmpty() && !(obsidianBoots.getItem() == ModItems.OBSIDIAN_WATER_WALKING_BOOTS || obsidianBoots.getItem() == ModItems.LAVA_WADER)) {
-                    obsidianBoots = ItemStack.EMPTY;
-                }
-
-                ItemStack skull = inventorySkull.isEmpty() ? obsidianBoots : inventorySkull;
-
-                if (!skull.isEmpty()) {
-                    float amount = event.getAmount();
-                    float chance = amount / 100 * amount * amount;
-
-                    if (RNG.nextFloat() > chance) {
-                        event.setCanceled(true);
-                    }
-                }
-            }
-        });
-
         // Imbue Fire/Poison/Wither: whoever last drank an imbue potion applies its
         // on-hit effect to anything they deal direct damage to (not indirect, e.g.
         // arrows/thrown potions - matches the original's own
@@ -280,59 +224,6 @@ public class RandomThings {
             }
         });
 
-        // Water Walking Boots, Obsidian Water Walking Boots, and Lava Wader
-        // (lava too, for the latter): while standing in the liquid with clear air
-        // above, nudge the wearer up each tick instead of letting them sink - a
-        // repeated small hop rather than true buoyancy. Passive by default (per
-        // user direction, deviating from 1.12.2's hold-jump-to-float original) -
-        // sneaking opts back out and lets the wearer sink normally. Client-side
-        // only (this is a movement-prediction nicety, not physics the server needs
-        // to arbitrate).
-        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
-            if (!event.getEntityLiving().world.isRemote || !(event.getEntityLiving() instanceof PlayerEntity)) {
-                return;
-            }
-
-            PlayerEntity player = (PlayerEntity) event.getEntityLiving();
-
-            if (player.isSneaking()) {
-                return;
-            }
-
-            ItemStack boots = player.getItemStackFromSlot(EquipmentSlotType.FEET);
-
-            if (boots.isEmpty() || !(boots.getItem() == ModItems.WATER_WALKING_BOOTS || boots.getItem() == ModItems.OBSIDIAN_WATER_WALKING_BOOTS || boots.getItem() == ModItems.LAVA_WADER)) {
-                return;
-            }
-
-            // Check slightly *below* the current feet position, not an exact
-            // floor(posY) snapshot: once the player is resting right at the
-            // liquid's surface, their feet Y sits exactly on the block
-            // boundary, and a plain floor() there flickers between the liquid
-            // block and the air block above it from one tick to the next
-            // (floating-point noise from the previous tick's own nudge is
-            // enough to flip it) - the "am I over liquid" check kept
-            // alternating true/false, producing the reported jitter.
-            BlockPos liquidPos = new BlockPos(player.posX, player.posY - 0.1, player.posZ);
-            BlockPos airPos = new BlockPos(player.posX, player.posY + player.getHeight(), player.posZ);
-            BlockState liquidState = player.world.getBlockState(liquidPos);
-            Material liquidMaterial = liquidState.getMaterial();
-
-            boolean overLiquid = liquidMaterial == Material.WATER || (boots.getItem() == ModItems.LAVA_WADER && liquidMaterial == Material.LAVA);
-
-            if (overLiquid && player.world.getBlockState(airPos).getBlock().isAir(player.world.getBlockState(airPos), player.world, airPos)) {
-                // Also stop fighting gravity: the previous version only ever
-                // nudged position upward and never touched motionY, so normal
-                // per-tick gravity kept accumulating downward velocity
-                // underneath the nudge, fighting it and adding to the jitter.
-                if (player.getMotion().y < 0) {
-                    player.setMotion(player.getMotion().x, 0, player.getMotion().z);
-                }
-
-                player.move(MoverType.SELF, new Vec3d(0, 0.1, 0));
-            }
-        });
-
         // Super Lubricent Ice/Platform/Stone speed cap - see SuperLubricentPhysics's
         // javadoc. onEntityCollision doesn't fire for an entity merely resting on
         // top of a block (only for actual hitbox overlap), so the cap is enforced
@@ -357,16 +248,94 @@ public class RandomThings {
 
             boolean wearingLubricentBoots = !entity.isSneaking() && entity.getItemStackFromSlot(EquipmentSlotType.FEET).getItem() instanceof SuperLubricentBootsItem;
 
-            if (!wearingLubricentBoots) {
-                BlockPos underfoot = new BlockPos(entity.posX, entity.getBoundingBox().minY - 1.0D, entity.posZ);
-                Block block = entity.world.getBlockState(underfoot).getBlock();
-
-                if (!(block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock)) {
-                    return;
-                }
+            if (!wearingLubricentBoots && !SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                return;
             }
 
             SuperLubricentPhysics.capHorizontalSpeed(entity);
+        });
+
+        // Same cap as directly above, but for a Boat (per explicit user
+        // request: it should behave exactly like a player here - true zero
+        // friction, never slows on its own, capped externally rather than a
+        // reduced slipperiness value) - see SuperLubricentPhysics's class
+        // javadoc for the full history. LivingUpdateEvent never fires for a
+        // BoatEntity (a plain Entity, not LivingEntity), and no generic "any
+        // entity ticked" Forge event exists in this version, so this sweeps
+        // each world's own entity list once per tick instead, filtered down
+        // to boats specifically (no other entity type reads block
+        // slipperiness for its own movement, ground-truthed when this was
+        // first written). Deliberately not gated on onGround - confirmed
+        // unreliable for a resting boat.
+        //
+        // Real bug found and fixed, 2026-09-28 (reported by user: still
+        // completely uncapped after this was first added): WorldTickEvent
+        // never fires for the client world at all in this Forge version -
+        // BasicEventHooks#onPostWorldTick hardcodes LogicalSide.SERVER
+        // regardless of which World is passed in, confirmed via its own
+        // source - so the block below only ever capped the server's own
+        // boat instance, never what the controlling player's client
+        // actually simulates and shows on screen (the thing that looked
+        // "uncapped"). This exact bug, and this exact fix, already happened
+        // once before in this same file for SpectreIlluminatorRelight - see
+        // that ClientTickEvent listener's own comment a little further down
+        // for the fuller story; missed re-applying that lesson here the
+        // first time. Client side needs its own separate ClientTickEvent
+        // listener instead, same as that one.
+        //
+        // Real bug found and fixed, 2026-09-28, same day: this cap alone
+        // still let a boat "speed up at the smallest motion" - it was
+        // backstopping real, if slower, exponential growth rather than
+        // actually preventing it, since these blocks' slipperiness (1F /
+        // 0.91F) isn't true zero friction for a boat specifically - see
+        // SuperLubricentPhysics's own javadoc for the full derivation. Fixed
+        // at the block level instead (each block's getSlipperiness override
+        // now returns exactly 1.0F for a boat). This cap stays in place
+        // unmodified - it's now a pure backstop for sustained real paddle
+        // input climbing toward the limit, not compensating for anything
+        // growing on its own anymore.
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END) {
+                return;
+            }
+
+            for (Entity entity : ((ServerWorld) event.world).getEntities(EntityType.BOAT, e -> true)) {
+                if (entity instanceof BoatEntity && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((BoatEntity) entity);
+                }
+            }
+        });
+
+        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
+                return;
+            }
+
+            for (Entity entity : Minecraft.getInstance().world.getAllEntities()) {
+                if (entity instanceof BoatEntity && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((BoatEntity) entity);
+                }
+            }
+        });
+
+        // Anti-trespass check for the Spectre Dimension: every server tick, snap any
+        // non-creative player standing outside their own SpectreCube room back to their
+        // own spawn tile (or fully back home if they don't have a cube at all). Direct
+        // port of 1.12.2's RTEventHandler#livingUpdate's Spectre-dimension branch.
+        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
+            if (event.getEntityLiving().world.isRemote || !(event.getEntityLiving() instanceof ServerPlayerEntity)) {
+                return;
+            }
+
+            ServerPlayerEntity player = (ServerPlayerEntity) event.getEntityLiving();
+
+            if (player.dimension == lumien.randomthings.handler.ModDimensions.SPECTRE_TYPE) {
+                lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.getServer());
+
+                if (spectreHandler != null) {
+                    spectreHandler.checkPosition(player);
+                }
+            }
         });
 
         MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
@@ -553,6 +522,22 @@ public class RandomThings {
             EscapeRopeHandler.getInstance().tick();
         });
 
+        // Drives SpectreLensHandler's every-60-ticks re-application of each lens's
+        // bound Beacon effects to its owner - matching the original's own
+        // ServerTickEvent call site (runs once per server tick regardless of which
+        // dimension the owning player or the lens itself are actually in).
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END) {
+                return;
+            }
+
+            net.minecraft.server.MinecraftServer server = net.minecraftforge.fml.server.ServerLifecycleHooks.getCurrentServer();
+
+            if (server != null) {
+                lumien.randomthings.handler.spectrelens.SpectreLensHandler.get(server).tick(server);
+            }
+        });
+
         // Drains lumien.randomthings.entity.SpectreIlluminatorRelight's queued
         // light-recheck work a bounded amount per tick, on whichever World ticked -
         // server or client (WorldTickEvent fires for both, unlike ServerTickEvent) -
@@ -620,6 +605,17 @@ public class RandomThings {
         // event: PotionColorCalculationEvent already exists specifically to let something override
         // whether an entity's potion-particle swirl renders, confirmed via javap -c. No coremod
         // needed for this half at all.
+        //
+        // Real bug, found 2026-09-28 (reported by user): still saw faint particles with the hood
+        // on. Root cause, ground-truthed from LivingEntity.tick()'s own decompiled source:
+        // event.shouldHideParticles(true) sets the synced HIDE_PARTICLES flag, but that flag
+        // doesn't suppress particles at all - it's what vanilla itself uses for genuinely
+        // *ambient* effects (Beacon/Conduit Power), switching to the rarer, more transparent
+        // AMBIENT_ENTITY_EFFECT particle type at 1/5 the normal spawn chance, not zero. The real
+        // gate is the synced particle *color* (POTION_EFFECTS): tick() only spawns a particle at
+        // all when that value is > 0, and it's set directly from event.getColor(). Forcing that
+        // to exactly 0 is what actually stops every particle from spawning - shouldHideParticles
+        // is left set too, in case anything else ever reads it, but it was never the real switch.
         MinecraftForge.EVENT_BUS.addListener((PotionColorCalculationEvent event) -> {
             if (!(event.getEntityLiving() instanceof PlayerEntity)) {
                 return;
@@ -629,6 +625,7 @@ public class RandomThings {
 
             if (helmet.getItem() == ModItems.MAGIC_HOOD) {
                 event.shouldHideParticles(true);
+                event.setColor(0);
             }
         });
 
@@ -718,15 +715,15 @@ public class RandomThings {
      * biomes only" restriction (see the wiki) is a per-attempt {@code
      * biome.getTemperature(pos)} check inside {@link
      * lumien.randomthings.worldgen.AncientFurnaceFeature#place}, the same
-     * division of labor {@link lumien.randomthings.worldgen.PitcherPlantFeature}
-     * already uses for its own (opposite) "warm biomes only" restriction. The
+     * division of labor a prior version of this file's now-removed Pitcher
+     * Plant feature used for its own (opposite) "warm biomes only"
+     * restriction. The
      * {@code ChanceConfig} here is a hand-picked "rare" value - the wiki
      * gives no exact rarity to match.
      */
     private void registerWorldgenFeatures() {
         ForgeRegistries.BIOMES.forEach(biome -> {
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.BEAN_SPROUT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(2)));
-            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.PITCHER_PLANT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.LOTUS, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
             biome.addFeature(GenerationStage.Decoration.LOCAL_MODIFICATIONS, Biome.createDecoratedFeature(ModFeatures.ANCIENT_FURNACE, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(400)));
         });
@@ -755,6 +752,7 @@ public class RandomThings {
         ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(RuneBaseTileEntity.class, new RuneBaseTileEntityRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.FluidDisplayTileEntity.class, new lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.DiaphanousBlockTileEntity.class, new lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer());
 
         RenderingRegistry.registerEntityRenderingHandler(FlooFireplaceEntity.class, FlooFireplaceEntityRenderer::new);
         RenderingRegistry.registerEntityRenderingHandler(EclipsedClockEntity.class, EclipsedClockEntityRenderer::new);
@@ -976,6 +974,11 @@ public class RandomThings {
         @SubscribeEvent
         public static void onEntityTypesRegistry(final RegistryEvent.Register<EntityType<?>> entityTypeRegistryEvent) {
             ModEntityTypes.registerEntityTypes(entityTypeRegistryEvent);
+        }
+
+        @SubscribeEvent
+        public static void onModDimensionsRegistry(final RegistryEvent.Register<net.minecraftforge.common.ModDimension> modDimensionRegistryEvent) {
+            lumien.randomthings.handler.ModDimensions.registerModDimensions(modDimensionRegistryEvent);
         }
 
         @SubscribeEvent

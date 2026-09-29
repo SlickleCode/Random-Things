@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PGP",
+    "G G",
+    "PGP"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "item": "randomthings:light_redirector"
+  }
+}

@@ -8,5 +8,8 @@
 	"IBlockReaderTransformer": "transformer/IBlockReaderTransformer.js",
 	"PlayerEntityTransformer": "transformer/PlayerEntityTransformer.js",
 	"WorldRedstonePowerTransformer": "transformer/WorldRedstonePowerTransformer.js",
-	"WorldReaderStrongPowerTransformer": "transformer/WorldReaderStrongPowerTransformer.js"
+	"WorldReaderStrongPowerTransformer": "transformer/WorldReaderStrongPowerTransformer.js",
+	"TeleporterTransformer": "transformer/TeleporterTransformer.js",
+	"BlockRendererDispatcherTransformer": "transformer/BlockRendererDispatcherTransformer.js",
+	"GameRendererTransformer": "transformer/GameRendererTransformer.js"
 }

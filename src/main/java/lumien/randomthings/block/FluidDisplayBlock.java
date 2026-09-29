@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -70,9 +71,35 @@ public class FluidDisplayBlock extends Block {
         return true;
     }
 
+    /**
+     * The real rendering happens in {@link lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer}
+     * (same reasoning as {@code RuneBaseBlock}). The blockstate/model JSON that does exist draws nothing
+     * (empty elements) - it's only there so {@code ModelBakery} doesn't log a spurious "missing model"
+     * warning, and so breaking this block shows a themed particle effect instead of the default one.
+     */
     @Override
     public BlockRenderType getRenderType(BlockState state) {
         return BlockRenderType.INVISIBLE;
+    }
+
+    /**
+     * Real bug, found 2026-09-28: a neighboring block (e.g. sand) was culling its
+     * own face against this block entirely, showing a hole through to whatever's
+     * behind instead of the neighbor's texture. Ground-truthed {@code Block
+     * #shouldSideBeRendered}/{@code #isSolid}: in this version, face culling
+     * against a neighbor is gated on that neighbor's {@code isSolid()}, which is
+     * {@code blocksMovement && getRenderLayer() == SOLID} - and {@code
+     * getRenderLayer()} defaults to {@code SOLID} unless overridden, regardless of
+     * this block's own {@code BlockRenderType.INVISIBLE}/TESR-only rendering (a
+     * separate, unrelated method). Vanilla's own {@code GlassBlock} avoids exactly
+     * this by overriding {@code getRenderLayer()} to {@code CUTOUT}; 1.12.2 never
+     * needed an equivalent override since its culling was keyed off {@code
+     * Material#isOpaque()} instead, not render layer - this is a real 1.14.4 API
+     * coupling with no 1.12.2 counterpart, not a disclosed simplification.
+     */
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return BlockRenderLayer.CUTOUT;
     }
 
     @Override

@@ -134,7 +134,7 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         }
 
         BlockState candidate = world.getBlockState(targetPos);
-        if (candidate.getBlockHardness(world, targetPos) < 0) {
+        if (candidate.getBlockHardness(world, targetPos) < 0 || !candidate.isNormalCube(world, targetPos)) {
             return;
         }
 
@@ -158,6 +158,16 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         markDirty();
     }
 
+    /**
+     * Requested behavior change (2026-09-28), not a 1.12.2 bug fix - the
+     * real original had no such restriction either, confirmed via that
+     * branch's own source. The {@code isNormalCube} check below (added per
+     * explicit user request) keeps the flood-fill from matching/consuming
+     * decorative attachments - redstone dust, torches, levers, and the
+     * like - even when their {@code Block}/{@code BlockState} happens to
+     * equal the target; a torch sitting on a matched full block is now left
+     * behind untouched instead of getting swept up with it.
+     */
     private void stepSearch() {
         if (toCheck.isEmpty() || targetBlocks.size() >= SEARCH_LIMIT) {
             initDrop();
@@ -173,7 +183,7 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         alreadyChecked.add(nextPos);
         BlockState blockStateAt = world.getBlockState(nextPos);
 
-        boolean matches = fuzzy ? blockStateAt.getBlock() == targetState.getBlock() : blockStateAt.equals(targetState);
+        boolean matches = (fuzzy ? blockStateAt.getBlock() == targetState.getBlock() : blockStateAt.equals(targetState)) && blockStateAt.isNormalCube(world, nextPos);
 
         if (matches) {
             targetBlocks.add(nextPos);

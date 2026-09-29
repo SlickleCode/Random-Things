@@ -18,6 +18,10 @@ import net.minecraft.item.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.PacketDirection;
+import net.minecraft.network.play.ServerPlayNetHandler;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
@@ -46,11 +50,11 @@ import net.minecraftforge.items.ItemHandlerHelper;
  * returns, this class only has to drain that inventory into the target side,
  * not intercept anything itself.
  *
- * <p>Not build-verified in this sandbox (network policy blocks the Forge/
- * Mojang Maven hosts {@code ./gradlew build} needs, so no {@code javap}
- * ground-truthing was possible for {@code PlayerInteractionManager
- * #tryHarvestBlock}/{@code FakePlayerFactory} in this exact Forge build) -
- * flag for retest on a real build.
+ * <p>{@code FakePlayer} never gets a real {@code ServerPlayerEntity#connection} assigned, and
+ * {@code ForgeHooks#onBlockBreakEvent} unconditionally calls {@code entityPlayer.connection
+ * .sendPacket(...)} when breaking a block with no tile entity, which NPEs without a workaround.
+ * 1.12.2's original handled this by assigning a no-op net handler in {@code initFakePlayer()};
+ * this port does the same (see below).
  */
 public class BlockBreakerTileEntity extends TileEntity implements ITickableTileEntity {
     private static final GameProfile BREAKER_PROFILE = new GameProfile(UUID.nameUUIDFromBytes("RTBlockBreaker".getBytes(StandardCharsets.UTF_8)), "RTBlockBreaker");
@@ -84,6 +88,17 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
 
         player.setHeldItem(Hand.MAIN_HAND, pickaxe);
         player.onGround = true;
+
+        // ForgeHooks#onBlockBreakEvent unconditionally does
+        // entityPlayer.connection.sendPacket(...) when breaking a block with no tile
+        // entity, but FakePlayer never gets a real ServerPlayNetHandler assigned - it's
+        // null, which NPEs tryHarvestBlock. 1.12.2 worked around this the same way: give
+        // it a real net handler whose sendPacket is a no-op.
+        player.connection = new ServerPlayNetHandler(world.getServer(), new NetworkManager(PacketDirection.SERVERBOUND), player) {
+            @Override
+            public void sendPacket(IPacket<?> packetIn) {
+            }
+        };
 
         fakePlayer = new WeakReference<>(player);
         return player;
