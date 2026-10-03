@@ -7,6 +7,7 @@ import lumien.randomthings.client.screen.ModScreens;
 import lumien.randomthings.container.ModContainerTypes;
 import lumien.randomthings.entity.*;
 import lumien.randomthings.handler.floo.FlooNetworkHandler;
+import lumien.randomthings.handler.RTWorldInformationHandler;
 import lumien.randomthings.item.*;
 import lumien.randomthings.lib.IRTBlockColor;
 import lumien.randomthings.lib.IRTItemColor;
@@ -97,11 +98,18 @@ public class RandomThings {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupClient);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerModels);
 
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, lumien.randomthings.config.RTConfig.SPEC);
+
         MinecraftForge.EVENT_BUS.register(this);
 
         // Must happen here, not FMLCommonSetupEvent - see ModDimensions#registerDimension's javadoc
         // for why mod-loading time is too early for this specific registration.
         MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.ModDimensions::registerDimension);
+        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
+        // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
+        // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
+        // config is loaded by then.
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install());
 
         MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
             ItemUseContext context = event.getContext();
@@ -511,6 +519,48 @@ public class RandomThings {
             }
         });
 
+        // Tracks a global "has the Ender Dragon ever been defeated" flag, and
+        // rolls a small chance to spawn a SpiritEntity at the death location
+        // of anything a real player kills - boosted once the dragon's been
+        // beaten, and again at night under a full-ish moon while the sky is
+        // visible. Matches 1.12.2's own RTEventHandler#livingDeath exactly
+        // (same chance formula, same FakePlayer exclusion so things like
+        // Advanced Item Collector's fake-player harvesting never trigger it).
+        MinecraftForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
+            if (event.getEntityLiving().world.isRemote) {
+                return;
+            }
+
+            if (event.getEntityLiving() instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity) {
+                RTWorldInformationHandler.get(event.getEntityLiving().getServer()).setEnderDragonDefeated(true);
+            }
+
+            if (event.getSource().getTrueSource() == null || event.getSource().getTrueSource() instanceof net.minecraftforge.common.util.FakePlayer || !(event.getSource().getTrueSource() instanceof PlayerEntity) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
+                return;
+            }
+
+            double chance = lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_NORMAL.get();
+
+            RTWorldInformationHandler worldInfo = RTWorldInformationHandler.get(event.getEntityLiving().getServer());
+
+            if (worldInfo.isDragonDefeated()) {
+                chance += lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_END_INCREASE.get();
+            }
+
+            World spiritWorld = event.getEntityLiving().world;
+
+            if (spiritWorld.canBlockSeeSky(event.getEntityLiving().getPosition()) && !spiritWorld.isDaytime()) {
+                net.minecraft.world.dimension.Dimension dimension = spiritWorld.getDimension();
+                float moonFactor = net.minecraft.world.dimension.Dimension.MOON_PHASE_FACTORS[dimension.getMoonPhase(spiritWorld.getDayTime())];
+
+                chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
+            }
+
+            if (Math.random() < chance) {
+                spiritWorld.addEntity(new lumien.randomthings.entity.SpiritEntity(spiritWorld, event.getEntity().posX, event.getEntity().posY, event.getEntity().posZ));
+            }
+        });
+
         // Drives EscapeRopeHandler's "find the nearest path to daylight" search -
         // runs once per server tick regardless of how many dimensions are loaded,
         // matching the original's own ServerTickEvent call site.
@@ -677,7 +727,7 @@ public class RandomThings {
             }
 
             ItemStack tool = harvester.getHeldItemMainhand();
-            if (net.minecraft.enchantment.EnchantmentHelper.getEnchantmentLevel(lumien.randomthings.enchantment.ModEnchantments.MAGNETIC, tool) <= 0) {
+            if (!lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get() || net.minecraft.enchantment.EnchantmentHelper.getEnchantmentLevel(lumien.randomthings.enchantment.ModEnchantments.MAGNETIC, tool) <= 0) {
                 return;
             }
 
@@ -726,6 +776,7 @@ public class RandomThings {
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.BEAN_SPROUT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(2)));
             biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.LOTUS, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
             biome.addFeature(GenerationStage.Decoration.LOCAL_MODIFICATIONS, Biome.createDecoratedFeature(ModFeatures.ANCIENT_FURNACE, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(400)));
+            biome.addFeature(GenerationStage.Decoration.UNDERGROUND_DECORATION, Biome.createDecoratedFeature(ModFeatures.GLOWING_MUSHROOM, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(4)));
         });
     }
 
@@ -771,6 +822,7 @@ public class RandomThings {
         // request, 2026-09-27, replacing the earlier no-visible-model design (see
         // SpectreIlluminatorEntity's own javadoc).
         RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpectreIlluminatorEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpiritEntity.class, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
 
         MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
             DiviningRodRenderer.get().render();
@@ -1005,7 +1057,7 @@ public class RandomThings {
          * Same bridge for item icon tinting: any randomthings {@link BlockItem}
          * whose block implements {@link IRTBlockColor} gets its inventory icon
          * tinted using the client player's current world/position, matching the
-         * 1.12.2 behavior of {@code ItemBlockColored}/{@code ItemBlockBiomeStone}.
+         * 1.12.2 behavior of {@code ItemBlockColored}.
          */
         @SubscribeEvent
         public static void onItemColorHandler(final ColorHandlerEvent.Item event) {
@@ -1015,6 +1067,10 @@ public class RandomThings {
 
                     if (block instanceof IRTBlockColor) {
                         event.getItemColors().register((stack, tintIndex) -> {
+                            if (block instanceof lumien.randomthings.block.ColoredGrassBlock) {
+                                return lumien.randomthings.block.ColoredGrassBlock.getTint(lumien.randomthings.block.ColoredGrassBlock.getColor(stack));
+                            }
+
                             Minecraft mc = Minecraft.getInstance();
 
                             if (mc.world == null || mc.player == null) {

@@ -31,6 +31,16 @@ public class MagneticEnchantment extends Enchantment {
     }
 
     @Override
+    public boolean canApplyAtEnchantingTable(net.minecraft.item.ItemStack stack) {
+        return lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get() && super.canApplyAtEnchantingTable(stack);
+    }
+
+    @Override
+    public boolean isAllowedOnBooks() {
+        return lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get();
+    }
+
+    @Override
     public int getMaxLevel() {
         return 1;
     }

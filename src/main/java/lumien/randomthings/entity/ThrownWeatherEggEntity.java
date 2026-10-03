@@ -69,4 +69,9 @@ public class ThrownWeatherEggEntity extends net.minecraft.entity.projectile.Proj
             this.remove();
         }
     }
+
+    @Override
+    public net.minecraft.network.IPacket<?> createSpawnPacket() {
+        return net.minecraftforge.fml.network.NetworkHooks.getEntitySpawningPacket(this);
+    }
 }

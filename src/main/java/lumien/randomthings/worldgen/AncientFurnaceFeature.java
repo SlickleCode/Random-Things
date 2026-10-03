@@ -30,6 +30,10 @@ public class AncientFurnaceFeature extends Feature<NoFeatureConfig> {
 
     @Override
     public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+        if (!lumien.randomthings.config.RTConfig.ANCIENT_FURNACE.get()) {
+            return false;
+        }
+
         BlockPos ground = pos.down();
 
         if (ground.getY() <= 0 || ground.getY() >= 255) {

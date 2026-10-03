@@ -40,8 +40,6 @@ public class ModTileEntityTypes
 	@ObjectHolder("inventory_tester")
 	public static TileEntityType<InventoryTesterTileEntity> INVENTORY_TESTER;
 
-	@ObjectHolder("inventory_rerouter")
-	public static TileEntityType<InventoryRerouterTileEntity> INVENTORY_REROUTER;
 
 	@ObjectHolder("chat_detector")
 	public static TileEntityType<ChatDetectorTileEntity> CHAT_DETECTOR;
@@ -156,7 +154,6 @@ public class ModTileEntityTypes
 		registerSimple(registry, "iron_dropper", IronDropperTileEntity::new, ModBlocks.IRON_DROPPER);
 		registerSimple(registry, "player_interface", PlayerInterfaceTileEntity::new, ModBlocks.PLAYER_INTERFACE);
 		registerSimple(registry, "inventory_tester", InventoryTesterTileEntity::new, ModBlocks.INVENTORY_TESTER);
-		registerSimple(registry, "inventory_rerouter", InventoryRerouterTileEntity::new, ModBlocks.INVENTORY_REROUTER);
 		registerSimple(registry, "chat_detector", ChatDetectorTileEntity::new, ModBlocks.CHAT_DETECTOR);
 		registerSimple(registry, "redstone_observer", RedstoneObserverTileEntity::new, ModBlocks.REDSTONE_OBSERVER);
 		registerSimple(registry, "basic_redstone_interface", lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity::new, ModBlocks.BASIC_REDSTONE_INTERFACE);

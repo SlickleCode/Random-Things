@@ -1,23 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "ER",
-    "GB"
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:ender_pearl" },
+    { "item": "minecraft:redstone" },
+    { "item": "minecraft:gunpowder" },
+    { "item": "randomthings:beans" }
   ],
-  "key": {
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "G": {
-      "item": "minecraft:gunpowder"
-    },
-    "B": {
-      "item": "randomthings:beans"
-    }
-  },
   "result": {
     "item": "randomthings:floo_powder",
     "count": 16

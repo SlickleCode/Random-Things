@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["S  ","SCS","I  "],
+  "key": {
+    "S": { "item": "minecraft:stone" },
+    "C": { "item": "minecraft:comparator" },
+    "I": { "item": "minecraft:chest" }
+  },
+  "result": {
+    "item": "randomthings:inventory_tester",
+    "count": 2
+  }
+}

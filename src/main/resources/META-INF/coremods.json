@@ -11,5 +11,7 @@
 	"WorldReaderStrongPowerTransformer": "transformer/WorldReaderStrongPowerTransformer.js",
 	"TeleporterTransformer": "transformer/TeleporterTransformer.js",
 	"BlockRendererDispatcherTransformer": "transformer/BlockRendererDispatcherTransformer.js",
-	"GameRendererTransformer": "transformer/GameRendererTransformer.js"
+	"GameRendererTransformer": "transformer/GameRendererTransformer.js",
+	"ItemRendererTransformer": "transformer/ItemRendererTransformer.js",
+	"ArmorLayerTransformer": "transformer/ArmorLayerTransformer.js"
 }

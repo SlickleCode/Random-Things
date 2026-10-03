@@ -64,4 +64,9 @@ public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.Proje
             this.remove();
         }
     }
+
+    @Override
+    public net.minecraft.network.IPacket<?> createSpawnPacket() {
+        return net.minecraftforge.fml.network.NetworkHooks.getEntitySpawningPacket(this);
+    }
 }

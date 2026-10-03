@@ -111,23 +111,11 @@ public class ModBlocks
 	@ObjectHolder("sided_redstone")
 	public static Block SIDED_REDSTONE;
 
-	@ObjectHolder("biome_glass")
-	public static Block BIOME_GLASS;
 
-	@ObjectHolder("biome_stone_cobble")
-	public static Block BIOME_STONE_COBBLE;
 
-	@ObjectHolder("biome_stone_smooth")
-	public static Block BIOME_STONE_SMOOTH;
 
-	@ObjectHolder("biome_stone_brick")
-	public static Block BIOME_STONE_BRICK;
 
-	@ObjectHolder("biome_stone_cracked")
-	public static Block BIOME_STONE_CRACKED;
 
-	@ObjectHolder("biome_stone_chiseled")
-	public static Block BIOME_STONE_CHISELED;
 
 	@ObjectHolder("colored_grass")
 	public static Block COLORED_GRASS;
@@ -174,8 +162,6 @@ public class ModBlocks
 	@ObjectHolder("inventory_tester")
 	public static Block INVENTORY_TESTER;
 
-	@ObjectHolder("inventory_rerouter")
-	public static Block INVENTORY_REROUTER;
 
 	@ObjectHolder("chat_detector")
 	public static Block CHAT_DETECTOR;
@@ -285,6 +271,9 @@ public class ModBlocks
 	@ObjectHolder("diaphanous_block")
 	public static Block DIAPHANOUS_BLOCK;
 
+	@ObjectHolder("dyeing_machine")
+	public static Block DYEING_MACHINE;
+
 	/**
 	 * A {@code DyeColor} name (e.g. "light_gray") mapped to its texture-folder
 	 * name in the resource pack; only differs from the enum's own lowercase
@@ -344,12 +333,6 @@ public class ModBlocks
 		registry.register(new GlowingMushroomBlock().setRegistryName("glowing_mushroom"));
 		registry.register(new SidedRedstoneBlock().setRegistryName("sided_redstone"));
 
-		registry.register(new BiomeGlassBlock().setRegistryName("biome_glass"));
-		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_cobble"));
-		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_smooth"));
-		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_brick"));
-		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_cracked"));
-		registry.register(new BiomeStoneBlock().setRegistryName("biome_stone_chiseled"));
 		registry.register(new ColoredGrassBlock().setRegistryName("colored_grass"));
 
 		for (DyeColor color : DyeColor.values())
@@ -380,7 +363,6 @@ public class ModBlocks
 
 		registry.register(new PlayerInterfaceBlock().setRegistryName("player_interface"));
 		registry.register(new InventoryTesterBlock().setRegistryName("inventory_tester"));
-		registry.register(new InventoryRerouterBlock().setRegistryName("inventory_rerouter"));
 		registry.register(new ChatDetectorBlock().setRegistryName("chat_detector"));
 		registry.register(new RedstoneObserverBlock().setRegistryName("redstone_observer"));
 		registry.register(new lumien.randomthings.block.redstoneinterface.BasicRedstoneInterfaceBlock().setRegistryName("basic_redstone_interface"));
@@ -433,5 +415,7 @@ public class ModBlocks
 
 		registry.register(new LightRedirectorBlock().setRegistryName("light_redirector"));
 		registry.register(new DiaphanousBlock().setRegistryName("diaphanous_block"));
+
+		registry.register(new DyeingMachineBlock().setRegistryName("dyeing_machine"));
 	}
 }

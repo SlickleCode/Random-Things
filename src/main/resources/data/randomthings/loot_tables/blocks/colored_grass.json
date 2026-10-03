@@ -1,0 +1,53 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:alternatives",
+              "conditions": [
+                {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "enchantments": [
+                      { "enchantment": "minecraft:silk_touch", "levels": { "min": 1 } }
+                    ]
+                  }
+                }
+              ],
+              "children": [
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "white" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"white\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "orange" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"orange\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "magenta" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"magenta\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "light_blue" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"light_blue\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "yellow" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"yellow\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "lime" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"lime\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "pink" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"pink\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "gray" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"gray\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "light_gray" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"light_gray\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "cyan" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"cyan\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "purple" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"purple\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "blue" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"blue\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "brown" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"brown\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "green" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"green\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "red" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"red\"}}" } ] },
+                { "type": "minecraft:item", "name": "randomthings:colored_grass", "conditions": [ { "condition": "minecraft:block_state_property", "block": "randomthings:colored_grass", "properties": { "color": "black" } } ], "functions": [ { "function": "minecraft:set_nbt", "tag": "{BlockStateTag:{color:\"black\"}}" } ] }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "minecraft:dirt",
+              "conditions": [
+                { "condition": "minecraft:survives_explosion" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

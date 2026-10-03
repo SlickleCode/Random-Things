@@ -26,6 +26,9 @@ public class ModFeatures {
     @ObjectHolder("lotus")
     public static LotusFeature LOTUS;
 
+    @ObjectHolder("glowing_mushroom")
+    public static GlowingMushroomFeature GLOWING_MUSHROOM;
+
     @ObjectHolder("ancient_furnace")
     public static AncientFurnaceFeature ANCIENT_FURNACE;
 
@@ -33,5 +36,6 @@ public class ModFeatures {
         featureRegistryEvent.getRegistry().register(new BeanSproutFeature(NoFeatureConfig::deserialize).setRegistryName("bean_sprout"));
         featureRegistryEvent.getRegistry().register(new LotusFeature(NoFeatureConfig::deserialize).setRegistryName("lotus"));
         featureRegistryEvent.getRegistry().register(new AncientFurnaceFeature(NoFeatureConfig::deserialize).setRegistryName("ancient_furnace"));
+        featureRegistryEvent.getRegistry().register(new GlowingMushroomFeature(NoFeatureConfig::deserialize).setRegistryName("glowing_mushroom"));
     }
 }

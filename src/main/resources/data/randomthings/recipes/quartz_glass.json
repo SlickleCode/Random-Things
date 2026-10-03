@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG","GQG","GGG"],
+  "key": {
+    "G": { "tag": "forge:glass" },
+    "Q": { "item": "minecraft:quartz_block" }
+  },
+  "result": {
+    "item": "randomthings:quartz_glass",
+    "count": 8
+  }
+}

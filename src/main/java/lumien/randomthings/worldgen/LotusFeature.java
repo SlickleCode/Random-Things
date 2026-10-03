@@ -32,6 +32,10 @@ public class LotusFeature extends Feature<NoFeatureConfig> {
 
     @Override
     public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+        if (!lumien.randomthings.config.RTConfig.LOTUS.get()) {
+            return false;
+        }
+
         if (pos.getY() < 0) {
             return false;
         }

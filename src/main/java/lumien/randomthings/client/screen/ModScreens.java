@@ -38,5 +38,6 @@ public class ModScreens
 		ScreenManager.registerFactory(ModContainerTypes.ENDER_LETTER, EnderLetterScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.ENDER_MAILBOX, EnderMailboxScreen::new);
 		ScreenManager.registerFactory(ModContainerTypes.BLOCK_DESTABILIZER, BlockDestabilizerScreen::new);
+		ScreenManager.registerFactory(ModContainerTypes.DYEING_MACHINE, DyeingMachineScreen::new);
 	}
 }

@@ -448,4 +448,22 @@ public class AsmHandler {
         }
     }
 
+    /**
+     * Redirect target for {@code ItemRenderer.renderQuads}'s per-quad color
+     * computation - see {@code ItemRendererTransformer.js}. Direct port of
+     * 1.12.2's own {@code AsmHandler#getColorFromItemStack}: a Dyeing
+     * Machine result tags the dyed item with {@code rtDye} (see {@code
+     * DyeingMachineContainer#onCraftMatrixChanged}), and this overrides
+     * whatever color the quad would otherwise render with (vanilla tint,
+     * untinted default, or a mod-supplied {@code IItemColor}) whenever that
+     * tag is present - letting the Dyeing Machine recolor arbitrary items,
+     * not just ones with their own tint-index/IItemColor support.
+     */
+    public static int getColorFromItemStack(ItemStack stack, int originalColor) {
+        if (!stack.isEmpty() && stack.hasTag() && stack.getTag().contains("rtDye")) {
+            return stack.getTag().getInt("rtDye") | 0xFF000000;
+        }
+
+        return originalColor;
+    }
 }

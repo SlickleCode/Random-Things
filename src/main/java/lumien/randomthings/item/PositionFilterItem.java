@@ -32,6 +32,12 @@ public class PositionFilterItem extends Item
 	{
 		CompoundNBT compound = stack.getTag();
 
+		if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get())
+		{
+			// 1.12.2's HideCoordinates: no coordinate tooltip (and no "hold Shift" hint, since there's nothing to reveal)
+			return;
+		}
+
 		if (Screen.hasShiftDown())
 		{
 			if (compound != null && compound.getBoolean("hasPosition"))

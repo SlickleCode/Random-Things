@@ -33,14 +33,12 @@ import java.util.Set;
  * unified into one class since the two were otherwise identical (the
  * Prismarine variant just scans 10x faster).
  * <p>
- * Disclosed simplification: 1.12.2's {@code TileEntityEnderAnchor} could
- * request a Forge chunk-loading ticket (via {@code ForgeChunkManager}) to
- * keep its own chunk force-loaded, but only when a config flag most packs
- * leave off was enabled. Forge's chunk-loading ticket API changed
- * significantly by 1.14.4 and this only matters if the destination chunk
- * would otherwise be unloaded when the bridge scans it - not ported; the
- * bridge/anchor pair otherwise works exactly as before whenever both chunks
- * are already loaded (the common case when a player is nearby using it).
+ * The scan skips unloaded chunks, so an Anchor's chunk must be loaded for the
+ * bridge to find it: like 1.12.2 (where {@code EnderAnchorChunkloading}
+ * defaults to on), each Anchor keeps its own chunk force-loaded, via
+ * {@link lumien.randomthings.handler.AnchorChunkLoader} rather than the
+ * removed {@code ForgeChunkManager} tickets - see
+ * {@link EnderAnchorTileEntity}.
  * {@code EntityEnderConnection}, 1.12.2's own dead/non-functional stub entity
  * (its {@code onCollideWithPlayer} built a list and never used it), isn't
  * ported either - it did nothing to port.

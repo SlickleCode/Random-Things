@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["NNN","NBN","NNN"],
+  "key": {
+    "B": { "item": "randomthings:beans" },
+    "N": { "tag": "forge:nuggets/gold" }
+  },
+  "result": {
+    "item": "randomthings:lesser_magic_bean"
+  }
+}

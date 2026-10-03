@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["NCC","NFC","NCC"],
+  "key": {
+    "N": { "item": "minecraft:netherrack" },
+    "C": { "tag": "forge:cobblestone" },
+    "F": { "item": "minecraft:flint_and_steel" }
+  },
+  "result": {
+    "item": "randomthings:igniter"
+  }
+}

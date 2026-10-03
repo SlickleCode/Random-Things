@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+import com.mojang.blaze3d.platform.GlStateManager;
+
 import lumien.randomthings.tileentity.LightRedirectorTileEntity;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -12,6 +14,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IEnviromentBlockReader;
@@ -115,5 +118,32 @@ public class ClientAsmHandler {
         }
 
         return pos;
+    }
+
+    /**
+     * Redirect target for {@code ArmorLayer.renderArmorLayer}'s second (and,
+     * for non-leather armor, only) {@code BipedModel.render} call - see
+     * {@code ArmorLayerTransformer.js}. Direct port of 1.12.2's own {@code
+     * AsmHandler#armorColorHook}: re-applies GL color right before the armor
+     * model draws, overriding whatever the vanilla leather-dye branch (or
+     * the plain white/undyed case) already set, whenever the worn item
+     * carries the Dyeing Machine's {@code rtDye} tag - letting the machine
+     * recolor any armor piece, not just vanilla's own dyeable leather. A
+     * client-only body (touches {@code GlStateManager}), so - like {@code
+     * renderBlock} above - this lives here rather than in the shared {@code
+     * AsmHandler}: {@code ArmorLayer} is itself client-only and a dedicated
+     * server never loads it, so the injected call is never reached there
+     * either.
+     */
+    public static void armorColorHook(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("rtDye")) {
+            int rgb = stack.getTag().getInt("rtDye");
+
+            float r = ((rgb >> 16) & 255) / 255F;
+            float g = ((rgb >> 8) & 255) / 255F;
+            float b = (rgb & 255) / 255F;
+
+            GlStateManager.color4f(r, g, b, 1.0F);
+        }
     }
 }

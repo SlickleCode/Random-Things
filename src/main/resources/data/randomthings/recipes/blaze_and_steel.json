@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["IB"],
+  "key": {
+    "B": { "item": "minecraft:blaze_powder" },
+    "I": { "item": "minecraft:iron_ingot" }
+  },
+  "result": {
+    "item": "randomthings:blaze_and_steel"
+  }
+}

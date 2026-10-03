@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["B","S"],
+  "key": {
+    "B": { "item": "minecraft:iron_boots" },
+    "S": { "item": "randomthings:super_lubricent_tincture" }
+  },
+  "result": {
+    "item": "randomthings:super_lubricent_boots"
+  }
+}

@@ -38,6 +38,9 @@ public class ModEntityTypes {
     @ObjectHolder("spectre_illuminator")
     public static EntityType<SpectreIlluminatorEntity> SPECTRE_ILLUMINATOR;
 
+    @ObjectHolder("spirit")
+    public static EntityType<SpiritEntity> SPIRIT;
+
     public static void registerEntityTypes(Register<EntityType<?>> entityTypeRegistryEvent) {
         IForgeRegistry<EntityType<?>> registry = entityTypeRegistryEvent.getRegistry();
 
@@ -67,5 +70,8 @@ public class ModEntityTypes {
 
         EntityType.Builder<SpectreIlluminatorEntity> illuminatorBuilder = EntityType.Builder.create(SpectreIlluminatorEntity::new, EntityClassification.MISC);
         registry.register(illuminatorBuilder.size(0.5F, 0.5F).disableSummoning().build("spectre_illuminator").setRegistryName("spectre_illuminator"));
+
+        EntityType.Builder<SpiritEntity> spiritBuilder = EntityType.Builder.create(SpiritEntity::new, EntityClassification.MISC);
+        registry.register(spiritBuilder.size(0.25F, 0.25F).setTrackingRange(80).setUpdateInterval(1).disableSummoning().build("spirit").setRegistryName("spirit"));
     }
 }

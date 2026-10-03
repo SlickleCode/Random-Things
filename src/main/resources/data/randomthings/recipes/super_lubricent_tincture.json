@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["SW","B "],
+  "key": {
+    "S": { "item": "minecraft:wheat_seeds" },
+    "W": { "type": "forge:nbt", "item": "minecraft:potion", "nbt": { "Potion": "minecraft:water" } },
+    "B": { "item": "randomthings:beans" }
+  },
+  "result": {
+    "item": "randomthings:super_lubricent_tincture",
+    "count": 4
+  }
+}

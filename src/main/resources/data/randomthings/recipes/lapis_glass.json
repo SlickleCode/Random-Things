@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["GGG","GLG","GGG"],
+  "key": {
+    "G": { "tag": "forge:glass" },
+    "L": { "item": "minecraft:lapis_block" }
+  },
+  "result": {
+    "item": "randomthings:lapis_glass",
+    "count": 8
+  }
+}

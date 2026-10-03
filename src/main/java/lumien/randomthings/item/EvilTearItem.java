@@ -32,7 +32,7 @@ public class EvilTearItem extends Item {
 
         BlockState state = world.getBlockState(pos);
 
-        if (state.getBlock() == Blocks.END_ROD) {
+        if (state.getBlock() == Blocks.END_ROD && lumien.randomthings.config.RTConfig.ARTIFICIAL_END_PORTAL.get()) {
             BlockPos portalCenter = pos.down(3);
 
             if (ArtificialEndPortalEntity.isValidPosition(world, portalCenter, true)) {

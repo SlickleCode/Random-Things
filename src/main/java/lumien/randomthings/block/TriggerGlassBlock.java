@@ -55,7 +55,11 @@ public class TriggerGlassBlock extends Block
 	 * a single iterative, capped breadth-first flood fill (see
 	 * {@link #triggerConnected}) from the block that was actually powered.
 	 */
-	private static final int MAX_CHAIN = 20;
+	private static int maxChain()
+	{
+		int limit = lumien.randomthings.config.RTConfig.TRIGGER_GLASS_CHAIN_LIMIT.get();
+		return limit == 0 ? Integer.MAX_VALUE : limit;
+	}
 
 	public TriggerGlassBlock()
 	{
@@ -102,7 +106,7 @@ public class TriggerGlassBlock extends Block
 	/**
 	 * Iterative, capped breadth-first flood fill starting from the directly-
 	 * powered block: triggers it, then spreads to touching untriggered
-	 * TriggerGlass blocks, stopping once {@link #MAX_CHAIN} blocks total have
+	 * TriggerGlass blocks, stopping once the configured {@code TriggerGlassChainLimit} blocks total have
 	 * been triggered.
 	 */
 	private void triggerConnected(World world, BlockPos origin)
@@ -113,8 +117,9 @@ public class TriggerGlassBlock extends Block
 		seen.add(origin);
 
 		int triggeredCount = 0;
+		int maxChain = maxChain();
 
-		while (!queue.isEmpty() && triggeredCount < MAX_CHAIN)
+		while (!queue.isEmpty() && triggeredCount < maxChain)
 		{
 			BlockPos pos = queue.poll();
 			BlockState state = world.getBlockState(pos);

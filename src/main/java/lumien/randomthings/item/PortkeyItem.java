@@ -68,7 +68,10 @@ public class PortkeyItem extends Item {
     public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
         CompoundNBT compound = stack.getTag();
 
-        if (Screen.hasShiftDown()) {
+        if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get()) {
+            // 1.12.2's HideCoordinates: only say whether a target is set, never where
+            tooltip.add(new TranslationTextComponent(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
+        } else if (Screen.hasShiftDown()) {
             if (compound != null && compound.getBoolean("hasTarget")) {
                 tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.dimension", compound.getInt("dimension")));
                 tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.x", compound.getInt("targetX")));

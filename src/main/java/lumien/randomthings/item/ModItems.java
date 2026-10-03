@@ -139,6 +139,9 @@ public class ModItems {
     @ObjectHolder("golden_egg")
     public static Item GOLDEN_EGG;
 
+    @ObjectHolder("summoning_pendulum")
+    public static Item SUMMONING_PENDULUM;
+
     @ObjectHolder("magic_hood")
     public static Item MAGIC_HOOD;
 
@@ -218,6 +221,8 @@ public class ModItems {
         registry.register(new StableEnderpearlItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("stable_enderpearl"));
 
         registry.register(new SuperLubricentBootsItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("super_lubricent_boots"));
+        // Plain crafting ingredient (1.12.2's ItemIngredient.SUPERLUBRICENT_TINCTURE has no behavior of its own).
+        registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("super_lubricent_tincture"));
 
         // Divining Rods
         registerDiviningRod(registry, "coal", new Color(20, 20, 20, 50), Tags.Blocks.ORES_COAL.getId().toString());
@@ -267,18 +272,23 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.GLOWING_MUSHROOM);
         registerItemForBlock(registry, ModBlocks.SIDED_REDSTONE);
 
-        registerItemForBlock(registry, ModBlocks.BIOME_GLASS);
-        registerItemForBlock(registry, ModBlocks.BIOME_STONE_COBBLE, ModBlocks.BIOME_STONE_SMOOTH, ModBlocks.BIOME_STONE_BRICK, ModBlocks.BIOME_STONE_CRACKED, ModBlocks.BIOME_STONE_CHISELED);
-        // No creative-tab group: the real 1.12.2 acquisition path is planting a
-        // colored Grass Seeds item (16 dye-color variants) - that item, and the
-        // matching 16-color version of this block, aren't ported yet (this port
-        // currently only has the single default-white variant). Not craftable
-        // either in the original - hidden here rather than left reachable through
-        // a path (creative search) that doesn't exist upstream.
+        // No creative-tab group: the real acquisition path is planting the Grass Seeds
+        // items below (block placed via the COLOR state), or Silk Touch (the item then
+        // carries a BlockStateTag for its color, see colored_grass.json's loot table).
         {
-            Item coloredGrassItem = new BlockItem(ModBlocks.COLORED_GRASS, new Item.Properties());
+            Item coloredGrassItem = new BlockItem(ModBlocks.COLORED_GRASS, new Item.Properties()) {
+                @Override
+                public net.minecraft.util.text.ITextComponent getDisplayName(ItemStack stack) {
+                    return new net.minecraft.util.text.TranslationTextComponent("block.randomthings.colored_grass." + lumien.randomthings.block.ColoredGrassBlock.getColor(stack).getName());
+                }
+            };
             coloredGrassItem.setRegistryName(ModBlocks.COLORED_GRASS.getRegistryName());
             registry.register(coloredGrassItem);
+        }
+
+        registry.register(new GrassSeedsItem(new Item.Properties().group(RT_ITEM_GROUP), null).setRegistryName("grass_seeds"));
+        for (DyeColor color : DyeColor.values()) {
+            registry.register(new GrassSeedsItem(new Item.Properties().group(RT_ITEM_GROUP), color).setRegistryName("grass_seeds_" + color.getName()));
         }
 
         for (DyeColor color : DyeColor.values()) {
@@ -297,7 +307,6 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.IRON_DROPPER);
         registerItemForBlock(registry, ModBlocks.PLAYER_INTERFACE);
         registerItemForBlock(registry, ModBlocks.INVENTORY_TESTER);
-        registerItemForBlock(registry, ModBlocks.INVENTORY_REROUTER);
         registerItemForBlock(registry, ModBlocks.CHAT_DETECTOR);
         registerItemForBlock(registry, ModBlocks.REDSTONE_OBSERVER);
         registerItemForBlock(registry, ModBlocks.BASIC_REDSTONE_INTERFACE, ModBlocks.ADVANCED_REDSTONE_INTERFACE);
@@ -399,6 +408,8 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.LIGHT_REDIRECTOR);
 
         registry.register(new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("diaphanous_block"));
+
+        registerItemForBlock(registry, ModBlocks.DYEING_MACHINE);
     }
 
     private static Block lookupBlock(String name) {

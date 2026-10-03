@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["III","II ","IRI"],
+  "key": {
+    "I": { "tag": "forge:ingots/iron" },
+    "R": { "item": "minecraft:redstone" }
+  },
+  "result": {
+    "item": "randomthings:iron_dropper"
+  }
+}

@@ -9,748 +9,75 @@ follow; this file is the detailed history and the "what's actually true right no
 
 ## START HERE (session handoff)
 
-**Update, 2026-09-28 (same session, later still): a full bug-fixing pass over a fresh round of user
-playtesting - the largest single triage since the "Bug-fixing pass 4"/2026-09-28 pass earlier this
-file.** ~20 items reviewed; full technical writeups for every one are in `TESTING_NOTES.md`, only a
-summary here:
-- **Removed per request:** Pitcher Plant, and the whole fire/water-protection item family (Obsidian
-  Skull, Lava Charm, Lava Wader, Water Walking Boots, Obsidian Water Walking Boots) - source, assets,
-  registrations, and the two now-orphaned shared `RandomThings` event listeners all deleted.
-- **Real bugs found and fixed:** Item Collector/Advanced Item Collector's blockstate rotation values
-  didn't match 1.12.2's real numbers at all; Player Interface's armor-side capability had no per-slot
-  type check (chestplates landed in any empty armor slot); Sound Recorder's list used vanilla's
-  hardcoded 220-wide row math plus no text clipping, running rows off-panel; Magic Hood's particle fix
-  from an earlier pass set the wrong flag (`shouldHideParticles` only thins particles, doesn't remove
-  them - the real gate is forcing the synced color to 0); Ancient Furnace's biome mutation was correct
-  server-side but never resynced to already-connected clients; Portkey's priming counter mutated the
-  same object instance the dropped entity's data manager already had cached, which never trips Forge's
-  own dirty-check (needs a genuinely different object); Portkey's camo/plain render was double-offset
-  by `-0.5` on every axis, once from the outer `ItemRenderer` call it's invoked from and again from
-  whichever overload this renderer called back into.
-- **Investigated, no bug found** (each flagged in `TESTING_CHECKLIST.md` with what to check on retest):
-  Chat Detector's button, Entity Filter's capture, Biome Glass/Stone's tint, Sound Dampener's radius,
-  Floo Powder's recipe, Colored Grass's missing recipe (confirmed intentional - 1.12.2 never had one
-  either).
-- **Requested behavior changes, not bugs** (both explicitly confirmed with the user first): Block
-  Destabilizer's flood-fill now skips non-full blocks (torches/redstone/levers) entirely; Rain Shield
-  now also suppresses the *visual* rain/snow particles near an active shield (previously disclosed as
-  not attempted - a new `GameRendererTransformer` coremod redirects the one `World.getBiome` call
-  inside vanilla's rain-render loop to substitute a real no-precipitation biome for shielded columns).
-- **Usability fix instead of the disclosed-simplification's original ask:** Inventory Rerouter's
-  missing per-face overlay texture (a real, still-standing 1.12.2 simplification - no art assets for 6
-  new directional icons) now gets an action-bar message on right-click stating the clicked face's new
-  redirect target instead.
-
-`./gradlew build -x test` clean after every change; the two new coremods (`GameRendererTransformer`,
-plus the earlier `BlockRendererDispatcherTransformer`) both verified via a real `runClient` boot
-showing a clean transform with no `VerifyError`/`LinkageError` and the crash-report count unchanged.
-Please retest broadly - this is a large batch. Still uncommitted.
-
-**Update, 2026-09-28 (same session, later): two real bugs fixed in the Diaphanous Blocks slice above,
-reported by user, plus a long-standing Redstone Remote GUI bug finally tracked down from a screenshot.**
-Diaphanous Blocks: (1) non-inverted blocks couldn't be mined/interacted with at all - `getShape` was
-wrongly gated on `inverted` the same as `getCollisionShape`, but 1.14.4 has no separate "collision" vs.
-"targeting/interaction" shape the way 1.12.2 did, so a non-inverted block had no shape at all for the
-block-targeting raytrace to find; `getShape` is now always a full cube, only `getCollisionShape` stays
-gated. (2) the inverted variant's name showed a raw untranslated key - `BlockItem#getTranslationKey()`
-delegates to the *block's* own key (`block.`-prefixed), not an `item.`-prefixed one; the lang entry had
-the wrong prefix. Separately, a screenshot of Redstone Remote's "use" screen looking like a blank white
-box turned out to be two things at once: a real, previously-undiagnosed bug (this screen, plus the edit
-screen and Advanced Redstone Interface's own screen, never drew a title at all - missing
-`drawGuiContainerForegroundLayer` entirely, now fixed on all three) that plausibly explains the
-long-standing #287 "no slots visible" report from an earlier session too; and a red herring (the plain,
-undecorated gray background texture itself is byte-for-byte what 1.12.2 actually shipped, ground-truthed
-by extracting the real asset from that branch - not a bug, per this repo's own "check the real 1.12.2
-source before fixing" rule). `./gradlew build -x test` clean after each. `TESTING_CHECKLIST.md` #287 and
-#317 updated, full writeups in `TESTING_NOTES.md`. Please retest. Still uncommitted.
-
-**Update, 2026-09-28 (new session): Diaphanous Blocks + Light Redirector implemented - the last two
-wiki-tagged features that needed a "generic runtime block-model renderer," down from 3 NOT-STARTED rows
-to just Dyeing Machine.** User picked this pair (offered a choice between them together, Dyeing Machine
-alone, or something else entirely) - paired since they share that same tagged infrastructure need, same
-"do the paired ones together" logic as the earlier Magnetic Enchantment + Block Breaker slice. Real
-investigation before writing anything (per this repo's own working rule) found the two features need
-genuinely different fixes: Diaphanous Blocks' 1.12.2 renderer hand-reimplemented `BlockModelRenderer`'s
-*private* internals just to filter which faces draw and reflected into `BufferBuilder`'s private raw
-buffer for per-vertex alpha - neither is needed in 1.14.4 (`renderModel`'s own `checkSides` parameter
-gets the same face-culling live and for free; `BufferBuilder` exposes the same raw storage publicly now,
-confirmed via its own decompiled source before relying on it). Light Redirector turned out to be a real
-client-side rendering "periscope" (an open face shows whatever's on the block's *opposite* side, not just
-a texture swap) - reached via a new `BlockRendererDispatcherTransformer` coremod using this project's own
-established "early conditional-IRETURN at method entry" idiom, whose Java-side redirect target had to go
-in a **new** client-only-safe class (`ClientAsmHandler`, not the existing `AsmHandler` - which is loaded
-on both sides and only ever references common types in its own signatures, unlike this one). Full detail,
-including every disclosed simplification, in `WIKI_FEATURE_STATUS.md`'s own entry for this slice - see
-that file for anything not summarized here. `./gradlew build -x test` clean; `runClient` smoke-verified
-through the coremod actually transforming its target class with no `VerifyError`/`LinkageError`, all 64
-Light Redirector blockstate variants baking cleanly into the block atlas, and both new recipe serializers
-registering. `TESTING_CHECKLIST.md` #314-319 added. Not yet tested in-game (needs real interactive play -
-the periscope effect and the ghost-fade curve especially). Still uncommitted.
-
-**Update, 2026-09-28 (same session, later still): investigated three known log warnings flagged in
-earlier `runClient` smoke tests - one real bug fixed, two confirmed intentional-by-design and silenced.**
-User asked to look into all three after the Spectre Lens live-testing session (which itself turned out
-to be an unrelated Mojang `authlib`/Gson issue - the game's own auth-server lookup for the offline "Dev"
-profile failing to parse a non-JSON response from this sandboxed environment's lack of real internet
-access, not a mod bug at all; see that investigation in the conversation history for the full trace).
-- **Real bug, fixed: Advanced Redstone Repeater's "off" state showed the default missing-texture
-  particle effect when broken.** Same class of stale pre-1.13-flattening vanilla texture name as the
-  already-fixed #80/81 (`redstone_torch_on`/`stone_slab_top`), just one instance that earlier pass
-  missed: `advanced_redstone_repeater_off.json`/`_off_locked.json`'s `particle` field still referenced
-  `block/repeater_off`, which ground-truthing `client-extra.jar` directly (`unzip -l`) confirmed no
-  longer exists in this version - the real name is just `block/repeater`. Only affected the break/hit
-  particle texture, not the block's actual visible faces (those already used the mod's own textures
-  correctly). Fixed both files; `TESTING_CHECKLIST.md` #81.1 added.
-- **Confirmed intentional, not a bug: Rune Base/Fluid Display's "missing blockstate" `ModelBakery`
-  warnings.** Both blocks are deliberately `BlockRenderType.INVISIBLE` with all real rendering done by
-  a dedicated TileEntityRenderer (a previous session's own documented design, predating this one -
-  see each class's own pre-existing javadoc) and genuinely had no blockstate/model JSON at all, which
-  Minecraft still tries to load unconditionally for every registered block regardless of render type,
-  logging a WARN when it can't find one. Zero gameplay impact (the warning doesn't affect the TESR path
-  at all) - added a minimal blockstate + empty-elements model for each anyway (reusing Rune Dust's own
-  texture for Rune Base's particle field, the block's own real texture for Fluid Display's) purely to
-  silence the log noise and give both a themed break-particle effect instead of the default
-  missing-texture one, since that was a real (if very minor) side effect of the missing files. No
-  rendering/behavior change - confirmed via `runClient` that both blocks are still fully TESR-driven.
-- `./gradlew build -x test` clean; `runClient` smoke-verified all three warnings gone with no new
-  errors introduced. Not independently player-testable (no behavior changed for #2/#3), so no new
-  checklist rows for those two beyond the plan's own note here. Still uncommitted.
-
-**Update, 2026-09-28 (same session, yet later still than that): Spectre Lens implemented - completes
-the whole "Spectre" wiki family except the never-started Ender network.** User asked to do the piece
-deferred from the energy-network slice right below. Unlike that slice's Coil/Injector blocks, this
-one's real 1.12.2 model turned out to already be a single plain thin box - no elaborate Cubik Studio
-mesh, no obsolete Forge `forge:multi-layer` blockstate trick - so it ported faithfully with no
-simplification needed at all: same 1/16-tall shape via `Block#getShape`, same real texture, same real
-recipe (Spectre Ingot/Emerald/Diamond/Glass).
-
-Ground-truthed `BeaconTileEntity` via `javap` before assuming 1.12.2's reflection-based approach for
-reading a beacon's state still applied, and found a real simplification: the private "is the pyramid
-complete" boolean 1.12.2 needed reflection for doesn't exist in this version's `BeaconTileEntity` at
-all - `getLevels()` (already public) is `0` exactly when the pyramid isn't valid, so that half of the
-original reflection is gone for good, not a choice made here. `primaryEffect`/`secondaryEffect` are
-still private with no getter, so `SpectreLensTileEntity` still reflects into those two - using this
-build's own real MCP field names directly (the dev environment ships human-readable names, no SRG
-lookup table needed the way 1.12.2's own `MCPNames` helper required). Also traced `Chunk`/`World`'s
-real source before trusting `TileEntity#remove()` as a safe replacement for 1.12.2's `breakBlock` hook
-(the only removal-lifecycle method this version's `TileEntity` exposes at all): confirmed it only fires
-on a genuine block-state removal, never merely on a chunk unloading, so clearing a player's lens entry
-in that override can't misfire just because the chunk went out of range.
-
-`SpectreLensHandler` deliberately kept the original's cross-dimension scoping (1.12.2's
-`getPerWorldStorage()`, ported here as `server.getWorld(DimensionType.OVERWORLD).getSavedData()`
-regardless of which dimension the lens or its owner are actually in) - the *opposite* choice from
-`SpectreCoilHandler`'s own deliberately-preserved per-dimension scoping in the slice below, since each
-handler made its own real, different design choice in 1.12.2 and both are now matched faithfully rather
-than unified into one convention. Wired the actual periodic re-application via a new `ServerTickEvent`
-listener in `RandomThings.java` (`SpectreLensHandler.get(server).tick(server)`, once per server tick
-regardless of dimension), matching the existing `EscapeRopeHandler` call site's own established
-pattern right above it.
-
-Also added the Spectre Energy Injector's own real crafting recipe, now that its one missing
-prerequisite (this item) exists - it shipped registered-but-uncraftable in the previous slice
-specifically pending this.
-
-`./gradlew build -x test` clean. `runClient` smoke-verified through an actual world load again (same
-depth of check as the energy-network slice), no `ModelBakery`/`RecipeManager` errors for any of the new
-content. `TESTING_CHECKLIST.md` #312-313 added, #310 (Injector) updated for its new recipe, and
-`WIKI_FEATURE_STATUS.md`'s Spectre Lens row updated to DONE-UNTESTED. Not yet tested in-game. Still
-uncommitted.
-
-**Update, 2026-09-28 (same session, yet later still): Spectre energy network implemented (Charger/
-Coils/Injector), Spectre Lens deferred.** Asked which NOT-STARTED wiki feature to tackle next (same
-standing pattern as the Spectre Tools slice before it); user picked "Spectre energy network"
-(Charger/Coils/Lens). Researched the real 1.12.2 source for all of it first and found the wiki's single
-row actually bundles two functionally unrelated mechanics: a real Forge-Energy per-player-pool network
-(`BlockSpectreEnergyInjector`/`BlockSpectreCoil`/`ItemSpectreCharger`/`SpectreCoilHandler`) and Spectre
-Lens (`BlockSpectreLens`/`SpectreLensHandler`, which extends a Beacon's active buffs to its owner
-remotely - no Forge Energy involved at all). Scoped this slice to just the energy-network trio and
-deferred Lens to its own follow-up slice rather than trying to ship both in one pass - flagged plainly,
-same as every other multi-piece batch this project has split before.
-
-Ground-truthed `IEnergyStorage`/`CapabilityEnergy`/`WorldSavedData`/`DimensionSavedDataManager`/
-`LazyOptional` via `javap`/real source before writing anything - the most stable API surface touched
-this session, nearly unchanged from 1.12.2's own Forge Energy API. New
-`handler/spectrecoils/SpectreCoilHandler.java` (the per-player pool, ported onto 1.14.4's
-`WorldSavedData` the same way `SpectreHandler`/`FlooNetworkHandler` already were), `SpectreEnergyInjectorBlock`/`TileEntity` (receive-only capability exposure, "push energy in from an
-external machine"), `SpectreCoilBlock`/`TileEntity` (attaches to any energy-capable neighbor, drains
-the pool to push energy out to that neighbor every tick), and `SpectreChargerItem` (a held/carried
-toggle item, drains the pool to top up other Forge-Energy items in the same inventory - ported from a
-1.12.2 Baubles belt item onto this port's already-established "just has to be carried anywhere" Baubles
-fallback, same one used for Portable Sound Dampener/Obsidian Skull/Lava Charm).
-
-**Real research mistake caught before shipping, worth remembering the lesson from:** while porting the
-Coil/Charger crafting recipes, a first pass grepped the real 1.12.2 source for "SPECTRE_STRING" (the
-Java enum constant name of a required ingredient) and found zero recipe/drop/loot source anywhere,
-plus an explicit JEI blacklist entry marking it unobtainable - concluded and reported to the user that
-this was dead 1.12.2 content, and asked whether to match that exactly (uncraftable), substitute a
-different ingredient, or defer. **The user's answer ("match 1.12.2 exactly") was right, but the premise
-behind offering that choice was wrong**: a second, more careful look - checking the actual
-`resources/.../recipes/` folder directly instead of trusting a Java-source grep for the enum name -
-found a real `spectrestring.json` recipe (4x from Ectoplasm + String + Diamond) that the first pass had
-simply missed, because recipe JSON files reference items by numeric `data` value, not by the Java enum
-constant's own name string. **Lesson**: when checking whether 1.12.2 content has a real source, check
-the actual recipe/loot JSON files directly - a source-grep for a Java identifier can silently miss data
-that's only ever referenced numerically. Ported the real recipe once found; no harm done since the
-user's answer matched what turned out to be correct regardless, but flagging this because the
-underlying research method was the fragile part, not the specific outcome.
-
-**Disclosed simplifications:** both new blocks' real 1.12.2 models are elaborate hand-modeled Cubik
-Studio meshes (a small attached nub for Coil, an obsidian-pedestal-inside-a-translucent-glass-shell for
-the Injector) built on Forge's old `forge:multi-layer`/`forge_marker` blockstate format, which doesn't
-exist in this Forge version at all - ground-truthed this before concluding a full model rebuild wasn't
-worth it for a purely cosmetic detail, and used plain full-cube blocks instead (reusing the originals'
-own real, already-animated block textures directly - `.mcmeta` files copied over unchanged), matching
-this port's own established `ContactButtonBlock`/`ContactLeverBlock` precedent for the same class of
-"small attached block" simplification. The real mechanic (must attach to a face that exposes an Energy
-capability, auto-drops otherwise) is preserved exactly. Also dropped: Coil's per-tier color tint (was a
-runtime render tint on the now-dropped mesh; no `BlockColor` infrastructure in this port yet - tiers
-still distinguishable by name), and Coil's own FE-rate tooltip. The Injector's real recipe needs a
-Spectre Lens (deferred this slice) - registered without a recipe for now, same treatment as the
-inherently-uncraftable Genesis tiers.
-
-`./gradlew build -x test` clean. `runClient` smoke-verified further than the Spectre Tools slice did:
-this boot actually loaded a real world (not just the main menu), reaching `RecipeManager` datapack
-loading with no parse errors for any of the 7 new recipes, and `ModelBakery`/texture-atlas stitching
-with no missing-model/missing-texture warnings for any of the 9 new blocks/items either.
-`TESTING_CHECKLIST.md` #307-311 and `WIKI_FEATURE_STATUS.md`'s Spectre Charger/Coils/Lens rows
-added/updated. Not yet tested in-game - the actual FE transfer needs another Forge-Energy-capable mod
-installed to verify end-to-end, which this environment doesn't have. Still uncommitted.
-
-**Update, 2026-09-28 (same session, still later): real bug fixed, reported by user - the Spectre Tools'
-+3 reach tooltip showed a raw untranslated key instead of a proper name.** ("Tools not craftable," also
-reported at the same time, turned out to be a stale build/client - the recipe JSON was correct all along
-and just needed a fresh `./gradlew build` + restart, no code change.) Ground-truthed the tooltip cause
-from real source: `ItemStack`'s attribute-modifier tooltip builds its translation key as
-`"attribute.name." + attributeName`, and `PlayerEntity.REACH_DISTANCE`'s real name is the camelCase
-`"generic.reachDistance"` - but this exact Forge build's own `forge/lang/en_us.json` ships a mismatched
-pair for it instead of the expected key: a bare `generic.reachDistance` (missing the `attribute.name.`
-prefix) and an unrelated `attribute.name.generic.reach_distance` (snake_case, doesn't match the real
-attribute name either) - so the actual runtime-built key had no working translation anywhere in this
-build. Fixed by adding `attribute.name.generic.reachDistance` to this mod's own `en_us.json` directly,
-same as any other missing-vanilla-translation fix. `TESTING_CHECKLIST.md` #304-306 updated, please
-retest. Still uncommitted.
-
-**Update, 2026-09-28 (same session, yet later): Spectre Tools implemented.** Asked the user which
-NOT-STARTED wiki feature to tackle next (per this section's own standing "ask which one" note below);
-picked Spectre Tools (Sword/Pickaxe/Axe/Shovel) over the bigger Spectre energy network and over
-reconciling the stale checklist rows noted further down. Ground-truthed the real 1.14.4 `IItemTier`/
-`ToolItem`/`PickaxeItem`/`AxeItem`/`ShovelItem`/`SwordItem` hierarchy via `javap`/real source before
-writing anything - found that vanilla's own `AxeItem#getDestroySpeed` already reproduces 1.12.2's custom
-override (full efficiency on wood/plant materials) exactly, so no override was needed there at all, unlike
-what was assumed going in. New `item/spectretools/` package: `SpectreItemTier` (a plain `IItemTier`,
-1.14.4's replacement for 1.12.2's `EnumHelper.addToolMaterial` enum-extension trick, same stats -
-harvest level 3, 2000 uses, 8 efficiency, 3 attack-damage bonus, 22 enchantability, Spectre Ingot repair
-via a `LazyLoadBase<Ingredient>` matching every vanilla `ItemTier` constant) plus the four tool classes.
-Pickaxe/Axe/Shovel (not Sword, matching 1.12.2) get a +3 block-reach `AttributeModifier` on
-`PlayerEntity.REACH_DISTANCE` while held in the mainhand - confirmed that attribute still exists
-unchanged in this Forge version via `javap`. Recipes/models/textures pulled directly from
-`origin/1.12.2` and restructured into this port's asset layout. Disclosed simplification: dropped
-1.12.2's ASM-hook white-glow recolor on the sword (cosmetic-only tint recolor of an already-real
-enchant glow, not a forced-always-glow like Spectre Key/Portkey - no render-hook precedent for that
-narrower case in this port, same call already made for Redstone Observer's own dropped red-glow
-recolor); the sword's `EntitySpirit` damage-exemption tie-in also isn't wired up since that mob isn't
-ported yet. `./gradlew build -x test` clean, plus a `runClient` smoke boot confirming all 4 items'
-models/textures/recipes load and bake cleanly (reached texture-atlas stitching with no missing-texture
-warnings for any of them, no `ModelBakery` errors). `TESTING_CHECKLIST.md` #303-306 and
-`WIKI_FEATURE_STATUS.md`'s Spectre Tools row added/updated. Not yet tested in-game (crafting, actual
-mining/reach/repair feel). Still uncommitted.
-
-**Update, 2026-09-28 (same session, later still still): real crash fixed, reported by user with a full
-crash log - the Block Breaker crashed the server the instant it finished mining any block with no tile
-entity (e.g. a grass block).** `NullPointerException` in `ForgeHooks.onBlockBreakEvent` at
-`entityPlayer.connection.sendPacket(...)` (line 561, reached via its `world.getTileEntity(pos) == null`
-branch), called from `PlayerInteractionManager.tryHarvestBlock`, called from
-`BlockBreakerTileEntity.tick`. Root cause: `FakePlayer`'s constructor (ground-truthed from Forge's own
-source) never sets `ServerPlayerEntity#connection` - it stays null - so any `tryHarvestBlock` call that
-takes this no-tile-entity branch NPEs immediately. Checked the real 1.12.2 original per this repo's
-working rule and found it already had a workaround for exactly this: `initFakePlayer()` there manually
-assigns `fakePlayer.connection` to a `NetHandlerPlayServer` subclass with a no-op `sendPacket` override,
-right after constructing the fake player. This port's `BlockBreakerTileEntity.initFakePlayer()` had
-dropped that step. Fixed by porting the same workaround, ground-truthed against this build's real
-`ServerPlayNetHandler`/`NetworkManager`/`PacketDirection` via `javap` (constructor signatures moved but
-the shape is the same). This was the exact risk flagged as unverified when Block Breaker was first
-ported (see the update below and `TESTING_CHECKLIST.md` #290) - confirms it was a real gap, not a false
-alarm. Build clean (`./gradlew build -x test`); `TESTING_CHECKLIST.md` #290 updated, please retest.
-Still uncommitted.
-
-**Update, 2026-09-28 (same session, later still): real crash fixed, reported by user with a full crash
-log - joining/rejoining a world after visiting the Spectre dimension threw `NullPointerException:
-Dimension type must not be null` in `DimensionManager.getWorld`.** Root cause: `ModDimensions
-.registerDimension` was being called from `FMLCommonSetupEvent` (mod-loading time, once per process,
-before any world/save is even chosen) using plain `registerDimension`. Ground-truthed from
-`DimensionManager`'s own source: every world load calls `readRegistry`, which unconditionally clears the
-*entire* dimension-type registry back to vanilla-only and repopulates it strictly from that specific
-world's own saved registry data - our earlier mod-loading-time registration got wiped out for any world
-that hadn't already saved a `randomthings:spectre` entry, and nothing re-registered it afterward (missed
-`RegisterDimensionsEvent`, the hook that fires immediately after `readRegistry` specifically for this).
-Any later `DimensionType.getById` lookup for the now-dangling reference - including resolving a player's
-own persisted "last dimension" field, stored as a raw int (confirmed via `Entity#read`) - returned null.
-Fixed by moving registration to a `RegisterDimensionsEvent` listener on `MinecraftForge.EVENT_BUS` (not
-the mod bus - this is a regular per-world Forge event, not a registry event) using idempotent
-`registerOrGetDimension` instead of plain `registerDimension` - see `ModDimensions`'s javadoc for the
-full mechanism. Verified via `runClient` against the *exact same save* that produced the user's original
-crash report - no crash, no new crash report generated (confirmed by timestamp - the newest crash report
-on disk is still the pre-fix one). `TESTING_CHECKLIST.md` #302 added. Build clean, still uncommitted.
-
-**Update, 2026-09-28 (same session, later): real bug fixed, reported by user - a layer of stone
-generated around the teleport-in point.** `SpectreChunkGenerator` had left `carve`/`decorate` (concrete,
-not abstract, on the base `ChunkGenerator`) un-overridden, so vanilla's default decoration step still ran
-every feature registered to `Biomes.THE_VOID`. First suspected this mod's own Ancient Furnace (a
-stone/cobblestone structure `RandomThings#registerWorldgenFeatures` adds to every biome unconditionally)
-- **double-checked before shipping that explanation, and it was wrong**: Ancient Furnace's own "cold
-biomes only" gate (`temperature < 0.15F`) correctly excludes THE_VOID (defined at a non-cold `0.5F`), so
-it could never have placed there. Ground-truthed the real cause from vanilla's own `TheVoidBiome` source
-instead: its constructor hard-codes a `Feature.VOID_START_PLATFORM` decoration - a ~33x33 flat Stone/
-Cobblestone disc at Y 3 around block (8, 3, 8), vanilla's standard "spawn platform for a void world" -
-which happens to land right on the first Spectre Cube's own spawn point (8, 1, 8). Both `carve`/`decorate`
-are now real no-ops (see `SpectreChunkGenerator`'s javadoc), which fixes it regardless of which specific
-feature was responsible, since nothing but `SpectreCube`'s own explicit placement can touch the dimension
-anymore. `TESTING_CHECKLIST.md` #301 updated. Build clean, not yet re-tested in-game.
-
-**Update, 2026-09-28 (new session, local machine): Spectre Dimension implemented - Spectre Key,
-Spectre Core, Spectre Ingot, Ectoplasm's drop restored.** Pulled `origin/1.14.4` first (3 commits -
-Magnetic Enchantment/Block Breaker/Block Destabilizer from the previous no-build-access cloud session,
-noted below as unverified; this session has full local toolchain access and verified the pulled work
-compiles clean before starting anything new). User asked to work on the Spectre Dimension specifically
-- the biggest single piece of remaining scope in the whole port (a real custom dimension: registration,
-world provider, chunk generator, per-player pocket-dimension teleport). Ground-truthed extensively via
-`javap`/real source before writing anything, per this repo's own working rule - several genuine 1.14.4
-API gaps found this way, not assumption-driven:
-- **Dimension registration is a completely different (and much simpler) two-step API** in this version:
-  `ModDimension` is itself a Forge registry entry (registered during the normal registry-event phase),
-  then `DimensionManager.registerDimension` turns it into a real `DimensionType` with an auto-assigned
-  ID - no more manual config-option dimension ID the way 1.12.2's `Internals.SPECTRE_ID` needed.
-  `WorldProvider` became the abstract `Dimension` class; `IChunkGenerator` became the generic
-  `ChunkGenerator<C extends GenerationSettings>`, modeled directly on vanilla's own `DebugChunkGenerator`
-  (the simplest real implementation in this Forge version).
-- **The big one: this Forge build (28.2.26) has no `ITeleporter` hook at all** - confirmed via `javap -p`
-  that `net.minecraftforge.common.util.ITeleporter` doesn't exist yet (a later Forge addition, despite
-  being what nearly every online 1.14 custom-dimension guide assumes), and `ServerWorld
-  .getDefaultTeleporter()` always returns one plain, uncustomizable `Teleporter` per world -
-  `PlayerList` also no longer has 1.12.2's `transferPlayerToDimension(player, dim, customTeleporter)`
-  overload (confirmed via `javap -p` - only `recreatePlayerEntity` remains). Without a patch, generic
-  (non-Nether/End) dimension travel would search for/physically carve a real obsidian nether portal at
-  the destination - exactly the kind of gap this repo's ground-truthing rule exists to catch before
-  shipping broken code. Fixed with a new `TeleporterTransformer` coremod (`AsmHandler#overrideMakePortal`)
-  that intercepts `Teleporter.makePortal`'s method entry and skips it (placing the entity at a safe
-  filler position instead, immediately overwritten by the real target position right after) whenever the
-  *destination* world is the Spectre dimension, in either travel direction - this project's first coremod
-  using an "early conditional-IRETURN at method entry" style rather than its usual "wrap the value at the
-  existing IRETURN" idiom, since the whole point here is to skip the body's block placement entirely, not
-  override what it returns after already running. Verified two ways: the standalone
-  `CheckClassAdapter.verify` bytecode-verification harness (clean, first attempt) and a real `runClient`
-  boot, which actually created a world and logged `Transforming net/minecraft/world/Teleporter` with no
-  `VerifyError`/`LinkageError`/`ClassFormatError` anywhere in the log.
-- **A real bug found in 1.12.2's own source, not a "looks wrong but intentional" case** (traced actual
-  numbers before concluding this): `SpectreHandler#getSpectreCubeFromPos` compared a chunk-coordinate-
-  derived key against a block-coordinate cube offset, off by a factor of 16 - only the very first cube
-  ever created could ever correctly match, so every later player's own cube would fail the anti-trespass
-  check and get them constantly bounced back to their spawn tile even standing in their own room. Ported
-  the evidently-intended direct block-coordinate comparison instead - disclosed in that method's javadoc
-  and in `TESTING_CHECKLIST.md` #299.
-- **Ectoplasm turned out to already be half-wired**: a previous session had already registered the item
-  (texture/model/lang all present) but never gave it a source or a consumer - `SpectreLeafBlock.java` even
-  had its own left-behind comment noting the drop was cut "tracked for the items batch." This session
-  restored that drop (1/55 chance per random leaf-decay tick, matching 1.12.2's `dropApple`) and added the
-  two items that actually needed it: **Spectre Ingot** (new, craftable - Lapis Lazuli+Gold Ingot+Ectoplasm,
-  or a 9x bulk recipe) for the Spectre Key's own recipe, and Ectoplasm itself for Spectre Core's
-  ceiling-raising interaction.
-- Real texture/model/blockstate assets for Spectre Core (4-corner 2x2 pedestal, orientation set directly
-  at generation time rather than 1.12.2's dynamic neighbor-scanning `getActualState` - see
-  `SpectreCube#generateCore`'s javadoc) and Spectre Key were pulled from `origin/1.12.2` and restructured
-  into this port's 1.14.4-style asset layout, not reinvented.
-- Disclosed simplifications: `Biomes.THE_VOID` reused instead of a new custom Biome class (matches this
-  port's existing precedent of never introducing one); the original's `ItemPositionFilter`-based custom
-  room spawn-point is out of scope (that item was never ported - a separate NOT-STARTED feature) - rooms
-  always spawn at their center, the same fallback 1.12.2 used whenever no filter was set; the original's
-  bespoke tinted charge-up particle is vanilla `ParticleTypes.PORTAL` instead, matching `EscapeRopeItem`'s
-  own already-established precedent for the same reason (no custom-particle infrastructure in this port).
-- Full `./gradlew build -x test` clean. `TESTING_CHECKLIST.md` #297-301 and `WIKI_FEATURE_STATUS.md`'s
-  Spectre Key row added/updated. **Not yet tested in-game** (needs real play: crafting the full chain,
-  walking through an actual teleport, verifying the anti-trespass fix, raising a room's ceiling). Still
-  uncommitted, per standing instruction.
-
-**Update, 2026-09-27:** pulled `origin/1.14.4` (3 commits behind locally at session start). A separate
-session/container had already shipped the Worldgen batch — Ancient Furnace + Peace Candle, the only two
-wiki-tagged worldgen features, commit `3e60013` — plus two LICENSE commits. That container didn't have
-this plan file, so its own commit message has the full reasoning (see "Worldgen batch" progress-log
-entry added below, and the roadmap/Batch-7 corrections above). **Worldgen (roadmap item 4) is now done**,
-both features shipped with disclosed environment-level gaps (no runtime biome-reassignment API for
-Ancient Furnace; no village-jigsaw hook point for Peace Candle's church spawn — corrected from this
-plan's earlier assumption that the latter was just another Batch 7 coremod candidate, it isn't).
-
-Pulling in that merge broke the build: `PeaceCandleTileEntity.java` was missing its
-`net.minecraft.tileentity.TileEntity` import entirely (didn't compile in the container that wrote it
-either, or wasn't caught before commit) — 9 compiler errors, all from that one missing import. Fixed by
-adding the import; `./gradlew build -x test` is clean again. **This fix is currently uncommitted** —
-standing instruction is to wait for an explicit commit request.
-
-No FAIL rows in `TESTING_CHECKLIST.md` are new since last session (checked). Note: rows #75/#93/#100/
-#102/#114 still show old `FAIL` text even though the plan's "Bug-fix pass 4" progress-log entry
-(2026-09-25) documents real fixes for all of them — those checklist rows were apparently never updated
-to reflect the fix the way #80/#81 were. Not re-investigated this session (out of scope for the worldgen
-pull); worth reconciling next time bug-fixing resumes, or just asking the user to retest those five rows
-on a fresh build.
-
-**Update, 2026-09-27 (same session, later): a real bug-fixing + worldgen-expansion pass followed**, driven
-by the user actually playtesting the freshly-pulled worldgen batch plus other recent features. Full chain,
-in order (see each one's own progress-log entry above for detail): Super Lubricent Boots got a speed cap
-matching the blocks' own cap; Lapis/Quartz Lamp's Peaceful-mode bug went through *two* mechanism changes
-in one day (force-ALLOW/DENY → a 1.12.2-faithful `getLightValue` trick → back to force-ALLOW/DENY with an
-explicit `Difficulty.PEACEFUL` guard, since the light trick proved unreliable in this Forge version's
-threading model — **confirmed working** by the user); Rune Base went through three real rendering/sync
-bugs (GL color4f reset, GL_LIGHTING darkening, and the big one — a systemic `TileEntity#onDataPacket`
-no-op-by-default bug that silently broke *live* sync, found while chasing this and fixed across all 5
-affected TEs project-wide) plus a requested left-click-clears-everything behavior change — **confirmed
-working**; Fluid Display got a folded-bottom-face fix, a lighting fix, then a follow-up fixing *actually*
-backwards top/bottom-face winding (culling) and adding real per-face diffuse brightness (not yet
-re-confirmed by the user). Then, asked what tooling the two remaining worldgen gaps needed: **Ancient
-Furnace's "impossible" biome reassignment turned out to be wrong** — implemented for real (`Chunk
-.getBiomes()` returns the live array, no reflection needed) — and **Special Chest (previously missing its
-ocean-monument spawn entirely) got a new coremod**, since unlike Peace Candle's village case, ocean
-monuments are still the old hardcoded-piece system in 1.14.4. Peace Candle's village-church case remains
-the one real, still-open tooling gap (needs interactive Structure Block access this environment doesn't
-have - see the tooling-answer note in that section above).
-
-**Update, 2026-09-27 (same session, later still): user decided to stop migrating three undocumented
-bonus features** — Plate family (11 blocks), Special Chest (including the ocean-monument coremod just
-added this session), and Sakanade — none appear in any wiki page. All deleted entirely (blocks, TEs,
-containers, screens, the now-orphaned `OceanMonumentTransformer` coremod, and every asset/lang/checklist
-reference); see "Plate family, Special Chest, and Sakanade removed entirely" progress-log entry below
-for the full file list. Build verified clean after. Checklist row #271 (never tested) and rows #100-103
-(previously FAILing on a chest-opening crash) are now moot rather than open bugs.
-
-**Update, 2026-09-27 (same session, later still): Spectre Illuminator implemented** - user picked it
-from 4 offered NOT-STARTED candidates. Needed a real structural fix, not just a port: 1.12.2's ASM patch
-targeted a `Block.getLightValue` overload that no longer exists in this Forge version at all (dropped
-`world`/`pos` params entirely) - ground-truthed the actual 1.14.4 light-computation call site instead
-(`IBlockReader.getLightValue(BlockPos)`'s default method, one shared choke point) and wrote a new
-`IBlockReaderTransformer` coremod for it. See "Spectre Illuminator implemented" progress-log entry below
-for the full story (three disclosed simplifications, the bytecode-verification harness getting
-generalized to take any target class, and the `runClient` verification). Build clean, checklist #272-274
-added, not yet tested in-game.
-
-**Next scoped-and-ready work:** every wiki-tagged worldgen feature is done, and the two disclosed gaps
-from this batch are now down to just Peace Candle's village generation (genuinely blocked on tooling).
-Remaining NOT-STARTED wiki features still need either an enchantment-system prerequisite, a generic
-runtime block-model renderer, a new falling-entity type, or kicking off the Redstone Interface family's
-own shared wireless-signal infrastructure (flagged as needing its own multi-slice breakdown, not a single
-pass) - see `WIKI_FEATURE_STATUS.md`'s NOT STARTED rows. Otherwise: a growing pile of DONE-UNTESTED/
-NEEDS-RETEST rows from this session alone (#95, #150-152, #158, #234, #235-236, #272-274, plus the five
-stale rows noted below) are waiting on the user's own playtesting - resume there, or ask which
-infrastructure prerequisite / NOT-STARTED feature to tackle next.
-
-**Update, 2026-09-28: bug-fixing pass over a fresh round of user playtesting.** User asked to triage
-`TESTING_CHECKLIST.md` and work through the open problems. Full list and outcome (each row's own
-checklist entry has the full technical writeup):
-- **Real bugs found and fixed:** Ender Bucket/Reinforced Ender Bucket fluid pickup (#219/#223 - this
-  Forge build's own `FluidUtil.tryPickUpFluid` never actually handles a plain fluid block, ground-truthed
-  via `javap -c`; rewrote to drain directly against `IFluidBlock`/`IBucketPickupHandler`); Rain Shield's
-  missing support-break (#257 - was missing the `checkForDrop`-equivalent call in `neighborChanged` that
-  Peace Candle already had right); Basic/Advanced Redstone Interface not craftable/not in creative menu
-  at all (#283 - simply missing from `ModItems`'s `registerItemForBlock` calls, the only two blocks in
-  the whole list skipped); Magic Hood's potion-particle hiding lagging up to 30s when the hood is put on
-  mid-effect (#254 - `LivingEntity`'s private `potionsNeedUpdate` flag doesn't get set by an armor change,
-  only by an effect change; new `LivingEquipmentChangeEvent` listener flips it via one narrowly-scoped
-  reflective set, new `util/PotionMetadataUtil.java`); Magic Hood's "indestructible" claim was actually
-  wrong (#255 - `ArmorItem`'s constructor unconditionally sets max damage from the material regardless of
-  what's overridden; gave it real durability matching Leather's via a small delegating `IArmorMaterial`
-  that copies every other stat from Chain, per user request); Portkey's camo'd/plain icon both rendering
-  oversized/offset (#279/#280 - `portkey.json` had no `display` transforms block at all, the actual source
-  of all GUI/hand/ground scaling for a `builtin/entity` item in this version - ground-truthed against
-  vanilla's real `item/template_shulker_box.json`); Ender Letter's receiver field never saving (#208 - was
-  only ever sent from `Screen#removed()`, racing the vanilla close-window packet over the same connection
-  and frequently losing; now syncs on every text change instead). Floo teleport flame height raised
-  (#189) and Global Chat Detector's op-bypass removed entirely (#117), both simple requested changes.
-- **Investigated, no bug found (flagged in the checklist, needs a more specific retest):** Rain Shield's
-  mechanical rain-suppression (#258 - re-ran the actual coremod bytecode via a throwaway Nashorn+ASM
-  harness, confirmed all 4 `ireturn` sites correctly redirect, and confirmed `FarmlandBlock`/`FireBlock`/
-  `ServerWorld` all call the patched method directly); Redstone Remote's edit-GUI slots (#287 - container/
-  screen code is identical to the untested Advanced Interface's own, which was itself blocked by #283
-  until now); Portkey's glow-after-priming (#277 - ground-truthed 1.12.2's real `hasEffect`: an *unbound*
-  Portkey glows forever by design, only a *bound* one stops - likely tested unbound). Weather Egg/Golden
-  Egg's missing thrown sprite (#205/#230) stayed unresolved - both are near-verbatim vanilla
-  `ProjectileItemEntity`+`SpriteRenderer` usage, no code difference found from vanilla's own working
-  thrown egg; possibly a sync-timing issue specific to fast/short-lived projectiles, not confirmed.
-- Full `./gradlew build -x test` clean after all fixes. Checklist rows updated in place with each fix's
-  root cause. **User asked to commit and push** - all of the above, plus every other uncommitted feature
-  bundled in the working tree at the time (Plate family/Special Chest/Sakanade removal, Spectre
-  Illuminator, Portkey + camo, Spectre Anchor, the Redstone Wireless cluster), landed on `1.14.4` as one
-  commit (`32e6f01`) and pushed to `origin/1.14.4`.
-
-**Update, 2026-09-28 (same day, later): this plan file and the project's memory notes moved into the
-repo.** User asked for Claude's plan/memories to live in repo-specific files instead of Claude Code's
-external (machine-local, not git-tracked) plan/memory storage. This file is that plan, copied over
-verbatim; a new `CLAUDE.md` at the repo root now carries the condensed workflow rules (javap-first
-verification, match 1.12.2 unless told otherwise, never commit/push without an explicit ask) that
-previously lived only in Claude's external memory. The external memory/plan files still exist but now
-just point here rather than duplicating content.
-
-**Update, 2026-09-28 (new session, cloud sandbox): continued the migration - Magnetic Enchantment,
-Block Breaker, Block Destabilizer.** This session started in a fresh cloud container with **no**
-Forge/Mojang Maven access at all (unlike the usual local dev machine) - `./gradlew build` fails
-immediately trying to resolve `ForgeGradle` itself (403 from `files.minecraftforge.net` through this
-sandbox's network policy), and there's no cached mapped jar to `javap` either. That means this
-session's own working rule (ground-truth every uncertain API against the real jar before writing code)
-could not be followed - everything below is written from strong prior knowledge of stable, long-lived
-Forge 1.14.4 APIs and cross-checked against this codebase's own already-proven usages wherever
-possible, but **none of it has been compiled or run**. Flagged per-row in `TESTING_CHECKLIST.md`
-(#288-296) and in `WIKI_FEATURE_STATUS.md`'s own note - please build and retest before trusting it.
-
-First found and pulled in a fair amount of work from three separate branches
-(`claude/worldgen-continuation-r6u8yj` fast-forwarded into `1.14.4` locally, then `origin/1.14.4` had
-already moved further ahead with the Redstone Wireless cluster/Portkey camo/Spectre Anchor batch and
-this plan file's own move into the repo) - all fast-forward, no conflicts, nothing lost.
-
-Then picked two NOT-STARTED wiki features that shared a prerequisite (a `magnetic` enchantment
-package, `enchantment/` - didn't exist in this port yet) and did both in one pass:
-- **Magnetic Enchantment**: a plain `DIGGER`-type `Enchantment` plus a `BlockEvent.HarvestDropsEvent`
-  listener that redirects a Magnetic harvester's drops straight into their inventory. Turns out this
-  needs **no coremod at all** in 1.14.4 (contrary to the wiki's own "ASM?" flag, which describes
-  1.12.2's need) - canceling that event already clears its own drop list before anything spawns.
-- **Block Breaker**: the FakePlayer-driven continuous-mining machine. Reuses the Magnetic listener
-  above instead of porting 1.12.2's own separate drop-catching path, since its FakePlayer's pickaxe is
-  itself Magnetic-enchanted. The riskiest unverified surface in this session: `FakePlayerFactory`,
-  `PlayerInteractionManager#tryHarvestBlock`, `BlockState#getPlayerRelativeBlockHardness` - all used
-  with high confidence but zero ability to confirm this build's exact method signatures.
-- **Block Destabilizer**: the BFS-flood-fill demolition machine. Real finding here: 1.12.2's own
-  `EntityFallingBlockSpecial` (listed on the wiki as "needs a new falling-entity type") turns out to
-  have been a near line-for-line copy of vanilla's own falling-block entity, apparently written only to
-  expose a public `shouldDropItem` field - which is already public and mutable on this Forge version's
-  real `net.minecraft.entity.item.FallingBlockEntity`. Spawns that directly; no new entity class needed
-  at all. Disclosed simplifications: plain text Lazy/Fuzzy toggle buttons instead of 1.12.2's custom
-  icon-toggle widget (reusing the real 1.12.2 GUI background texture at its original 85x35 size), and
-  the always-on glow overlay dropped rather than guessing at a `VertexLighterFlat`-style tint blind.
-
-Both blocks' real 1.12.2 crafting recipes, block/item models, and textures were pulled directly from
-the `origin/1.12.2` branch (`git show origin/1.12.2:<path>`) rather than reinvented, so those parts are
-exact, verified-against-source ports, not guesses - only the Java logic and the two new GUI/asset files
-(Block Destabilizer's screen text, both blocks' 1.14.4-style blockstate/model JSON restructuring) are
-new-and-unverified.
-
-**Next scoped-and-ready work, if the network/build situation doesn't improve this session:** the
-remaining NOT-STARTED wiki features left after this batch (Diaphanous Blocks, Light Redirector, Dyeing
-Machine, Magnetic Enchantment's own now-done, Spectre energy network/Spectre Key/Spectre Tools) all
-need either a generic runtime block-model renderer, a brand-new render-time item-recolor coremod, or a
-whole new energy-network/custom-dimension subsystem - all considerably higher-risk to ship blind than
-this batch was. Recommend pausing new ASM/coremod-dependent or custom-dimension work until a session
-has real build access again, and using that time instead on anything not requiring compilation
-verification (further disclosure/documentation passes, asset-only ports, etc.) if the network policy
-doesn't change.
-
 **Repo:** `D:\Projects\Clauding\Random-Things`, fork at
 [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things). Branches: `main` is a
 landing-page-only README (no code); `1.14.4` is where all active port work lives (checked out by
 default); `master` preserves the original unmodified 1.12.2-era source as a reference/backup.
 
-**State as of 2026-09-26 (end of session):** Batch 1 and Batch 2 are functionally complete; Batch 3 is in
-progress. Since the Mixin/boots investigation below (commit `fee7645`), later sessions have also shipped
-Batch 3 slices 3-5 (Compass/Escape Rope/Chunk Analyzer/BiomeRadar, commit `13b54f6`), the Sound-pattern
-family, a Chunk Analyzer GUI/scan-bug fix, "Bug-fix pass 4" (worked `TESTING_CHECKLIST.md` top to bottom),
-and the full Imbuing/Rune deferred-subsystem batch (Rune Base half, then Imbuing Station half - see that
-section near the end of this file). **All of this work from the Sound-pattern family onward is still
-UNCOMMITTED** - only commit/push when the user explicitly asks. The rest of this "START HERE" section
-below is preserved as-written from the Mixin/boots investigation session; treat its "Next step" paragraph
-as historical, superseded by the paragraph right after it.
+### Where things stand (as of 2026-09-29)
 
-This was a very long session on the Mixin/boots bug specifically - full
-chain of findings, in order, most important last:
-1. Fixed `TESTING_CHECKLIST.md` #76/#83/#95 (see "Testing-checklist pass, 2026-09-24 (later)").
-2. Found and fixed a real `remap = false` bug in the boots Mixin's own code (see "Mixin root cause found,
-   2026-09-25").
-3. Discovered the dev client (`runClient`) structurally cannot load Mixins at all in general - real, but
-   turned out to be secondary (see "Mixins cannot be tested in this dev environment at all, 2026-09-25").
-4. **The actual deepest root cause: this project's `build.gradle` never shipped Mixin's own
-   runtime/bootstrap library anywhere, in any environment, since the very first Mixin was added** (see
-   "The real root cause: Mixin's runtime library was never actually shipped anywhere, 2026-09-25").
-5. Fixed the dev client's crash too by bumping the project's Forge dependency to `28.2.26` (see "Dev
-   client Mixin support, partially restored, 2026-09-25") - kept, this is a genuine improvement.
-6. **Shaded Mixin's runtime into the built jar and had the user test it in their real Minecraft install -
-   this revealed a further, structural limitation: Mixin needs an `ILaunchPluginService` registered from
-   an early ModLauncher classpath scan that happens *before* the `mods` folder is even scanned, so a
-   mod's own jar can never satisfy it, only the separate `ITransformationService` half. This is a hard
-   architectural constraint (confirmed via Mixin's own source), not a bug we can fix in our code** (see
-   "Mixin's launch-plugin half cannot come from a mods-folder jar, 2026-09-25" below).
-7. **User explicitly chose to pause here rather than pursue a risky, unverified PrismLauncher
-   instance-file edit.** Reverted the runtime shading (kept the `implementation` dependency
-   *commented out*, with a detailed inline comment explaining why) so the shipped jar launches cleanly
-   again, matching the state that worked in the user's first two real-environment tests. Sent that
-   restored jar to the user.
-8. **User then asked the forward-looking question that should drive next steps: can Mixins ever be fully
-   self-contained in one drop-in jar for end users, with no separate install steps?** Answer given:
-   **no, not via SpongePowered Mixin on this Forge version** (same launch-plugin constraint from point
-   6) - **but yes via coremods** (Forge's own JS-based ASM transformer system, `META-INF/coremods.json`),
-   which this project already uses successfully and self-containedly for `transformer/VertexLighterFlat.js`.
-   **The recommended path forward, not yet started: convert `FireBlockMixin` and `SuperLubricentBootsMixin`
-   to coremods instead of SpongePowered Mixin**, eliminating the whole class of problem rather than
-   working around it. This is real, not-yet-done work - see the "Coremod conversion" note below for what
-   it'd involve.
+- **2026-10-03 testing-pass changes:** Biome Glass, Biome Stone (x5) and Inventory Rerouter were
+  **deliberately removed** at the user's request (checklist #54/#55/#91/#92 = `REMOVED`; wiki rows marked
+  REMOVED) - don't re-port them. Fixed: thrown Weather/Golden Egg sprites (missing
+  `createSpawnPacket`), Floo Powder now shapeless (diverges from 1.12.2), Colored Grass name
+  "<Color> Grass Block" + shovel preference. **Still open:** #155 Sound Recorder GUI (cause not found,
+  awaiting user screenshot), #120 GUI layout audit (awaiting which GUIs), #93/#158 (awaiting retest info).
 
-9. Batch 3 Slice 3: Golden/Emerald Compass (user's choice over the `EntitySoul` alternative) - done, see
-   "Slice 3 (done), 2026-09-25". Both compasses' actual "set a target" logic turned out to live in custom
-   crafting recipes (new `PositionFilterItem` + the already-existing `IdCardItem` from Batch 2), not the
-   item classes - ported the whole working chain. First custom `SpecialRecipe`/`IRecipeSerializer` in
-   this port, new `recipes/` package. **Tested in-game: 5/6 pass** (both compasses' wobble/bind/track
-   behaviors, plus the corner-vs-center fix). **One real bug found and fixed: `PositionFilterItem` was
-   missing its item model/texture entirely** (a genuine oversight, not created in the original slice) -
-   fixed, see "Slice 3 in-game results" in the progress log. Its crafting recipe is separately flagged
-   `NEEDS RETEST` (#136) - looks correct in the JSON, probably a Magenta-vs-Purple-dye mixup on the
-   user's end, not re-derived without confirmation.
-10. Batch 3 Slice 4: Escape Rope - done, see "Slice 4 (done), 2026-09-25". Hold right-click under open
-    sky's reach to flood-fill search for the nearest daylight and teleport there. New `util/
-    EscapeRopeHandler.java` (near-verbatim port of the original's search algorithm) plus
-    `EscapeRopeItem.java`. Caught two of my own porting mistakes by comparing line-by-line against the
-    original before calling it done (a missing `iterator.remove()` that would have leaked finished tasks
-    forever, and a `playSound` call that should exclude the traveling player but didn't) - worth noting
-    as a reminder that "compiles and looks right" isn't the same as "matches the original," especially
-    for handler classes ported by restructuring rather than copying near-verbatim. Not yet tested in-game
-    (`TESTING_CHECKLIST.md` #142-144).
+- **0 wiki-documented features are genuinely NOT STARTED any more.** Dyeing Machine (the last one)
+  shipped 2026-09-29 - see the Progress log entry below for the `ItemRenderer`+`ArmorLayer` recolor
+  coremod it needed. **89 of the 100 wiki-documented features have real 1.14.4 code** (a mix of
+  `DONE` and `DONE-UNTESTED` - most of what's shipped still needs an actual in-game playtest, not
+  just a clean build). `WIKI_FEATURE_STATUS.md` is the authoritative per-feature table - check it
+  before assuming a feature isn't started.
+- **Item Filter is confirmed `WILL NOT MIGRATE`** (final, 2026-09-29 - not just deferred): its only
+  two 1.12.2 consumers already shipped with their own simplified built-in filters, so a standalone
+  item would be orphaned. See `WIKI_FEATURE_STATUS.md` for the full note.
+- **Only 1 feature is still `BUGGY`: Chat Detector** (#93, investigated, root cause not yet found -
+  see `TESTING_NOTES.md`). The other 3 rows that used to say `BUGGY` (Item Collector, Notification
+  Interface, Online Detector) turned out stale on a 2026-09-29 audit - already fixed and confirmed by
+  the user's own retest (Item Collector's fix is still awaiting that retest, so it's
+  `DONE-UNTESTED` rather than fully `DONE`).
+- **Only 1 feature is still `PARTIAL`: Colored Grass** (single white variant only, matching the
+  original's own unreachable-in-practice design - not really open work). Ectoplasm's own gap closed
+  2026-09-29 - see the Progress log entry below for its new `SpiritEntity`.
+- **Peace Candle's village-church generation shipped 2026-09-29** (`DONE-UNTESTED`, #270/#356): the
+  earlier "blocked on tooling" note was wrong on both counts - see the Progress log entry below.
+- **The "Ender network" is confirmed `WILL NOT MIGRATE`** (final, 2026-09-29): traced the real
+  1.12.2 source and found it was abandoned, unshipped scaffolding in the original mod itself -
+  `BlockLinkOrb` was never registered as a placeable block (no item/recipe/model/lang key), and
+  `EntityEnderConnection` is a bare stub with no working logic, not even registered as an entity
+  type. No wiki page ever documented it, and nothing here ever worked - closed out rather than left
+  pending. See `WIKI_FEATURE_STATUS.md`'s "Not migrating" section for the full note.
+- **7 features removed entirely per explicit user request** after being ported and tested (see the
+  "Not migrating"/"Removed" sections of `WIKI_FEATURE_STATUS.md` for the full list and reasoning -
+  most recently the fire/water-protection item family and Pitcher Plant).
 
-Nothing has been committed yet this session (per standing instruction to wait for an explicit commit
-request) - the working tree currently reflects: the #76/#83/#95 fixes, the boots' `remap` code fix (still
-correct, currently inert - can't apply without a working Mixin bootstrap), the Forge 28.2.26 bump (kept,
-beneficial), the Mixin shading *disabled* (commented out, not deleted - it's the right building block
-for a future working setup, whether that's the coremod path or a properly-configured launcher library),
-and the new Golden/Emerald Compass + Escape Rope slices (points 9-10 above, unrelated to any Mixin work -
-plain items/recipes, no Mixin involved at all).
+### Everything through commit `303561e` is pushed to `origin/1.14.4`; Dyeing Machine is not yet committed
 
-**Open items as of this update:** (1) Batch 3 Slice 4 (Escape Rope) needs an in-game test -
-`TESTING_CHECKLIST.md` #142-144. (2) Slice 3's Position Filter recipe (#136) needs a specific retest with
-`minecraft:purple_dye` - the texture half is already fixed. (3) The Mixin-to-coremod migration is scoped
-as its own roadmap item - **Batch 7, deliberately last** (see the "Batch 7 — coremod-dependent features"
-section near the end of this plan for full scope, since expanded well beyond just this) - not urgent, do the rest of the roadmap first unless
-the user asks otherwise. (4) The two `INVESTIGATING` texture rows (#76, #83) still need a retest on a
-fresh build - unrelated to any
-of the above, still open. No other untouched `FAIL` rows remain.
+Commit `303561e` bundled the whole Spectre wiki family's completion (Key/Core/Dimension, Tools, the
+energy network, Lens), Diaphanous Blocks + Light Redirector (the last two features that needed a
+"generic runtime block-model renderer"), and a large bug-fixing pass over a fresh round of user
+playtesting. Dyeing Machine, the Spirit mob, the "Ender network"/`BUGGY`-tag documentation audits
+(all 2026-09-29) are newer than that commit and still uncommitted - check `git log`/`git status`
+over this paragraph if they disagree, per this repo's standing "don't commit without being asked"
+rule.
 
-**Testing loop:** `TESTING_CHECKLIST.md` (repo root, `1.14.4` branch) is the live testing tracker - a
-numbered table of every shippable feature
-with Pass/Fail/Feedback columns the user fills in after playing. When starting a session, check that
-file for any new `FAIL` rows first; that's almost always the next work, ahead of starting a fresh
-batch/slice. Each investigated bug gets `FIXED (round N)` or `NOT A BUG` written back into its **Result**
-column, not just a checkbox flip - keep that convention. **The root-cause writeup itself goes in
-`TESTING_NOTES.md` (repo root), under the same row number, not in the checklist's Feedback column** -
-that column was getting cluttered with investigation history when it's meant to stay free for the
-user's own test notes; see `TESTING_NOTES.md`'s own intro for the convention (2026-09-28 change, all
-prior rows' fixing notes were moved out in one pass, user feedback text left in place).
+### What to do next
 
-**Toolchain:** `source env/activate.sh` (JDK 8) then `./gradlew build` - see "Toolchain note"/"Toolchain
-upgrade" entries in the Batch 1 progress log below for why this specific combination is required. A full
-build (not just `compileJava`) is expected to succeed before calling any slice done.
-
-**Working style established across this whole project, keep following it:** small self-contained
-slices, `javap` against the real mapped Forge jar (path in "Verification" section below) to ground-truth
-every uncertain API before writing code that uses it, real 1.12.2 textures/models copied via
-`git show origin/1.12.2:<path>` never redrawn, disclosed simplifications stated plainly in-line (both in
-commit-adjacent progress-log entries here and, where relevant, as a class-level javadoc in the code
-itself), and no scope creep into deferred subsystems (Spectre energy, Ender network, Floo network,
-wireless Redstone Interface, Rain Shield, Peace Candle worldgen, worldgen in general, potions/
-enchantments, most recipes - see the "Batch 2 is now functionally complete" and "Batch 3" survey
-sections below for the full current deferred list with reasons).
-
-**Next step (superseded - see the actual current one below):** ~~no untouched `FAIL` rows remain. ...
-Otherwise resume Batch 3 (see its section below for the next scoped-and-ready candidate, Obsidian
-Skull/Rez Stone's `EntitySoul` mini-subsystem).~~ #134 (boots) and #69/#70 (Blazing Fire catch-chance) are
-still paused pending the Batch 7 coremod conversion - don't re-attempt Mixin-side fixes without new
-information.
-
-**Actual next step as of 2026-09-26:** the Imbuing/Rune deferred-subsystem batch is now fully done (both
-halves) but entirely untested in-game - `TESTING_CHECKLIST.md` #161-179. The Floo Teleportation slice
-shipped after that (#180-192), also untested. Everything from the Sound-pattern family onward this
-session is uncommitted.
-
-**Major replanning pass, 2026-09-26 (same day, later):** the user handed over the mod's public wiki,
-exported as 100 feature JSON files, and made it this port's authoritative scope document (see "Wiki as
-authoritative scope" section below and `WIKI_FEATURE_STATUS.md` at the repo root for the full
-per-feature table). Consequences: (1) a handful of undocumented-but-already-shipped features were kept
-as deliberate exceptions (Plate family, Special Chest, Sakanade, Bottle of Air - all small and already
-working); (2) **Blood Rose was removed entirely** (new content added directly on the 1.14.4 branch,
-not 1.12.2 tech debt, not on the wiki either - didn't fit any keep-bucket); (3) a full audit of
-`ClassTransformer.java`'s 17 ASM patches was done, correcting two mistaken assumptions from the
-project's very first planning pass (Slime Cube's spawn-ALLOW problem needing a coremod was already true
-in 1.12.2 itself, not a new 1.14.4 gap; the `Block.getLightValue` patch belongs to Spectre Illuminator,
-not the lamps) - see "Corrected & consolidated ASM/coremod batch" below; (4) all ASM-derived,
-not-yet-yielding-to-a-clean-event features were consolidated into Batch 7 (expanded scope, still last)
-instead of being threaded piecemeal into whichever batch happens to own each feature.
-
-**Update, 2026-09-26 (later same day):** two real `runClient` crashes were found and fixed (see "Post-slice
-bug hunt" section) - an `@ObjectHolder`-scanned non-registry field crash and a fluid-capability-not-yet-
-registered NPE, both verified fixed via a real client boot. Then a fourth wiki-scoped slice shipped:
-Summoning Pendulum, Golden Egg/Golden Chicken, and Fluid Display (see "Fourth wiki-scoped slice" section) -
-`TESTING_CHECKLIST.md` #225-237, not yet tested in-game. `WIKI_FEATURE_STATUS.md` is now current (it had
-gone stale on five already-shipped features from earlier this session).
-
-No slice is in progress. Next scoped-and-ready candidate is whatever the user picks via the usual
-"let's do another slice" flow (now scoped strictly against `WIKI_FEATURE_STATUS.md`'s NOT STARTED
-rows), or resuming an in-game testing/bug-fixing pass over the untested rows already shipped.
-
-**Update, 2026-09-26 (later still):** a fifth and sixth wiki-scoped slice shipped after that (Artificial
-End Portal + Creative Player Interface; then Ender Bridge/Ender Anchor/Prismarine Ender Bridge, with Item
-Filter deliberately skipped as an orphaned-item scope surprise flagged to the user) - see those sections
-below. That exhausted every remaining no-ASM NOT-STARTED wiki feature; everything left needs either
-Mixin/coremod work, an enchantment system that doesn't exist yet, or touches the deferred Spectre
-subsystem. User then asked to start Batch 7. **Batch 7's original scope (Mixin→coremod conversion) is
-now DONE** - see that section for the full writeup: both Mixins converted to coremod transformers,
-verified via a real `runClient` (both new coremods load, both target classes transform with no
-`VerifyError`/`LinkageError`), and all SpongePowered Mixin infrastructure removed from the project
-entirely (no more `mixin/` package, no more Mixin Gradle plugin/dependencies). `TESTING_CHECKLIST.md`
-#69/#70 and #134/#135 flipped from BLOCKED to "unblocked, needs a fresh in-game test." Batch 7's
-*expanded* scope (the new coremod-dependent features: Slime Cube spawn-ALLOW, Peace Candle, Rain Shield,
-Redstone Interface family, Magic Hood particle-hiding, Spectre Illuminator, Special Chest worldgen
-placement) has NOT been started - the pattern is proven and ready to reuse, but none of that per-feature
-work has happened. Next step: pick one of those as its own scoped slice, same as every other batch.
-
-**Update, 2026-09-26 (later still):** Batch 7's expanded scope got its first entry too - Slime Cube
-spawn-ALLOW + Lapis Lamp spawn-prevention, both fixed by one new coremod
-(`transformer/SpawnPlacementTransformer.js`, redirecting `EntitySpawnPlacementRegistry`'s single shared
-spawn-predicate dispatch point - see "Batch 7, slice 2" for the full writeup, including a genuinely useful
-discovery: every mob's spawn-placement predicate funnels through that one method, so this same hook covers
-any future spawn-control feature too, e.g. Peace Candle's mob-suppression half). Verified via a standalone
-bytecode-verification harness (Nashorn `ScriptEngine` + real `CheckClassAdapter.verify`, since this
-particular vanilla class isn't touched during a plain `runClient` boot the way slice 1's two classes were)
-rather than just the game log. `TESTING_CHECKLIST.md` #29 and #110/#111 flipped from BLOCKED to
-"unblocked, needs a fresh in-game test." Then Batch 7, slice 3 (Magic Hood) shipped too - one coremod for
-the nametag half (`MagicHoodTransformer.js`, 6 early-exit branches instead of the usual 1), a plain
-already-existing Forge event (`PotionColorCalculationEvent`) for the particle half - the exact opposite
-split from what this plan's own "consolidated ASM/coremod batch" section guessed (it claimed the nametag
-half had a clean event and the particle half needed ASM; fresh `javap` found the reverse for this Forge
-version - see "Batch 7, slice 3" for the full note, worth re-verifying that section's other claims before
-trusting them for whichever candidate comes next). `TESTING_CHECKLIST.md` #252-255 added.
-Then Batch 7, slice 4 (Rain Shield) shipped too - new block/TE, one coremod
-(`RainShieldTransformer.js`, redirecting `World.isRainingAt` - 1.14.4 collapsed 1.12.2's two separate ASM
-entry points into this single shared method, so it needed even less than 1.12.2 did) covering the
-mechanical rain/snow suppression. **Deliberately incomplete this once**: the purely cosmetic
-client-side "rain visually still falls near the shield" half was NOT ported - `javap -c` found 1.14.4's
-rain-rendering method computes its per-column skip inline rather than through the redirected method, so
-fixing it would mean injecting inside a ~300-line rendering loop instead of wrapping a return value like
-every other Batch 7 redirect - disclosed in `TESTING_CHECKLIST.md` #261, not silently dropped. Remaining
-Batch 7 expanded-scope candidates: Peace Candle, Redstone Interface family, Spectre Illuminator, Special
-Chest worldgen placement - still not started.
-
-**Housekeeping, 2026-09-28:** at the user's request, split `TESTING_CHECKLIST.md`'s Feedback column -
-every row's own root-cause/fix-history writeup (and, per the user's explicit call, "Disclosed
-simplification" caveats too) moved out into a new `TESTING_NOTES.md` (repo root), keyed by the same row
-number, leaving the Feedback column with only the user's own test notes. No row numbers, Feature text, or
-Result statuses changed - this only moved narrative text out of one column into the new file. See the
-"Testing loop" convention note above (now updated to match) and `TESTING_NOTES.md`'s own intro for the
-new convention going forward: write fix/investigation narratives there, not in the checklist.
-
-**Fluid Display bug-fixing pass, 2026-09-28:** three real bugs found and fixed in `FluidDisplayTileEntityRenderer`/`FluidDisplayBlock` this session, all reported by the user with screenshots - see `TESTING_NOTES.md` #234 for the full writeups. (1) Empty (no fluid poured in) displays were fully invisible instead of showing the mod's own "empty tank" sprite, matching the real 1.12.2 `ModelFluidDisplay`'s fallback model - the TESR was simply returning without drawing anything in that case. (2) With a fluid poured in, the cube still rendered near-transparent - `TileEntityRendererDispatcher` doesn't reset the global GL current-color between TESRs, and this renderer's per-vertex color only multiplied against whatever was left over. (3) A neighboring opaque block (e.g. sand) touching a fluid-filled display culled its own face against it, showing a hole through to whatever's behind - `FluidDisplayBlock` never overrode `getRenderLayer()`, so it defaulted to `SOLID`, which this Forge version's face-culling (`Block#isSolid`) keys off directly regardless of the block's actual `BlockRenderType.INVISIBLE`/TESR-only rendering; fixed by overriding it to `CUTOUT`, matching vanilla `GlassBlock`. `TESTING_CHECKLIST.md` #234 flipped FAIL to FIXED - needs a fresh in-game retest of all three together.
-
-**Batch 1 GUI bug-fixing pass, 2026-09-28:** picked up two long-untouched `FAIL` rows from section 1 (#75 Online Detector, #93 Chat Detector) at the user's request - see `TESTING_NOTES.md` #75/#93 for the full writeups. Real bug found and fixed in both: `Screen#setFocusedDefault` only sets the screen's own input-routing pointer, not the text field widget's own separate internal `isFocused()` flag that `TextFieldWidget#keyPressed`/`#charTyped` actually gate on - so typing immediately after opening either GUI (without clicking into the field first) fell through to `ContainerScreen`'s close-on-inventory-keybind check instead of reaching the field, explaining both "hitting the inventory button still closes the GUI" and "doesn't save unless you hit Enter." Fixed by also calling `field.setFocused2(true)` right after `setFocusedDefault` in both screens' `init()`. `TESTING_CHECKLIST.md` #75 flipped FAIL to FIXED. #93's *other* complaint - "the buttons in the GUI are not clickable" (the consume-toggle button) - is still unresolved: traced the entire click chain (bounds, `active`/`visible`, `IPressable`, container packet handling, sync-back) against the real 1.14.4 API end to end with no bug found in static review; flipped to PARTIAL FIX with a note asking the user to confirm they're clicking the new full-width text button below the field (this port replaced 1.12.2's small top-right icon toggle with a plain button, matching this project's established icon-button-to-text-button convention) rather than where the old icon used to be. #89 (Player Interface slot mapping) and #91 (Inventory Rerouter side texture) remain untouched - not part of this pass.
-
-**Spectre Illuminator tick-lag pass, 2026-09-28:** user reported real tick lag ("Can't keep up! ... 44 ticks behind") and a multi-million-position relight backlog after placing many Spectre Illuminators, with a server log attached - see `TESTING_NOTES.md` #273 for the full writeup. Real bug found and fixed: the previously-fixed per-tick draining (256/tick) was never the actual problem - `SpectreIlluminatorRelight.queue()` itself was still materializing the *entire* padded column (up to ~185,000 individually-allocated `BlockPos` objects per illuminator) synchronously before any draining started, so a batch of illuminators settling together on world join (14 in the reported log) meant ~2 million allocations dumped into one or two ticks - that burst, not the bounded drain, is what stalled the server thread. Fixed by replacing the materialized position queue with lightweight bounds-descriptor jobs that `tick()` lazily walks - same total work, same order, same drain rate, just no longer front-loaded. `TESTING_CHECKLIST.md` #273 flipped PASS to FIXED (still functionally correct for a single illuminator; the bug was specifically about many at once) - needs a retest with the same many-illuminator setup.
-
-**Super Lubricent boat speed-cap pass, 2026-09-28:** user reported a boat on Super Lubricent Ice/Stone accelerates without bound until it crashes the game, and explicitly asked for the cap to apply to all entities - see `TESTING_NOTES.md` #31 for the full writeup. Real bug found and fixed: the existing speed cap only ran from a `LivingUpdateEvent` listener, which never fires for a `BoatEntity` (a plain `Entity`, not `LivingEntity`). Worse than the living-entity case too - ground-truthed `BoatEntity#updateMotion`: a boat ON_LAND multiplies its *existing* velocity by the underfoot block's slipperiness every tick with no offsetting term at all, so these blocks' just-above-1.0 slipperiness (chosen to exactly cancel a living entity's 0.91 friction decay) compounds unconditionally for a boat, unlike a walking entity's acceleration-vs-friction balance which at least settles toward a steady state. Fixed by adding a second, `Entity`-typed `WorldTickEvent` listener (no generic "any entity ticked" event exists in this Forge version) that sweeps the world's entities once per tick and applies the same cap to every grounded non-living entity, not just boats - matching the "for all entities" request rather than special-casing boats. `TESTING_CHECKLIST.md` #31/#136 flipped PASS to FIXED. Confirmed via a real `runClient` boot that the new listener registers cleanly with no exceptions; actual in-game boat behavior still needs a real playtest.
-
-**Same pass, corrected same day:** user reported the fix above didn't work at all - still unbounded acceleration, and even turning the boat in place ran away too. The `WorldTickEvent` sweep's `onGround` gate likely never engaged for a resting boat, and even if it had, it only ever touched linear motion - `BoatEntity`'s turn-rate field (`deltaRotation`) is `private` with no accessor, so nothing outside the class could reach it regardless, explaining the turning-specific report. **Real fix**: `Block#getSlipperiness(BlockState, IWorldReader, BlockPos, Entity)` is a real Forge per-entity extension point, and it's the exact call `BoatEntity#getBoatGlide()` makes for both `momentum` and `deltaRotation`'s multiplier - all three Super Lubricent blocks now override it to keep the true zero-friction value for everyone else but cap it to `0.989F` (vanilla `Blocks.BLUE_ICE`'s own value, ground-truthed as the highest slipperiness vanilla itself ever ships, and the material real ice-boat speedruns already treat as the proven-stable maximum) specifically for a `BoatEntity`. Fixes motion and rotation at the shared source with no listener, no `onGround` guesswork, no reflection. The now-unnecessary `WorldTickEvent` sweep was removed - no entity type other than `LivingEntity`/`BoatEntity` reads block slipperiness for movement at all. See `TESTING_NOTES.md` #31's second entry for the full writeup. Please retest.
-
-**Same pass, per explicit user request the same day:** boats should instead match how living entities already behave here - true zero friction (never decays on its own) with an external cap on top, not a slightly-lossy slipperiness value. Reverted all three blocks to unconditional zero-friction slipperiness again (no per-entity override), and brought back a boat-specific `WorldTickEvent` listener - this time not gated on `onGround` - calling a new `SuperLubricentPhysics.capBoatMotion` that clamps both linear speed (reusing the existing 0.35 blocks/tick cap) and turn rate (`deltaRotation`, reached via a lazily-cached reflective `Field`, same established pattern as `PotionMetadataUtil` elsewhere in this project, since it has no public accessor). New turn-rate cap: 15 degrees/tick, hand-picked (no vanilla/community reference value exists for this the way sprint speed does for the linear cap). Confirmed via a real `runClient` boot with no exceptions and the field name re-verified against a fresh `javap -p`. See `TESTING_NOTES.md` #31's third entry for the full writeup. Please retest.
-
-**Same pass, corrected again the same day:** user reported still completely uncapped on both moving and turning. Root cause: `WorldTickEvent` never fires for the client world at all in this Forge version - `BasicEventHooks#onPostWorldTick` hardcodes `LogicalSide.SERVER` unconditionally (confirmed from its own source), so the listener above only ever capped the server's own boat copy, never what the controlling player's client actually simulates and renders. **This exact bug already happened once before in this same file**, for `SpectreIlluminatorRelight`'s client-side draining - missed re-applying that already-documented fix here the first time. Split into two listeners: the `WorldTickEvent` one stays (server-authoritative copy), plus a new `ClientTickEvent` (`Phase.END`) listener doing the identical sweep against `Minecraft.getInstance().world.getAllEntities()`, same pattern `SpectreIlluminatorRelight` already established. Confirmed via a real `runClient` boot with no exceptions. See `TESTING_NOTES.md` #31's fourth entry. Please retest.
-
-**Same pass, per explicit user feedback the same day:** boat still "speeds up at the smallest motion" - wanted it to cruise at whatever speed instead, only capped as a ceiling. Root cause: `1F / 0.91F` isn't true zero friction for a boat - that value only cancels `LivingEntity.travel`'s own extra hardcoded `0.91` multiplier, which `BoatEntity#updateMotion` has no equivalent of (it uses `getSlipperiness()`'s return value directly as its momentum multiplier), so a boat's real momentum was `~1.0989` - genuine, if slow, exponential growth from any nonzero residual velocity. Fixed by bringing back the per-entity `getSlipperiness` override on all three blocks, this time returning exactly `1.0F` for a boat (lossless in IEEE754 - true "neither grows nor decays"), everyone else unchanged. Paddling still adds real speed normally (`controlBoat`'s per-tick nudge is additive, independent of momentum); the external `capBoatMotion` cap stays as a pure ceiling for sustained input. See `TESTING_NOTES.md` #31's fifth entry. Please retest.
+1. **Check `TESTING_CHECKLIST.md` for open `FAIL` rows first**, per this repo's own standing rule -
+   only Chat Detector (#93) is currently a genuine open `FAIL`; everything else fixed in the
+   `303561e` pass is marked `FIXED`, waiting on the user's own retest to flip to `PASS`. Don't
+   re-investigate a `FIXED` row from scratch; read its `TESTING_NOTES.md` entry first.
+2. With no NOT-STARTED and only one PARTIAL feature left, the real remaining work is: Chat
+   Detector's still-open bug and general in-game retesting of the large `DONE-UNTESTED` backlog
+   (the user has said they'll test Dyeing Machine/Spirit themselves). **Ask the user which of these (or
+   something else) to tackle next** (the standing pattern this whole project has followed) rather
+   than picking one unprompted.
+3. The detailed, dated engineering log for every past slice (ground-truthing notes, disclosed
+   simplifications, exact bugs found and fixed) lives in the **Progress log** section below, in
+   chronological order - it's long, but it's there so a later session (or a curious human) can see
+   *why* a piece of code looks the way it does without re-deriving it. New entries belong there, not
+   here - keep this section short and current, and let old entries accumulate below instead of here.
 
 ## Context
 
@@ -874,15 +201,10 @@ actually blocked the way Super Lubricent Boots' *Mixin* currently is:
   status is stale: it's not structurally impossible, it just needs a coremod instead of
   `LivingSpawnEvent.CheckSpawn`. Also affects **Peace Candle**'s mob-suppression half — not started.
 - `StructureVillagePieces$Church.addComponentParts` (place a Peace Candle in generated village
-  churches) — 1.14.4 predates the jigsaw structure system, no clean non-ASM injection point. **Peace
-  Candle** worldgen half — **correction, 2026-09-27: not a coremod job either.** A separate session
-  shipped the Worldgen batch (Ancient Furnace + Peace Candle, see progress log) and found 1.14.4's
-  village generator is fully data-driven jigsaw/structure-template data with no hardcoded piece class
-  left to ASM-patch at all - hooking in a custom building would mean hand-authoring NBT structure
-  template data, not writing a transformer. Genuinely deferred (needs real structure-block tooling this
-  environment doesn't have), not a Batch 7 candidate. Peace Candle itself (block + mob-suppression via
-  the existing `SpawnPlacementTransformer` coremod) shipped and works; only natural village generation
-  is missing.
+  churches) — **done 2026-09-29 without any coremod**: 1.14.4's village pools are still Java-registered
+  (`JigsawManager.REGISTRY`), so `PeaceCandleChurchPool` wraps `village/plains/houses` instead. See the
+  Progress log entry "Peace Candle village churches". (Earlier notes here calling this "no clean injection
+  point" and later "fully data-driven, needs NBT tooling" were both wrong.)
 - `World` weak/strong redstone power → wireless signal for **Advanced Redstone Interface**,
   **Redstone Interface**, **Redstone Activator**, **Redstone Remote** (one shared mechanism, four wiki
   pages) — not started.
@@ -1501,7 +823,7 @@ its own self-contained, compile-verified unit of real, working game content, not
 - **Known gap noticed in passing, not yet fixed:** none of Batch 1's ~50 standalone blocks
   (`contact_button`, the `plates/` family, `spectretree/`, etc.) have a loot table, meaning they
   currently drop nothing when broken in survival. Batch 2's new blocks all got loot tables as part of
-  this slice; backfilling Batch 1's is a good candidate for its own small cleanup slice.
+  this slice; **Batch 1 was backfilled 2026-09-29** (99 tables, see Progress log).
 
 ### Batch 3 — remaining (non-block) items
 
@@ -2953,10 +2275,9 @@ resolution (need more repro detail from the user).
   `tileentity/PrismarineEnderBridgeTileEntity.java`, `tileentity/EnderAnchorTileEntity.java`. Full 6-way
   `Direction` facing (matches 1.12.2's `EnumFacing.getDirectionFromEntityLiving`, which can return up/down
   too, not just the 4 horizontal directions - ground-truthed via `Direction.getFacingFromVector`, already
-  established by `AnalogEmitterBlock`). Disclosed simplification: `TileEntityEnderAnchor`'s optional Forge
-  chunk-loading ticket (itself gated behind a config flag most packs leave off) isn't ported - Forge's
-  ticket API changed significantly by 1.14.4, and it only matters if the destination chunk would otherwise
-  unload, not the common case of a nearby player using it.
+  established by `AnalogEmitterBlock`). (Originally noted here as a simplification: `TileEntityEnderAnchor`'s
+  Forge chunk-loading ticket wasn't ported, on the mistaken belief the flag defaulted off - it defaulted ON
+  in 1.12.2. Ported 2026-09-29, see "Ender Anchor chunk loading" at the end of this file.)
 - **Item Filter deliberately skipped, not ported**: investigation found its only two 1.12.2 consumers -
   Advanced Item Collector and Filtered Super Lubricent Platform - are both already shipped in this port,
   and both already made their own disclosed simplification (a single built-in example-item equality slot)
@@ -3123,6 +2444,756 @@ resolution (need more repro detail from the user).
   session (needs actual redstone-circuit testing in-world). `TESTING_CHECKLIST.md` #283-287 added,
   `WIKI_FEATURE_STATUS.md` updated (Redstone Interface/Advanced Redstone Interface/Redstone Activator/
   Redstone Remote all moved from NOT STARTED to DONE-UNTESTED).
+
+
+**The following entries lived directly in "START HERE" while they were written (a long single
+session's worth of slices), then got moved down here during a later cleanup pass to keep START HERE
+itself short - nothing below was reworded, just relocated. They continue the same chronological log
+as everything above.**
+
+**Update, 2026-09-28 (same session, later still): a full bug-fixing pass over a fresh round of user
+playtesting - the largest single triage since the "Bug-fixing pass 4"/2026-09-28 pass earlier this
+file.** ~20 items reviewed; full technical writeups for every one are in `TESTING_NOTES.md`, only a
+summary here:
+- **Removed per request:** Pitcher Plant, and the whole fire/water-protection item family (Obsidian
+  Skull, Lava Charm, Lava Wader, Water Walking Boots, Obsidian Water Walking Boots) - source, assets,
+  registrations, and the two now-orphaned shared `RandomThings` event listeners all deleted.
+- **Real bugs found and fixed:** Item Collector/Advanced Item Collector's blockstate rotation values
+  didn't match 1.12.2's real numbers at all; Player Interface's armor-side capability had no per-slot
+  type check (chestplates landed in any empty armor slot); Sound Recorder's list used vanilla's
+  hardcoded 220-wide row math plus no text clipping, running rows off-panel; Magic Hood's particle fix
+  from an earlier pass set the wrong flag (`shouldHideParticles` only thins particles, doesn't remove
+  them - the real gate is forcing the synced color to 0); Ancient Furnace's biome mutation was correct
+  server-side but never resynced to already-connected clients; Portkey's priming counter mutated the
+  same object instance the dropped entity's data manager already had cached, which never trips Forge's
+  own dirty-check (needs a genuinely different object); Portkey's camo/plain render was double-offset
+  by `-0.5` on every axis, once from the outer `ItemRenderer` call it's invoked from and again from
+  whichever overload this renderer called back into.
+- **Investigated, no bug found** (each flagged in `TESTING_CHECKLIST.md` with what to check on retest):
+  Chat Detector's button, Entity Filter's capture, Biome Glass/Stone's tint, Sound Dampener's radius,
+  Floo Powder's recipe, Colored Grass's missing recipe (confirmed intentional - 1.12.2 never had one
+  either).
+- **Requested behavior changes, not bugs** (both explicitly confirmed with the user first): Block
+  Destabilizer's flood-fill now skips non-full blocks (torches/redstone/levers) entirely; Rain Shield
+  now also suppresses the *visual* rain/snow particles near an active shield (previously disclosed as
+  not attempted - a new `GameRendererTransformer` coremod redirects the one `World.getBiome` call
+  inside vanilla's rain-render loop to substitute a real no-precipitation biome for shielded columns).
+- **Usability fix instead of the disclosed-simplification's original ask:** Inventory Rerouter's
+  missing per-face overlay texture (a real, still-standing 1.12.2 simplification - no art assets for 6
+  new directional icons) now gets an action-bar message on right-click stating the clicked face's new
+  redirect target instead.
+
+`./gradlew build -x test` clean after every change; the two new coremods (`GameRendererTransformer`,
+plus the earlier `BlockRendererDispatcherTransformer`) both verified via a real `runClient` boot
+showing a clean transform with no `VerifyError`/`LinkageError` and the crash-report count unchanged.
+Please retest broadly - this is a large batch. Still uncommitted.
+
+**Update, 2026-09-28 (same session, later): two real bugs fixed in the Diaphanous Blocks slice above,
+reported by user, plus a long-standing Redstone Remote GUI bug finally tracked down from a screenshot.**
+Diaphanous Blocks: (1) non-inverted blocks couldn't be mined/interacted with at all - `getShape` was
+wrongly gated on `inverted` the same as `getCollisionShape`, but 1.14.4 has no separate "collision" vs.
+"targeting/interaction" shape the way 1.12.2 did, so a non-inverted block had no shape at all for the
+block-targeting raytrace to find; `getShape` is now always a full cube, only `getCollisionShape` stays
+gated. (2) the inverted variant's name showed a raw untranslated key - `BlockItem#getTranslationKey()`
+delegates to the *block's* own key (`block.`-prefixed), not an `item.`-prefixed one; the lang entry had
+the wrong prefix. Separately, a screenshot of Redstone Remote's "use" screen looking like a blank white
+box turned out to be two things at once: a real, previously-undiagnosed bug (this screen, plus the edit
+screen and Advanced Redstone Interface's own screen, never drew a title at all - missing
+`drawGuiContainerForegroundLayer` entirely, now fixed on all three) that plausibly explains the
+long-standing #287 "no slots visible" report from an earlier session too; and a red herring (the plain,
+undecorated gray background texture itself is byte-for-byte what 1.12.2 actually shipped, ground-truthed
+by extracting the real asset from that branch - not a bug, per this repo's own "check the real 1.12.2
+source before fixing" rule). `./gradlew build -x test` clean after each. `TESTING_CHECKLIST.md` #287 and
+#317 updated, full writeups in `TESTING_NOTES.md`. Please retest. Still uncommitted.
+
+**Update, 2026-09-28 (new session): Diaphanous Blocks + Light Redirector implemented - the last two
+wiki-tagged features that needed a "generic runtime block-model renderer," down from 3 NOT-STARTED rows
+to just Dyeing Machine.** User picked this pair (offered a choice between them together, Dyeing Machine
+alone, or something else entirely) - paired since they share that same tagged infrastructure need, same
+"do the paired ones together" logic as the earlier Magnetic Enchantment + Block Breaker slice. Real
+investigation before writing anything (per this repo's own working rule) found the two features need
+genuinely different fixes: Diaphanous Blocks' 1.12.2 renderer hand-reimplemented `BlockModelRenderer`'s
+*private* internals just to filter which faces draw and reflected into `BufferBuilder`'s private raw
+buffer for per-vertex alpha - neither is needed in 1.14.4 (`renderModel`'s own `checkSides` parameter
+gets the same face-culling live and for free; `BufferBuilder` exposes the same raw storage publicly now,
+confirmed via its own decompiled source before relying on it). Light Redirector turned out to be a real
+client-side rendering "periscope" (an open face shows whatever's on the block's *opposite* side, not just
+a texture swap) - reached via a new `BlockRendererDispatcherTransformer` coremod using this project's own
+established "early conditional-IRETURN at method entry" idiom, whose Java-side redirect target had to go
+in a **new** client-only-safe class (`ClientAsmHandler`, not the existing `AsmHandler` - which is loaded
+on both sides and only ever references common types in its own signatures, unlike this one). Full detail,
+including every disclosed simplification, in `WIKI_FEATURE_STATUS.md`'s own entry for this slice - see
+that file for anything not summarized here. `./gradlew build -x test` clean; `runClient` smoke-verified
+through the coremod actually transforming its target class with no `VerifyError`/`LinkageError`, all 64
+Light Redirector blockstate variants baking cleanly into the block atlas, and both new recipe serializers
+registering. `TESTING_CHECKLIST.md` #314-319 added. Not yet tested in-game (needs real interactive play -
+the periscope effect and the ghost-fade curve especially). Still uncommitted.
+
+**Update, 2026-09-28 (same session, later still): investigated three known log warnings flagged in
+earlier `runClient` smoke tests - one real bug fixed, two confirmed intentional-by-design and silenced.**
+User asked to look into all three after the Spectre Lens live-testing session (which itself turned out
+to be an unrelated Mojang `authlib`/Gson issue - the game's own auth-server lookup for the offline "Dev"
+profile failing to parse a non-JSON response from this sandboxed environment's lack of real internet
+access, not a mod bug at all; see that investigation in the conversation history for the full trace).
+- **Real bug, fixed: Advanced Redstone Repeater's "off" state showed the default missing-texture
+  particle effect when broken.** Same class of stale pre-1.13-flattening vanilla texture name as the
+  already-fixed #80/81 (`redstone_torch_on`/`stone_slab_top`), just one instance that earlier pass
+  missed: `advanced_redstone_repeater_off.json`/`_off_locked.json`'s `particle` field still referenced
+  `block/repeater_off`, which ground-truthing `client-extra.jar` directly (`unzip -l`) confirmed no
+  longer exists in this version - the real name is just `block/repeater`. Only affected the break/hit
+  particle texture, not the block's actual visible faces (those already used the mod's own textures
+  correctly). Fixed both files; `TESTING_CHECKLIST.md` #81.1 added.
+- **Confirmed intentional, not a bug: Rune Base/Fluid Display's "missing blockstate" `ModelBakery`
+  warnings.** Both blocks are deliberately `BlockRenderType.INVISIBLE` with all real rendering done by
+  a dedicated TileEntityRenderer (a previous session's own documented design, predating this one -
+  see each class's own pre-existing javadoc) and genuinely had no blockstate/model JSON at all, which
+  Minecraft still tries to load unconditionally for every registered block regardless of render type,
+  logging a WARN when it can't find one. Zero gameplay impact (the warning doesn't affect the TESR path
+  at all) - added a minimal blockstate + empty-elements model for each anyway (reusing Rune Dust's own
+  texture for Rune Base's particle field, the block's own real texture for Fluid Display's) purely to
+  silence the log noise and give both a themed break-particle effect instead of the default
+  missing-texture one, since that was a real (if very minor) side effect of the missing files. No
+  rendering/behavior change - confirmed via `runClient` that both blocks are still fully TESR-driven.
+- `./gradlew build -x test` clean; `runClient` smoke-verified all three warnings gone with no new
+  errors introduced. Not independently player-testable (no behavior changed for #2/#3), so no new
+  checklist rows for those two beyond the plan's own note here. Still uncommitted.
+
+**Update, 2026-09-28 (same session, yet later still than that): Spectre Lens implemented - completes
+the whole "Spectre" wiki family except the never-started Ender network.** User asked to do the piece
+deferred from the energy-network slice right below. Unlike that slice's Coil/Injector blocks, this
+one's real 1.12.2 model turned out to already be a single plain thin box - no elaborate Cubik Studio
+mesh, no obsolete Forge `forge:multi-layer` blockstate trick - so it ported faithfully with no
+simplification needed at all: same 1/16-tall shape via `Block#getShape`, same real texture, same real
+recipe (Spectre Ingot/Emerald/Diamond/Glass).
+
+Ground-truthed `BeaconTileEntity` via `javap` before assuming 1.12.2's reflection-based approach for
+reading a beacon's state still applied, and found a real simplification: the private "is the pyramid
+complete" boolean 1.12.2 needed reflection for doesn't exist in this version's `BeaconTileEntity` at
+all - `getLevels()` (already public) is `0` exactly when the pyramid isn't valid, so that half of the
+original reflection is gone for good, not a choice made here. `primaryEffect`/`secondaryEffect` are
+still private with no getter, so `SpectreLensTileEntity` still reflects into those two - using this
+build's own real MCP field names directly (the dev environment ships human-readable names, no SRG
+lookup table needed the way 1.12.2's own `MCPNames` helper required). Also traced `Chunk`/`World`'s
+real source before trusting `TileEntity#remove()` as a safe replacement for 1.12.2's `breakBlock` hook
+(the only removal-lifecycle method this version's `TileEntity` exposes at all): confirmed it only fires
+on a genuine block-state removal, never merely on a chunk unloading, so clearing a player's lens entry
+in that override can't misfire just because the chunk went out of range.
+
+`SpectreLensHandler` deliberately kept the original's cross-dimension scoping (1.12.2's
+`getPerWorldStorage()`, ported here as `server.getWorld(DimensionType.OVERWORLD).getSavedData()`
+regardless of which dimension the lens or its owner are actually in) - the *opposite* choice from
+`SpectreCoilHandler`'s own deliberately-preserved per-dimension scoping in the slice below, since each
+handler made its own real, different design choice in 1.12.2 and both are now matched faithfully rather
+than unified into one convention. Wired the actual periodic re-application via a new `ServerTickEvent`
+listener in `RandomThings.java` (`SpectreLensHandler.get(server).tick(server)`, once per server tick
+regardless of dimension), matching the existing `EscapeRopeHandler` call site's own established
+pattern right above it.
+
+Also added the Spectre Energy Injector's own real crafting recipe, now that its one missing
+prerequisite (this item) exists - it shipped registered-but-uncraftable in the previous slice
+specifically pending this.
+
+`./gradlew build -x test` clean. `runClient` smoke-verified through an actual world load again (same
+depth of check as the energy-network slice), no `ModelBakery`/`RecipeManager` errors for any of the new
+content. `TESTING_CHECKLIST.md` #312-313 added, #310 (Injector) updated for its new recipe, and
+`WIKI_FEATURE_STATUS.md`'s Spectre Lens row updated to DONE-UNTESTED. Not yet tested in-game. Still
+uncommitted.
+
+**Update, 2026-09-28 (same session, yet later still): Spectre energy network implemented (Charger/
+Coils/Injector), Spectre Lens deferred.** Asked which NOT-STARTED wiki feature to tackle next (same
+standing pattern as the Spectre Tools slice before it); user picked "Spectre energy network"
+(Charger/Coils/Lens). Researched the real 1.12.2 source for all of it first and found the wiki's single
+row actually bundles two functionally unrelated mechanics: a real Forge-Energy per-player-pool network
+(`BlockSpectreEnergyInjector`/`BlockSpectreCoil`/`ItemSpectreCharger`/`SpectreCoilHandler`) and Spectre
+Lens (`BlockSpectreLens`/`SpectreLensHandler`, which extends a Beacon's active buffs to its owner
+remotely - no Forge Energy involved at all). Scoped this slice to just the energy-network trio and
+deferred Lens to its own follow-up slice rather than trying to ship both in one pass - flagged plainly,
+same as every other multi-piece batch this project has split before.
+
+Ground-truthed `IEnergyStorage`/`CapabilityEnergy`/`WorldSavedData`/`DimensionSavedDataManager`/
+`LazyOptional` via `javap`/real source before writing anything - the most stable API surface touched
+this session, nearly unchanged from 1.12.2's own Forge Energy API. New
+`handler/spectrecoils/SpectreCoilHandler.java` (the per-player pool, ported onto 1.14.4's
+`WorldSavedData` the same way `SpectreHandler`/`FlooNetworkHandler` already were), `SpectreEnergyInjectorBlock`/`TileEntity` (receive-only capability exposure, "push energy in from an
+external machine"), `SpectreCoilBlock`/`TileEntity` (attaches to any energy-capable neighbor, drains
+the pool to push energy out to that neighbor every tick), and `SpectreChargerItem` (a held/carried
+toggle item, drains the pool to top up other Forge-Energy items in the same inventory - ported from a
+1.12.2 Baubles belt item onto this port's already-established "just has to be carried anywhere" Baubles
+fallback, same one used for Portable Sound Dampener/Obsidian Skull/Lava Charm).
+
+**Real research mistake caught before shipping, worth remembering the lesson from:** while porting the
+Coil/Charger crafting recipes, a first pass grepped the real 1.12.2 source for "SPECTRE_STRING" (the
+Java enum constant name of a required ingredient) and found zero recipe/drop/loot source anywhere,
+plus an explicit JEI blacklist entry marking it unobtainable - concluded and reported to the user that
+this was dead 1.12.2 content, and asked whether to match that exactly (uncraftable), substitute a
+different ingredient, or defer. **The user's answer ("match 1.12.2 exactly") was right, but the premise
+behind offering that choice was wrong**: a second, more careful look - checking the actual
+`resources/.../recipes/` folder directly instead of trusting a Java-source grep for the enum name -
+found a real `spectrestring.json` recipe (4x from Ectoplasm + String + Diamond) that the first pass had
+simply missed, because recipe JSON files reference items by numeric `data` value, not by the Java enum
+constant's own name string. **Lesson**: when checking whether 1.12.2 content has a real source, check
+the actual recipe/loot JSON files directly - a source-grep for a Java identifier can silently miss data
+that's only ever referenced numerically. Ported the real recipe once found; no harm done since the
+user's answer matched what turned out to be correct regardless, but flagging this because the
+underlying research method was the fragile part, not the specific outcome.
+
+**Disclosed simplifications:** both new blocks' real 1.12.2 models are elaborate hand-modeled Cubik
+Studio meshes (a small attached nub for Coil, an obsidian-pedestal-inside-a-translucent-glass-shell for
+the Injector) built on Forge's old `forge:multi-layer`/`forge_marker` blockstate format, which doesn't
+exist in this Forge version at all - ground-truthed this before concluding a full model rebuild wasn't
+worth it for a purely cosmetic detail, and used plain full-cube blocks instead (reusing the originals'
+own real, already-animated block textures directly - `.mcmeta` files copied over unchanged), matching
+this port's own established `ContactButtonBlock`/`ContactLeverBlock` precedent for the same class of
+"small attached block" simplification. The real mechanic (must attach to a face that exposes an Energy
+capability, auto-drops otherwise) is preserved exactly. Also dropped: Coil's per-tier color tint (was a
+runtime render tint on the now-dropped mesh; no `BlockColor` infrastructure in this port yet - tiers
+still distinguishable by name), and Coil's own FE-rate tooltip. The Injector's real recipe needs a
+Spectre Lens (deferred this slice) - registered without a recipe for now, same treatment as the
+inherently-uncraftable Genesis tiers.
+
+`./gradlew build -x test` clean. `runClient` smoke-verified further than the Spectre Tools slice did:
+this boot actually loaded a real world (not just the main menu), reaching `RecipeManager` datapack
+loading with no parse errors for any of the 7 new recipes, and `ModelBakery`/texture-atlas stitching
+with no missing-model/missing-texture warnings for any of the 9 new blocks/items either.
+`TESTING_CHECKLIST.md` #307-311 and `WIKI_FEATURE_STATUS.md`'s Spectre Charger/Coils/Lens rows
+added/updated. Not yet tested in-game - the actual FE transfer needs another Forge-Energy-capable mod
+installed to verify end-to-end, which this environment doesn't have. Still uncommitted.
+
+**Update, 2026-09-28 (same session, still later): real bug fixed, reported by user - the Spectre Tools'
++3 reach tooltip showed a raw untranslated key instead of a proper name.** ("Tools not craftable," also
+reported at the same time, turned out to be a stale build/client - the recipe JSON was correct all along
+and just needed a fresh `./gradlew build` + restart, no code change.) Ground-truthed the tooltip cause
+from real source: `ItemStack`'s attribute-modifier tooltip builds its translation key as
+`"attribute.name." + attributeName`, and `PlayerEntity.REACH_DISTANCE`'s real name is the camelCase
+`"generic.reachDistance"` - but this exact Forge build's own `forge/lang/en_us.json` ships a mismatched
+pair for it instead of the expected key: a bare `generic.reachDistance` (missing the `attribute.name.`
+prefix) and an unrelated `attribute.name.generic.reach_distance` (snake_case, doesn't match the real
+attribute name either) - so the actual runtime-built key had no working translation anywhere in this
+build. Fixed by adding `attribute.name.generic.reachDistance` to this mod's own `en_us.json` directly,
+same as any other missing-vanilla-translation fix. `TESTING_CHECKLIST.md` #304-306 updated, please
+retest. Still uncommitted.
+
+**Update, 2026-09-28 (same session, yet later): Spectre Tools implemented.** Asked the user which
+NOT-STARTED wiki feature to tackle next (per this section's own standing "ask which one" note below);
+picked Spectre Tools (Sword/Pickaxe/Axe/Shovel) over the bigger Spectre energy network and over
+reconciling the stale checklist rows noted further down. Ground-truthed the real 1.14.4 `IItemTier`/
+`ToolItem`/`PickaxeItem`/`AxeItem`/`ShovelItem`/`SwordItem` hierarchy via `javap`/real source before
+writing anything - found that vanilla's own `AxeItem#getDestroySpeed` already reproduces 1.12.2's custom
+override (full efficiency on wood/plant materials) exactly, so no override was needed there at all, unlike
+what was assumed going in. New `item/spectretools/` package: `SpectreItemTier` (a plain `IItemTier`,
+1.14.4's replacement for 1.12.2's `EnumHelper.addToolMaterial` enum-extension trick, same stats -
+harvest level 3, 2000 uses, 8 efficiency, 3 attack-damage bonus, 22 enchantability, Spectre Ingot repair
+via a `LazyLoadBase<Ingredient>` matching every vanilla `ItemTier` constant) plus the four tool classes.
+Pickaxe/Axe/Shovel (not Sword, matching 1.12.2) get a +3 block-reach `AttributeModifier` on
+`PlayerEntity.REACH_DISTANCE` while held in the mainhand - confirmed that attribute still exists
+unchanged in this Forge version via `javap`. Recipes/models/textures pulled directly from
+`origin/1.12.2` and restructured into this port's asset layout. Disclosed simplification: dropped
+1.12.2's ASM-hook white-glow recolor on the sword (cosmetic-only tint recolor of an already-real
+enchant glow, not a forced-always-glow like Spectre Key/Portkey - no render-hook precedent for that
+narrower case in this port, same call already made for Redstone Observer's own dropped red-glow
+recolor); the sword's `EntitySpirit` damage-exemption tie-in also isn't wired up since that mob isn't
+ported yet. `./gradlew build -x test` clean, plus a `runClient` smoke boot confirming all 4 items'
+models/textures/recipes load and bake cleanly (reached texture-atlas stitching with no missing-texture
+warnings for any of them, no `ModelBakery` errors). `TESTING_CHECKLIST.md` #303-306 and
+`WIKI_FEATURE_STATUS.md`'s Spectre Tools row added/updated. Not yet tested in-game (crafting, actual
+mining/reach/repair feel). Still uncommitted.
+
+**Update, 2026-09-28 (same session, later still still): real crash fixed, reported by user with a full
+crash log - the Block Breaker crashed the server the instant it finished mining any block with no tile
+entity (e.g. a grass block).** `NullPointerException` in `ForgeHooks.onBlockBreakEvent` at
+`entityPlayer.connection.sendPacket(...)` (line 561, reached via its `world.getTileEntity(pos) == null`
+branch), called from `PlayerInteractionManager.tryHarvestBlock`, called from
+`BlockBreakerTileEntity.tick`. Root cause: `FakePlayer`'s constructor (ground-truthed from Forge's own
+source) never sets `ServerPlayerEntity#connection` - it stays null - so any `tryHarvestBlock` call that
+takes this no-tile-entity branch NPEs immediately. Checked the real 1.12.2 original per this repo's
+working rule and found it already had a workaround for exactly this: `initFakePlayer()` there manually
+assigns `fakePlayer.connection` to a `NetHandlerPlayServer` subclass with a no-op `sendPacket` override,
+right after constructing the fake player. This port's `BlockBreakerTileEntity.initFakePlayer()` had
+dropped that step. Fixed by porting the same workaround, ground-truthed against this build's real
+`ServerPlayNetHandler`/`NetworkManager`/`PacketDirection` via `javap` (constructor signatures moved but
+the shape is the same). This was the exact risk flagged as unverified when Block Breaker was first
+ported (see the update below and `TESTING_CHECKLIST.md` #290) - confirms it was a real gap, not a false
+alarm. Build clean (`./gradlew build -x test`); `TESTING_CHECKLIST.md` #290 updated, please retest.
+Still uncommitted.
+
+**Update, 2026-09-28 (same session, later still): real crash fixed, reported by user with a full crash
+log - joining/rejoining a world after visiting the Spectre dimension threw `NullPointerException:
+Dimension type must not be null` in `DimensionManager.getWorld`.** Root cause: `ModDimensions
+.registerDimension` was being called from `FMLCommonSetupEvent` (mod-loading time, once per process,
+before any world/save is even chosen) using plain `registerDimension`. Ground-truthed from
+`DimensionManager`'s own source: every world load calls `readRegistry`, which unconditionally clears the
+*entire* dimension-type registry back to vanilla-only and repopulates it strictly from that specific
+world's own saved registry data - our earlier mod-loading-time registration got wiped out for any world
+that hadn't already saved a `randomthings:spectre` entry, and nothing re-registered it afterward (missed
+`RegisterDimensionsEvent`, the hook that fires immediately after `readRegistry` specifically for this).
+Any later `DimensionType.getById` lookup for the now-dangling reference - including resolving a player's
+own persisted "last dimension" field, stored as a raw int (confirmed via `Entity#read`) - returned null.
+Fixed by moving registration to a `RegisterDimensionsEvent` listener on `MinecraftForge.EVENT_BUS` (not
+the mod bus - this is a regular per-world Forge event, not a registry event) using idempotent
+`registerOrGetDimension` instead of plain `registerDimension` - see `ModDimensions`'s javadoc for the
+full mechanism. Verified via `runClient` against the *exact same save* that produced the user's original
+crash report - no crash, no new crash report generated (confirmed by timestamp - the newest crash report
+on disk is still the pre-fix one). `TESTING_CHECKLIST.md` #302 added. Build clean, still uncommitted.
+
+**Update, 2026-09-28 (same session, later): real bug fixed, reported by user - a layer of stone
+generated around the teleport-in point.** `SpectreChunkGenerator` had left `carve`/`decorate` (concrete,
+not abstract, on the base `ChunkGenerator`) un-overridden, so vanilla's default decoration step still ran
+every feature registered to `Biomes.THE_VOID`. First suspected this mod's own Ancient Furnace (a
+stone/cobblestone structure `RandomThings#registerWorldgenFeatures` adds to every biome unconditionally)
+- **double-checked before shipping that explanation, and it was wrong**: Ancient Furnace's own "cold
+biomes only" gate (`temperature < 0.15F`) correctly excludes THE_VOID (defined at a non-cold `0.5F`), so
+it could never have placed there. Ground-truthed the real cause from vanilla's own `TheVoidBiome` source
+instead: its constructor hard-codes a `Feature.VOID_START_PLATFORM` decoration - a ~33x33 flat Stone/
+Cobblestone disc at Y 3 around block (8, 3, 8), vanilla's standard "spawn platform for a void world" -
+which happens to land right on the first Spectre Cube's own spawn point (8, 1, 8). Both `carve`/`decorate`
+are now real no-ops (see `SpectreChunkGenerator`'s javadoc), which fixes it regardless of which specific
+feature was responsible, since nothing but `SpectreCube`'s own explicit placement can touch the dimension
+anymore. `TESTING_CHECKLIST.md` #301 updated. Build clean, not yet re-tested in-game.
+
+**Update, 2026-09-28 (new session, local machine): Spectre Dimension implemented - Spectre Key,
+Spectre Core, Spectre Ingot, Ectoplasm's drop restored.** Pulled `origin/1.14.4` first (3 commits -
+Magnetic Enchantment/Block Breaker/Block Destabilizer from the previous no-build-access cloud session,
+noted below as unverified; this session has full local toolchain access and verified the pulled work
+compiles clean before starting anything new). User asked to work on the Spectre Dimension specifically
+- the biggest single piece of remaining scope in the whole port (a real custom dimension: registration,
+world provider, chunk generator, per-player pocket-dimension teleport). Ground-truthed extensively via
+`javap`/real source before writing anything, per this repo's own working rule - several genuine 1.14.4
+API gaps found this way, not assumption-driven:
+- **Dimension registration is a completely different (and much simpler) two-step API** in this version:
+  `ModDimension` is itself a Forge registry entry (registered during the normal registry-event phase),
+  then `DimensionManager.registerDimension` turns it into a real `DimensionType` with an auto-assigned
+  ID - no more manual config-option dimension ID the way 1.12.2's `Internals.SPECTRE_ID` needed.
+  `WorldProvider` became the abstract `Dimension` class; `IChunkGenerator` became the generic
+  `ChunkGenerator<C extends GenerationSettings>`, modeled directly on vanilla's own `DebugChunkGenerator`
+  (the simplest real implementation in this Forge version).
+- **The big one: this Forge build (28.2.26) has no `ITeleporter` hook at all** - confirmed via `javap -p`
+  that `net.minecraftforge.common.util.ITeleporter` doesn't exist yet (a later Forge addition, despite
+  being what nearly every online 1.14 custom-dimension guide assumes), and `ServerWorld
+  .getDefaultTeleporter()` always returns one plain, uncustomizable `Teleporter` per world -
+  `PlayerList` also no longer has 1.12.2's `transferPlayerToDimension(player, dim, customTeleporter)`
+  overload (confirmed via `javap -p` - only `recreatePlayerEntity` remains). Without a patch, generic
+  (non-Nether/End) dimension travel would search for/physically carve a real obsidian nether portal at
+  the destination - exactly the kind of gap this repo's ground-truthing rule exists to catch before
+  shipping broken code. Fixed with a new `TeleporterTransformer` coremod (`AsmHandler#overrideMakePortal`)
+  that intercepts `Teleporter.makePortal`'s method entry and skips it (placing the entity at a safe
+  filler position instead, immediately overwritten by the real target position right after) whenever the
+  *destination* world is the Spectre dimension, in either travel direction - this project's first coremod
+  using an "early conditional-IRETURN at method entry" style rather than its usual "wrap the value at the
+  existing IRETURN" idiom, since the whole point here is to skip the body's block placement entirely, not
+  override what it returns after already running. Verified two ways: the standalone
+  `CheckClassAdapter.verify` bytecode-verification harness (clean, first attempt) and a real `runClient`
+  boot, which actually created a world and logged `Transforming net/minecraft/world/Teleporter` with no
+  `VerifyError`/`LinkageError`/`ClassFormatError` anywhere in the log.
+- **A real bug found in 1.12.2's own source, not a "looks wrong but intentional" case** (traced actual
+  numbers before concluding this): `SpectreHandler#getSpectreCubeFromPos` compared a chunk-coordinate-
+  derived key against a block-coordinate cube offset, off by a factor of 16 - only the very first cube
+  ever created could ever correctly match, so every later player's own cube would fail the anti-trespass
+  check and get them constantly bounced back to their spawn tile even standing in their own room. Ported
+  the evidently-intended direct block-coordinate comparison instead - disclosed in that method's javadoc
+  and in `TESTING_CHECKLIST.md` #299.
+- **Ectoplasm turned out to already be half-wired**: a previous session had already registered the item
+  (texture/model/lang all present) but never gave it a source or a consumer - `SpectreLeafBlock.java` even
+  had its own left-behind comment noting the drop was cut "tracked for the items batch." This session
+  restored that drop (1/55 chance per random leaf-decay tick, matching 1.12.2's `dropApple`) and added the
+  two items that actually needed it: **Spectre Ingot** (new, craftable - Lapis Lazuli+Gold Ingot+Ectoplasm,
+  or a 9x bulk recipe) for the Spectre Key's own recipe, and Ectoplasm itself for Spectre Core's
+  ceiling-raising interaction.
+- Real texture/model/blockstate assets for Spectre Core (4-corner 2x2 pedestal, orientation set directly
+  at generation time rather than 1.12.2's dynamic neighbor-scanning `getActualState` - see
+  `SpectreCube#generateCore`'s javadoc) and Spectre Key were pulled from `origin/1.12.2` and restructured
+  into this port's 1.14.4-style asset layout, not reinvented.
+- Disclosed simplifications: `Biomes.THE_VOID` reused instead of a new custom Biome class (matches this
+  port's existing precedent of never introducing one); the original's `ItemPositionFilter`-based custom
+  room spawn-point is out of scope (that item was never ported - a separate NOT-STARTED feature) - rooms
+  always spawn at their center, the same fallback 1.12.2 used whenever no filter was set; the original's
+  bespoke tinted charge-up particle is vanilla `ParticleTypes.PORTAL` instead, matching `EscapeRopeItem`'s
+  own already-established precedent for the same reason (no custom-particle infrastructure in this port).
+- Full `./gradlew build -x test` clean. `TESTING_CHECKLIST.md` #297-301 and `WIKI_FEATURE_STATUS.md`'s
+  Spectre Key row added/updated. **Not yet tested in-game** (needs real play: crafting the full chain,
+  walking through an actual teleport, verifying the anti-trespass fix, raising a room's ceiling). Still
+  uncommitted, per standing instruction.
+
+**Update, 2026-09-27:** pulled `origin/1.14.4` (3 commits behind locally at session start). A separate
+session/container had already shipped the Worldgen batch — Ancient Furnace + Peace Candle, the only two
+wiki-tagged worldgen features, commit `3e60013` — plus two LICENSE commits. That container didn't have
+this plan file, so its own commit message has the full reasoning (see "Worldgen batch" progress-log
+entry added below, and the roadmap/Batch-7 corrections above). **Worldgen (roadmap item 4) is now done**,
+both features shipped with disclosed environment-level gaps (no runtime biome-reassignment API for
+Ancient Furnace; no village-jigsaw hook point for Peace Candle's church spawn — corrected from this
+plan's earlier assumption that the latter was just another Batch 7 coremod candidate, it isn't).
+
+Pulling in that merge broke the build: `PeaceCandleTileEntity.java` was missing its
+`net.minecraft.tileentity.TileEntity` import entirely (didn't compile in the container that wrote it
+either, or wasn't caught before commit) — 9 compiler errors, all from that one missing import. Fixed by
+adding the import; `./gradlew build -x test` is clean again. **This fix is currently uncommitted** —
+standing instruction is to wait for an explicit commit request.
+
+No FAIL rows in `TESTING_CHECKLIST.md` are new since last session (checked). Note: rows #75/#93/#100/
+#102/#114 still show old `FAIL` text even though the plan's "Bug-fix pass 4" progress-log entry
+(2026-09-25) documents real fixes for all of them — those checklist rows were apparently never updated
+to reflect the fix the way #80/#81 were. Not re-investigated this session (out of scope for the worldgen
+pull); worth reconciling next time bug-fixing resumes, or just asking the user to retest those five rows
+on a fresh build.
+
+**Update, 2026-09-27 (same session, later): a real bug-fixing + worldgen-expansion pass followed**, driven
+by the user actually playtesting the freshly-pulled worldgen batch plus other recent features. Full chain,
+in order (see each one's own progress-log entry above for detail): Super Lubricent Boots got a speed cap
+matching the blocks' own cap; Lapis/Quartz Lamp's Peaceful-mode bug went through *two* mechanism changes
+in one day (force-ALLOW/DENY → a 1.12.2-faithful `getLightValue` trick → back to force-ALLOW/DENY with an
+explicit `Difficulty.PEACEFUL` guard, since the light trick proved unreliable in this Forge version's
+threading model — **confirmed working** by the user); Rune Base went through three real rendering/sync
+bugs (GL color4f reset, GL_LIGHTING darkening, and the big one — a systemic `TileEntity#onDataPacket`
+no-op-by-default bug that silently broke *live* sync, found while chasing this and fixed across all 5
+affected TEs project-wide) plus a requested left-click-clears-everything behavior change — **confirmed
+working**; Fluid Display got a folded-bottom-face fix, a lighting fix, then a follow-up fixing *actually*
+backwards top/bottom-face winding (culling) and adding real per-face diffuse brightness (not yet
+re-confirmed by the user). Then, asked what tooling the two remaining worldgen gaps needed: **Ancient
+Furnace's "impossible" biome reassignment turned out to be wrong** — implemented for real (`Chunk
+.getBiomes()` returns the live array, no reflection needed) — and **Special Chest (previously missing its
+ocean-monument spawn entirely) got a new coremod**, since unlike Peace Candle's village case, ocean
+monuments are still the old hardcoded-piece system in 1.14.4. Peace Candle's village-church case remains
+the one real, still-open tooling gap (needs interactive Structure Block access this environment doesn't
+have - see the tooling-answer note in that section above).
+
+**Update, 2026-09-27 (same session, later still): user decided to stop migrating three undocumented
+bonus features** — Plate family (11 blocks), Special Chest (including the ocean-monument coremod just
+added this session), and Sakanade — none appear in any wiki page. All deleted entirely (blocks, TEs,
+containers, screens, the now-orphaned `OceanMonumentTransformer` coremod, and every asset/lang/checklist
+reference); see "Plate family, Special Chest, and Sakanade removed entirely" progress-log entry below
+for the full file list. Build verified clean after. Checklist row #271 (never tested) and rows #100-103
+(previously FAILing on a chest-opening crash) are now moot rather than open bugs.
+
+**Update, 2026-09-27 (same session, later still): Spectre Illuminator implemented** - user picked it
+from 4 offered NOT-STARTED candidates. Needed a real structural fix, not just a port: 1.12.2's ASM patch
+targeted a `Block.getLightValue` overload that no longer exists in this Forge version at all (dropped
+`world`/`pos` params entirely) - ground-truthed the actual 1.14.4 light-computation call site instead
+(`IBlockReader.getLightValue(BlockPos)`'s default method, one shared choke point) and wrote a new
+`IBlockReaderTransformer` coremod for it. See "Spectre Illuminator implemented" progress-log entry below
+for the full story (three disclosed simplifications, the bytecode-verification harness getting
+generalized to take any target class, and the `runClient` verification). Build clean, checklist #272-274
+added, not yet tested in-game.
+
+**Next scoped-and-ready work:** every wiki-tagged worldgen feature is done, and the two disclosed gaps
+from this batch are now down to just Peace Candle's village generation (genuinely blocked on tooling).
+Remaining NOT-STARTED wiki features still need either an enchantment-system prerequisite, a generic
+runtime block-model renderer, a new falling-entity type, or kicking off the Redstone Interface family's
+own shared wireless-signal infrastructure (flagged as needing its own multi-slice breakdown, not a single
+pass) - see `WIKI_FEATURE_STATUS.md`'s NOT STARTED rows. Otherwise: a growing pile of DONE-UNTESTED/
+NEEDS-RETEST rows from this session alone (#95, #150-152, #158, #234, #235-236, #272-274, plus the five
+stale rows noted below) are waiting on the user's own playtesting - resume there, or ask which
+infrastructure prerequisite / NOT-STARTED feature to tackle next.
+
+**Update, 2026-09-28: bug-fixing pass over a fresh round of user playtesting.** User asked to triage
+`TESTING_CHECKLIST.md` and work through the open problems. Full list and outcome (each row's own
+checklist entry has the full technical writeup):
+- **Real bugs found and fixed:** Ender Bucket/Reinforced Ender Bucket fluid pickup (#219/#223 - this
+  Forge build's own `FluidUtil.tryPickUpFluid` never actually handles a plain fluid block, ground-truthed
+  via `javap -c`; rewrote to drain directly against `IFluidBlock`/`IBucketPickupHandler`); Rain Shield's
+  missing support-break (#257 - was missing the `checkForDrop`-equivalent call in `neighborChanged` that
+  Peace Candle already had right); Basic/Advanced Redstone Interface not craftable/not in creative menu
+  at all (#283 - simply missing from `ModItems`'s `registerItemForBlock` calls, the only two blocks in
+  the whole list skipped); Magic Hood's potion-particle hiding lagging up to 30s when the hood is put on
+  mid-effect (#254 - `LivingEntity`'s private `potionsNeedUpdate` flag doesn't get set by an armor change,
+  only by an effect change; new `LivingEquipmentChangeEvent` listener flips it via one narrowly-scoped
+  reflective set, new `util/PotionMetadataUtil.java`); Magic Hood's "indestructible" claim was actually
+  wrong (#255 - `ArmorItem`'s constructor unconditionally sets max damage from the material regardless of
+  what's overridden; gave it real durability matching Leather's via a small delegating `IArmorMaterial`
+  that copies every other stat from Chain, per user request); Portkey's camo'd/plain icon both rendering
+  oversized/offset (#279/#280 - `portkey.json` had no `display` transforms block at all, the actual source
+  of all GUI/hand/ground scaling for a `builtin/entity` item in this version - ground-truthed against
+  vanilla's real `item/template_shulker_box.json`); Ender Letter's receiver field never saving (#208 - was
+  only ever sent from `Screen#removed()`, racing the vanilla close-window packet over the same connection
+  and frequently losing; now syncs on every text change instead). Floo teleport flame height raised
+  (#189) and Global Chat Detector's op-bypass removed entirely (#117), both simple requested changes.
+- **Investigated, no bug found (flagged in the checklist, needs a more specific retest):** Rain Shield's
+  mechanical rain-suppression (#258 - re-ran the actual coremod bytecode via a throwaway Nashorn+ASM
+  harness, confirmed all 4 `ireturn` sites correctly redirect, and confirmed `FarmlandBlock`/`FireBlock`/
+  `ServerWorld` all call the patched method directly); Redstone Remote's edit-GUI slots (#287 - container/
+  screen code is identical to the untested Advanced Interface's own, which was itself blocked by #283
+  until now); Portkey's glow-after-priming (#277 - ground-truthed 1.12.2's real `hasEffect`: an *unbound*
+  Portkey glows forever by design, only a *bound* one stops - likely tested unbound). Weather Egg/Golden
+  Egg's missing thrown sprite (#205/#230) stayed unresolved - both are near-verbatim vanilla
+  `ProjectileItemEntity`+`SpriteRenderer` usage, no code difference found from vanilla's own working
+  thrown egg; possibly a sync-timing issue specific to fast/short-lived projectiles, not confirmed.
+- Full `./gradlew build -x test` clean after all fixes. Checklist rows updated in place with each fix's
+  root cause. **User asked to commit and push** - all of the above, plus every other uncommitted feature
+  bundled in the working tree at the time (Plate family/Special Chest/Sakanade removal, Spectre
+  Illuminator, Portkey + camo, Spectre Anchor, the Redstone Wireless cluster), landed on `1.14.4` as one
+  commit (`32e6f01`) and pushed to `origin/1.14.4`.
+
+**Update, 2026-09-28 (same day, later): this plan file and the project's memory notes moved into the
+repo.** User asked for Claude's plan/memories to live in repo-specific files instead of Claude Code's
+external (machine-local, not git-tracked) plan/memory storage. This file is that plan, copied over
+verbatim; a new `CLAUDE.md` at the repo root now carries the condensed workflow rules (javap-first
+verification, match 1.12.2 unless told otherwise, never commit/push without an explicit ask) that
+previously lived only in Claude's external memory. The external memory/plan files still exist but now
+just point here rather than duplicating content.
+
+**Update, 2026-09-28 (new session, cloud sandbox): continued the migration - Magnetic Enchantment,
+Block Breaker, Block Destabilizer.** This session started in a fresh cloud container with **no**
+Forge/Mojang Maven access at all (unlike the usual local dev machine) - `./gradlew build` fails
+immediately trying to resolve `ForgeGradle` itself (403 from `files.minecraftforge.net` through this
+sandbox's network policy), and there's no cached mapped jar to `javap` either. That means this
+session's own working rule (ground-truth every uncertain API against the real jar before writing code)
+could not be followed - everything below is written from strong prior knowledge of stable, long-lived
+Forge 1.14.4 APIs and cross-checked against this codebase's own already-proven usages wherever
+possible, but **none of it has been compiled or run**. Flagged per-row in `TESTING_CHECKLIST.md`
+(#288-296) and in `WIKI_FEATURE_STATUS.md`'s own note - please build and retest before trusting it.
+
+First found and pulled in a fair amount of work from three separate branches
+(`claude/worldgen-continuation-r6u8yj` fast-forwarded into `1.14.4` locally, then `origin/1.14.4` had
+already moved further ahead with the Redstone Wireless cluster/Portkey camo/Spectre Anchor batch and
+this plan file's own move into the repo) - all fast-forward, no conflicts, nothing lost.
+
+Then picked two NOT-STARTED wiki features that shared a prerequisite (a `magnetic` enchantment
+package, `enchantment/` - didn't exist in this port yet) and did both in one pass:
+- **Magnetic Enchantment**: a plain `DIGGER`-type `Enchantment` plus a `BlockEvent.HarvestDropsEvent`
+  listener that redirects a Magnetic harvester's drops straight into their inventory. Turns out this
+  needs **no coremod at all** in 1.14.4 (contrary to the wiki's own "ASM?" flag, which describes
+  1.12.2's need) - canceling that event already clears its own drop list before anything spawns.
+- **Block Breaker**: the FakePlayer-driven continuous-mining machine. Reuses the Magnetic listener
+  above instead of porting 1.12.2's own separate drop-catching path, since its FakePlayer's pickaxe is
+  itself Magnetic-enchanted. The riskiest unverified surface in this session: `FakePlayerFactory`,
+  `PlayerInteractionManager#tryHarvestBlock`, `BlockState#getPlayerRelativeBlockHardness` - all used
+  with high confidence but zero ability to confirm this build's exact method signatures.
+- **Block Destabilizer**: the BFS-flood-fill demolition machine. Real finding here: 1.12.2's own
+  `EntityFallingBlockSpecial` (listed on the wiki as "needs a new falling-entity type") turns out to
+  have been a near line-for-line copy of vanilla's own falling-block entity, apparently written only to
+  expose a public `shouldDropItem` field - which is already public and mutable on this Forge version's
+  real `net.minecraft.entity.item.FallingBlockEntity`. Spawns that directly; no new entity class needed
+  at all. Disclosed simplifications: plain text Lazy/Fuzzy toggle buttons instead of 1.12.2's custom
+  icon-toggle widget (reusing the real 1.12.2 GUI background texture at its original 85x35 size), and
+  the always-on glow overlay dropped rather than guessing at a `VertexLighterFlat`-style tint blind.
+
+Both blocks' real 1.12.2 crafting recipes, block/item models, and textures were pulled directly from
+the `origin/1.12.2` branch (`git show origin/1.12.2:<path>`) rather than reinvented, so those parts are
+exact, verified-against-source ports, not guesses - only the Java logic and the two new GUI/asset files
+(Block Destabilizer's screen text, both blocks' 1.14.4-style blockstate/model JSON restructuring) are
+new-and-unverified.
+
+**Next scoped-and-ready work, if the network/build situation doesn't improve this session:** the
+remaining NOT-STARTED wiki features left after this batch (Diaphanous Blocks, Light Redirector, Dyeing
+Machine, Magnetic Enchantment's own now-done, Spectre energy network/Spectre Key/Spectre Tools) all
+need either a generic runtime block-model renderer, a brand-new render-time item-recolor coremod, or a
+whole new energy-network/custom-dimension subsystem - all considerably higher-risk to ship blind than
+this batch was. Recommend pausing new ASM/coremod-dependent or custom-dimension work until a session
+has real build access again, and using that time instead on anything not requiring compilation
+verification (further disclosure/documentation passes, asset-only ports, etc.) if the network policy
+doesn't change.
+
+**Repo:** `D:\Projects\Clauding\Random-Things`, fork at
+[SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things). Branches: `main` is a
+landing-page-only README (no code); `1.14.4` is where all active port work lives (checked out by
+default); `master` preserves the original unmodified 1.12.2-era source as a reference/backup.
+
+**State as of 2026-09-26 (end of session):** Batch 1 and Batch 2 are functionally complete; Batch 3 is in
+progress. Since the Mixin/boots investigation below (commit `fee7645`), later sessions have also shipped
+Batch 3 slices 3-5 (Compass/Escape Rope/Chunk Analyzer/BiomeRadar, commit `13b54f6`), the Sound-pattern
+family, a Chunk Analyzer GUI/scan-bug fix, "Bug-fix pass 4" (worked `TESTING_CHECKLIST.md` top to bottom),
+and the full Imbuing/Rune deferred-subsystem batch (Rune Base half, then Imbuing Station half - see that
+section near the end of this file). **All of this work from the Sound-pattern family onward is still
+UNCOMMITTED** - only commit/push when the user explicitly asks. The rest of this "START HERE" section
+below is preserved as-written from the Mixin/boots investigation session; treat its "Next step" paragraph
+as historical, superseded by the paragraph right after it.
+
+This was a very long session on the Mixin/boots bug specifically - full
+chain of findings, in order, most important last:
+1. Fixed `TESTING_CHECKLIST.md` #76/#83/#95 (see "Testing-checklist pass, 2026-09-24 (later)").
+2. Found and fixed a real `remap = false` bug in the boots Mixin's own code (see "Mixin root cause found,
+   2026-09-25").
+3. Discovered the dev client (`runClient`) structurally cannot load Mixins at all in general - real, but
+   turned out to be secondary (see "Mixins cannot be tested in this dev environment at all, 2026-09-25").
+4. **The actual deepest root cause: this project's `build.gradle` never shipped Mixin's own
+   runtime/bootstrap library anywhere, in any environment, since the very first Mixin was added** (see
+   "The real root cause: Mixin's runtime library was never actually shipped anywhere, 2026-09-25").
+5. Fixed the dev client's crash too by bumping the project's Forge dependency to `28.2.26` (see "Dev
+   client Mixin support, partially restored, 2026-09-25") - kept, this is a genuine improvement.
+6. **Shaded Mixin's runtime into the built jar and had the user test it in their real Minecraft install -
+   this revealed a further, structural limitation: Mixin needs an `ILaunchPluginService` registered from
+   an early ModLauncher classpath scan that happens *before* the `mods` folder is even scanned, so a
+   mod's own jar can never satisfy it, only the separate `ITransformationService` half. This is a hard
+   architectural constraint (confirmed via Mixin's own source), not a bug we can fix in our code** (see
+   "Mixin's launch-plugin half cannot come from a mods-folder jar, 2026-09-25" below).
+7. **User explicitly chose to pause here rather than pursue a risky, unverified PrismLauncher
+   instance-file edit.** Reverted the runtime shading (kept the `implementation` dependency
+   *commented out*, with a detailed inline comment explaining why) so the shipped jar launches cleanly
+   again, matching the state that worked in the user's first two real-environment tests. Sent that
+   restored jar to the user.
+8. **User then asked the forward-looking question that should drive next steps: can Mixins ever be fully
+   self-contained in one drop-in jar for end users, with no separate install steps?** Answer given:
+   **no, not via SpongePowered Mixin on this Forge version** (same launch-plugin constraint from point
+   6) - **but yes via coremods** (Forge's own JS-based ASM transformer system, `META-INF/coremods.json`),
+   which this project already uses successfully and self-containedly for `transformer/VertexLighterFlat.js`.
+   **The recommended path forward, not yet started: convert `FireBlockMixin` and `SuperLubricentBootsMixin`
+   to coremods instead of SpongePowered Mixin**, eliminating the whole class of problem rather than
+   working around it. This is real, not-yet-done work - see the "Coremod conversion" note below for what
+   it'd involve.
+
+9. Batch 3 Slice 3: Golden/Emerald Compass (user's choice over the `EntitySoul` alternative) - done, see
+   "Slice 3 (done), 2026-09-25". Both compasses' actual "set a target" logic turned out to live in custom
+   crafting recipes (new `PositionFilterItem` + the already-existing `IdCardItem` from Batch 2), not the
+   item classes - ported the whole working chain. First custom `SpecialRecipe`/`IRecipeSerializer` in
+   this port, new `recipes/` package. **Tested in-game: 5/6 pass** (both compasses' wobble/bind/track
+   behaviors, plus the corner-vs-center fix). **One real bug found and fixed: `PositionFilterItem` was
+   missing its item model/texture entirely** (a genuine oversight, not created in the original slice) -
+   fixed, see "Slice 3 in-game results" in the progress log. Its crafting recipe is separately flagged
+   `NEEDS RETEST` (#136) - looks correct in the JSON, probably a Magenta-vs-Purple-dye mixup on the
+   user's end, not re-derived without confirmation.
+10. Batch 3 Slice 4: Escape Rope - done, see "Slice 4 (done), 2026-09-25". Hold right-click under open
+    sky's reach to flood-fill search for the nearest daylight and teleport there. New `util/
+    EscapeRopeHandler.java` (near-verbatim port of the original's search algorithm) plus
+    `EscapeRopeItem.java`. Caught two of my own porting mistakes by comparing line-by-line against the
+    original before calling it done (a missing `iterator.remove()` that would have leaked finished tasks
+    forever, and a `playSound` call that should exclude the traveling player but didn't) - worth noting
+    as a reminder that "compiles and looks right" isn't the same as "matches the original," especially
+    for handler classes ported by restructuring rather than copying near-verbatim. Not yet tested in-game
+    (`TESTING_CHECKLIST.md` #142-144).
+
+Nothing has been committed yet this session (per standing instruction to wait for an explicit commit
+request) - the working tree currently reflects: the #76/#83/#95 fixes, the boots' `remap` code fix (still
+correct, currently inert - can't apply without a working Mixin bootstrap), the Forge 28.2.26 bump (kept,
+beneficial), the Mixin shading *disabled* (commented out, not deleted - it's the right building block
+for a future working setup, whether that's the coremod path or a properly-configured launcher library),
+and the new Golden/Emerald Compass + Escape Rope slices (points 9-10 above, unrelated to any Mixin work -
+plain items/recipes, no Mixin involved at all).
+
+**Open items as of this update:** (1) Batch 3 Slice 4 (Escape Rope) needs an in-game test -
+`TESTING_CHECKLIST.md` #142-144. (2) Slice 3's Position Filter recipe (#136) needs a specific retest with
+`minecraft:purple_dye` - the texture half is already fixed. (3) The Mixin-to-coremod migration is scoped
+as its own roadmap item - **Batch 7, deliberately last** (see the "Batch 7 — coremod-dependent features"
+section near the end of this plan for full scope, since expanded well beyond just this) - not urgent, do the rest of the roadmap first unless
+the user asks otherwise. (4) The two `INVESTIGATING` texture rows (#76, #83) still need a retest on a
+fresh build - unrelated to any
+of the above, still open. No other untouched `FAIL` rows remain.
+
+**Testing loop:** `TESTING_CHECKLIST.md` (repo root, `1.14.4` branch) is the live testing tracker - a
+numbered table of every shippable feature
+with Pass/Fail/Feedback columns the user fills in after playing. When starting a session, check that
+file for any new `FAIL` rows first; that's almost always the next work, ahead of starting a fresh
+batch/slice. Each investigated bug gets `FIXED (round N)` or `NOT A BUG` written back into its **Result**
+column, not just a checkbox flip - keep that convention. **The root-cause writeup itself goes in
+`TESTING_NOTES.md` (repo root), under the same row number, not in the checklist's Feedback column** -
+that column was getting cluttered with investigation history when it's meant to stay free for the
+user's own test notes; see `TESTING_NOTES.md`'s own intro for the convention (2026-09-28 change, all
+prior rows' fixing notes were moved out in one pass, user feedback text left in place).
+
+**Toolchain:** `source env/activate.sh` (JDK 8) then `./gradlew build` - see "Toolchain note"/"Toolchain
+upgrade" entries in the Batch 1 progress log below for why this specific combination is required. A full
+build (not just `compileJava`) is expected to succeed before calling any slice done.
+
+**Working style established across this whole project, keep following it:** small self-contained
+slices, `javap` against the real mapped Forge jar (path in "Verification" section below) to ground-truth
+every uncertain API before writing code that uses it, real 1.12.2 textures/models copied via
+`git show origin/1.12.2:<path>` never redrawn, disclosed simplifications stated plainly in-line (both in
+commit-adjacent progress-log entries here and, where relevant, as a class-level javadoc in the code
+itself), and no scope creep into deferred subsystems (Spectre energy, Ender network, Floo network,
+wireless Redstone Interface, Rain Shield, Peace Candle worldgen, worldgen in general, potions/
+enchantments, most recipes - see the "Batch 2 is now functionally complete" and "Batch 3" survey
+sections below for the full current deferred list with reasons).
+
+**Next step (superseded - see the actual current one below):** ~~no untouched `FAIL` rows remain. ...
+Otherwise resume Batch 3 (see its section below for the next scoped-and-ready candidate, Obsidian
+Skull/Rez Stone's `EntitySoul` mini-subsystem).~~ #134 (boots) and #69/#70 (Blazing Fire catch-chance) are
+still paused pending the Batch 7 coremod conversion - don't re-attempt Mixin-side fixes without new
+information.
+
+**Actual next step as of 2026-09-26:** the Imbuing/Rune deferred-subsystem batch is now fully done (both
+halves) but entirely untested in-game - `TESTING_CHECKLIST.md` #161-179. The Floo Teleportation slice
+shipped after that (#180-192), also untested. Everything from the Sound-pattern family onward this
+session is uncommitted.
+
+**Major replanning pass, 2026-09-26 (same day, later):** the user handed over the mod's public wiki,
+exported as 100 feature JSON files, and made it this port's authoritative scope document (see "Wiki as
+authoritative scope" section below and `WIKI_FEATURE_STATUS.md` at the repo root for the full
+per-feature table). Consequences: (1) a handful of undocumented-but-already-shipped features were kept
+as deliberate exceptions (Plate family, Special Chest, Sakanade, Bottle of Air - all small and already
+working); (2) **Blood Rose was removed entirely** (new content added directly on the 1.14.4 branch,
+not 1.12.2 tech debt, not on the wiki either - didn't fit any keep-bucket); (3) a full audit of
+`ClassTransformer.java`'s 17 ASM patches was done, correcting two mistaken assumptions from the
+project's very first planning pass (Slime Cube's spawn-ALLOW problem needing a coremod was already true
+in 1.12.2 itself, not a new 1.14.4 gap; the `Block.getLightValue` patch belongs to Spectre Illuminator,
+not the lamps) - see "Corrected & consolidated ASM/coremod batch" below; (4) all ASM-derived,
+not-yet-yielding-to-a-clean-event features were consolidated into Batch 7 (expanded scope, still last)
+instead of being threaded piecemeal into whichever batch happens to own each feature.
+
+**Update, 2026-09-26 (later same day):** two real `runClient` crashes were found and fixed (see "Post-slice
+bug hunt" section) - an `@ObjectHolder`-scanned non-registry field crash and a fluid-capability-not-yet-
+registered NPE, both verified fixed via a real client boot. Then a fourth wiki-scoped slice shipped:
+Summoning Pendulum, Golden Egg/Golden Chicken, and Fluid Display (see "Fourth wiki-scoped slice" section) -
+`TESTING_CHECKLIST.md` #225-237, not yet tested in-game. `WIKI_FEATURE_STATUS.md` is now current (it had
+gone stale on five already-shipped features from earlier this session).
+
+No slice is in progress. Next scoped-and-ready candidate is whatever the user picks via the usual
+"let's do another slice" flow (now scoped strictly against `WIKI_FEATURE_STATUS.md`'s NOT STARTED
+rows), or resuming an in-game testing/bug-fixing pass over the untested rows already shipped.
+
+**Update, 2026-09-26 (later still):** a fifth and sixth wiki-scoped slice shipped after that (Artificial
+End Portal + Creative Player Interface; then Ender Bridge/Ender Anchor/Prismarine Ender Bridge, with Item
+Filter deliberately skipped as an orphaned-item scope surprise flagged to the user) - see those sections
+below. That exhausted every remaining no-ASM NOT-STARTED wiki feature; everything left needs either
+Mixin/coremod work, an enchantment system that doesn't exist yet, or touches the deferred Spectre
+subsystem. User then asked to start Batch 7. **Batch 7's original scope (Mixin→coremod conversion) is
+now DONE** - see that section for the full writeup: both Mixins converted to coremod transformers,
+verified via a real `runClient` (both new coremods load, both target classes transform with no
+`VerifyError`/`LinkageError`), and all SpongePowered Mixin infrastructure removed from the project
+entirely (no more `mixin/` package, no more Mixin Gradle plugin/dependencies). `TESTING_CHECKLIST.md`
+#69/#70 and #134/#135 flipped from BLOCKED to "unblocked, needs a fresh in-game test." Batch 7's
+*expanded* scope (the new coremod-dependent features: Slime Cube spawn-ALLOW, Peace Candle, Rain Shield,
+Redstone Interface family, Magic Hood particle-hiding, Spectre Illuminator, Special Chest worldgen
+placement) has NOT been started - the pattern is proven and ready to reuse, but none of that per-feature
+work has happened. Next step: pick one of those as its own scoped slice, same as every other batch.
+
+**Update, 2026-09-26 (later still):** Batch 7's expanded scope got its first entry too - Slime Cube
+spawn-ALLOW + Lapis Lamp spawn-prevention, both fixed by one new coremod
+(`transformer/SpawnPlacementTransformer.js`, redirecting `EntitySpawnPlacementRegistry`'s single shared
+spawn-predicate dispatch point - see "Batch 7, slice 2" for the full writeup, including a genuinely useful
+discovery: every mob's spawn-placement predicate funnels through that one method, so this same hook covers
+any future spawn-control feature too, e.g. Peace Candle's mob-suppression half). Verified via a standalone
+bytecode-verification harness (Nashorn `ScriptEngine` + real `CheckClassAdapter.verify`, since this
+particular vanilla class isn't touched during a plain `runClient` boot the way slice 1's two classes were)
+rather than just the game log. `TESTING_CHECKLIST.md` #29 and #110/#111 flipped from BLOCKED to
+"unblocked, needs a fresh in-game test." Then Batch 7, slice 3 (Magic Hood) shipped too - one coremod for
+the nametag half (`MagicHoodTransformer.js`, 6 early-exit branches instead of the usual 1), a plain
+already-existing Forge event (`PotionColorCalculationEvent`) for the particle half - the exact opposite
+split from what this plan's own "consolidated ASM/coremod batch" section guessed (it claimed the nametag
+half had a clean event and the particle half needed ASM; fresh `javap` found the reverse for this Forge
+version - see "Batch 7, slice 3" for the full note, worth re-verifying that section's other claims before
+trusting them for whichever candidate comes next). `TESTING_CHECKLIST.md` #252-255 added.
+Then Batch 7, slice 4 (Rain Shield) shipped too - new block/TE, one coremod
+(`RainShieldTransformer.js`, redirecting `World.isRainingAt` - 1.14.4 collapsed 1.12.2's two separate ASM
+entry points into this single shared method, so it needed even less than 1.12.2 did) covering the
+mechanical rain/snow suppression. **Deliberately incomplete this once**: the purely cosmetic
+client-side "rain visually still falls near the shield" half was NOT ported - `javap -c` found 1.14.4's
+rain-rendering method computes its per-column skip inline rather than through the redirected method, so
+fixing it would mean injecting inside a ~300-line rendering loop instead of wrapping a return value like
+every other Batch 7 redirect - disclosed in `TESTING_CHECKLIST.md` #261, not silently dropped. Remaining
+Batch 7 expanded-scope candidates: Peace Candle, Redstone Interface family, Spectre Illuminator, Special
+Chest worldgen placement - still not started.
+
+**Housekeeping, 2026-09-28:** at the user's request, split `TESTING_CHECKLIST.md`'s Feedback column -
+every row's own root-cause/fix-history writeup (and, per the user's explicit call, "Disclosed
+simplification" caveats too) moved out into a new `TESTING_NOTES.md` (repo root), keyed by the same row
+number, leaving the Feedback column with only the user's own test notes. No row numbers, Feature text, or
+Result statuses changed - this only moved narrative text out of one column into the new file. See the
+"Testing loop" convention note above (now updated to match) and `TESTING_NOTES.md`'s own intro for the
+new convention going forward: write fix/investigation narratives there, not in the checklist.
+
+**Fluid Display bug-fixing pass, 2026-09-28:** three real bugs found and fixed in `FluidDisplayTileEntityRenderer`/`FluidDisplayBlock` this session, all reported by the user with screenshots - see `TESTING_NOTES.md` #234 for the full writeups. (1) Empty (no fluid poured in) displays were fully invisible instead of showing the mod's own "empty tank" sprite, matching the real 1.12.2 `ModelFluidDisplay`'s fallback model - the TESR was simply returning without drawing anything in that case. (2) With a fluid poured in, the cube still rendered near-transparent - `TileEntityRendererDispatcher` doesn't reset the global GL current-color between TESRs, and this renderer's per-vertex color only multiplied against whatever was left over. (3) A neighboring opaque block (e.g. sand) touching a fluid-filled display culled its own face against it, showing a hole through to whatever's behind - `FluidDisplayBlock` never overrode `getRenderLayer()`, so it defaulted to `SOLID`, which this Forge version's face-culling (`Block#isSolid`) keys off directly regardless of the block's actual `BlockRenderType.INVISIBLE`/TESR-only rendering; fixed by overriding it to `CUTOUT`, matching vanilla `GlassBlock`. `TESTING_CHECKLIST.md` #234 flipped FAIL to FIXED - needs a fresh in-game retest of all three together.
+
+**Batch 1 GUI bug-fixing pass, 2026-09-28:** picked up two long-untouched `FAIL` rows from section 1 (#75 Online Detector, #93 Chat Detector) at the user's request - see `TESTING_NOTES.md` #75/#93 for the full writeups. Real bug found and fixed in both: `Screen#setFocusedDefault` only sets the screen's own input-routing pointer, not the text field widget's own separate internal `isFocused()` flag that `TextFieldWidget#keyPressed`/`#charTyped` actually gate on - so typing immediately after opening either GUI (without clicking into the field first) fell through to `ContainerScreen`'s close-on-inventory-keybind check instead of reaching the field, explaining both "hitting the inventory button still closes the GUI" and "doesn't save unless you hit Enter." Fixed by also calling `field.setFocused2(true)` right after `setFocusedDefault` in both screens' `init()`. `TESTING_CHECKLIST.md` #75 flipped FAIL to FIXED. #93's *other* complaint - "the buttons in the GUI are not clickable" (the consume-toggle button) - is still unresolved: traced the entire click chain (bounds, `active`/`visible`, `IPressable`, container packet handling, sync-back) against the real 1.14.4 API end to end with no bug found in static review; flipped to PARTIAL FIX with a note asking the user to confirm they're clicking the new full-width text button below the field (this port replaced 1.12.2's small top-right icon toggle with a plain button, matching this project's established icon-button-to-text-button convention) rather than where the old icon used to be. #89 (Player Interface slot mapping) and #91 (Inventory Rerouter side texture) remain untouched - not part of this pass.
+
+**Spectre Illuminator tick-lag pass, 2026-09-28:** user reported real tick lag ("Can't keep up! ... 44 ticks behind") and a multi-million-position relight backlog after placing many Spectre Illuminators, with a server log attached - see `TESTING_NOTES.md` #273 for the full writeup. Real bug found and fixed: the previously-fixed per-tick draining (256/tick) was never the actual problem - `SpectreIlluminatorRelight.queue()` itself was still materializing the *entire* padded column (up to ~185,000 individually-allocated `BlockPos` objects per illuminator) synchronously before any draining started, so a batch of illuminators settling together on world join (14 in the reported log) meant ~2 million allocations dumped into one or two ticks - that burst, not the bounded drain, is what stalled the server thread. Fixed by replacing the materialized position queue with lightweight bounds-descriptor jobs that `tick()` lazily walks - same total work, same order, same drain rate, just no longer front-loaded. `TESTING_CHECKLIST.md` #273 flipped PASS to FIXED (still functionally correct for a single illuminator; the bug was specifically about many at once) - needs a retest with the same many-illuminator setup.
+
+**Super Lubricent boat speed-cap pass, 2026-09-28:** user reported a boat on Super Lubricent Ice/Stone accelerates without bound until it crashes the game, and explicitly asked for the cap to apply to all entities - see `TESTING_NOTES.md` #31 for the full writeup. Real bug found and fixed: the existing speed cap only ran from a `LivingUpdateEvent` listener, which never fires for a `BoatEntity` (a plain `Entity`, not `LivingEntity`). Worse than the living-entity case too - ground-truthed `BoatEntity#updateMotion`: a boat ON_LAND multiplies its *existing* velocity by the underfoot block's slipperiness every tick with no offsetting term at all, so these blocks' just-above-1.0 slipperiness (chosen to exactly cancel a living entity's 0.91 friction decay) compounds unconditionally for a boat, unlike a walking entity's acceleration-vs-friction balance which at least settles toward a steady state. Fixed by adding a second, `Entity`-typed `WorldTickEvent` listener (no generic "any entity ticked" event exists in this Forge version) that sweeps the world's entities once per tick and applies the same cap to every grounded non-living entity, not just boats - matching the "for all entities" request rather than special-casing boats. `TESTING_CHECKLIST.md` #31/#136 flipped PASS to FIXED. Confirmed via a real `runClient` boot that the new listener registers cleanly with no exceptions; actual in-game boat behavior still needs a real playtest.
+
+**Same pass, corrected same day:** user reported the fix above didn't work at all - still unbounded acceleration, and even turning the boat in place ran away too. The `WorldTickEvent` sweep's `onGround` gate likely never engaged for a resting boat, and even if it had, it only ever touched linear motion - `BoatEntity`'s turn-rate field (`deltaRotation`) is `private` with no accessor, so nothing outside the class could reach it regardless, explaining the turning-specific report. **Real fix**: `Block#getSlipperiness(BlockState, IWorldReader, BlockPos, Entity)` is a real Forge per-entity extension point, and it's the exact call `BoatEntity#getBoatGlide()` makes for both `momentum` and `deltaRotation`'s multiplier - all three Super Lubricent blocks now override it to keep the true zero-friction value for everyone else but cap it to `0.989F` (vanilla `Blocks.BLUE_ICE`'s own value, ground-truthed as the highest slipperiness vanilla itself ever ships, and the material real ice-boat speedruns already treat as the proven-stable maximum) specifically for a `BoatEntity`. Fixes motion and rotation at the shared source with no listener, no `onGround` guesswork, no reflection. The now-unnecessary `WorldTickEvent` sweep was removed - no entity type other than `LivingEntity`/`BoatEntity` reads block slipperiness for movement at all. See `TESTING_NOTES.md` #31's second entry for the full writeup. Please retest.
+
+**Same pass, per explicit user request the same day:** boats should instead match how living entities already behave here - true zero friction (never decays on its own) with an external cap on top, not a slightly-lossy slipperiness value. Reverted all three blocks to unconditional zero-friction slipperiness again (no per-entity override), and brought back a boat-specific `WorldTickEvent` listener - this time not gated on `onGround` - calling a new `SuperLubricentPhysics.capBoatMotion` that clamps both linear speed (reusing the existing 0.35 blocks/tick cap) and turn rate (`deltaRotation`, reached via a lazily-cached reflective `Field`, same established pattern as `PotionMetadataUtil` elsewhere in this project, since it has no public accessor). New turn-rate cap: 15 degrees/tick, hand-picked (no vanilla/community reference value exists for this the way sprint speed does for the linear cap). Confirmed via a real `runClient` boot with no exceptions and the field name re-verified against a fresh `javap -p`. See `TESTING_NOTES.md` #31's third entry for the full writeup. Please retest.
+
+**Same pass, corrected again the same day:** user reported still completely uncapped on both moving and turning. Root cause: `WorldTickEvent` never fires for the client world at all in this Forge version - `BasicEventHooks#onPostWorldTick` hardcodes `LogicalSide.SERVER` unconditionally (confirmed from its own source), so the listener above only ever capped the server's own boat copy, never what the controlling player's client actually simulates and renders. **This exact bug already happened once before in this same file**, for `SpectreIlluminatorRelight`'s client-side draining - missed re-applying that already-documented fix here the first time. Split into two listeners: the `WorldTickEvent` one stays (server-authoritative copy), plus a new `ClientTickEvent` (`Phase.END`) listener doing the identical sweep against `Minecraft.getInstance().world.getAllEntities()`, same pattern `SpectreIlluminatorRelight` already established. Confirmed via a real `runClient` boot with no exceptions. See `TESTING_NOTES.md` #31's fourth entry. Please retest.
+
+**Same pass, per explicit user feedback the same day:** boat still "speeds up at the smallest motion" - wanted it to cruise at whatever speed instead, only capped as a ceiling. Root cause: `1F / 0.91F` isn't true zero friction for a boat - that value only cancels `LivingEntity.travel`'s own extra hardcoded `0.91` multiplier, which `BoatEntity#updateMotion` has no equivalent of (it uses `getSlipperiness()`'s return value directly as its momentum multiplier), so a boat's real momentum was `~1.0989` - genuine, if slow, exponential growth from any nonzero residual velocity. Fixed by bringing back the per-entity `getSlipperiness` override on all three blocks, this time returning exactly `1.0F` for a boat (lossless in IEEE754 - true "neither grows nor decays"), everyone else unchanged. Paddling still adds real speed normally (`controlBoat`'s per-tick nudge is additive, independent of momentum); the external `capBoatMotion` cap stays as a pure ceiling for sustained input. See `TESTING_NOTES.md` #31's fifth entry. Please retest.
+
 
 ## Batch 7 — coremod-dependent features (Mixin migration + expanded ASM-derived scope, deliberately last)
 
@@ -4282,3 +4353,206 @@ un-camouflaged case still renders correctly), #278's stale "camo is dropped" not
   `Block.Properties`/`BlockState` idioms), careful manual cross-check of each new class's signatures
   against 1.14.4 Forge/MC classes referenced elsewhere in `master`, and a final read-through diff before
   each check-in.
+
+### Batch 1 loot-table backfill (2026-09-29)
+
+Closed the known gap from Batch 2's notes: 99 new `data/randomthings/loot_tables/blocks/*.json`
+(plain self-drop + `survives_explosion`, matching 1.12.2's default `BlockBase` behavior, which never
+overrode drops for these). Checked each against `git show origin/1.12.2:` first; deliberate
+non-self-drop cases:
+- `compressed_slime_block` -> vanilla `minecraft:slime_block` (1.12.2 `getItemDropped`).
+- `colored_grass` -> dirt, or itself with Silk Touch (1.12.2 `getItemDropped` + `canSilkHarvest`).
+- `bean_sprout` -> 1 bean always, plus 2-3 more at `age=7` (1.12.2 `getDrops`).
+- **No table on purpose** (1.12.2 dropped nothing; a missing table = empty drops in 1.14.4):
+  `blazing_fire`, `floo_brick`, `rune_base`, `bean_stalk`, `lesser_bean_stalk`, `spectre_block`,
+  `spectre_core`, `diaphanous_block` (drops its camo via code), `bean_pod` (code override).
+- Chest-loot injection was done in the follow-up slice below.
+- Verified: JSON parses, `./gradlew build -x test` passes. Loot behavior itself needs in-game
+  testing (TESTING_CHECKLIST #329-#333).
+
+### Chest-loot injection (2026-09-29)
+
+`handler/LootHandler` (ported from 1.12.2), hooked via `LootTableLoadEvent` in `RandomThings`. Adds
+weighted item-or-empty pools (weight = 1.12.2's chance out of 100) to: simple_dungeon (Summoning
+Pendulum 10, Magic Hood 5, Slime Cube 10), village weaponsmith (Magic Hood 15 - 1.12.2's
+`village_blacksmith` was renamed), stronghold_corridor (Pendulum 50), jungle_temple (Slime Cube 80),
+plus a 20% Biome Crystal pool on every `minecraft:chests/*` table with a custom `LootFunction`
+tuning it to a random registered biome. Added a missing `ModItems.SUMMONING_PENDULUM` holder.
+Deliberately omitted: Lava Charm entries (item removed from the port) and Numbered Spectre Coils
+(not ported). The 1.12.2 `Worldgen` config toggles were skipped here and added in the next slice.
+Vanilla table paths are from recall (the mapped jar has no data packs) - verify in-game
+(TESTING_CHECKLIST #334-#335). `./gradlew build -x test` passes.
+
+### Config toggles (2026-09-29)
+
+New `config/RTConfig` (`ForgeConfigSpec`, `ModConfig.Type.COMMON` -> `randomthings-common.toml`,
+registered in the `RandomThings` constructor). Ports only the 1.12.2 `Worldgen`/`Features` booleans
+that have a live feature here, same names/defaults (all `true`): `worldgen.Lotus`,
+`worldgen.AncientFurnace` (checked at the top of each `Feature#place`); `loot.MagicHood`/
+`SummoningPendulum`/`BiomeCrystal`/`SlimeCube` (checked in `LootHandler`); `features.ArtificialEndPortal`
+(`EvilTearItem`); `features.MagneticEnchantment`. **Divergence:** 1.12.2 didn't register the Magnetic
+enchantment at all when off; here it stays registered (config isn't reliably loaded at registry time)
+but can't be obtained (enchanting table/books gated) and its drop-pull listener is disabled - so a
+pre-existing enchanted item stops working too, and Block Breaker's built-in Magnetic pull is disabled.
+All values are read at use time, never at registry time. Not ported (no live feature): WaterChest,
+PeaceCandle, GlowingMushrooms, LavaCharm, NumberedSpectreCoils, GoldenEgg (Pod has no egg drop yet),
+EnderAnchorChunkloading (no chunk ticket implemented), FlatRunes/HideCoordinates (visual), and the
+`Numbers` tunables (ranges/limits - a separate, larger slice touching many hardcoded values).
+`./gradlew build -x test` passes; not run in-game.
+
+### Bean Pod loot table + Glowing Mushroom worldgen (2026-09-29)
+
+- **Bean Pod**: replaced the placeholder 2-4 beans `getDrops` with a real
+  `loot_tables/blocks/bean_pod.json` (port of `beanpod.json`: iron 8-20, gold 4-15, diamond 1-5,
+  emerald 0-2, beans 4-8, one independent `survives_explosion` pool each). `PodBlock#getDrops` now
+  calls `super` and appends the Golden Egg gated by new `features.GoldenEgg` (`RTConfig.GOLDEN_EGG`,
+  1.12.2's `Features.GOLDEN_EGG`), rolling the same 1/explosion-radius chance itself.
+- **Glowing Mushroom**: new `worldgen/GlowingMushroomFeature` registered with
+  `UNDERGROUND_DECORATION` + `CHANCE_HEIGHTMAP` `ChanceConfig(4)` (= the original's `nextInt(4)==0`
+  per chunk) in `RandomThings#registerWorldgenFeatures`. The placement gives random XZ + surface Y;
+  the feature rolls the patch center's Y below `surface - 4`, then 64 tries (+-7/+-3) for an air block
+  where the mushroom is valid and `!canBlockSeeSky`, as in `WorldGenPatches`. Gated by new
+  `worldgen.GlowingMushrooms` (`RTConfig.GLOWING_MUSHROOM`). The original's Nether height check is
+  dropped (redundant with the sky check). Both need in-game testing (TESTING_CHECKLIST #339-#341).
+  `./gradlew build -x test` passes.
+
+### Colored Grass completion + Spirit config (2026-09-29)
+
+- **Grass Seeds** (`GrassSeedsItem`): `grass_seeds` + 16 `grass_seeds_<color>` items (metadata ->
+  separate items, like Rune Dust), tinted via `IRTItemColor` (1.12.2's 3512880 for plain, the block's
+  own dye tint for colored), reusing 1.12.2's `grassseeds.png`. Right-click plain `Blocks.DIRT` ->
+  grass block / `colored_grass` with the `COLOR` state; consumed unless creative. Recipes ported from
+  `grassSeeds_*.json`: Grass Block -> Grass Seeds; Grass Seeds + vanilla dye (`minecraft:<color>_dye`
+  items instead of the 1.12.2 ore-dict) -> that color.
+- **Colored Grass block**: added the missing 1.12.2 `updateTick` (revert to dirt when smothered, spread
+  to nearby dirt when lit). Silk Touch now keeps the color: `colored_grass.json` loot table has a
+  `set_nbt` `BlockStateTag` child per color (1.14.4 has no `copy_state`), and the item tint handler in
+  `RandomThings` reads that tag (`ColoredGrassBlock#getColor`). The block item stays hidden from
+  creative (unchanged). Wiki row moved PARTIAL -> DONE-UNTESTED.
+- **Spirit config**: new `[numbers]` section in `RTConfig` - `SpiritLifeTime` (400),
+  `SpiritChanceNormal` (0.01), `SpiritChanceMoonMult` (2), `SpiritChanceEndIncrease` (0.07), same
+  names/defaults as 1.12.2's `Numbers`; replaced the hardcoded constants in `RandomThings` and
+  `SpiritEntity`.
+- `./gradlew build -x test` passes; JSON validated; not run in-game (TESTING_CHECKLIST #342-#345).
+
+### Rune noise texture + FlatRunes config (2026-09-29)
+
+Removed the "disclosed simplification" from `RuneBaseTileEntityRenderer`: it now binds the real
+1.12.2 textures (`textures/block/rune_base.png` noisy, `rune_base_flat.png`, copied from
+`textures/blocks/runebase*.png`) and samples a random 2x2 (pixel) / 2x1 (strip) texel region per
+quad, tinted by the rune color, like `ModelRune`. The regions come from a `Random` seeded with the
+block position and consumed in the original's exact order (pixel, then 4 side samples; 8 draws for
+empty cells) so they're stable frame to frame. New `[visual] FlatRunes` (default `false`, as in
+1.12.2's `Features.FLAT_RUNES`) in `RTConfig` picks the flat texture. **Behavior change:** the default
+look is now the noisy texture, where the port previously always rendered flat. Textures are bound
+directly (not atlas-stitched), so the region UVs are plain 0-1 fractions. `./gradlew build -x test`
+passes; not run in-game (TESTING_CHECKLIST #346-#347).
+
+### Crafting-recipe backfill (2026-09-29)
+
+Audit found 120 port recipes vs 254 in 1.12.2 - about 45 recipes for already-ported blocks/items were
+missing (many blocks were obtainable only via creative). Diffed the 1.12.2 recipe JSONs against
+`data/randomthings/recipes/` (name-normalized, minus removed/unmigrated features) and ported the rest as
+45 new shaped recipes (list in TESTING_CHECKLIST #348-#351). Conversions:
+- Ore-dict -> Forge tags, each confirmed present in the 28.2.26 universal jar: `forge:stone`,
+  `forge:cobblestone`, `forge:glass`, `forge:glass/colorless`, `forge:slimeballs`, `forge:rods/wooden`,
+  `forge:ingots/iron`, `forge:nuggets/gold`, `forge:gems/lapis`, `forge:dyes/{red,blue}`.
+- Metadata -> vanilla 1.14 items (stonebrick 0/2/3 -> stone_bricks/cracked_/chiseled_, dye 0 ->
+  ink_sac, dye 4 -> lapis_lazuli, ingredient/beans metas -> the port's separate items).
+- **1.14.4 requires equal-width shaped rows**; 1.12.2 tolerated short rows (left-aligned). Padded on the
+  right with spaces, which keeps the original's exact (sometimes lopsided) layouts - see #352.
+- The tincture recipe's water bottle uses `forge:nbt` (`IngredientNBT`; NOT `NBTIngredient`, which
+  doesn't exist in this early build - checked with `javap`) so plain/awkward potions don't match.
+- New item: `super_lubricent_tincture` (plain item, texture/model/lang), which the Super Lubricent Boots
+  recipe needs; it had never been registered even though the wiki row said DONE.
+- Already covered before this pass and skipped: everything in code (`SpecialRecipe`s, imbuing), evil
+  tear, spectre ingot, luminous powder, platforms, etc.
+- **WILL NOT MIGRATE (user decision, 2026-09-29)**: Blackout Powder (item + its Spectre Illuminator
+  interaction), the Collapse potion/effect + brewing, the ~15 modded-ore divining rods, and any other
+  mod integrations (JEI etc.). Recipes for removed features (plates, Sakanade, Pitcher Plant, etc.)
+  intentionally not ported.
+- Verified: all JSON parses; every `randomthings:` id has a model/blockstate; `./gradlew build -x test`
+  passes. Recipes have NOT been loaded in-game - a recipe-parse error would only surface in the log at
+  world load (check for "Parsing error loading recipe" on first launch).
+
+### HideCoordinates + Block Destabilizer / Trigger Glass limits (2026-09-29)
+
+- `visual.HideCoordinates` (`RTConfig.HIDE_COORDINATES`, default false, 1.12.2's `Features.HIDE_CORDS`):
+  `PortkeyItem` tooltip shows only `<Target set>` (new lang key, from 1.12.2's `item.portkey.set`) or
+  `<No target set>` instead of dimension/XYZ; `PositionFilterItem` returns before adding anything (also
+  drops the "hold Shift" hint, like the original skipping its whole block). 1.12.2's Portkey
+  `getHighlightTip` coordinate suffix isn't ported anyway (no such hook in 1.14.4).
+- `numbers.BlockDestabilizerLimit` (default 50, `0` = unlimited, exactly 1.12.2's `Numbers.BLOCK_DESTABILIZER_LIMIT`
+  semantics) replaces the hardcoded `SEARCH_LIMIT` in `BlockDestabilizerTileEntity`.
+- `numbers.TriggerGlassChainLimit` (default 20, `0` = unlimited): **port-specific option** - 1.12.2 had
+  no limit at all; this port's own cap of 20 (added after lag reports on big Trigger Glass masses) was
+  a hardcoded `MAX_CHAIN`, now configurable via the same iterative flood fill. `0` restores the original's
+  unbounded reach, at the risk of lag on huge masses.
+- `./gradlew build -x test` passes; not run in-game (TESTING_CHECKLIST #353-#355).
+
+### Peace Candle village churches (2026-09-29)
+
+- **What shipped:** `worldgen/PeaceCandleChurchPool` (a `JigsawPattern` subclass wrapping the vanilla
+  `village/plains/houses` pool) + `data/randomthings/structures/peace_candle_church.nbt` (user-authored
+  in-game) + `worldgen.PeaceCandle` config (`RTConfig.PEACE_CANDLE`, 1.12.2's option name, default true).
+  Whenever the assembler asks the pool for candidates (`getShuffledPieces`/`getRandomPiece`), if the config
+  is on and `rand.nextInt(3) == 0` (1.12.2's own 1-in-3), vanilla's `plains_temple_4` entries are replaced
+  by our piece; otherwise the vanilla list is returned untouched, consuming no extra randomness (so config-off
+  worlds are bit-identical to vanilla). Doing the swap at pick time rather than adding a second weighted
+  entry keeps "a third of churches" exact independent of pool weights and lets the config apply per world
+  load.
+- **Why it was thought impossible, and wasn't:** the plan said 1.14.4 villages were fully data-driven jigsaw
+  data with no hook. Verified with `javap`: only the *templates* are data; the *pools* are built in
+  `PlainsVillagePools`' static initializer and registered into the public `JigsawManager.REGISTRY`
+  (`register` overwrites by name; `get` is public). `PlainsVillagePools.init()` is an empty method that
+  just forces that static init - the village generator calls it before every village - so wrapping the pool
+  once is safe. `JigsawPattern` has no getters for its piece list/behaviour, so a delegating subclass
+  (which needs none) beat reflecting into it. The piece's template is identified through
+  `SingleJigsawPiece#toString` (`Single[<location>]`), the only public read of its location.
+- **Hook timing:** `FMLServerAboutToStartEvent` on `MinecraftForge.EVENT_BUS`, idempotent (skips if the
+  registered pool is already our wrapper). Not `FMLCommonSetupEvent`: this Forge (28.2.26) has no
+  `enqueueWork`/`ParallelDispatchEvent`, the pattern registry is a plain `HashMap`, and the config isn't
+  guaranteed loaded that early. Config is read at generation time.
+- **The NBT needed a jigsaw block.** The user's first saved template had none, so it couldn't attach to a
+  village street. It's a copy of `plains_temple_4` rotated 180 degrees (door on the east side), so the
+  entrance jigsaw was added by editing the file directly at `(9,1,3)`, `facing=east`, with vanilla
+  `plains_temple_4`'s own tag (`attachement_type = minecraft:building_entrance` - sic, that is the real
+  1.14.4 spelling - `target_pool = minecraft:empty`, `final_state = minecraft:structure_void`). y=1 because
+  the user's template has an extra foundation layer at y=0 (vanilla's door layer is y=0). **If the template
+  is re-saved from a Structure Block, a Jigsaw Block must be placed at the outside of the door first
+  (facing east, name `minecraft:building_entrance`, target pool `minecraft:empty`, final state
+  `minecraft:structure_void`) or this piece will silently never connect.** Patch verified as touching exactly
+  one block by diffing the block lists before/after.
+- **Disclosed differences from 1.12.2:** (1) 1.12.2 kept the vanilla church and placed a Peace Candle block
+  inside it; this swaps in a whole custom template (explicit user design). (2) Plains villages only; other
+  biomes' churches and the zombie-village pool (which reuses `plains_temple_4` with zombie processors) are
+  untouched. (3) The piece uses no extra `StructureProcessor`s, unlike vanilla's mossify/etc. lists - the
+  template is used as authored.
+- Full `./gradlew build` (with tests) clean; jar checked to contain the class and the NBT. **Not verified
+  in-game** - villages can't be triggered headlessly here, so this is `DONE-UNTESTED` (TESTING_CHECKLIST
+  #270, #356). Still uncommitted, per standing instruction.
+
+### Ender Anchor chunk loading (2026-09-29)
+
+Investigated first: 1.12.2's `EnderAnchorChunkloading` **defaulted to true** (the old javadoc/plan note
+saying most packs leave it off was wrong), and it matters - `EnderBridgeTileEntity`'s scan skips
+unloaded chunks (`isBlockLoaded`), so a bridge steps right over an Anchor in an unloaded chunk.
+`ForgeChunkManager`/tickets don't exist in 1.14.4; the persistent equivalent is
+`ServerWorld#forceChunk` (= `/forceload`, saved in the dimension's `ForcedChunksSaveData`, reloaded on
+startup, so no ticket callback needed). A custom `TicketType` wouldn't persist and can't re-register from an
+unloaded chunk.
+
+Implemented: `handler/AnchorChunkLoader` (per-dimension `WorldSavedData` `randomthings_anchor_chunks`) tracks
+registered anchor positions and the chunks *this mod* forced. `EnderAnchorTileEntity` now ticks once
+(first server tick, deliberately not `onLoad` - forcing a chunk that is still loading would recurse into
+the chunk loader) and calls `register` (idempotent, so re-registering after every world load is safe) or, if
+the option is off, `unregister`. `EnderAnchorBlock#onReplaced` unregisters on break/replace (covers pistons and
+explosions). A chunk is released only when its last anchor leaves, and a chunk already `/forceload`ed before
+the first anchor arrived is never recorded as ours, so it stays loaded. New `[features] EnderAnchorChunkloading`
+(default `true`, as 1.12.2). Not carried over: 1.12.2's per-ticket player/mod limits (Forge's ticket caps
+had no equivalent here). Anchors placed in a world before this change register themselves on first load.
+`./gradlew build -x test` passes; not run in-game (TESTING_CHECKLIST #356-#358).
+- Follow-up (2026-09-30): `EnderAnchorBlock#addInformation` adds the tooltip "Keeps the chunk it is in loaded"
+  (lang `tooltip.randomthings.ender_anchor.chunkloading`), shown only while `EnderAnchorChunkloading` is on in the
+  local config. The Ender Bridge doesn't load chunks, so it gets no such line. First block tooltip in the port
+  (TESTING_CHECKLIST #359).

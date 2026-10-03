@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["S","I","W"],
+  "key": {
+    "S": { "tag": "forge:slimeballs" },
+    "I": { "item": "minecraft:ice" },
+    "W": { "item": "minecraft:water_bucket" }
+  },
+  "result": {
+    "item": "randomthings:super_lubricent_ice",
+    "count": 16
+  }
+}

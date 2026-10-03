@@ -45,8 +45,6 @@ import net.minecraft.util.text.TranslationTextComponent;
  * Mojang Maven hosts {@code ./gradlew build} needs) - flag for retest.
  */
 public class BlockDestabilizerTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
-    private static final int SEARCH_LIMIT = 50;
-
     private enum State {
         IDLE, SEARCHING, DROPPING;
     }
@@ -169,7 +167,9 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
      * behind untouched instead of getting swept up with it.
      */
     private void stepSearch() {
-        if (toCheck.isEmpty() || targetBlocks.size() >= SEARCH_LIMIT) {
+        int limit = lumien.randomthings.config.RTConfig.BLOCK_DESTABILIZER_LIMIT.get();
+
+        if (toCheck.isEmpty() || (limit != 0 && targetBlocks.size() >= limit)) {
             initDrop();
             return;
         }
