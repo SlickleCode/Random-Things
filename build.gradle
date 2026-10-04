@@ -33,6 +33,14 @@ minecraft {
 
             property 'forge.logging.console.level', 'debug'
 
+            // Turns on RTDebug logging + GUI screenshots for dev runs (see RTDebug.java)
+            property 'randomthings.debug', 'true'
+
+            // RT_AUTOTEST=true ./gradlew runClient -> client opens a world and runs /rtdebug allguis itself
+            // (RT_AUTOTEST_EXIT=true also quits afterwards); see client/AutoTest.java
+            property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
+            property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
+
             jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
 
             mods {

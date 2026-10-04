@@ -35,16 +35,16 @@ public class NotificationInterfaceContainer extends Container implements ISignal
         this.title = title;
         this.description = description;
 
-        this.addSlot(new SlotItemHandler(iconInventory, 0, 80, 76));
+        this.addSlot(new SlotItemHandler(iconInventory, 0, 8, 31));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 100 + row * 18));
+                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 64 + row * 18));
             }
         }
 
         for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 158));
+            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 122));
         }
     }
 

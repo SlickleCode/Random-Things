@@ -5,7 +5,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.container.ChatDetectorContainer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
@@ -25,8 +24,8 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 176;
-		this.ySize = 70;
+		this.xSize = 136;
+		this.ySize = 54;
 	}
 
 	@Override
@@ -34,7 +33,7 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	{
 		super.init();
 
-		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 20, 160, 18, "");
+		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 27, 127, 20, "");
 		this.messageField.setMaxStringLength(256);
 		this.messageField.setText(this.container.getChatMessage());
 		this.addButton(this.messageField);
@@ -47,10 +46,10 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 		// through to ContainerScreen's close-on-inventory-key check instead.
 		this.messageField.setFocused2(true);
 
-		this.addButton(new Button(this.guiLeft + 8, this.guiTop + 44, 160, 20, "", (button) -> {
+		this.addButton(new ToggleIconButton(this.guiLeft + 112, this.guiTop + 5, 20, 20, GUI_TEXTURES, 136, 0, () -> this.container.consume.get() != 0, (button) -> {
 			this.container.send(1, (pb) -> {
 			});
-		}));
+		}).setTooltip(on -> I18n.format(on ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")));
 	}
 
 	@Override
@@ -103,10 +102,13 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("gui.randomthings.chat_detector.message"), 8, 8, 0);
+		this.font.drawString(I18n.format("gui.randomthings.chat_detector.message"), 8, 6, 4210752);
 
-		boolean consume = this.container.consume.get() != 0;
-		this.buttons.get(1).setMessage(I18n.format(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no"));
+		if (this.buttons.get(1).isHovered())
+		{
+			boolean consume = this.container.consume.get() != 0;
+			this.renderTooltip(I18n.format(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no"), mouseX - this.guiLeft, mouseY - this.guiTop);
+		}
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}

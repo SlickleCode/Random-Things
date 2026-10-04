@@ -324,6 +324,7 @@
   "gui.randomthings.advanced_item_collector.range_z": "Z Radius: %s",
   "gui.randomthings.notification_interface.title": "Title",
   "gui.randomthings.notification_interface.description": "Description",
+  "gui.randomthings.notification_interface.icon": "Icon",
   "gui.randomthings.global_chat_detector.message": "Chat Message",
   "item.randomthings.summoning_pendulum": "Summoning Pendulum",
   "tooltip.randomthings.summoning_pendulum.entity_count.singular": "§5Holding %d Entity",

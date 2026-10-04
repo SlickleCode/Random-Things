@@ -23,8 +23,8 @@ public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 90;
-		this.ySize = 46;
+		this.xSize = 78;
+		this.ySize = 50;
 	}
 
 	@Override
@@ -32,10 +32,10 @@ public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 5, this.guiTop + 15, 10, 10, "-", (button) -> {
+		this.addButton(new Button(this.guiLeft + 5, this.guiTop + 20, 20, 20, "<", (button) -> {
 			this.container.send(0, (pb) -> pb.writeInt(0));
 		}));
-		this.addButton(new Button(this.guiLeft + 5 + 70, this.guiTop + 15, 10, 10, "+", (button) -> {
+		this.addButton(new Button(this.guiLeft + 55, this.guiTop + 20, 20, 20, ">", (button) -> {
 			this.container.send(0, (pb) -> pb.writeInt(1));
 		}));
 	}
@@ -45,10 +45,10 @@ public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("gui.randomthings.analog_emitter.level"), 8, 5, 0);
+		this.font.drawString(I18n.format("block.randomthings.analog_emitter"), 4, 6, 4210752);
 
 		String levelString = this.container.emitLevel.get() + "";
-		this.font.drawString(levelString, xSize / 2 - this.font.getStringWidth(levelString) / 2, 16, 0);
+		this.font.drawString(levelString, xSize / 2 - this.font.getStringWidth(levelString) / 2 + 3, 26, 0xFF0000);
 
 		for (Widget widget : this.buttons)
 		{

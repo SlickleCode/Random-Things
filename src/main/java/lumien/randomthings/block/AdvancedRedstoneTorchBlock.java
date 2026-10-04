@@ -108,6 +108,11 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 
 	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
+		// Found by /rtdebug allguis (2026-10-03): without this the tile entity was never removed when the
+		// torch was broken/replaced, so it lingered at that position and a different tile-entity block
+		// placed there (e.g. an Analog Emitter) got this stale torch tile entity instead of its own.
+		super.onReplaced(state, worldIn, pos, newState, isMoving);
+
 		if (!isMoving)
 		{
 			for (Direction direction : Direction.values())

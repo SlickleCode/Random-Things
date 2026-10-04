@@ -37,25 +37,31 @@ public class IronDropperScreen extends ContainerScreen<IronDropperContainer>
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 120, this.guiTop + 5, 50, 20, "", (button) -> {
+		// Sprite buttons, positions/sheets from 1.12.2's GuiIronDropper (2x2 grid at x125/150, y16/41)
+		this.addButton(new SpriteStateButton(this.guiLeft + 125, this.guiTop + 16, 20, 20, tex("redstone_mode"), () -> this.container.redstoneMode.get(), state -> redstoneModeLabel(REDSTONE_MODE.values()[state]), (button) -> {
 			this.container.send(0, (pb) -> {
 			});
 		}));
 
-		this.addButton(new Button(this.guiLeft + 120, this.guiTop + 27, 50, 20, "", (button) -> {
+		this.addButton(new SpriteStateButton(this.guiLeft + 150, this.guiTop + 16, 20, 20, tex("pickup_delay"), () -> this.container.pickupDelay.get(), state -> pickupDelayLabel(PICKUP_DELAY.values()[state]), (button) -> {
 			this.container.send(1, (pb) -> {
 			});
 		}));
 
-		this.addButton(new Button(this.guiLeft + 120, this.guiTop + 49, 50, 20, "", (button) -> {
+		this.addButton(new SpriteStateButton(this.guiLeft + 125, this.guiTop + 41, 20, 20, tex("random_motion"), () -> this.container.randomMotion.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.randomthings.iron_dropper.motion_random" : "gui.randomthings.iron_dropper.motion_straight"), (button) -> {
 			this.container.send(2, (pb) -> {
 			});
 		}));
 
-		this.addButton(new Button(this.guiLeft + 120, this.guiTop + 71, 50, 20, "", (button) -> {
+		this.addButton(new SpriteStateButton(this.guiLeft + 150, this.guiTop + 41, 20, 20, tex("effects"), () -> this.container.effects.get(), state -> effectsLabel(EFFECTS.values()[state]), (button) -> {
 			this.container.send(3, (pb) -> {
 			});
 		}));
+	}
+
+	private static ResourceLocation tex(String name)
+	{
+		return new ResourceLocation("randomthings:textures/gui/iron_dropper/" + name + ".png");
 	}
 
 	private static String redstoneModeLabel(REDSTONE_MODE mode)
@@ -105,16 +111,8 @@ public class IronDropperScreen extends ContainerScreen<IronDropperContainer>
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		REDSTONE_MODE mode = REDSTONE_MODE.values()[this.container.redstoneMode.get()];
-		this.buttons.get(0).setMessage(redstoneModeLabel(mode));
-
-		PICKUP_DELAY delay = PICKUP_DELAY.values()[this.container.pickupDelay.get()];
-		this.buttons.get(1).setMessage(pickupDelayLabel(delay));
-
-		this.buttons.get(2).setMessage(this.container.randomMotion.get() != 0 ? I18n.format("gui.randomthings.iron_dropper.motion_random") : I18n.format("gui.randomthings.iron_dropper.motion_straight"));
-
-		EFFECTS effects = EFFECTS.values()[this.container.effects.get()];
-		this.buttons.get(3).setMessage(effectsLabel(effects));
+		this.font.drawString(this.title.getString(), 8, 6, 4210752);
+		SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}

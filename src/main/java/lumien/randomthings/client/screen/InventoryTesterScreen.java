@@ -32,7 +32,8 @@ public class InventoryTesterScreen extends ContainerScreen<InventoryTesterContai
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 93, this.guiTop + 16, 60, 20, "", (button) -> {
+		// 20x20 sprite toggle at the original position (93,16)
+		this.addButton(new SpriteStateButton(this.guiLeft + 93, this.guiTop + 16, 20, 20, new net.minecraft.util.ResourceLocation("randomthings:textures/gui/inventory_tester/invert_signal.png"), () -> this.container.invertSignal.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"), (button) -> {
 			this.container.send(0, (pb) -> {
 			});
 		}));
@@ -41,11 +42,10 @@ public class InventoryTesterScreen extends ContainerScreen<InventoryTesterContai
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
 	{
+		this.font.drawString(I18n.format("block.randomthings.inventory_tester"), 33, 6, 4210752);
+		SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
+
 		RenderHelper.disableStandardItemLighting();
-
-		boolean inverted = this.container.invertSignal.get() != 0;
-		this.buttons.get(0).setMessage(I18n.format(inverted ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"));
-
 		RenderHelper.enableGUIStandardItemLighting();
 	}
 

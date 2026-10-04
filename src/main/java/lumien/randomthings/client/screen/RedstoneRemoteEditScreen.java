@@ -4,22 +4,23 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.RedstoneRemoteEditContainer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 
 /**
- * RedstoneRemoteEditScreen - same 9-Position-Filter-row-plus-inventory
- * layout/texture as {@link AdvancedRedstoneInterfaceScreen}.
+ * RedstoneRemoteEditScreen - a row of 9 Position Filter slots, a row of 9 ghost camo-icon slots
+ * beneath it, and the player inventory (1.12.2's redstoneremoteedit.png layout).
  */
 public class RedstoneRemoteEditScreen extends ContainerScreen<RedstoneRemoteEditContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_interface/advanced.png");
+    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_edit.png");
 
     public RedstoneRemoteEditScreen(RedstoneRemoteEditContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
         super(screenContainer, inv, titleIn);
 
         this.xSize = 176;
-        this.ySize = 133;
+        this.ySize = 150;
     }
 
     @Override
@@ -39,6 +40,7 @@ public class RedstoneRemoteEditScreen extends ContainerScreen<RedstoneRemoteEdit
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         this.font.drawString(this.title.getString(), 8, 6, 4210752);
+        this.font.drawString(I18n.format("container.inventory"), 8, this.ySize - 95 + 2, 4210752);
     }
 
     @Override

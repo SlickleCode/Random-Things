@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.container.BlockDestabilizerContainer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.widget.button.Button;
@@ -29,30 +31,34 @@ public class BlockDestabilizerScreen extends ContainerScreen<BlockDestabilizerCo
     protected void init() {
         super.init();
 
-        this.addButton(new Button(this.guiLeft + 3, this.guiTop + 7, 26, 20, "", (button) -> {
+        // Sprite buttons at the original GuiBlockDestabilizer's positions (7/33/58, y7)
+        this.addButton(new SpriteStateButton(this.guiLeft + 7, this.guiTop + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/lazy.png"), () -> this.container.lazy.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"), (button) -> {
             this.container.send(0, (pb) -> {
             });
         }));
 
-        this.addButton(new Button(this.guiLeft + 30, this.guiTop + 7, 26, 20, "", (button) -> {
+        this.addButton(new SpriteStateButton(this.guiLeft + 33, this.guiTop + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/fuzzy.png"), () -> this.container.fuzzy.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"), (button) -> {
             this.container.send(1, (pb) -> {
             });
         }));
 
-        this.addButton(new Button(this.guiLeft + 57, this.guiTop + 7, 26, 20, I18n.format("gui.block_destabilizer.reset"), (button) -> {
+        // Reset: the 20x20 sprite at (85,0) of the GUI texture, hover variant 20px lower
+        this.addButton(new SpriteStateButton(this.guiLeft + 58, this.guiTop + 7, 20, 20, GUI_TEXTURES, () -> 0, state -> I18n.format("gui.block_destabilizer.reset"), (button) -> {
             this.container.send(2, (pb) -> {
             });
-        }));
+        }) {
+            @Override
+            public void renderButton(int mouseX, int mouseY, float partialTicks) {
+                Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURES);
+                GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+                this.blit(this.x, this.y, 85, this.isHovered() ? 20 : 0, 20, 20);
+            }
+        });
     }
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        RenderHelper.disableStandardItemLighting();
-
-        this.buttons.get(0).setMessage(I18n.format(this.container.lazy.get() != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"));
-        this.buttons.get(1).setMessage(I18n.format(this.container.fuzzy.get() != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"));
-
-        RenderHelper.enableGUIStandardItemLighting();
+        SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
     }
 
     @Override

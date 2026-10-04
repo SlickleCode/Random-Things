@@ -26,7 +26,7 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 		super(screenContainer, inv, titleIn);
 
 		this.xSize = 176;
-		this.ySize = 182;
+		this.ySize = 146;
 	}
 
 	@Override
@@ -34,12 +34,12 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	{
 		super.init();
 
-		this.titleField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 18, 160, 18, "");
+		this.titleField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 18, 130, 15, "");
 		this.titleField.setMaxStringLength(64);
 		this.titleField.setText(this.container.getTitle());
 		this.addButton(this.titleField);
 
-		this.descriptionField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 52, 160, 18, "");
+		this.descriptionField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 40, 130, 15, "");
 		this.descriptionField.setMaxStringLength(256);
 		this.descriptionField.setText(this.container.getDescription());
 		this.addButton(this.descriptionField);
@@ -104,8 +104,9 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("gui.randomthings.notification_interface.title"), 8, 6, 0);
-		this.font.drawString(I18n.format("gui.randomthings.notification_interface.description"), 8, 40, 0);
+		this.font.drawString(this.title.getString(), 8, 6, 4210752);
+		// label for the icon slot (x8,y31): the item shown in the notification toast
+		this.font.drawString(I18n.format("gui.randomthings.notification_interface.icon"), 8, 21, 4210752);
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}

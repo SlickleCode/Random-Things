@@ -22,13 +22,8 @@ import net.minecraftforge.fml.network.NetworkHooks;
  * this item's own NBT, not a tile entity); plain right-click opens a row of
  * buttons, one per bound target, to fire a strength-15 pulse at it (via
  * {@link lumien.randomthings.network.messages.RedstoneRemoteActivateMessage}).
- * Direct port of 1.12.2's {@code ItemRedstoneRemote}, with one disclosed
- * simplification: the original's "edit" screen had a second row of ghost/
- * camo-icon slots letting you override each button's icon with an arbitrary
- * item - purely cosmetic (the button's function is unaffected either way,
- * confirmed by reading 1.12.2's own fallback: "if no camo, use the Position
- * Filter's own icon"), so this port always shows the Position Filter's own
- * icon and drops that extra row.
+ * Direct port of 1.12.2's {@code ItemRedstoneRemote}, including the edit screen's second row of
+ * ghost camo-icon slots (stored under {@code camo}) that override each button's icon.
  */
 public class RedstoneRemoteItem extends Item {
     public RedstoneRemoteItem(Item.Properties properties) {

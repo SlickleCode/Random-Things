@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AdvancedRedstoneInterfaceContainer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
@@ -40,6 +41,7 @@ public class AdvancedRedstoneInterfaceScreen extends ContainerScreen<AdvancedRed
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         this.font.drawString(this.title.getString(), 8, 6, 4210752);
+        this.font.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
     }
 
     @Override

@@ -36,6 +36,24 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         this.setRenderSelection(false);
     }
 
+    /**
+     * Found via the debug GUI screenshots 2026-10-03: {@code AbstractList.getRowWidth()} defaults to
+     * a hardcoded 220 (vanilla's full-screen list width) and {@code getScrollbarPosition()} to
+     * {@code width / 2 + 124} measured from the screen's left edge, so rows were centered on a 220px
+     * column (icons spilled out of the GUI's left edge) and the scrollbar drew through the middle of
+     * the text. The list is laid out like 1.12.2's {@code GuiScanResultList}: rows start at the
+     * list's own left edge and the scrollbar sits on its right edge.
+     */
+    @Override
+    public int getRowWidth() {
+        return this.width;
+    }
+
+    @Override
+    protected int getScrollbarPosition() {
+        return this.x0 + this.width - 6;
+    }
+
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
         GlStateManager.disableLighting();
@@ -44,7 +62,12 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
 
+        // Rows scrolled past the top/bottom must be clipped to the list's own box (1.12.2's
+        // GuiScanResultList glScissor'd the same way) - otherwise they draw over the title,
+        // the Scan button and below the GUI (reported 2026-10-03).
+        ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
         this.renderList(rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        ListClip.end();
 
         renderScrollbar();
     }

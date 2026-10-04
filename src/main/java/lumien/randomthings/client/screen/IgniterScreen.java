@@ -23,8 +23,8 @@ public class IgniterScreen extends ContainerScreen<IgniterContainer>
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 100;
-		this.ySize = 46;
+		this.xSize = 78;
+		this.ySize = 50;
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class IgniterScreen extends ContainerScreen<IgniterContainer>
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 10, this.guiTop + 15, 80, 20, "", (button) -> {
+		this.addButton(new Button(this.guiLeft + 5, this.guiTop + 4, 68, 20, "", (button) -> {
 			this.container.send(0, (pb) -> {
 			});
 		}));

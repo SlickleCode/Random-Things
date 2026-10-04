@@ -23,7 +23,7 @@ public class AdvancedItemCollectorScreen extends ContainerScreen<AdvancedItemCol
 		super(screenContainer, inv, titleIn);
 
 		this.xSize = 176;
-		this.ySize = 166;
+		this.ySize = 235;
 	}
 
 	@Override
@@ -31,19 +31,19 @@ public class AdvancedItemCollectorScreen extends ContainerScreen<AdvancedItemCol
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 20, 10, 10, "-", (b) -> this.container.send(0, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 29, this.guiTop + 20, 20, 20, "-", (b) -> this.container.send(0, (pb) -> {
 		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 20, 10, 10, "+", (b) -> this.container.send(1, (pb) -> {
-		})));
-
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 40, 10, 10, "-", (b) -> this.container.send(2, (pb) -> {
-		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 40, 10, 10, "+", (b) -> this.container.send(3, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 20, 20, 20, "+", (b) -> this.container.send(1, (pb) -> {
 		})));
 
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 60, 10, 10, "-", (b) -> this.container.send(4, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 29, this.guiTop + 45, 20, 20, "-", (b) -> this.container.send(2, (pb) -> {
 		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 60, 10, 10, "+", (b) -> this.container.send(5, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 45, 20, 20, "+", (b) -> this.container.send(3, (pb) -> {
+		})));
+
+		this.addButton(new Button(this.guiLeft + 29, this.guiTop + 70, 20, 20, "-", (b) -> this.container.send(4, (pb) -> {
+		})));
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 70, 20, 20, "+", (b) -> this.container.send(5, (pb) -> {
 		})));
 	}
 
@@ -52,16 +52,16 @@ public class AdvancedItemCollectorScreen extends ContainerScreen<AdvancedItemCol
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("block.randomthings.advanced_item_collector"), 8, 6, 0);
+		this.font.drawString(I18n.format("block.randomthings.advanced_item_collector"), 22, 6, 4210752);
 
 		String radiusX = I18n.format("gui.randomthings.advanced_item_collector.range_x", this.container.rangeX.get());
-		this.font.drawString(radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 21, 0);
+		this.font.drawString(radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 26, 4210752);
 
 		String radiusY = I18n.format("gui.randomthings.advanced_item_collector.range_y", this.container.rangeY.get());
-		this.font.drawString(radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 41, 0);
+		this.font.drawString(radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 51, 4210752);
 
 		String radiusZ = I18n.format("gui.randomthings.advanced_item_collector.range_z", this.container.rangeZ.get());
-		this.font.drawString(radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 61, 0);
+		this.font.drawString(radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 76, 4210752);
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}

@@ -41,20 +41,20 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 
 		for (int i = 0; i < 9; i++)
 		{
-			this.addSlot(new SlotItemHandler(idCardInventory, i, 8 + i * 18, 62));
+			this.addSlot(new SlotItemHandler(idCardInventory, i, 8 + i * 18, 40));
 		}
 
 		for (int row = 0; row < 3; row++)
 		{
 			for (int col = 0; col < 9; col++)
 			{
-				this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 98 + row * 18));
+				this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 75 + row * 18));
 			}
 		}
 
 		for (int col = 0; col < 9; col++)
 		{
-			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 156));
+			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 133));
 		}
 
 		this.trackInt(consume);

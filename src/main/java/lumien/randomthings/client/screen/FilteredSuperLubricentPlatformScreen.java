@@ -20,7 +20,13 @@ public class FilteredSuperLubricentPlatformScreen extends ContainerScreen<Filter
 		super(screenContainer, inv, titleIn);
 
 		this.xSize = 176;
-		this.ySize = 133;
+		this.ySize = 129;
+	}
+
+	@Override
+	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
+	{
+		this.font.drawString(net.minecraft.client.resources.I18n.format("container.inventory"), 8, 37, 4210752);
 	}
 
 	@Override

@@ -24,6 +24,7 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         super(client, width, height, top, bottom, 14);
 
         this.setLeftPos(left);
+        this.setRenderSelection(false);
 
         this.onSelect = onSelect;
 
@@ -63,7 +64,9 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
 
+        ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
         this.renderList(rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        ListClip.end();
     }
 
     public class SoundNameEntry extends ExtendedList.AbstractListEntry<SoundNameEntry> {
@@ -76,8 +79,26 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         @Override
         public void render(int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             net.minecraft.client.gui.FontRenderer font = Minecraft.getInstance().fontRenderer;
-            String trimmed = font.trimStringToWidth(sound, width - 4);
-            font.drawString(trimmed, left + 2, top + 2, isMouseOver ? 0xFFFF00 : 0xFFFFFF);
+
+            // Dark text on the GUI's light-gray panel (white was nearly invisible there - found via
+            // the debug GUI screenshots 2026-10-03); hovered rows get a dark highlight bar + white
+            // text so it's obvious they're clickable. Sound ids can be wider than the list, so the
+            // text is shrunk to fit (down to half size) instead of being cut off mid-id, and the
+            // bar always spans the full row.
+            if (isMouseOver) {
+                net.minecraft.client.gui.AbstractGui.fill(left, top - 2, left + width, top + height + 2, 0xFF404040);
+            }
+
+            int available = width - 4;
+            int textWidth = font.getStringWidth(sound);
+            float scale = textWidth > available ? Math.max(0.5F, (float) available / textWidth) : 1.0F;
+            String shown = font.getStringWidth(sound) * scale > available ? font.trimStringToWidth(sound, (int) (available / scale)) : sound;
+
+            com.mojang.blaze3d.platform.GlStateManager.pushMatrix();
+            com.mojang.blaze3d.platform.GlStateManager.translatef(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0F);
+            com.mojang.blaze3d.platform.GlStateManager.scalef(scale, scale, 1.0F);
+            font.drawString(shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
+            com.mojang.blaze3d.platform.GlStateManager.popMatrix();
         }
 
         @Override

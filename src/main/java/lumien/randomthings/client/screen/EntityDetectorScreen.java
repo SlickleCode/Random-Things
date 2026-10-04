@@ -49,14 +49,16 @@ public class EntityDetectorScreen extends ContainerScreen<EntityDetectorContaine
 		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 65, 10, 10, "+", (b) -> this.container.send(5, (pb) -> {
 		})));
 
-		this.addButton(new Button(this.guiLeft + 20, this.guiTop + 93, 70, 16, "", (b) -> this.container.send(6, (pb) -> {
+		// 1.12.2 layout: filter text button 70x16 at (20,95); the two 20x20 sprite toggles
+		// (invert at 92, strong output at 115, both y93) come from the GUI texture at (176,0)/(216,0)
+		this.addButton(new Button(this.guiLeft + 20, this.guiTop + 95, 70, 16, "", (b) -> this.container.send(6, (pb) -> {
 		})));
 
-		this.addButton(new Button(this.guiLeft + 92, this.guiTop + 93, 30, 20, "", (b) -> this.container.send(7, (pb) -> {
-		})));
+		this.addButton(new ToggleIconButton(this.guiLeft + 92, this.guiTop + 93, 20, 20, GUI_TEXTURES, 176, 0, () -> this.container.invert.get() != 0, (b) -> this.container.send(7, (pb) -> {
+		})).setTooltip(on -> I18n.format(on ? "gui.randomthings.entity_detector.inverted" : "gui.randomthings.entity_detector.normal")));
 
-		this.addButton(new Button(this.guiLeft + 115, this.guiTop + 93, 30, 20, "", (b) -> this.container.send(8, (pb) -> {
-		})));
+		this.addButton(new ToggleIconButton(this.guiLeft + 115, this.guiTop + 93, 20, 20, GUI_TEXTURES, 216, 0, () -> this.container.strongOutput.get() != 0, (b) -> this.container.send(8, (pb) -> {
+		})).setTooltip(on -> I18n.format(on ? "gui.randomthings.entity_detector.strong" : "gui.randomthings.entity_detector.weak")));
 	}
 
 	private static String filterLabel(FILTER filter)
@@ -69,25 +71,21 @@ public class EntityDetectorScreen extends ContainerScreen<EntityDetectorContaine
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("block.randomthings.entity_detector"), 22, 6, 0);
+		this.font.drawString(I18n.format("block.randomthings.entity_detector"), 22, 6, 4210752);
 
 		String radiusX = I18n.format("gui.randomthings.entity_detector.range_x", this.container.rangeX.get());
-		this.font.drawString(radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 26, 0);
+		this.font.drawString(radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 26, 4210752);
 
 		String radiusY = I18n.format("gui.randomthings.entity_detector.range_y", this.container.rangeY.get());
-		this.font.drawString(radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 46, 0);
+		this.font.drawString(radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 46, 4210752);
 
 		String radiusZ = I18n.format("gui.randomthings.entity_detector.range_z", this.container.rangeZ.get());
-		this.font.drawString(radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 66, 0);
+		this.font.drawString(radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 66, 4210752);
 
 		FILTER filter = FILTER.values()[this.container.filter.get()];
 		this.buttons.get(6).setMessage(filterLabel(filter));
 
-		boolean invert = this.container.invert.get() != 0;
-		this.buttons.get(7).setMessage(I18n.format(invert ? "gui.randomthings.entity_detector.inverted" : "gui.randomthings.entity_detector.normal"));
-
-		boolean strong = this.container.strongOutput.get() != 0;
-		this.buttons.get(8).setMessage(I18n.format(strong ? "gui.randomthings.entity_detector.strong" : "gui.randomthings.entity_detector.weak"));
+		SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}

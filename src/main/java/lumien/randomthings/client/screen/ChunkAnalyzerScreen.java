@@ -83,6 +83,20 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
         this.blit(x, y, 0, 0, this.xSize, this.ySize);
     }
 
+    /**
+     * {@code ContainerScreen.mouseDragged} never calls up to {@code Screen.mouseDragged}, so drags
+     * are not forwarded to child widgets - without this the result list's scrollbar could be
+     * clicked but never dragged (reported 2026-10-03).
+     */
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.scanResultList.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+            return true;
+        }
+
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
         this.renderBackground();

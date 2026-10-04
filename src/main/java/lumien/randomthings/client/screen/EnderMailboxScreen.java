@@ -26,7 +26,7 @@ public class EnderMailboxScreen extends ContainerScreen<EnderMailboxContainer> {
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         this.font.drawString(I18n.format("block.randomthings.ender_mailbox"), 8, 6, 4210752);
-        this.font.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
+        this.font.drawString(I18n.format("container.inventory"), 8, 40, 4210752);
     }
 
     @Override

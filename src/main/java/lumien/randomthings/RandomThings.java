@@ -110,6 +110,7 @@ public class RandomThings {
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
         MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install());
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerStartingEvent event) -> lumien.randomthings.debug.RTDebugCommand.register(event.getCommandDispatcher()));
 
         MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
             ItemUseContext context = event.getContext();
@@ -741,6 +742,7 @@ public class RandomThings {
     }
 
     private void setupCommon(final FMLCommonSetupEvent event) {
+        lumien.randomthings.debug.RTDebug.log("Common setup starting (debug logging enabled, GUI screenshots: {})", lumien.randomthings.debug.RTDebug.isGuiScreenshots());
         AsmHandler.modBlockLight(0F, 1);
         RTPacketHandler.register();
 

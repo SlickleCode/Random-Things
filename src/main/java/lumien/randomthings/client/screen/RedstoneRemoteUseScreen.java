@@ -18,9 +18,8 @@ import net.minecraftforge.items.ItemStackHandler;
  * RedstoneRemoteUseScreen - one button per bound Position Filter slot,
  * firing a pulse at its stored target on press. Reads the held remote's own
  * NBT directly (always available locally, no server round-trip needed), and
- * uses plain text buttons rather than item-icon ones, matching {@link
- * EntityDetectorScreen}'s already-established "text button instead of icon
- * sprite" convention in this port.
+ * draws each button as an {@link ItemSlotButton}: the camo item chosen in the
+ * Redstone Remote's edit screen, or the Position Filter's own icon if none.
  */
 public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_use.png");
@@ -45,6 +44,12 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
         ItemStackHandler positionInventory = new ItemStackHandler(9);
         positionInventory.deserializeNBT(remoteStack.getTag().getCompound("positions"));
 
+        ItemStackHandler camoInventory = new ItemStackHandler(9);
+
+        if (remoteStack.getTag().contains("camo")) {
+            camoInventory.deserializeNBT(remoteStack.getTag().getCompound("camo"));
+        }
+
         for (int i = 0; i < 9; i++) {
             ItemStack positionFilter = positionInventory.getStackInSlot(i);
 
@@ -52,10 +57,14 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
                 continue;
             }
 
+            // 1.12.2: the button shows the camo item if one is set, else the Position Filter itself;
+            // the tooltip is the Position Filter's custom (anvil) name, if it has one
+            ItemStack camo = camoInventory.getStackInSlot(i);
+            ItemStack icon = camo.isEmpty() ? positionFilter : camo;
+            String name = positionFilter.hasDisplayName() ? positionFilter.getDisplayName().getString() : null;
             int slot = i;
-            String label = positionFilter.getDisplayName().getString();
 
-            this.addButton(new Button(this.guiLeft + 5 + i * 20, this.guiTop + 17, 18, 18, label.length() > 3 ? label.substring(0, 3) : label, (b) -> {
+            this.addButton(new ItemSlotButton(this.guiLeft + 5 + i * 20, this.guiTop + 17, icon.copy(), name, (b) -> {
                 RTPacketHandler.sendToServer(new RedstoneRemoteActivateMessage(slot));
             }));
         }
@@ -87,6 +96,7 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         this.font.drawString(this.title.getString(), 8, 6, 4210752);
+        SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
     }
 
     @Override

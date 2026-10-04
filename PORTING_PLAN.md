@@ -16,6 +16,16 @@ default); `master` preserves the original unmodified 1.12.2-era source as a refe
 
 ### Where things stand (as of 2026-09-29)
 
+- **Debug tooling (2026-10-03):** `randomthings-common.toml` `[debug]` section: `DebugLogging` (extra
+  `[RT-DEBUG]` INFO lines via `RTDebug.log(...)` - use it for new diagnostics) and `DebugGuiScreenshots`
+  (client: `client/GuiDebugScreenshots` saves a PNG of every Random Things screen 5 frames after it opens
+  to `<game dir>/screenshots/randomthings_debug/`). Both default off. With debug on, `/rtdebug gui <id> [sneak]`
+  (op level 2; `debug/RTDebugCommand`) opens the GUI of any randomthings block (placed 3 blocks ahead and
+  activated) or item (put in main hand and used) as a right-click would - `sneak` for e.g. the Redstone Remote edit screen. `/rtdebug allguis [delayTicks]` opens all 28 in turn (cleans up after itself). `RT_AUTOTEST=true ./gradlew runClient` (optionally `RT_AUTOTEST_EXIT=true`) makes the client open/create a creative flat world "RTAutoTest" and run it hands-free (`client/AutoTest`).
+- **Found by `/rtdebug allguis` (2026-10-03):** `AdvancedRedstoneTorchBlock.onReplaced` never called `super`, so its tile entity
+  lingered after the torch was broken/replaced and a different tile-entity block placed there got the stale torch TE (fixed). The
+  Ender Mailbox only opens for its owner (set on placement) - the debug command now runs placement hooks. Inventory Tester now uses
+  the original 20x20 sprite toggle (its text button overflowed the panel).
 - **2026-10-03 testing-pass changes:** Biome Glass, Biome Stone (x5) and Inventory Rerouter were
   **deliberately removed** at the user's request (checklist #54/#55/#91/#92 = `REMOVED`; wiki rows marked
   REMOVED) - don't re-port them. Fixed: thrown Weather/Golden Egg sprites (missing
@@ -2434,6 +2444,7 @@ resolution (need more repro detail from the user).
   slots at all - reads the held stack's NBT directly client-side, same as 1.12.2's own
   `ContainerEmptyContainer` approach) + `RedstoneRemoteActivateMessage` (new network message).
 - **Disclosed simplification**: dropped 1.12.2's Redstone Remote "edit" GUI's second row of ghost/camo-
+  **REVERSED 2026-10-03 at the user's request - no more simplification:** the camo row is implemented (second row of 9 ghost slots stored under NBT `camo`; `ItemSlotButton` in the Use screen shows the camo item, else the Position Filter's icon, tooltip = Position Filter's custom name; Edit screen uses 1.12.2's redstoneremoteedit.png at ySize 150).
   icon slots (cosmetic only - even in 1.12.2, a button's own function never depended on its icon, only on
   the Position Filter's stored coordinates) and its item-icon buttons on the "use" screen, using plain
   text buttons instead - matches this port's own already-established `EntityDetectorScreen` precedent of

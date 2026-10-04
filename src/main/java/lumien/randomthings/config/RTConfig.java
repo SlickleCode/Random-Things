@@ -31,6 +31,9 @@ public class RTConfig
 	public static final BooleanValue FLAT_RUNES;
 	public static final BooleanValue HIDE_COORDINATES;
 
+	public static final BooleanValue DEBUG_LOGGING;
+	public static final BooleanValue DEBUG_GUI_SCREENSHOTS;
+
 	public static final ForgeConfigSpec.IntValue BLOCK_DESTABILIZER_LIMIT;
 	public static final ForgeConfigSpec.IntValue TRIGGER_GLASS_CHAIN_LIMIT;
 
@@ -76,6 +79,11 @@ public class RTConfig
 		SPIRIT_CHANCE_NORMAL = b.comment("The base chance of a spirit spawning when an entity dies (0.01 = 1%)").defineInRange("SpiritChanceNormal", 0.01, 0.0, 1.0);
 		SPIRIT_CHANCE_MOON_MULT = b.comment("How much does the moon increase the chance of a spirit spawning (only at night under open sky, scaled by the moon phase)").defineInRange("SpiritChanceMoonMult", 2.0, 0.0, 1000.0);
 		SPIRIT_CHANCE_END_INCREASE = b.comment("How much does the chance of a spirit spawning increase after the Ender Dragon has been defeated").defineInRange("SpiritChanceEndIncrease", 0.07, 0.0, 1.0);
+		b.pop();
+
+		b.push("debug");
+		DEBUG_LOGGING = b.comment("Enables additional Random Things logging (prefixed [RT-DEBUG]) in the game log. Port-specific developer option").define("DebugLogging", false);
+		DEBUG_GUI_SCREENSHOTS = b.comment("Client only: when true, every Random Things GUI screen is screenshotted a few frames after it opens, saved to <game dir>/screenshots/randomthings_debug/. Port-specific developer option for verifying GUI layouts").define("DebugGuiScreenshots", false);
 		b.pop();
 
 		SPEC = b.build();

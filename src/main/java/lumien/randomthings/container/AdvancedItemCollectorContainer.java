@@ -38,19 +38,19 @@ public class AdvancedItemCollectorContainer extends Container implements ISignal
 
 		this.pos = pos;
 
-		this.addSlot(new SlotItemHandler(filterInventory, 0, 80, 20));
+		this.addSlot(new SlotItemHandler(filterInventory, 0, 77, 122));
 
 		for (int row = 0; row < 3; row++)
 		{
 			for (int col = 0; col < 9; col++)
 			{
-				this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+				this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 153 + row * 18));
 			}
 		}
 
 		for (int col = 0; col < 9; col++)
 		{
-			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 211));
 		}
 
 		this.trackInt(rangeX);

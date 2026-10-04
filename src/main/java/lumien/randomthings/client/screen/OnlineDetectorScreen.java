@@ -24,8 +24,8 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 176;
-		this.ySize = 50;
+		this.xSize = 136;
+		this.ySize = 52;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	{
 		super.init();
 
-		this.usernameField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 20, 160, 18, "");
+		this.usernameField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 26, 127, 20, "");
 		this.usernameField.setMaxStringLength(16);
 		this.usernameField.setText(this.container.getUsername());
 		this.addButton(this.usernameField);
@@ -103,7 +103,7 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	{
 		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("gui.randomthings.online_detector.username"), 8, 8, 0);
+		this.font.drawString(I18n.format("gui.randomthings.online_detector.username"), 8, 6, 4210752);
 
 		RenderHelper.enableGUIStandardItemLighting();
 	}
