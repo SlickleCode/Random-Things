@@ -19,6 +19,8 @@ import net.minecraftforge.items.SlotItemHandler;
  * empty" behavior. Direct port of 1.12.2's {@code ContainerEnderLetter}.
  */
 public class EnderLetterContainer extends net.minecraft.inventory.container.Container implements ISignalContainer {
+    public static final int MAX_MESSAGE_LENGTH = 200;
+
     private final ItemStack letterStack;
     private final boolean received;
 
@@ -55,13 +57,13 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
-                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 51 + i * 18));
+                this.addSlot(new Slot(playerInventory, j + i * 9 + 9, 8 + j * 18, 101 + i * 18));
             }
         }
 
         for (int i = 0; i < 9; i++) {
             if (playerInventory.getStackInSlot(i) == heldLetter) {
-                this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 109) {
+                this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 159) {
                     @Override
                     public boolean isItemValid(ItemStack stack) {
                         return false;
@@ -73,7 +75,7 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
                     }
                 });
             } else {
-                this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 109));
+                this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 159));
             }
         }
     }
@@ -107,6 +109,18 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
         if (id == 0 && !received) {
             String receiver = data.readString();
             letterStack.getOrCreateTag().putString("receiver", receiver);
+        } else if (id == 1 && !received) {
+            String message = data.readString(1024);
+
+            if (message.length() > MAX_MESSAGE_LENGTH) {
+                message = message.substring(0, MAX_MESSAGE_LENGTH);
+            }
+
+            if (message.isEmpty()) {
+                letterStack.getOrCreateTag().remove("message");
+            } else {
+                letterStack.getOrCreateTag().putString("message", message);
+            }
         }
     }
 

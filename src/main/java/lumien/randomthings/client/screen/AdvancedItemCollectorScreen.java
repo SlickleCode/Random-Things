@@ -23,7 +23,7 @@ public class AdvancedItemCollectorScreen extends ContainerScreen<AdvancedItemCol
 		super(screenContainer, inv, titleIn);
 
 		this.xSize = 176;
-		this.ySize = 235;
+		this.ySize = 211;
 	}
 
 	@Override

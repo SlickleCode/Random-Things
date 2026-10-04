@@ -19,6 +19,7 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/online_detector.png");
 
 	private TextFieldWidget usernameField;
+	private String lastSent;
 
 	public OnlineDetectorScreen(OnlineDetectorContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
 	{
@@ -36,6 +37,7 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 		this.usernameField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 26, 127, 20, "");
 		this.usernameField.setMaxStringLength(16);
 		this.usernameField.setText(this.container.getUsername());
+		this.lastSent = this.usernameField.getText();
 		this.addButton(this.usernameField);
 		this.setFocusedDefault(this.usernameField);
 		// Real bug, found 2026-09-28: setFocusedDefault only tells the Screen which
@@ -58,6 +60,14 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	{
 		super.tick();
 		this.usernameField.tick();
+
+		// Sync on every change rather than only from removed(): sending only on close
+		// raced the vanilla close-window packet, so Escape after clicking out of the
+		// field could drop the text (same fix as EnderLetterScreen).
+		if (!this.usernameField.getText().equals(this.lastSent))
+		{
+			submitUsername();
+		}
 	}
 
 	@Override
@@ -95,6 +105,7 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	private void submitUsername()
 	{
 		String text = this.usernameField.getText();
+		this.lastSent = text;
 		this.container.send(0, (pb) -> pb.writeString(text));
 	}
 

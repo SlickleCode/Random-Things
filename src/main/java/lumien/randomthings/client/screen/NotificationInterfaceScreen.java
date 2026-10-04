@@ -20,6 +20,8 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 
 	private TextFieldWidget titleField;
 	private TextFieldWidget descriptionField;
+	private String lastTitle;
+	private String lastDescription;
 
 	public NotificationInterfaceScreen(NotificationInterfaceContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
 	{
@@ -43,6 +45,8 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 		this.descriptionField.setMaxStringLength(256);
 		this.descriptionField.setText(this.container.getDescription());
 		this.addButton(this.descriptionField);
+		this.lastTitle = this.titleField.getText();
+		this.lastDescription = this.descriptionField.getText();
 
 		this.setFocusedDefault(this.titleField);
 	}
@@ -53,6 +57,12 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 		super.tick();
 		this.titleField.tick();
 		this.descriptionField.tick();
+
+		// Sync on every change; sending only from removed() raced the close-window packet.
+		if (!this.titleField.getText().equals(this.lastTitle) || !this.descriptionField.getText().equals(this.lastDescription))
+		{
+			submit();
+		}
 	}
 
 	@Override
@@ -93,6 +103,8 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	{
 		String title = this.titleField.getText();
 		String description = this.descriptionField.getText();
+		this.lastTitle = title;
+		this.lastDescription = description;
 		this.container.send(0, (pb) -> {
 			pb.writeString(title);
 			pb.writeString(description);

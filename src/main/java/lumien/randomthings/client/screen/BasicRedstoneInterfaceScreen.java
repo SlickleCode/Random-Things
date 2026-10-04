@@ -32,6 +32,7 @@ public class BasicRedstoneInterfaceScreen extends ContainerScreen<BasicRedstoneI
             String center = I18n.format("gui.randomthings.basic_redstone_interface.no_target");
             this.font.drawString(center, xSize / 2 - this.font.getStringWidth(center) / 2, ySize / 2 - this.font.FONT_HEIGHT / 2, 0x960000);
         } else {
+            this.font.drawString(I18n.format("gui.randomthings.basic_redstone_interface.target"), 8, 6, 4210752);
             this.font.drawString(I18n.format("gui.randomthings.basic_redstone_interface.target_x", this.container.targetX.get()), 8, 18, 0x140054);
             this.font.drawString(I18n.format("gui.randomthings.basic_redstone_interface.target_y", this.container.targetY.get()), 8, 28, 0x140054);
             this.font.drawString(I18n.format("gui.randomthings.basic_redstone_interface.target_z", this.container.targetZ.get()), 8, 38, 0x140054);

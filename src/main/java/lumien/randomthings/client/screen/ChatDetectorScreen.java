@@ -19,6 +19,7 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/chat_detector.png");
 
 	private TextFieldWidget messageField;
+	private String lastSent;
 
 	public ChatDetectorScreen(ChatDetectorContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
 	{
@@ -36,6 +37,7 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 27, 127, 20, "");
 		this.messageField.setMaxStringLength(256);
 		this.messageField.setText(this.container.getChatMessage());
+		this.lastSent = this.messageField.getText();
 		this.addButton(this.messageField);
 		this.setFocusedDefault(this.messageField);
 		// Real bug, found 2026-09-28 (see OnlineDetectorScreen for the full writeup):
@@ -57,6 +59,12 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	{
 		super.tick();
 		this.messageField.tick();
+
+		// Sync on every change; sending only from removed() raced the close-window packet.
+		if (!this.messageField.getText().equals(this.lastSent))
+		{
+			submitMessage();
+		}
 	}
 
 	@Override
@@ -94,6 +102,7 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	private void submitMessage()
 	{
 		String text = this.messageField.getText();
+		this.lastSent = text;
 		this.container.send(0, (pb) -> pb.writeString(text));
 	}
 

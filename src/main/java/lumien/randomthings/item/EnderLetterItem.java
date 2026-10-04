@@ -14,6 +14,7 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
@@ -49,6 +50,10 @@ public class EnderLetterItem extends Item {
     @Override
     public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
         super.addInformation(stack, world, tooltip, flagIn);
+
+        if (!stack.hasTag() || !stack.getTag().getBoolean("received")) {
+            tooltip.add(new TranslationTextComponent("item.randomthings.ender_letter.how_to_send").applyTextStyle(TextFormatting.GRAY));
+        }
 
         if (stack.hasTag()) {
             if (stack.getTag().contains("sender")) {

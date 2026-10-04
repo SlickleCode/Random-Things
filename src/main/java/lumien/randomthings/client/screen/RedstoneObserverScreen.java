@@ -37,6 +37,7 @@ public class RedstoneObserverScreen extends ContainerScreen<RedstoneObserverCont
 		}
 		else
 		{
+			this.font.drawString(I18n.format("gui.randomthings.redstone_observer.target"), 8, 6, 4210752);
 			this.font.drawString(I18n.format("gui.randomthings.redstone_observer.target_x", this.container.targetX.get()), 8, 18, 0x140054);
 			this.font.drawString(I18n.format("gui.randomthings.redstone_observer.target_y", this.container.targetY.get()), 8, 28, 0x140054);
 			this.font.drawString(I18n.format("gui.randomthings.redstone_observer.target_z", this.container.targetZ.get()), 8, 38, 0x140054);

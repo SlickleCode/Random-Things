@@ -19,6 +19,7 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/global_chat_detector.png");
 
 	private TextFieldWidget messageField;
+	private String lastSent;
 
 	public GlobalChatDetectorScreen(GlobalChatDetectorContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
 	{
@@ -36,6 +37,7 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 20, 127, 15, "");
 		this.messageField.setMaxStringLength(256);
 		this.messageField.setText(this.container.getChatMessage());
+		this.lastSent = this.messageField.getText();
 		this.addButton(this.messageField);
 		this.setFocusedDefault(this.messageField);
 
@@ -50,6 +52,12 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	{
 		super.tick();
 		this.messageField.tick();
+
+		// Sync on every change; sending only from removed() raced the close-window packet.
+		if (!this.messageField.getText().equals(this.lastSent))
+		{
+			submitMessage();
+		}
 	}
 
 	@Override
@@ -87,6 +95,7 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	private void submitMessage()
 	{
 		String text = this.messageField.getText();
+		this.lastSent = text;
 		this.container.send(0, (pb) -> pb.writeString(text));
 	}
 

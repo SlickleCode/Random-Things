@@ -61,7 +61,8 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
             // the tooltip is the Position Filter's custom (anvil) name, if it has one
             ItemStack camo = camoInventory.getStackInSlot(i);
             ItemStack icon = camo.isEmpty() ? positionFilter : camo;
-            String name = positionFilter.hasDisplayName() ? positionFilter.getDisplayName().getString() : null;
+            // the displayed item's own (anvil) name wins, else fall back to the Position Filter's
+            String name = icon.hasDisplayName() ? icon.getDisplayName().getString() : positionFilter.hasDisplayName() ? positionFilter.getDisplayName().getString() : null;
             int slot = i;
 
             this.addButton(new ItemSlotButton(this.guiLeft + 5 + i * 20, this.guiTop + 17, icon.copy(), name, (b) -> {

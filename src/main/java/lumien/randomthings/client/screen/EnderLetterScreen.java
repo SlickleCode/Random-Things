@@ -17,18 +17,22 @@ import net.minecraft.util.text.ITextComponent;
  * to you - matches the container's own output-only slot switch).
  */
 public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
+    public static final int MAX_MESSAGE_LENGTH = 200;
+
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/ender_letter.png");
 
     private final boolean received;
 
     private TextFieldWidget receiverField;
     private String lastSentReceiver = "";
+    private MultilineTextFieldWidget messageField;
+    private String lastSentMessage = "";
 
     public EnderLetterScreen(EnderLetterContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
         super(screenContainer, inv, titleIn);
 
         this.xSize = 176;
-        this.ySize = 133;
+        this.ySize = 183;
 
         ItemStack letterStack = inv.player.getHeldItemMainhand();
         this.received = letterStack.hasTag() && letterStack.getTag().getBoolean("received");
@@ -47,6 +51,14 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
         this.receiverField.setText(receiver);
         this.addButton(this.receiverField);
         this.lastSentReceiver = receiver;
+
+        String message = letterStack.hasTag() ? letterStack.getTag().getString("message") : "";
+
+        this.messageField = new MultilineTextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 40, 162, 44, MAX_MESSAGE_LENGTH);
+        this.messageField.setEditable(!received);
+        this.messageField.setText(message);
+        this.addButton(this.messageField);
+        this.lastSentMessage = this.messageField.getText();
     }
 
     @Override
@@ -64,10 +76,32 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
             this.lastSentReceiver = this.receiverField.getText();
             submitReceiver();
         }
+
+        if (!received && !this.messageField.getText().equals(this.lastSentMessage)) {
+            this.lastSentMessage = this.messageField.getText();
+            submitMessage();
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // only one of the two text inputs may hold focus; the clicked one claims it
+        if (this.messageField.isMouseOver(mouseX, mouseY)) {
+            this.receiverField.setFocused2(false);
+        } else {
+            this.messageField.setFocusedState(false);
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (this.messageField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE */) {
+            this.messageField.keyPressed(keyCode, scanCode, modifiers);
+            return true;
+        }
+
         if (this.receiverField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE */) {
             this.receiverField.keyPressed(keyCode, scanCode, modifiers);
             return true;
@@ -79,6 +113,7 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
     @Override
     public void removed() {
         submitReceiver();
+        submitMessage();
         super.removed();
     }
 
@@ -88,10 +123,21 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
         }
     }
 
+    private void submitMessage() {
+        if (!received) {
+            this.container.send(1, (pb) -> pb.writeString(this.messageField.getText()));
+        }
+    }
+
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         this.font.drawString(I18n.format("item.randomthings.ender_letter"), 8, 6, 4210752);
         this.font.drawString(I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
+
+        if (!received) {
+            String counter = this.messageField.getText().length() + "/" + MAX_MESSAGE_LENGTH;
+            this.font.drawString(counter, this.xSize - 8 - this.font.getStringWidth(counter), this.ySize - 96 + 2, 0x707070);
+        }
     }
 
     @Override

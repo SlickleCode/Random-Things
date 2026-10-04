@@ -5,6 +5,7 @@ import lumien.randomthings.tileentity.NotificationInterfaceTileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
@@ -35,7 +36,18 @@ public class NotificationInterfaceContainer extends Container implements ISignal
         this.title = title;
         this.description = description;
 
-        this.addSlot(new SlotItemHandler(iconInventory, 0, 8, 31));
+        // ghost slot (like the Redstone Remote's camo row): never holds a real item, see slotClick
+        this.addSlot(new SlotItemHandler(iconInventory, 0, 11, 31) {
+            @Override
+            public boolean isItemValid(ItemStack stack) {
+                return false;
+            }
+
+            @Override
+            public boolean canTakeStack(PlayerEntity playerIn) {
+                return false;
+            }
+        });
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -67,36 +79,32 @@ public class NotificationInterfaceContainer extends Container implements ISignal
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
-        ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+    public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+        if (slotId == 0) {
+            // clicking with a stack in hand copies one of it as the icon, clicking empty-handed clears it
+            Slot slot = this.inventorySlots.get(0);
+            ItemStack holding = player.inventory.getItemStack();
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
-            result = stackInSlot.copy();
-
-            if (index < 1) {
-                if (!this.mergeItemStack(stackInSlot, 1, 37, true)) {
-                    return ItemStack.EMPTY;
+            if (clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.QUICK_MOVE || clickTypeIn == ClickType.SWAP) {
+                if (holding.isEmpty()) {
+                    slot.putStack(ItemStack.EMPTY);
+                } else {
+                    ItemStack copy = holding.copy();
+                    copy.setCount(1);
+                    slot.putStack(copy);
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 1, false)) {
-                return ItemStack.EMPTY;
             }
 
-            if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
-            } else {
-                slot.onSlotChanged();
-            }
-
-            if (stackInSlot.getCount() == result.getCount()) {
-                return ItemStack.EMPTY;
-            }
-
-            slot.onTake(playerIn, stackInSlot);
+            return ItemStack.EMPTY;
         }
 
-        return result;
+        return super.slotClick(slotId, dragType, clickTypeIn, player);
+    }
+
+    @Override
+    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+        // the icon slot is ghost-only, so there is nowhere to shift-click to or from
+        return ItemStack.EMPTY;
     }
 
     @Override
