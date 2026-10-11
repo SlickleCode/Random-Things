@@ -1,5 +1,7 @@
 # Automated testing for Random Things (dev-only)
 
+Full list of every test and tool: [test-inventory.md](test-inventory.md).
+
 This project ships a small automated test setup that runs **inside the real game** (client + integrated
 server). It exists because most bugs in this port were invisible to the compiler and only showed up at
 runtime: registry/ObjectHolder crashes, missing render layers, models rejected by the game's parser,
