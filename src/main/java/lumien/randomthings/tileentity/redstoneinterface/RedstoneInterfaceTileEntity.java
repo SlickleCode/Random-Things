@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity.redstoneinterface;
 
+import lumien.randomthings.util.WeakSets;
 import net.minecraft.block.Blocks;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -10,11 +11,9 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import net.minecraft.block.BlockState;
 
 /**
@@ -30,7 +29,7 @@ import net.minecraft.block.BlockState;
  * Direct port of 1.12.2's {@code TileEntityRedstoneInterface}.
  */
 public abstract class RedstoneInterfaceTileEntity extends TileEntity {
-    private static final Set<RedstoneInterfaceTileEntity> INTERFACES = Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Set<RedstoneInterfaceTileEntity> INTERFACES = WeakSets.create();
 
     private final Map<Direction, Integer> weakPower = new EnumMap<>(Direction.class);
     private final Map<Direction, Integer> strongPower = new EnumMap<>(Direction.class);
@@ -54,7 +53,7 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         BlockPos checking = pos.offset(facing.getOpposite());
         int strongest = 0;
 
-        for (RedstoneInterfaceTileEntity ri : INTERFACES) {
+        for (RedstoneInterfaceTileEntity ri : WeakSets.snapshot(INTERFACES)) {
             if (!ri.isRemoved() && ri.world == world && ri.isTargeting(checking)) {
                 strongest = Math.max(strongest, ri.weakPower.getOrDefault(facing, 0));
             }
@@ -67,7 +66,7 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         BlockPos checking = pos.offset(facing.getOpposite());
         int strongest = 0;
 
-        for (RedstoneInterfaceTileEntity ri : INTERFACES) {
+        for (RedstoneInterfaceTileEntity ri : WeakSets.snapshot(INTERFACES)) {
             if (!ri.isRemoved() && ri.world == world && ri.isTargeting(checking)) {
                 strongest = Math.max(strongest, ri.strongPower.getOrDefault(facing, 0));
             }

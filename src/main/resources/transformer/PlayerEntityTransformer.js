@@ -13,7 +13,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "dropInventory") {
+                    if (method.name !== "dropInventory" && method.name !== "func_213337_cE") {
                         continue;
                     }
 
@@ -37,7 +37,7 @@ function initializeCoreMod() {
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
-                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/entity/player/PlayerInventory" && insn.name === "dropAllItems") {
+                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/entity/player/PlayerInventory" && (insn.name === "dropAllItems" || insn.name === "func_70436_m")) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "dropAllItemsExceptAnchored";

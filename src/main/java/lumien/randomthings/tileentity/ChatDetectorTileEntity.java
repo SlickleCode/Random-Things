@@ -1,9 +1,8 @@
 package lumien.randomthings.tileentity;
 
-import java.util.Collections;
+import lumien.randomthings.util.WeakSets;
 import java.util.Set;
 import java.util.UUID;
-import java.util.WeakHashMap;
 
 import lumien.randomthings.block.ChatDetectorBlock;
 import lumien.randomthings.container.ChatDetectorContainer;
@@ -26,7 +25,7 @@ import net.minecraft.block.BlockState;
  */
 public class ChatDetectorTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
 {
-	public static final Set<ChatDetectorTileEntity> detectors = Collections.newSetFromMap(new WeakHashMap<>());
+	public static final Set<ChatDetectorTileEntity> detectors = WeakSets.create();
 
 	private UUID playerUUID;
 	private String chatMessage = "";

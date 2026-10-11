@@ -100,7 +100,7 @@ public class SpectreIlluminatorRelight {
      */
     private static final int PADDING = 15;
 
-    private static final Map<World, WorldQueue> PENDING = new WeakHashMap<>();
+    private static final Map<World, WorldQueue> PENDING = java.util.Collections.synchronizedMap(new WeakHashMap<>());
 
     public static void queue(World world, BlockPos center) {
         Chunk chunk = world.getChunk(center.getX() >> 4, center.getZ() >> 4);

@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.container.SoundDampenerContainer;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundPatternItem;
@@ -17,10 +18,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.WeakHashMap;
 import net.minecraft.block.BlockState;
 
 /**
@@ -33,7 +32,7 @@ import net.minecraft.block.BlockState;
  * 1.12.2's {@code TileEntitySoundDampener}.
  */
 public class SoundDampenerTileEntity extends TileEntity implements INamedContainerProvider {
-    public static final Set<SoundDampenerTileEntity> loadedDampeners = Collections.newSetFromMap(new WeakHashMap<>());
+    public static final Set<SoundDampenerTileEntity> loadedDampeners = WeakSets.create();
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(9) {
         @Override

@@ -672,3 +672,7 @@ avoid that on creation, but 1.16.5 still flags any world with an extra dimension
 
 **M7. Headless runners must answer dialogs.** 1.16 shows confirmation screens when opening a world (experimental settings, backup); the autotest now detects
 `ConfirmScreen` / `ConfirmBackupScreen` and presses the right button, and logs the dialog text.
+
+**M8. Dev names are not production names.** Coremods that match `method.name === "isRainingAt"` and reflection like `getDeclaredField("primaryEffect")` work in the dev environment (MCP names) and silently do nothing in a real install (SRG `func_...`). Match both names (or use `ObfuscationReflectionHelper` with the SRG id), take the SRG id from the mappings `methods.csv`/`fields.csv`, confirm it exists with `javap` on the patched `forge-*-srg.jar`, and run the suite on a production server (`docs/testing/README.md`). Forge-patch-added members keep their real name in both.
+
+**M9. Old-version worlds poison the shared `run/` folder.** A world or server level written by another Minecraft version hangs the older client at load and makes an older dedicated server stop at a "missing registries" confirmation before any test runs (the report then looks stale, not failed). Clean `run/` when switching branches.

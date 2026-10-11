@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // only fall through to the original body (real vanilla per-block rendering) when it says
                     // this position isn't redirected by any Light Redirector.
                     // Locals: 0 this, 1 state, 2 pos, 3 world, 4 matrixStack, 5 vertexBuilder, 6 checkSides, 7 random.
-                    if (method.name !== "renderModel" || method.desc !== "(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
+                    if (method.name !== "renderModel" && method.name !== "func_228793_a_" || method.desc !== "(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
                         continue;
                     }
 

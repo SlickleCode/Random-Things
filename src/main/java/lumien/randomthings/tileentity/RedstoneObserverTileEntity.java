@@ -1,10 +1,9 @@
 package lumien.randomthings.tileentity;
 
-import java.util.Collections;
+import lumien.randomthings.util.WeakSets;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.container.RedstoneObserverContainer;
@@ -31,7 +30,7 @@ import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
  */
 public class RedstoneObserverTileEntity extends TileEntity implements INamedContainerProvider
 {
-	public static final Set<RedstoneObserverTileEntity> loadedObservers = Collections.newSetFromMap(new WeakHashMap<>());
+	public static final Set<RedstoneObserverTileEntity> loadedObservers = WeakSets.create();
 
 	private BlockPos target;
 
@@ -67,7 +66,7 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 
 	public static void notifyNeighbor(NeighborNotifyEvent event)
 	{
-		for (RedstoneObserverTileEntity observer : loadedObservers)
+		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(loadedObservers))
 		{
 			if (observer.world == event.getWorld() && !observer.isRemoved() && observer.target != null && observer.target.equals(event.getPos()))
 			{

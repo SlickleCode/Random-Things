@@ -1,13 +1,12 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.WeakSets;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.WeakHashMap;
 import net.minecraft.block.BlockState;
 
 /**
@@ -26,13 +25,11 @@ import net.minecraft.block.BlockState;
  */
 public class RainShieldTileEntity extends TileEntity {
     /** Read from the render thread (rain drawing) and the server thread, so every access goes through the lock. */
-    public static final Set<RainShieldTileEntity> shields = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    public static final Set<RainShieldTileEntity> shields = WeakSets.create();
 
     /** A copy that is safe to iterate while shields are added or removed on another thread. */
     public static java.util.List<RainShieldTileEntity> snapshot() {
-        synchronized (shields) {
-            return shields.isEmpty() ? Collections.<RainShieldTileEntity>emptyList() : new java.util.ArrayList<>(shields);
-        }
+        return WeakSets.snapshot(shields);
     }
 
     private boolean active = true;

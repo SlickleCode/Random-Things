@@ -23,7 +23,7 @@ function initializeCoreMod() {
                     // IBlockReaderTransformer's getLightValue patch and this port's
                     // own WorldRedstonePowerTransformer (getRedstonePower's weak-power
                     // sibling).
-                    if (method.name !== "getStrongPower" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I") {
+                    if (method.name !== "getStrongPower" && method.name !== "func_175627_a" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I") {
                         continue;
                     }
 

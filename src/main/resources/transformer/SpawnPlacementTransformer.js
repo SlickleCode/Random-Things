@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // that event ever fires (see AsmHandler#overrideSpawnResult's javadoc for the
                     // full trace). Not a Mixin because the same "can't self-bootstrap from a
                     // mods-folder jar on this Forge version" problem as Batch 7's other half.
-                    if (method.name !== "canSpawnEntity" || method.desc !== "(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/IServerWorld;Lnet/minecraft/entity/SpawnReason;Lnet/minecraft/util/math/BlockPos;Ljava/util/Random;)Z") {
+                    if (method.name !== "canSpawnEntity" && method.name !== "func_223515_a" || method.desc !== "(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/IServerWorld;Lnet/minecraft/entity/SpawnReason;Lnet/minecraft/util/math/BlockPos;Ljava/util/Random;)Z") {
                         continue;
                     }
 

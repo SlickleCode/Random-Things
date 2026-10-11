@@ -23,8 +23,8 @@ function initializeCoreMod() {
                     // addRainParticles(ActiveRenderInfo)V (the splash particles and rain sound) does the
                     // same lookup through IWorldReader.getBiome and gets the same treatment, so a shielded
                     // column has neither rain streaks nor splashes.
-                    var isRender = method.name === "renderRainSnow" && method.desc === "(Lnet/minecraft/client/renderer/LightTexture;FDDD)V";
-                    var isParticles = method.name === "addRainParticles" && method.desc === "(Lnet/minecraft/client/renderer/ActiveRenderInfo;)V";
+                    var isRender = (method.name === "renderRainSnow" || method.name === "func_228438_a_") && method.desc === "(Lnet/minecraft/client/renderer/LightTexture;FDDD)V";
+                    var isParticles = (method.name === "addRainParticles" || method.name === "func_228436_a_") && method.desc === "(Lnet/minecraft/client/renderer/ActiveRenderInfo;)V";
 
                     if (!isRender && !isParticles) {
                         continue;
@@ -40,14 +40,14 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (isRender && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/World" && insn.name === "getBiome" && insn.desc === biomeDesc) {
+                        if (isRender && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/World" && (insn.name === "getBiome" || insn.name === "func_226691_t_") && insn.desc === biomeDesc) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "getBiomeForRainRender";
                             insn.desc = "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;";
                             insn.itf = false;
                             break;
-                        } else if (isParticles && insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/world/IWorldReader" && insn.name === "getBiome" && insn.desc === biomeDesc) {
+                        } else if (isParticles && insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/world/IWorldReader" && (insn.name === "getBiome" || insn.name === "func_226691_t_") && insn.desc === biomeDesc) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "getBiomeForRainRender";

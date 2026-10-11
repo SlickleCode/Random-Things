@@ -13,7 +13,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "travel") {
+                    if (method.name !== "travel" && method.name !== "func_213352_e") {
                         continue;
                     }
 

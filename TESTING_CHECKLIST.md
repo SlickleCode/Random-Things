@@ -671,6 +671,8 @@ accidentally clearing it every time the chunk goes out of range.
 | 390 | 1.16.5: Peace Candle church appears in plains villages (about 1 in 3 of the vanilla churches) | UNTESTED | The village pool is wrapped at server start; the vanilla church is matched by its piece name - never seen in a real village yet. |
 | 391 | 1.16.5: Rain Shield hides rain streaks and splashes inside its radius; Blazing Fire spreads fast and Light Redirector still redirects light | UNTESTED | Mechanics are automated tests; the visuals use rewritten coremods (`WorldRenderer`, `BlockRendererDispatcher`). 2026-10-11 screenshots: rain suppressed inside the Rain Shield radius, Blazing Fire renders. |
 | 392 | 1.16.5: opening a world that already contains the Spectre dimension shows vanilla's "Worlds using Experimental Settings" prompt - expected, choose Load | KNOWN | Any extra dimension triggers it in 1.16.5; see backlog Q14 for a possible fix. |
+| 393 | 1.16.5 production jar: coremods + reflection work with SRG names (server-side verified on a real Forge 1.16.5 server, `prod-test/`) | PARTIAL | 2026-10-11: production server suite 334 passed / 0 failed after the fix (6 coremod tests failed before). Client-only coremods (armor/item dye, rain visuals, light redirector, Magic Hood) still need a production client. |
+| 394 | 1.16.5 thread safety: static block entity/entity registries no longer throw `ConcurrentModificationException` (Rain Shield, Sound Dampener, Redstone Observer, Peace Candle, Slime Cube, detectors, ...) | FIXED | `util/WeakSets`; new test `registry.weak_sets_survive_concurrent_add_remove_and_iteration`. Retest by playing singleplayer with several of these placed. |
 
 ---
 

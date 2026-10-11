@@ -25,7 +25,7 @@ function initializeCoreMod() {
                     // early-exit branches means multiple ireturn sites (6 total) instead of the
                     // single-ireturn case FireBlockTransformer/SpawnPlacementTransformer had - same
                     // wrap-the-value-before-it-returns pattern, just applied at each one.
-                    if (method.name !== "canRenderName" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;)Z") {
+                    if (method.name !== "canRenderName" && method.name !== "func_177070_b" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;)Z") {
                         continue;
                     }
 

@@ -1,13 +1,12 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.WeakSets;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityPeaceCandle} - a plain marker with
@@ -17,7 +16,7 @@ import java.util.WeakHashMap;
  * /{@code RainShieldTileEntity}.
  */
 public class PeaceCandleTileEntity extends TileEntity {
-    public static final Set<PeaceCandleTileEntity> candles = Collections.newSetFromMap(new WeakHashMap<>());
+    public static final Set<PeaceCandleTileEntity> candles = WeakSets.create();
 
     public PeaceCandleTileEntity() {
         super(ModTileEntityTypes.PEACE_CANDLE);

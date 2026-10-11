@@ -41,7 +41,7 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/item/IDyeableArmorItem" && insn.name === "getColor" && insn.desc === "(Lnet/minecraft/item/ItemStack;)I") {
+                        if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/item/IDyeableArmorItem" && (insn.name === "getColor" || insn.name === "func_200886_f") && insn.desc === "(Lnet/minecraft/item/ItemStack;)I") {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/ClientAsmHandler";
                             insn.name = "dyedColor";

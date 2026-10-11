@@ -48,7 +48,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 	}
 
 	public static final EnumProperty<COLOR> COLOR_PROPERTY = EnumProperty.create("color", COLOR.class);
-	private static final Map<IBlockReader, List<AdvancedRedstoneTorchBlock.Toggle>> BURNED_TORCHES = new WeakHashMap<>();
+	private static final Map<IBlockReader, List<AdvancedRedstoneTorchBlock.Toggle>> BURNED_TORCHES = java.util.Collections.synchronizedMap(new WeakHashMap<>());
 
 	protected AdvancedRedstoneTorchBlock()
 	{

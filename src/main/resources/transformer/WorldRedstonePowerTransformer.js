@@ -22,7 +22,7 @@ function initializeCoreMod() {
                     // funnels through (confirmed via javap -c: only one IRETURN, at
                     // the very end). Same "wrap the value right before it returns"
                     // pattern as IBlockReaderTransformer's getLightValue patch.
-                    if (method.name !== "getRedstonePower" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I") {
+                    if (method.name !== "getRedstonePower" && method.name !== "func_175651_c" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I") {
                         continue;
                     }
 

@@ -1,11 +1,10 @@
 package lumien.randomthings.tileentity;
 
-import java.util.Collections;
+import lumien.randomthings.util.WeakSets;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
@@ -43,7 +42,7 @@ import net.minecraft.block.BlockState;
  * needed.
  */
 public class LightRedirectorTileEntity extends TileEntity {
-    public static final Set<LightRedirectorTileEntity> REDIRECTORS = Collections.newSetFromMap(new WeakHashMap<>());
+    public static final Set<LightRedirectorTileEntity> REDIRECTORS = WeakSets.create();
 
     private final Map<Direction, Boolean> enabledMap = new EnumMap<>(Direction.class);
     public final Map<BlockPos, BlockPos> targets = new HashMap<>();

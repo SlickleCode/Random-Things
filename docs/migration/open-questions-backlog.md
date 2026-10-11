@@ -76,12 +76,13 @@ Findings:
 - **Plan:** keep JS coremods through Forge 1.21.10 / NeoForge 21.5. At 1.21.11 (Forge) or NeoForge 21.8+ a different mechanism is
   needed (Java-based transformer service, or Mixin); spike it when that branch starts.
 
-### Q13. Do the coremods work in a reobfuscated production jar? (found 2026-10-11, open)
-- All JS transformers match **dev (MCP) method names** (`renderModel`, `getBiome`, ...). A production Forge runs SRG names (`func_...`), so the same scripts would silently not apply.
-  Nothing in either branch has verified this. Fix pattern: match SRG ids via `ASMAPI.mapMethod("func_...")` (maps to the right name in both environments); the SRG id of each
-  method comes from the MCP `methods.csv`. Check with a real jar in a launcher install before any release.
+### Q13. Do the coremods work in a reobfuscated production jar? (found 2026-10-11, FIXED + verified 2026-10-11)
+- They did not: on a real production Forge 1.16.5-36.2.39 server (`prod-test/1.16.5`, see `docs/testing/README.md`) 6 coremod tests failed (spawn x3, rain shield, redstone interface, super lubricent boots) and 3 reflection lookups used dev names (`primaryEffect`, `deltaRotation`, `potionsNeedUpdate`, `PlayerEntity.dropInventory`).
+- Fix: every transformer now accepts both the MCP name and the SRG id (`method.name === "x" || "func_..."`; SRG ids from `methods.csv`, confirmed to exist in `forge-1.16.5-36.2.39-srg.jar`), and reflection uses `ObfuscationReflectionHelper` with SRG ids. Forge-added names (`tryCatchFire`, `getFlammability`, `getSlipperiness`, BipedArmorLayer `renderModel`) are identical in both and are left alone.
+- Result: production server suite 334 passed / 0 failed. The four **client-only** transformers (ArmorLayer, ItemRenderer, WorldRenderer, BlockRendererDispatcher) plus MagicHood are checked only by confirming their SRG ids exist in the patched jar - no production client was run.
 
-### Q14. Suppress the "experimental settings" prompt when reopening a world with the Spectre dimension (open)
+### Q14. Suppress the "experimental settings" prompt when reopening a world with the Spectre dimension (DECIDED 2026-10-11: leave it)
+- Owner decision: keep vanilla's prompt; it is expected for a world with an extra, non-vanilla dimension.
 - 1.16.5 marks any world with a non-vanilla dimension as experimental on load. Options: accept (other dimension mods do), or coremod `ServerWorldInfo.getLifecycle` / the `Lifecycle.stable()` comparison in `Minecraft.loadWorld`.
 
 ### Q3. Next migration target - DECIDED 2026-10-08

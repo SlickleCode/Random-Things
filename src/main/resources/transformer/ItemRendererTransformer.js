@@ -24,7 +24,7 @@ function initializeCoreMod() {
                     // AsmHandler.getColorFromItemStack(stack, color) (stack = local 4), so a Dyeing Machine
                     // result (tagged "rtDye") always recolors here regardless of whether its model declares a
                     // tint index. Same intent as the 1.14.4 patch of the LightUtil.renderQuadColor call.
-                    if (method.name !== "renderQuads" || method.desc !== "(Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Ljava/util/List;Lnet/minecraft/item/ItemStack;II)V") {
+                    if (method.name !== "renderQuads" && method.name !== "func_229112_a_" || method.desc !== "(Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Ljava/util/List;Lnet/minecraft/item/ItemStack;II)V") {
                         continue;
                     }
 
