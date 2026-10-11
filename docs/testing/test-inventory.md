@@ -12,7 +12,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 | Production-jar runs | manual (see README) | `prod-test/<version>/` (untracked) | `randomthings_tests.txt` there | The server suite and the client suite/scenes on a real SRG-named Forge install with the built jar; catches coremod/reflection name problems. |
 | GUI screenshots | `RT_AUTOTEST=true` (omit `_NO_GUIS`) | `client/AutoTest` `/rtdebug allguis` | `run/screenshots/randomthings_debug/` | One screenshot of each of the GUIs, to compare by eye. |
 | Render scenes | `RT_AUTOTEST_SCENES=true` [`_SCENES_ONLY=id,id`] | `debug/RenderScenes`, `client/SceneShots` | `run/screenshots/randomthings_debug/scenes/` | Built scenes for every block entity/entity renderer, items, armor dye, fluids, rain, Spectre sky + creative-tab item pages. Reviewed by eye. |
-| GUI click-through | `RT_AUTOTEST_CLICKS=true` | `client/GuiClickTest` | `run/randomthings_clicks.txt` | Opens every GUI, hovers/clicks every button, diffs server-side NBT, types into text fields, reopens to check persistence. |
+| GUI click-through | `RT_AUTOTEST_CLICKS=true` | `client/GuiClickTest` | `run/randomthings_clicks.txt` | Opens every GUI, hovers/clicks every button, diffs server-side NBT, types into text fields, reopens to check persistence, hovers a filled slot in each container GUI and expects its item tooltip. |
 
 ## Scripted in-game tests (named)
 
@@ -77,6 +77,23 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
 - `registry.weak_sets_survive_concurrent_add_remove_and_iteration`
 
+### test\WorldgenTests.java (10)
+
+- `worldgen.glowing_mushroom.is_registered_in_every_biome_with_the_original_rarity`
+- `worldgen.glowing_mushroom.patch_in_a_sealed_cave_places_only_roofed_valid_mushrooms`
+- `worldgen.glowing_mushroom.config_switch_stops_the_patches`
+- `worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground`
+- `worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper`
+- `worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches`
+- `worldgen.peace_candle.config_switch_stops_the_swap`
+- `worldgen.peace_candle.real_village_assemblies_contain_the_church_about_a_third_of_the_time`
+- `worldgen.peace_candle.assembler_builds_no_peace_candle_churches_with_the_config_off`
+- `worldgen.peace_candle.church_piece_places_a_working_peace_candle`
+
+## World generation tests (`worldgen.*`, deterministic)
+
+Random-chance worldgen is verified without playing: every random source is seeded, so a result never changes. Layers: (1) the feature is registered in every biome with the original rarity; (2) run directly in a sealed cave it places only roofed, valid mushrooms inside the +-7/+-3 patch; (3) real vanilla terrain is generated (terrain, caves, the real decorator, 12 areas of 5x5 chunks) and mushrooms must appear underground (13 in 7 chunks on the dev client); (4) the plains houses pool is the Peace Candle wrapper and swaps 33.2% of church candidate lists (996 of 3000); (5) 60 real jigsaw village assemblies contain 19 Peace Candle and 20 vanilla churches; (6) the church template has the vanilla footprint and places a working Peace Candle (tile entity registered); (7) both config switches stop generation (via `PeaceCandleChurchPool.enabled` / `GlowingMushroomFeature.enabled`, so the config file is never rewritten). Numbers are logged as `worldgen test:` lines in `run/logs/latest.log`.
+
 ## Generated in-game tests
 
 `RoundTripTests` generates one test per registered object, so new content is covered automatically:
@@ -85,7 +102,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `nbt.entity.<id>` - same for every entity type
 - `nbt.item.<id>` - same for item stack NBT of every item
 
-Together with the named tests above this is the 334-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
+Together with the named tests above this is the 344-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
 
 ## Tooling pieces
 
@@ -95,6 +112,6 @@ Together with the named tests above this is the 334-test suite (+1 skipped: `beh
 
 ## Not automated (needs a human)
 
-- Slot interactions in GUIs (click test covers buttons and text fields only)
+- Moving items between slots in GUIs (the click test covers buttons, text fields and slot tooltips)
 - Natural worldgen, Peace Candle village church, coremods under production (SRG) names, the experimental-settings prompt
 - Whether render scenes *look* right - the pass produces images, a person (or Claude viewing them) judges

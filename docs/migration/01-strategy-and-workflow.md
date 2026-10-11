@@ -15,7 +15,7 @@
 3. *Dependencies on things that no longer exist*: third-party compat (dropped by decision), the old
    ore dictionary, metadata sub-items, the old model/blockstate pipeline, entity registration style.
 
-**Record scope decisions in a file the next session will read** (`WIKI_FEATURE_STATUS.md` with DONE /
+**Record scope decisions in a file the next session will read** (`WIKI_FEATURE_STATUS.md` - now `docs/project/wiki-feature-status.md` - with DONE /
 DONE-UNTESTED / PARTIAL / NOT STARTED / WILL NOT MIGRATE / REMOVED, plus a "Not migrating" section). Decisions
 the owner made (remove X, don't port Y) are binding; re-opening them wastes sessions.
 
@@ -70,7 +70,7 @@ network + recipe + loot + lang + checklist rows).
 Playtesting was done by the owner, not the agent. What made it efficient:
 
 - A **numbered checklist** (`#NNN`, one behavior per row, statuses `PASS/FAIL/FIXED/UNTESTED/REMOVED`).
-  Root-cause narrative went to a separate `TESTING_NOTES.md` keyed by row number so the owner's feedback
+  Root-cause narrative went to a separate `TESTING_NOTES.md` (now `docs/testing/fix-log/`) keyed by row number so the owner's feedback
   column stayed theirs.
 - **Evidence-first bug reports.** Screenshots, crash logs and log lines turned multi-round guessing into a
   one-round fix (the Spectre Illuminator instrumentation round, §6 of the case studies).

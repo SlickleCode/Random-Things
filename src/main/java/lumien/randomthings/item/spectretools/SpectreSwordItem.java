@@ -11,7 +11,7 @@ import net.minecraft.item.SwordItem;
  * this class never forces {@code hasEffect}) recoloring this sword's enchant-glow tint to white
  * whenever it's actually enchanted. Dropped rather than porting a new render hook for a purely
  * cosmetic detail with no infrastructure precedent in this port - same call already made for Redstone
- * Observer's own dropped red-glow recolor (see {@code WIKI_FEATURE_STATUS.md}). The sword still glows
+ * Observer's own dropped red-glow recolor (see {@code docs/project/wiki-feature-status.md}). The sword still glows
  * normally via a real enchantment (high 22 enchantability makes that easy), just with vanilla's
  * default tint instead of white.
  *

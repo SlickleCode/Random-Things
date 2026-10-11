@@ -15,6 +15,8 @@ import lumien.randomthings.debug.RTDebugCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
@@ -54,6 +56,8 @@ public final class GuiClickTest
 	private static int failures;
 	private static int clicks;
 	private static int silent;
+	private static int tooltipRequests;
+	private static int slotTooltips;
 
 	private static final class Step
 	{
@@ -79,6 +83,9 @@ public final class GuiClickTest
 			case START:
 				guis = RTDebugCommand.guiList();
 				mc.player.sendChatMessage("/gamemode creative");
+				// something in the player inventory, so every container GUI has a filled slot to hover
+				mc.player.sendChatMessage("/give @s minecraft:stone 16");
+				net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
 				return false;
@@ -249,6 +256,11 @@ public final class GuiClickTest
 
 		log(summary.toString());
 
+		if (screen instanceof ContainerScreen)
+		{
+			planSlotTooltip((ContainerScreen<?>) screen);
+		}
+
 		for (int i = 0; i < fields.size(); i++)
 		{
 			final int fieldIndex = i;
@@ -288,6 +300,49 @@ public final class GuiClickTest
 				openTimeout = 80;
 			}));
 		}
+	}
+
+	/**
+	 * Hovers a slot that holds an item and expects the screen to ask for its tooltip (Forge posts {@code ItemTooltipEvent}
+	 * whenever a stack's tooltip is built). A container screen that forgets {@code renderHoveredToolTip} fails here.
+	 */
+	private static void planSlotTooltip(ContainerScreen<?> screen)
+	{
+		Slot filled = null;
+
+		for (Slot slot : screen.getContainer().inventorySlots)
+		{
+			if (slot.getHasStack())
+			{
+				filled = slot;
+			}
+		}
+
+		if (filled == null)
+		{
+			log("INFO " + currentName + ": no filled slot to hover, tooltip not checked");
+			return;
+		}
+
+		final Slot hovered = filled;
+		int[] before = new int[1];
+		double[] at = { screen.getGuiLeft() + hovered.xPos + 8, screen.getGuiTop() + hovered.yPos + 8 };
+		steps.add(new Step(2, () -> {
+			before[0] = tooltipRequests;
+			render(screen, at);
+		}));
+		steps.add(new Step(2, () -> {
+			if (tooltipRequests > before[0])
+			{
+				slotTooltips++;
+				log("ok   " + currentName + ": hovering a filled slot shows its item tooltip");
+			}
+			else
+			{
+				failures++;
+				log("FAIL " + currentName + ": hovering a filled slot (" + hovered.getStack().getDisplayName().getString() + ") shows no item tooltip - does the screen call renderHoveredToolTip?");
+			}
+		}));
 	}
 
 	private static int pendingFields;
@@ -420,7 +475,7 @@ public final class GuiClickTest
 	private static void finish()
 	{
 		phase = Phase.DONE;
-		report.add(0, "GUI click test: " + guis.length + " GUIs, " + clicks + " button clicks, " + failures + " failure(s), " + silent + " click(s) that changed nothing");
+		report.add(0, "GUI click test: " + guis.length + " GUIs, " + clicks + " button clicks, " + failures + " failure(s), " + silent + " click(s) that changed nothing, " + slotTooltips + " slot tooltip(s) verified");
 
 		try (PrintWriter out = new PrintWriter(new File(Minecraft.getInstance().gameDir, "randomthings_clicks.txt"), "UTF-8"))
 		{

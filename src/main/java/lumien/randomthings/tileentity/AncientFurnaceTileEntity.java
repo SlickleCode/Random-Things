@@ -27,7 +27,7 @@ import java.util.Set;
  * wiki's own description ("after heating up", "10000 blocks (configurable)")
  * as closely as a hardcoded default can - 1.12.2 exposed both through its
  * config file, which this port hasn't built yet (see {@code
- * WIKI_FEATURE_STATUS.md}), so both are plain constants here instead.
+ * docs/project/wiki-feature-status.md}), so both are plain constants here instead.
  * <p>
  * Real biome reassignment, added 2026-09-27 - a previous session disclosed
  * this as impossible ("no supported public API"), which turned out to be

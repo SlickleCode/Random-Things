@@ -27,8 +27,8 @@ It is written to outlive this particular Minecraft/Forge version. Every document
 | — | [Open questions backlog](open-questions-backlog.md) | Decisions and follow-up tasks deferred to a later session |
 
 Related, project-specific records that stay authoritative for *this* repo's state:
-`PORTING_PLAN.md` (current state, conventions, coremod map), `WIKI_FEATURE_STATUS.md` (per-feature
-status), `TESTING_CHECKLIST.md` / `TESTING_NOTES.md` (per-row test status and root-cause writeups),
+`PORTING_PLAN.md` (current state and doc map), `docs/project/` (conventions, coremod map, scope, per-feature
+status), `TESTING_CHECKLIST.md` / `docs/testing/fix-log/` (open test rows and root-cause writeups),
 `docs/testing/` (the automated test setup).
 
 ## The ten lessons that mattered most

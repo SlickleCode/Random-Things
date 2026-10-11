@@ -74,7 +74,7 @@ refresh hook never fired (found by a contraption test that also proved six corem
 2. Work the checklist top to bottom; one behavior per row; owner fills the result column.
 3. For every `FAIL`: reproduce → ground-truth against the original → fix → mark `FIXED` (not `PASS`) → owner flips
    to `PASS`.
-4. Root-cause narrative in `TESTING_NOTES.md` keyed by row, not in the owner's feedback column.
+4. Root-cause narrative in `TESTING_NOTES.md` (now `docs/testing/fix-log/`) keyed by row, not in the owner's feedback column.
 5. Periodically regenerate the "untested/open" summary and prune stale statuses.
 
 ## 6. Things you cannot verify headlessly (say so)

@@ -64,6 +64,7 @@ public final class RTTestRunner
 		all.addAll(UtilityBehaviorTests.create());
 		all.addAll(RemainingBehaviorTests.create());
 		all.addAll(CoremodTests.create());
+		all.addAll(WorldgenTests.create());
 		all.addAll(RoundTripTests.create());
 
 		String f = filter == null ? "" : filter.toLowerCase();

@@ -24,13 +24,16 @@ import net.minecraft.world.gen.feature.NoFeatureConfig;
  * one in an air block that can hold it and has no sky access.
  */
 public class GlowingMushroomFeature extends Feature<NoFeatureConfig> {
+    /** The {@code GlowingMushrooms} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
+    public static java.util.function.BooleanSupplier enabled = () -> RTConfig.GLOWING_MUSHROOM.get();
+
     public GlowingMushroomFeature(Function<Dynamic<?>, ? extends NoFeatureConfig> deserializer) {
         super(deserializer);
     }
 
     @Override
     public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
-        if (!RTConfig.GLOWING_MUSHROOM.get()) {
+        if (!enabled.getAsBoolean()) {
             return false;
         }
 

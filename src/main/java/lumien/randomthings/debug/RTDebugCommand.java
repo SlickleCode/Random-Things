@@ -228,7 +228,7 @@ public class RTDebugCommand
 
 	// ---- /rtdebug allguis -------------------------------------------------------------------
 
-	/** id + whether to sneak, in the order of GUI_TEST_LIST.md */
+	/** id + whether to sneak, in the order of docs/archive/gui-test-list.md */
 	private static final String[][] ALL_GUIS = {
 			{ "advanced_redstone_torch", "" }, { "analog_emitter", "" }, { "igniter", "" }, { "online_detector", "" }, { "advanced_redstone_repeater", "" },
 			{ "iron_dropper", "" }, { "inventory_tester", "" }, { "chat_detector", "" }, { "redstone_observer", "" }, { "basic_redstone_interface", "" },
