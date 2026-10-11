@@ -52,30 +52,22 @@ public class SpectreHandler extends WorldSavedData {
     }
 
     /**
-     * Real bug found in 1.12.2's own source while porting this method
-     * (ground-truthed, not a "looks wrong but is intentional" case): the
-     * original derived its cube-matching key from {@code Chunk.x / 16}
-     * (chunk coordinate, i.e. {@code blockX >> 4}, divided by 16 again) and
-     * compared it against {@code cube.position / 16} (block-coordinate cube
-     * offsets - 0, 16, 32, ...). Tracing actual numbers: cube 0 happens to
-     * "work" only because its bounds check afterward narrows a much-too-wide
-     * initial match back down to X 0-15, but every cube after it (position
-     * 16, 32, ...) never matches at all - {@code (16 >> 4) / 16 == 0} while
-     * {@code cube.position / 16 == 1}), so {@code checkPosition} could never
-     * recognize a player standing anywhere in their own second-or-later cube,
-     * constantly snapping them back to their spawn tile. This port uses the
-     * evidently-intended block-coordinate comparison directly instead.
+     * Finds the cube whose footprint contains {@code pos}. A cube with offset {@code position} (0, 16, 32, ...) is generated
+     * at block X {@code position * 16} and is 16 blocks wide (see {@link SpectreCube#generate}), so the match is on that
+     * X range. An earlier version of this port compared {@code floor(x / 16) * 16} with {@code position}, which only ever
+     * matched the first cube: every later cube was "not found" and {@link #checkPosition} pinned its owner to the spawn
+     * tile (found by the behavior test {@code behavior.spectre.*}).
      */
     public SpectreCube getSpectreCubeFromPos(World world, BlockPos pos) {
         if (world.getDimension().getType() != ModDimensions.SPECTRE_TYPE || pos.getZ() > 16 || pos.getZ() < 0) {
             return null;
         }
 
-        int position = Math.floorDiv(pos.getX(), 16) * 16;
-
         for (SpectreCube cube : cubes.values()) {
-            if (cube.getPosition() == position) {
-                if (pos.getY() <= 0 || pos.getY() > cube.getHeight() + 1 || pos.getX() < position || pos.getX() > position + 15) {
+            int minX = cube.getPosition() * 16;
+
+            if (pos.getX() >= minX && pos.getX() <= minX + 15) {
+                if (pos.getY() <= 0 || pos.getY() > cube.getHeight() + 1) {
                     return null;
                 }
 

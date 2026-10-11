@@ -20,7 +20,7 @@ public class OnlineDetectorContainer extends Container implements ISignalContain
 
 	public OnlineDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
 	{
-		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString());
+		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
 	}
 
 	public OnlineDetectorContainer(int windowId, IWorldPosCallable pos, String username)
@@ -53,7 +53,7 @@ public class OnlineDetectorContainer extends Container implements ISignalContain
 	{
 		if (id == 0)
 		{
-			String newUsername = data.readString();
+			String newUsername = data.readString(32767);
 			this.username = newUsername;
 
 			this.pos.consume((world, pos) -> {

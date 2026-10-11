@@ -29,7 +29,7 @@ public class PlayedSoundMessage implements IRTMessage {
 
     @Override
     public void read(PacketBuffer pb) {
-        this.soundName = pb.readString();
+        this.soundName = pb.readString(32767);
         this.recorderSlot = pb.readInt();
     }
 

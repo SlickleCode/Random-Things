@@ -33,7 +33,7 @@ public class BiomeRadarAntennaMessage implements IRTMessage {
         int amount = pb.readInt();
 
         for (int i = 0; i < amount; i++) {
-            antennaBiomes[i] = pb.readString();
+            antennaBiomes[i] = pb.readString(32767);
         }
     }
 

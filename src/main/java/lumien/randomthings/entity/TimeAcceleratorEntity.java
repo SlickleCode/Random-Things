@@ -56,6 +56,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
  * problem for {@link EclipsedClockEntity}'s {@code HANGING_POS}: a real
  * synced {@code DataParameter<BlockPos>} instead of a plain field.
  */
+@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = IRendersAsItem.class)
 public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
     private static final DataParameter<Integer> TIME_RATE = EntityDataManager.createKey(TimeAcceleratorEntity.class, DataSerializers.VARINT);
     private static final DataParameter<BlockPos> TARGET = EntityDataManager.createKey(TimeAcceleratorEntity.class, DataSerializers.BLOCK_POS);

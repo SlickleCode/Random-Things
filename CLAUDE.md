@@ -3,6 +3,9 @@
 Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to Forge 1.14.4, on the
 fork [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things).
 
+Reusable docs: [docs/testing/](docs/testing/README.md) (automated in-game tests, dev-only) and
+[docs/migration/](docs/migration/README.md) (migration knowledge base for future version bumps).
+
 **Read [PORTING_PLAN.md](PORTING_PLAN.md)'s "START HERE (session handoff)" section first in any new
 session on this repo** — it has the current state, what's in progress, and what's next. Don't re-derive
 project state from scratch; that file is kept current after every slice.
@@ -46,8 +49,12 @@ wiki-documented features are DONE/NOT STARTED.
   Portkey that glows forever unbound) turned out to be intentional in 1.12.2.
 - **Don't commit or push automatically** — wait for the user to explicitly say so, even after a big
   verified batch of fixes. Keep doing the work and running full `./gradlew build` verification per
-  slice, and keep `TESTING_CHECKLIST.md`/`PORTING_PLAN.md` updated in the same pass; just leave the
-  result uncommitted until asked.
+  slice; just leave the result uncommitted until asked.
+- **Update `TESTING_CHECKLIST.md` and `PORTING_PLAN.md` whenever project features change** — any new
+  feature, behavior change, GUI/layout change, bug fix, or removal gets a checklist row (new, or the
+  existing row amended; mark it `FIXED` until the user retests) and a note in `PORTING_PLAN.md`'s
+  "START HERE" section, in the same pass as the code change. Don't wait to be asked or batch it for
+  later.
 - Work in the same local checkout the user runs `./gradlew runClient` in — no need to hand over a
   built jar unless they ask for one directly (e.g. to test on a separate real launcher install).
 - **Mixins cannot be tested via `./gradlew runClient`** in this environment, and this Forge build never
@@ -57,3 +64,15 @@ wiki-documented features are DONE/NOT STARTED.
 
 Co-Authored-By line for commits (when the user asks for one to be created): see the harness's own
 attribution instructions for the current line to use.
+
+## Automated tests and dev-only tooling
+
+- Run `RT_AUTOTEST=true RT_AUTOTEST_NO_GUIS=true RT_AUTOTEST_EXIT=true ./gradlew runClient` (see
+  `docs/testing/README.md`) after any slice that touches registration, models, recipes, tile entities, capabilities
+  or hooks; read `run/randomthings_audit.txt` and `run/randomthings_tests.txt`. Also run
+  `RT_AUTOTEST=true RT_AUTOTEST_EXIT=true ./gradlew runServer` after anything that adds client-class references (dedicated-server boot + suite). Add a behavior test
+  (`debug/test/BehaviorTests`) for new redstone/capability/hook logic.
+- All dev tooling must stay behind `DevMode.ENABLED` (`-Drandomthings.debug=true`): no `@Mod.EventBusSubscriber`
+  on dev classes, no references to dev classes from game code except the guarded `DevTools.init()` call, no config
+  options for it. Use `RTDebug.log(...)` for diagnostics, never an unconditional `LOGGER.info` in gameplay code.
+- Before relying on any Forge event, find who posts it in the sources jar (`HarvestDropsEvent` is never posted).

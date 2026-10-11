@@ -5,19 +5,16 @@ import java.util.Deque;
 
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.client.util.InputMappings;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * Debug aid (needs {@code DebugLogging}): remembers the last few key presses, mouse clicks and
  * world interactions (right-click block/item/entity) so that when a Random Things GUI opens,
  * {@link GuiDebugScreenshots} can log what the player actually did to open it.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class GuiOpenTriggerLog
 {
 	private static final long WINDOW_MS = 3000;

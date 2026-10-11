@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " P ",
+    "PLP",
+    " P "
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:glass_pane"
+    },
+    "L": {
+      "item": "randomthings:luminous_block_cyan"
+    }
+  },
+  "result": {
+    "item": "randomthings:luminous_block_translucent_cyan"
+  }
+}

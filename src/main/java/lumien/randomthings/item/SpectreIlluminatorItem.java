@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.entity.SpectreIlluminatorEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -10,8 +11,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Right-click a block to place a {@link SpectreIlluminatorEntity}, which
@@ -19,7 +18,6 @@ import org.apache.logging.log4j.Logger;
  * chunk already has one. Direct port of 1.12.2's {@code ItemSpectreIlluminator}.
  */
 public class SpectreIlluminatorItem extends Item {
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public SpectreIlluminatorItem(Item.Properties properties) {
         super(properties);
@@ -44,20 +42,20 @@ public class SpectreIlluminatorItem extends Item {
             }
 
             if (alreadyLit) {
-                LOGGER.info("[SpectreIlluminator] placement at {} refused: chunk {} already has an illuminated orb", pos, cp);
+                RTDebug.log("[SpectreIlluminator] placement at {} refused: chunk {} already has an illuminated orb", pos, cp);
             } else {
                 AxisAlignedBB scanBox = new AxisAlignedBB(new BlockPos(cp.getXStart() - 2, 0, cp.getZStart() - 2), new BlockPos(cp.getXEnd() + 2, 255, cp.getZEnd() + 2));
                 java.util.List<SpectreIlluminatorEntity> nearby = world.getEntitiesWithinAABB(SpectreIlluminatorEntity.class, scanBox);
 
                 if (!nearby.isEmpty()) {
-                    LOGGER.info("[SpectreIlluminator] placement at {} refused: {} existing orb(s) within 2 chunks (e.g. {} at {}, illuminated={})", pos, nearby.size(), nearby.get(0), nearby.get(0).getPosition(), nearby.get(0).isIlluminated());
+                    RTDebug.log("[SpectreIlluminator] placement at {} refused: {} existing orb(s) within 2 chunks (e.g. {} at {}, illuminated={})", pos, nearby.size(), nearby.get(0), nearby.get(0).getPosition(), nearby.get(0).isIlluminated());
                     return ActionResultType.FAIL;
                 }
 
                 SpectreIlluminatorEntity illuminator = new SpectreIlluminatorEntity(world, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5);
                 world.addEntity(illuminator);
 
-                LOGGER.info("[SpectreIlluminator] placed at {} (entity {})", pos, illuminator.getEntityId());
+                RTDebug.log("[SpectreIlluminator] placed at {} (entity {})", pos, illuminator.getEntityId());
 
                 if (player == null || !player.abilities.isCreativeMode) {
                     ItemStack stack = context.getItem();

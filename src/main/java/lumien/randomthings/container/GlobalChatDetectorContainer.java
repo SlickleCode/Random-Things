@@ -29,7 +29,7 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 
 	public GlobalChatDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(9), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString());
+		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(9), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
 	}
 
 	public GlobalChatDetectorContainer(int windowId, PlayerInventory playerInventory, IItemHandler idCardInventory, IWorldPosCallable pos, String chatMessage)
@@ -140,7 +140,7 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 	{
 		if (id == 0)
 		{
-			String newMessage = data.readString();
+			String newMessage = data.readString(32767);
 			this.chatMessage = newMessage;
 
 			this.pos.consume((world, pos) -> {

@@ -33,12 +33,14 @@ minecraft {
 
             property 'forge.logging.console.level', 'debug'
 
-            // Turns on RTDebug logging + GUI screenshots for dev runs (see RTDebug.java)
-            property 'randomthings.debug', 'true'
+            // Dev switch (see debug/DevMode.java): on for dev runs; RT_NO_DEBUG=true launches like a normal player install
+            property 'randomthings.debug', System.getenv('RT_NO_DEBUG') ? 'false' : 'true'
 
             // RT_AUTOTEST=true ./gradlew runClient -> client opens a world and runs /rtdebug allguis itself
-            // (RT_AUTOTEST_EXIT=true also quits afterwards); see client/AutoTest.java
+            // (RT_AUTOTEST_EXIT=true also quits afterwards, RT_AUTOTEST_NO_GUIS=true skips the GUI pass); see client/AutoTest.java and docs/testing/
             property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
+            property 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
+            property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
             property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
 
             jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
@@ -56,6 +58,12 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
 
             property 'forge.logging.console.level', 'debug'
+
+            // Same dev switch / autotest properties as the client (see debug/test/ServerAutoTest.java and docs/testing/)
+            property 'randomthings.debug', System.getenv('RT_NO_DEBUG') ? 'false' : 'true'
+            property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
+            property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
+            property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
 
             mods {
                 randomthings {
@@ -98,5 +106,30 @@ jar {
 			"Implementation-Version": "${version}",
 			"Implementation-Vendor" :"Lumien",
 			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")],)
+    }
+}
+
+// RT_AUTOTEST=true ./gradlew runServer: the test suite needs a flat world, so point the dev server at a flat
+// throwaway world (only these two keys of run/server.properties are touched, and only when RT_AUTOTEST is set).
+tasks.matching { it.name == 'runServer' }.all {
+    def originalProps = null
+    doLast {
+        if (originalProps != null) {
+            file('run/server.properties').text = originalProps
+        }
+    }
+    doFirst {
+        if (System.getenv('RT_AUTOTEST') == 'true') {
+            def f = file('run/server.properties')
+            originalProps = f.exists() ? f.text : null
+            def lines = f.exists() ? f.readLines() : []
+            def set = { String k, String v ->
+                def i = lines.findIndexOf { it.startsWith(k + '=') }
+                if (i >= 0) lines[i] = k + '=' + v else lines << (k + '=' + v)
+            }
+            set('level-type', 'flat')
+            set('level-name', 'RTServerTest')
+            f.text = lines.join(System.lineSeparator()) + System.lineSeparator()
+        }
     }
 }

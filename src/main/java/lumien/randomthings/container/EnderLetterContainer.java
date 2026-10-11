@@ -107,7 +107,7 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
     @Override
     public void handle(int id, PacketBuffer data) {
         if (id == 0 && !received) {
-            String receiver = data.readString();
+            String receiver = data.readString(32767);
             letterStack.getOrCreateTag().putString("receiver", receiver);
         } else if (id == 1 && !received) {
             String message = data.readString(1024);

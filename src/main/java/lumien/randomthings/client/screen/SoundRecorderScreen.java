@@ -54,6 +54,19 @@ public class SoundRecorderScreen extends ContainerScreen<SoundRecorderContainer>
         this.blit(x, y, 0, 0, this.xSize, this.ySize);
     }
 
+    // ContainerScreen's mouseDragged/mouseReleased don't forward to child widgets, so the list's
+    // scrollbar drag never arrived
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dx, double dy) {
+        return this.soundList.mouseDragged(mouseX, mouseY, button, dx, dy) || super.mouseDragged(mouseX, mouseY, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        this.soundList.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
         this.renderBackground();

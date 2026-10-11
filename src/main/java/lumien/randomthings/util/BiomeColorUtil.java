@@ -1,5 +1,6 @@
 package lumien.randomthings.util;
 
+import org.apache.logging.log4j.LogManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.minecraft.util.math.BlockPos;
@@ -173,7 +174,7 @@ public class BiomeColorUtil {
                 }
             });
         } catch (ExecutionException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error("Biome color lookup failed", e);
 
             return Color.WHITE.getRGB();
         }

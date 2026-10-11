@@ -26,7 +26,7 @@ public class NotificationInterfaceContainer extends Container implements ISignal
     String description;
 
     public NotificationInterfaceContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(), extraData.readString());
+        this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767), extraData.readString(32767));
     }
 
     public NotificationInterfaceContainer(int windowId, PlayerInventory playerInventory, IItemHandler iconInventory, IWorldPosCallable pos, String title, String description) {
@@ -110,8 +110,8 @@ public class NotificationInterfaceContainer extends Container implements ISignal
     @Override
     public void handle(int id, PacketBuffer data) {
         if (id == 0) {
-            String newTitle = data.readString();
-            String newDescription = data.readString();
+            String newTitle = data.readString(32767);
+            String newDescription = data.readString(32767);
 
             this.title = newTitle;
             this.description = newDescription;

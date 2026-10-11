@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "randomthings:stained_brick_light_gray"
+    },
+    {
+      "item": "randomthings:luminous_powder"
+    }
+  ],
+  "result": {
+    "item": "randomthings:luminous_stained_brick_light_gray"
+  }
+}

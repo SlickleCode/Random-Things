@@ -103,7 +103,10 @@ public class FluidDisplayTileEntity extends TileEntity {
         super.read(compound);
 
         if (compound.contains("fluidStack")) {
-            this.fluidStack = FluidStack.loadFluidStackFromNBT(compound.getCompound("fluidStack"));
+            // an unset display is written as an empty compound; load it back as "unset" (null) rather than an
+            // EMPTY stack so the NBT stays stable across save/load cycles
+            FluidStack loaded = FluidStack.loadFluidStackFromNBT(compound.getCompound("fluidStack"));
+            this.fluidStack = loaded == null || loaded.isEmpty() ? null : loaded;
         } else {
             this.fluidStack = new FluidStack(Fluids.WATER, 1000);
         }

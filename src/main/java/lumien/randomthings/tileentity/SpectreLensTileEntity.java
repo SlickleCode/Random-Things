@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import org.apache.logging.log4j.LogManager;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
             secondary = BeaconTileEntity.class.getDeclaredField("secondaryEffect");
             secondary.setAccessible(true);
         } catch (NoSuchFieldException e) {
-            e.printStackTrace();
+            LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
         }
         PRIMARY_EFFECT = primary;
         SECONDARY_EFFECT = secondary;
@@ -82,7 +83,7 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
                     SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beacon.getLevels(), primary, secondary);
                     return;
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
                 }
             }
         }

@@ -126,7 +126,7 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
     @Override
     public void handle(int id, PacketBuffer data) {
         if (id == 0) {
-            outputSound(data.readString());
+            outputSound(data.readString(32767));
         }
     }
 

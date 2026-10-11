@@ -10,10 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ScreenShotHelper;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * Debug feature ({@code debug.DebugGuiScreenshots}): screenshots every Random Things GUI a few
@@ -21,7 +19,6 @@ import net.minecraftforge.fml.common.Mod;
  * {@code <game dir>/screenshots/randomthings_debug/<ScreenClass>_<timestamp>.png}. One shot per
  * opened screen instance.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class GuiDebugScreenshots
 {
 	private static final int FRAMES_BEFORE_SHOT = 5;

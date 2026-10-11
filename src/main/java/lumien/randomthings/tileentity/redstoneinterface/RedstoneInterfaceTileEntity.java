@@ -9,7 +9,6 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -76,17 +75,16 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         return strongest;
     }
 
-    public static void notifyNeighbor(NeighborNotifyEvent event) {
-        for (RedstoneInterfaceTileEntity ri : INTERFACES) {
-            if (ri.world == event.getWorld() && !ri.isRemoved() && ri.pos.equals(event.getPos())) {
-                ri.updateRedstoneState();
-            }
-        }
-    }
-
     private boolean updating = false;
 
-    private void updateRedstoneState() {
+    /**
+     * Re-reads the power hitting this interface's own faces and, if anything changed, re-broadcasts it to the
+     * target(s). Called from the owning block's {@code neighborChanged}/{@code onBlockAdded}, like 1.12.2's
+     * {@code TileEntityRedstoneInterface#neighborChanged}. (A {@code NeighborNotifyEvent} listener was used before
+     * and never worked: that event's position is the block that <em>changed</em>, not the block being notified, so
+     * the interface only refreshed when its own block changed.)
+     */
+    public void updateRedstoneState() {
         if (updating || this.world == null) {
             return;
         }

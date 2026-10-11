@@ -1,12 +1,11 @@
 package lumien.randomthings.entity;
 
+import lumien.randomthings.debug.RTDebug;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.Heightmap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -64,7 +63,6 @@ import java.util.WeakHashMap;
  * allocated, from "all up front" to "the tick it's actually used."
  */
 public class SpectreIlluminatorRelight {
-    private static final Logger LOGGER = LogManager.getLogger();
 
     /**
      * Briefly split into separate server/client rates (server-side {@code
@@ -129,7 +127,7 @@ public class SpectreIlluminatorRelight {
         queue.jobs.add(job);
         queue.totalRemaining += job.remaining();
 
-        LOGGER.info("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isRemote, maxY, before, queue.totalRemaining);
+        RTDebug.log("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isRemote, maxY, before, queue.totalRemaining);
     }
 
     public static void tick(World world) {
@@ -158,7 +156,7 @@ public class SpectreIlluminatorRelight {
         }
 
         if (queue.jobs.isEmpty()) {
-            LOGGER.info("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimension().getType(), drained);
+            RTDebug.log("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimension().getType(), drained);
         }
     }
 

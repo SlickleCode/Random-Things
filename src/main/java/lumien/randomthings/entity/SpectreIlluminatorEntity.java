@@ -1,5 +1,6 @@
 package lumien.randomthings.entity;
 
+import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -20,8 +21,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.fml.network.NetworkHooks;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
 import java.util.Set;
@@ -102,8 +101,8 @@ import java.util.WeakHashMap;
  * this version's rewritten light engine. See {@link SpectreIlluminatorRelight}
  * for the fix (bounded per-tick draining instead of one big burst).
  */
+@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = IRendersAsItem.class)
 public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final Set<SpectreIlluminatorEntity> ILLUMINATORS = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -133,7 +132,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
         super.notifyDataManagerChange(key);
 
         if (this.world.isRemote && key.equals(ILLUMINATED) && this.dataManager.get(ILLUMINATED)) {
-            LOGGER.info("[SpectreIlluminator] entity {} learned illuminated=true on the client, relighting", this.getEntityId());
+            RTDebug.log("[SpectreIlluminator] entity {} learned illuminated=true on the client, relighting", this.getEntityId());
             relight();
         }
     }
@@ -146,7 +145,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
 
         ILLUMINATORS.remove(this);
 
-        LOGGER.info("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getEntityId(), this.world.isRemote, wasIlluminated);
+        RTDebug.log("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getEntityId(), this.world.isRemote, wasIlluminated);
 
         if (wasIlluminated) {
             relight();
@@ -239,11 +238,11 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
 
             if (!isIlluminated()) {
                 if (this.world.getGameTime() % 100 == 0) {
-                    LOGGER.info("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getEntityId(), posX, posY, posZ, chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
+                    RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getEntityId(), posX, posY, posZ, chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
                 }
 
                 if (posX == chunkX && posZ == chunkZ) {
-                    LOGGER.info("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getEntityId(), posX, posY, posZ, chunkPos);
+                    RTDebug.log("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getEntityId(), posX, posY, posZ, chunkPos);
 
                     this.dataManager.set(ILLUMINATED, true);
 

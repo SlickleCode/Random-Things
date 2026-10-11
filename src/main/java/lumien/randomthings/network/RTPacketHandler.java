@@ -1,5 +1,6 @@
 package lumien.randomthings.network;
 
+import org.apache.logging.log4j.LogManager;
 import lumien.randomthings.network.messages.BiomeRadarAntennaMessage;
 import lumien.randomthings.network.messages.ContainerSignalMessage;
 import lumien.randomthings.network.messages.NotificationMessage;
@@ -63,11 +64,11 @@ public class RTPacketHandler
 			}
 			catch (InstantiationException e)
 			{
-				e.printStackTrace();
+				LogManager.getLogger().error("Failed to instantiate network message", e);
 			}
 			catch (IllegalAccessException e)
 			{
-				e.printStackTrace();
+				LogManager.getLogger().error("Failed to instantiate network message", e);
 			}
 
 			return instance;

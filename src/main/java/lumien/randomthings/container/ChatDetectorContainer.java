@@ -24,7 +24,7 @@ public class ChatDetectorContainer extends Container implements ISignalContainer
 
 	public ChatDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
 	{
-		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString());
+		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
 	}
 
 	public ChatDetectorContainer(int windowId, IWorldPosCallable pos, String chatMessage)
@@ -74,7 +74,7 @@ public class ChatDetectorContainer extends Container implements ISignalContainer
 	{
 		if (id == 0)
 		{
-			String newMessage = data.readString();
+			String newMessage = data.readString(32767);
 			this.chatMessage = newMessage;
 
 			this.pos.consume((world, pos) -> {

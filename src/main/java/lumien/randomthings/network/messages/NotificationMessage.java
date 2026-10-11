@@ -31,8 +31,8 @@ public class NotificationMessage implements IRTMessage
 	@Override
 	public void read(PacketBuffer pb)
 	{
-		this.title = pb.readString();
-		this.description = pb.readString();
+		this.title = pb.readString(32767);
+		this.description = pb.readString(32767);
 		this.icon = pb.readItemStack();
 	}
 

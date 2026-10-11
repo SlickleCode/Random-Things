@@ -25,9 +25,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -56,9 +53,6 @@ import net.minecraft.world.gen.feature.IFeatureConfig;
 import net.minecraft.world.gen.placement.ChanceConfig;
 import net.minecraft.world.gen.placement.Placement;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.client.event.ColorHandlerEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.ServerChatEvent;
@@ -70,10 +64,7 @@ import net.minecraftforge.event.entity.player.UseHoeEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -95,8 +86,8 @@ public class RandomThings {
         INSTANCE = this;
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupCommon);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupClient);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerModels);
+        // All client-only wiring lives in ClientSetup; this class must not reference client classes (dedicated server).
+        net.minecraftforge.fml.DistExecutor.runWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT, () -> lumien.randomthings.client.ClientSetup::init);
 
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, lumien.randomthings.config.RTConfig.SPEC);
 
@@ -110,7 +101,12 @@ public class RandomThings {
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
         MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install());
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerStartingEvent event) -> lumien.randomthings.debug.RTDebugCommand.register(event.getCommandDispatcher()));
+
+        // Developer-only tooling (commands, in-game tests, audit, GUI screenshots): nothing of it is
+        // registered or even loaded unless -Drandomthings.debug=true, so normal play pays nothing.
+        if (lumien.randomthings.debug.DevMode.ENABLED) {
+            lumien.randomthings.debug.DevTools.init();
+        }
 
         MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
             ItemUseContext context = event.getContext();
@@ -315,18 +311,6 @@ public class RandomThings {
             }
         });
 
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
-                return;
-            }
-
-            for (Entity entity : Minecraft.getInstance().world.getAllEntities()) {
-                if (entity instanceof BoatEntity && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((BoatEntity) entity);
-                }
-            }
-        });
-
         // Anti-trespass check for the Spectre Dimension: every server tick, snap any
         // non-creative player standing outside their own SpectreCube room back to their
         // own spawn tile (or fully back home if they don't have a cube at all). Direct
@@ -345,34 +329,6 @@ public class RandomThings {
                     spectreHandler.checkPosition(player);
                 }
             }
-        });
-
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase == TickEvent.Phase.END) {
-                DiviningRodRenderer.get().tick();
-            }
-        });
-
-        // Drains lumien.randomthings.entity.SpectreIlluminatorRelight's queued
-        // light-recheck work on the CLIENT side specifically. Real bug found and
-        // fixed, 2026-09-27 (reported by user, confirmed via log: server-side
-        // draining completed in ~5 seconds every time, but the client-side queue
-        // - keyed by the client's own separate ClientWorld instance, a totally
-        // different object from the server's ServerWorld even in singleplayer's
-        // integrated server - never showed a single drain in 30+ seconds; only a
-        // full relog, which resyncs already-correct server light data fresh, ever
-        // made the change visible). The WorldTickEvent listener below evidently
-        // doesn't fire for the client world the way the other WorldTickEvent
-        // listeners' defensive `isRemote` checks implied it might - ClientTickEvent
-        // is what this project already uses elsewhere for exactly this "runs on
-        // the client every tick" need (see DiviningRodRenderer.get().tick() right
-        // above).
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
-                return;
-            }
-
-            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(Minecraft.getInstance().world);
         });
 
         // Drives StableEnderpearlItem's dropped-pearl countdown - see the javadoc on
@@ -508,18 +464,6 @@ public class RandomThings {
             }
         });
 
-        // Spectre Anchor's tooltip: "Anchored" on any stack carrying the
-        // "spectreAnchor" NBT tag, regardless of which item it is. Matches
-        // 1.12.2's own RTEventHandler#itemTooltip (inserted at index 1, right
-        // after the item's display name).
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> {
-            ItemStack stack = event.getItemStack();
-
-            if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
-                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").applyTextStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
-            }
-        });
-
         // Tracks a global "has the Ender Dragon ever been defeated" flag, and
         // rolls a small chance to spawn a SpiritEntity at the death location
         // of anything a real player kills - boosted once the dragon's been
@@ -627,7 +571,6 @@ public class RandomThings {
         });
 
         MinecraftForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
-        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity::notifyNeighbor);
 
         // Drives RedstoneSignalHandler's timed-pulse expiry (Redstone Activator/Remote) -
         // same "no Item.onEntityItemUpdate hook" WorldTickEvent precedent used for
@@ -715,34 +658,11 @@ public class RandomThings {
             }
         });
 
-        // Magnetic Enchantment. 1.12.2 caught the drop entities via an ASM patch into
-        // PlayerInteractionManager.tryHarvestBlock (ItemCatcher). This Forge version's
-        // BlockEvent.HarvestDropsEvent already exposes the same pre-spawn, mutable drop
-        // list - canceling it clears that list before the caller spawns anything
-        // (ForgeEventFactory.fireBlockHarvesting), so the pickup can be done directly
-        // here with no coremod, unlike the wiki's own "ASM?" note for this feature.
-        MinecraftForge.EVENT_BUS.addListener((BlockEvent.HarvestDropsEvent event) -> {
-            PlayerEntity harvester = event.getHarvester();
-            if (harvester == null || event.getWorld().isRemote()) {
-                return;
-            }
-
-            ItemStack tool = harvester.getHeldItemMainhand();
-            if (!lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get() || net.minecraft.enchantment.EnchantmentHelper.getEnchantmentLevel(lumien.randomthings.enchantment.ModEnchantments.MAGNETIC, tool) <= 0) {
-                return;
-            }
-
-            java.util.List<ItemStack> drops = new java.util.ArrayList<>(event.getDrops());
-            event.setCanceled(true);
-
-            for (ItemStack drop : drops) {
-                net.minecraftforge.items.ItemHandlerHelper.giveItemToPlayer(harvester, drop);
-            }
-        });
+        // Magnetic Enchantment: see handler/MagneticLootModifier (BlockEvent.HarvestDropsEvent is never
+        // fired in this Forge build, so a global loot modifier replaces 1.12.2's ASM item catcher).
     }
 
     private void setupCommon(final FMLCommonSetupEvent event) {
-        lumien.randomthings.debug.RTDebug.log("Common setup starting (debug logging enabled, GUI screenshots: {})", lumien.randomthings.debug.RTDebug.isGuiScreenshots());
         AsmHandler.modBlockLight(0F, 1);
         RTPacketHandler.register();
 
@@ -797,122 +717,6 @@ public class RandomThings {
         ImbuingRecipeHandler.addRecipe(new ItemStack(Items.SPIDER_EYE), new ItemStack(Items.ROTTEN_FLESH), new ItemStack(Items.RED_MUSHROOM), waterBottle, new ItemStack(ModItems.IMBUE_POISON));
         ImbuingRecipeHandler.addRecipe(new ItemStack(ModItems.LESSER_MAGIC_BEAN), new ItemStack(Items.LAPIS_LAZULI), new ItemStack(Items.GLOWSTONE_DUST), waterBottle, new ItemStack(ModItems.IMBUE_EXPERIENCE));
         ImbuingRecipeHandler.addRecipe(new ItemStack(Items.WITHER_SKELETON_SKULL), new ItemStack(Items.NETHER_BRICK), new ItemStack(Items.GHAST_TEAR), waterBottle, new ItemStack(ModItems.IMBUE_WITHER));
-    }
-
-    private void setupClient(final FMLClientSetupEvent event) {
-        ModScreens.register();
-
-        ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(RuneBaseTileEntity.class, new RuneBaseTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.FluidDisplayTileEntity.class, new lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.DiaphanousBlockTileEntity.class, new lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer());
-
-        RenderingRegistry.registerEntityRenderingHandler(FlooFireplaceEntity.class, FlooFireplaceEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(EclipsedClockEntity.class, EclipsedClockEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(ThrownWeatherEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(WeatherCloudEntity.class, WeatherCloudEntityRenderer::new);
-        // Custom renderer draws the bottle icon on all 6 faces of the target
-        // block - per user request, 2026-09-27, replacing a brief SpriteRenderer
-        // first pass (which can only billboard at one fixed spot) - see
-        // TimeAcceleratorEntityRenderer's own javadoc.
-        RenderingRegistry.registerEntityRenderingHandler(TimeAcceleratorEntity.class, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ThrownGoldenEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.GoldenChickenEntity.class, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ArtificialEndPortalEntity.class, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
-        // Item-icon billboard via vanilla's SpriteRenderer, same mechanism already
-        // used for ThrownGoldenEggEntity/ThrownWeatherEggEntity above - per user
-        // request, 2026-09-27, replacing the earlier no-visible-model design (see
-        // SpectreIlluminatorEntity's own javadoc).
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpectreIlluminatorEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpiritEntity.class, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
-
-        MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
-            DiviningRodRenderer.get().render();
-            RedstoneObserverLineRenderer.render();
-        });
-
-        MinecraftForge.EVENT_BUS.addListener(RandomThings::onPlaySound);
-    }
-
-    /**
-     * Registers {@code randomthings:portkey_base} as an extra "special"
-     * model - not tied to any block or item's own auto-resolved model, just
-     * an auxiliary resource {@link lumien.randomthings.client.renderer.PortkeyItemRenderer}
-     * fetches directly via {@code ModelManager#getModel} at render time. See
-     * that class's javadoc for why this indirection exists (rendering the
-     * plain, uncamouflaged Portkey appearance from inside its own {@code
-     * ItemStackTileEntityRenderer} without recursing back into itself).
-     */
-    private void registerModels(final net.minecraftforge.client.event.ModelRegistryEvent event) {
-        net.minecraftforge.client.model.ModelLoader.addSpecialModel(new net.minecraft.client.renderer.model.ModelResourceLocation(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "portkey_base"), "inventory"));
-    }
-
-    /**
-     * Mutes any sound matched by a nearby {@link SoundDampenerTileEntity} (20
-     * blocks) or a carried {@link PortableSoundDampenerItem} (anywhere in the
-     * player's own inventory - the original checked both a Baubles body slot
-     * and the main inventory, but this port dropped Baubles, so only the
-     * carried check remains, the same fallback already used for Obsidian
-     * Skull/Lava Charm), and separately feeds every sound heard to any
-     * actively-recording {@link SoundRecorderItem} anywhere in the inventory
-     * (not just the held item). Direct port of 1.12.2's
-     * {@code RTEventHandler.playSoundEvent}.
-     */
-    private static void onPlaySound(PlaySoundEvent event) {
-        ClientPlayerEntity thePlayer = Minecraft.getInstance().player;
-
-        if (thePlayer == null || event.isCanceled() || event.getSound() == null) {
-            return;
-        }
-
-        ISound sound = event.getSound();
-
-        if (sound.getCategory() == SoundCategory.MUSIC || sound.getCategory() == SoundCategory.RECORDS || Minecraft.getInstance().gameSettings.getSoundLevel(sound.getCategory()) <= 0) {
-            return;
-        }
-
-        ResourceLocation soundLocation = sound.getSoundLocation();
-        BlockPos soundPosition = new BlockPos(sound.getX(), sound.getY(), sound.getZ());
-
-        for (SoundDampenerTileEntity dampener : SoundDampenerTileEntity.loadedDampeners) {
-            if (dampener.getWorld() == thePlayer.world && !dampener.isRemoved() && dampener.getPos().distanceSq(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
-                event.setResultSound(null);
-                return;
-            }
-        }
-
-        for (int slot = 0; slot < thePlayer.inventory.mainInventory.size(); slot++) {
-            ItemStack stack = thePlayer.inventory.getStackInSlot(slot);
-
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            if (stack.getItem() == ModItems.SOUND_RECORDER && SoundRecorderItem.isRecording(stack)) {
-                RTPacketHandler.sendToServer(new PlayedSoundMessage(soundLocation.toString(), slot));
-            } else if (stack.getItem() == ModItems.PORTABLE_SOUND_DAMPENER) {
-                if (mutesSound(PortableSoundDampenerItem.getInventory(stack), soundLocation)) {
-                    event.setResultSound(null);
-                    return;
-                }
-            }
-        }
-    }
-
-    private static boolean mutesSound(net.minecraftforge.items.IItemHandler inventory, ResourceLocation soundLocation) {
-        for (int s = 0; s < inventory.getSlots(); s++) {
-            ItemStack patternStack = inventory.getStackInSlot(s);
-
-            if (!patternStack.isEmpty()) {
-                ResourceLocation muted = SoundPatternItem.getSoundLocation(patternStack);
-
-                if (soundLocation.equals(muted)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -1016,6 +820,11 @@ public class RandomThings {
         }
 
         @SubscribeEvent
+        public static void onLootModifierSerializersRegistry(final RegistryEvent.Register<net.minecraftforge.common.loot.GlobalLootModifierSerializer<?>> event) {
+            event.getRegistry().register(new lumien.randomthings.handler.MagneticLootModifier.Serializer().setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "magnetic")));
+        }
+
+        @SubscribeEvent
         public static void onEffectsRegistry(final RegistryEvent.Register<Effect> effectRegistryEvent) {
             ModEffects.registerEffects(effectRegistryEvent);
         }
@@ -1038,67 +847,6 @@ public class RandomThings {
         @SubscribeEvent
         public static void onFeaturesRegistry(final RegistryEvent.Register<Feature<?>> featureRegistryEvent) {
             ModFeatures.registerFeatures(featureRegistryEvent);
-        }
-
-        /**
-         * Generic bridge from the mod's own {@link IRTBlockColor} interface to
-         * Forge's {@code BlockColors} system: any registered randomthings block
-         * implementing it gets wired up here automatically, so individual blocks
-         * never need their own {@code ColorHandlerEvent} listener.
-         */
-        @SubscribeEvent
-        public static void onBlockColorHandler(final ColorHandlerEvent.Block event) {
-            for (Block block : ForgeRegistries.BLOCKS.getValues()) {
-                if (block instanceof IRTBlockColor && block.getRegistryName() != null && ModConstants.MOD_ID.equals(block.getRegistryName().getNamespace())) {
-                    event.getBlockColors().register((state, worldIn, pos, tintIndex) -> ((IRTBlockColor) block).colorMultiplier(state, worldIn, pos, tintIndex), block);
-                }
-            }
-        }
-
-        /**
-         * Same bridge for item icon tinting: any randomthings {@link BlockItem}
-         * whose block implements {@link IRTBlockColor} gets its inventory icon
-         * tinted using the client player's current world/position, matching the
-         * 1.12.2 behavior of {@code ItemBlockColored}.
-         */
-        @SubscribeEvent
-        public static void onItemColorHandler(final ColorHandlerEvent.Item event) {
-            for (Item item : ForgeRegistries.ITEMS.getValues()) {
-                if (item instanceof BlockItem && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace())) {
-                    Block block = ((BlockItem) item).getBlock();
-
-                    if (block instanceof IRTBlockColor) {
-                        event.getItemColors().register((stack, tintIndex) -> {
-                            if (block instanceof lumien.randomthings.block.ColoredGrassBlock) {
-                                return lumien.randomthings.block.ColoredGrassBlock.getTint(lumien.randomthings.block.ColoredGrassBlock.getColor(stack));
-                            }
-
-                            Minecraft mc = Minecraft.getInstance();
-
-                            if (mc.world == null || mc.player == null) {
-                                return 0xFFFFFF;
-                            }
-
-                            return ((IRTBlockColor) block).colorMultiplier(block.getDefaultState(), mc.world, mc.player.getPosition(), tintIndex);
-                        }, item);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Same bridge, but for a plain {@link Item} that implements
-         * {@link IRTItemColor} directly (not a {@link BlockItem}) - e.g.
-         * {@link lumien.randomthings.item.BiomeCrystalItem}, which tints
-         * itself from its own stored biome rather than from a block.
-         */
-        @SubscribeEvent
-        public static void onPlainItemColorHandler(final ColorHandlerEvent.Item event) {
-            for (Item item : ForgeRegistries.ITEMS.getValues()) {
-                if (item instanceof IRTItemColor && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace())) {
-                    event.getItemColors().register((stack, tintIndex) -> ((IRTItemColor) item).getColorFromItemstack(stack, tintIndex), item);
-                }
-            }
         }
     }
 }

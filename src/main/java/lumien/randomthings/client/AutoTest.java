@@ -2,15 +2,14 @@ package lumien.randomthings.client;
 
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.debug.RTDebugCommand;
+import lumien.randomthings.debug.test.RTTestRunner;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.world.GameType;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 /**
  * Hands-free GUI pass for dev runs: when started with {@code -Drandomthings.autotest=true} (the
@@ -20,14 +19,13 @@ import net.minecraftforge.fml.common.Mod;
  * a screenshot of every GUI with nobody touching the game. {@code -Drandomthings.autotest.exit=true}
  * also quits the client when the run is finished.
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT)
 public class AutoTest
 {
 	private static final String WORLD = "RTAutoTest";
 
 	private enum State
 	{
-		MENU, LOADING, SETTLING, RUNNING, DONE
+		MENU, LOADING, SETTLING, TESTING, RUNNING, DONE
 	}
 
 	private static State state = State.MENU;
@@ -73,12 +71,43 @@ public class AutoTest
 			case SETTLING:
 				if (ticks > 200)
 				{
-					RTDebug.log("AutoTest: world loaded, running /rtdebug allguis");
+					ResourceAudit audit = ResourceAudit.run();
+					RTDebug.log("AutoTest: resource audit done, {} failure(s)", audit.failures.size());
+
+					RTDebug.log("AutoTest: running /rtdebug test");
 					mc.player.sendChatMessage("/gamemode creative");
+					mc.player.sendChatMessage("/rtdebug test " + System.getProperty("randomthings.autotest.filter", "").trim());
+
+					state = State.TESTING;
+					ticks = 0;
+				}
+				break;
+			case TESTING:
+				if (RTTestRunner.finished)
+				{
+					RTDebug.log("AutoTest: in-game tests finished, {} failure(s)", RTTestRunner.failureCount);
+
+					if (Boolean.getBoolean("randomthings.autotest.noguis"))
+					{
+						state = State.DONE;
+
+						if (Boolean.getBoolean("randomthings.autotest.exit"))
+						{
+							mc.shutdown();
+						}
+						break;
+					}
+
+					RTDebug.log("AutoTest: running /rtdebug allguis");
 					mc.player.sendChatMessage("/rtdebug allguis");
 
 					state = State.RUNNING;
 					ticks = 0;
+				}
+				else if (ticks > 20 * 60 * 10)
+				{
+					RTDebug.log("AutoTest: timed out waiting for the in-game tests (is the player op and the world flat?)");
+					state = State.DONE;
 				}
 				break;
 			case RUNNING:

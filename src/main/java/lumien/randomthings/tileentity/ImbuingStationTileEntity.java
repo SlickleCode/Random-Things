@@ -86,7 +86,17 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
     }
 
     private void imbue() {
-        itemHandler.insertItem(4, currentOutput.copy(), false);
+        // Not insertItem: the output slot rejects insertion on purpose (isItemValid), which would also reject the machine's own
+        // result - ingredients were consumed and nothing came out (found by behavior.imbuing_station.*).
+        ItemStack out = itemHandler.getStackInSlot(4);
+
+        if (out.isEmpty()) {
+            itemHandler.setStackInSlot(4, currentOutput.copy());
+        } else {
+            ItemStack merged = out.copy();
+            merged.grow(currentOutput.getCount());
+            itemHandler.setStackInSlot(4, merged);
+        }
 
         for (int slot = 0; slot < 4; slot++) {
             itemHandler.extractItem(slot, 1, false);

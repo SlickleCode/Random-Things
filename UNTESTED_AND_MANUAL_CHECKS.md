@@ -1,47 +1,13 @@
-# Untested items and manual checks (generated 2026-10-03 from TESTING_CHECKLIST.md)
+# Untested items and manual checks (generated 2026-10-03 from TESTING_CHECKLIST.md; section A updated 2026-10-04)
 
-Counts: DONE 40, FAIL 8, FIXED 10, PASS 196, REMOVED 4, UNTESTED 106
-
-
-## A. Open FAIL rows - need a fix, then a retest (8)
+Counts (2026-10-03): DONE 40, FAIL 8, FIXED 10, PASS 196, REMOVED 4, UNTESTED 106. Since then: 7 FAIL rows -> PASS (see A), #360-#365 added as FIXED.
 
 
-**2. Batch 1 — standalone blocks (no GUI/tile entity)**
+## A. Open FAIL rows (1)
 
-- #56 Colored Grass — (SUPERSEDED 2026-09-29: all 16 colors + Grass Seeds now ported, see #342-#344) ships as single white-only variant (no color picker yet)  
-  _Last note:_ User Update 9/30/2026: Grass seeds work to place tinted grass, and it spreads. It does not have a preference for the shovel tool, and only says "Colored Grass" in it's tooltip. I would like it to say it's color in it's tooltip as "<COLOR> Grass Block" **Checked - this is intentional, matching 1.12.2…
+- #158 Sound Dampener — 9-slot GUI of full Sound Patterns mutes those sounds within ~20 blocks of the *sound's origin*. Code matches 1.12.2; waiting on the exact distance from the sound source to the dampener if it still looks wrong.
 
-**3. Batch 2 — tile-entity/GUI-backed blocks / Slice 5**
-
-- #93 Chat Detector — GUI text field, pulses on placer typing the exact configured message  
-  _Last note:_ **Investigated, no bug found in the button/click-routing code itself** - the same button pattern works elsewhere (Igniter), and the text field's own click handling correctly yields to the button per vanilla source. See `TESTING_NOTES.md` #93 for what to check on retest (does the button highlight on …
-
-**4. General spot-checks across the whole port**
-
-- #120 GUI text-cycle mode buttons (Igniter, Entity Detector, etc.) are legible and functional (plain text, not the original's icon-sprite buttons — cosmetic difference only)  
-  _Last note:_ Many GUI's need tweaks and updates to display properly. **10/3/2026 audit progress (debug screenshots):** fixed Global Chat Detector (slot rows/ySize didn't match texture; button overlapped slots; now original layout + sprite toggle), Advanced Redstone Interface + Redstone Remote Edit (`advanced.png…
-
-**5. Batch 3 — remaining (non-block) items**
-
-- #155 Sound Recorder GUI — put a blank Sound Pattern in the left slot, click a sound name in the list: a "full" Sound Pattern (different icon, tooltip shows the sound's name) appears in the right slot and t…  
-  _Last note:_ GUI has text off the screen, no button or way to select sound to save. **10/3/2026, debug screenshot:** layout/texture were correct; the sound-name text was white on the light-gray panel (nearly invisible, looked like "no way to select"). Rows are now dark text with a dark highlight bar + white text…
-- #158 Sound Dampener — place, right-click to open its 9-slot GUI, insert a few full Sound Patterns: any of those sounds played by ANYONE within ~20 blocks of the block go silent for everyone in range, not j…  
-  _Last note:_ **Investigated, no bug found - matches 1.12.2 exactly** (byte-for-byte same `distanceSq < 20*20` check, confirmed via that branch's real source). Note the 20-block check is against the *sound's own origin position*, not your distance from the dampener - if the sound source (a mob, a block) was itsel…
-
-**5. Batch 3 — remaining (non-block) items / Slice 16**
-
-- #180 Floo Powder — craft: Ender Pearl top-left, Redstone top-right, Gunpowder bottom-left, plain Beans bottom-right (2x2, makes 16)  
-  _Last note:_ Make this crafting recipe shapeless **Fixed 9/30/2026:** recipe is now shapeless (this intentionally diverges from 1.12.2's shaped 2x2). Please retest.
-
-**5. Batch 3 — remaining (non-block) items / Slice 17**
-
-- #205 Weather Egg cloud — visibly different particle effects per type while rising (plus a colored accent for Rain/Storm)  
-  _Last note:_ When throwing egg, no egg sprite or billboard is shown, but all other effects happen. **Fixed 9/30/2026:** root cause was the thrown entity lacking `createSpawnPacket()`, so the client never had the entity to render (effects were server-driven). Added `NetworkHooks.getEntitySpawningPacket`. Please r…
-
-**5. Batch 3 — remaining (non-block) items / Slice 20 — Summoning Pendulum, Golden Egg/Golden Chicken, Fluid Display**
-
-- #230 Golden Egg — throw it (right-click): always hatches a Golden Chicken where it lands (unlike vanilla eggs' 1-in-8 chance), and damages anything it hits directly for 1  
-  _Last note:_ Does not show sprite or billboard while egg is thrown, still spawns chicken. **Fixed 9/30/2026:** same root cause/fix as #205. Please retest.
+(2026-10-04: #56, #93, #120, #155, #180, #205, #230 were confirmed working and are now PASS.)
 
 ## B. FIXED - fix applied, awaiting your retest (10)
 
@@ -243,12 +209,12 @@ Counts: DONE 40, FAIL 8, FIXED 10, PASS 196, REMOVED 4, UNTESTED 106
 
 ## D. Manual checks that aren't single checklist rows
 
-- **All 28 GUIs** - open each once with the debug flag on and review the screenshots: see [GUI_TEST_LIST.md](GUI_TEST_LIST.md) (#120 audit).
+- **All 28 GUIs** - audit complete 2026-10-04, see [GUI_TEST_LIST.md](GUI_TEST_LIST.md) (#120 PASS).
 - **Worldgen** (can't be triggered headlessly): Lotus, Ancient Furnace, Glowing Mushrooms, Bean Sprout, Peace Candle church in plains villages (fresh worlds, `/locate village`; check the path reaches the church door).
 - **Coremods that only a real client can confirm**: Rain Shield visual/mechanical suppression, Lapis Lamp spawning, Blazing Fire / Super Lubricent Boots (#134/#135 - had a prior "still broken" report as a Mixin), Dyeing Machine armor/ItemRenderer recolor, redstone power coremods (Redstone Interface/Activator/Remote).
 - **Persistence**: quit and reload a world with Ender Anchors (chunkloading, #356-#358), Spectre dimension (teleport in/out, restart client, rejoin), Redstone Remote bindings.
 - **Multiplayer / server**: `runServer` boot, Anchor chunkloading + tooltip read the *client's* config, Spectre energy network and Redstone Remote across clients - none have been tried.
 - **Config options** (`randomthings-common.toml`): each of `[worldgen]`, `[loot]`, `[features]`, `[visual]`, `[numbers]`, `[debug]` - toggle and confirm the described effect.
-- **Retest after the 10/3 fixes**: thrown Weather/Golden Egg sprites (#205/#230), Floo Powder shapeless (#180), Colored Grass name + shovel (#56), Chat Detector / Global Chat Detector / Advanced Redstone Interface / Remote Edit GUIs, Sound Recorder list colors (#155).
+- **Retest after the 10/3 fixes**: Global Chat Detector / Advanced Redstone Interface / Remote Edit GUIs (already confirmed 10/4: Weather/Golden Egg sprites, Floo Powder, Colored Grass, Chat Detector, Sound Recorder).
 - **Never in-game confirmed (wiki status DONE-UNTESTED)**: roughly 55 of the 100 wiki-documented features; see `WIKI_FEATURE_STATUS.md` (filter for `DONE-UNTESTED`).
-- **Known-open questions waiting on you**: #93 and #158 (code matches 1.12.2 - need the exact behavior you saw), #120 (which other GUIs look wrong), duplicate row numbers #134/#136/#356 in the checklist.
+- **Known-open questions waiting on you**: #158 (code matches 1.12.2 - need the exact distance from the sound source to the dampener), duplicate row numbers #134/#136/#356 in the checklist.

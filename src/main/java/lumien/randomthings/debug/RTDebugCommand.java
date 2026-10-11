@@ -37,7 +37,9 @@ import net.minecraftforge.registries.ForgeRegistries;
  * <pre>
  *   /rtdebug gui &lt;id&gt; [sneak]
  *   /rtdebug allguis [delayTicks]
+ *   /rtdebug test [name filter]
  * </pre>
+ * {@code test} runs the in-game test suite (see {@code debug.test.RTTestRunner}).
  * {@code gui} opens the GUI of any Random Things block or item exactly as a right-click would. For
  * a block it is placed three blocks in front of you (the GUI's container needs the block to stay
  * put, so it is left there) and activated; for an item it is put in your main hand (your previous
@@ -73,6 +75,10 @@ public class RTDebugCommand
 						.executes(context -> startAllGuis(context, 30))
 						.then(Commands.argument("delayTicks", IntegerArgumentType.integer(5, 400))
 								.executes(context -> startAllGuis(context, IntegerArgumentType.getInteger(context, "delayTicks")))))
+				.then(Commands.literal("test")
+						.executes(context -> startTests(context, null))
+						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+								.executes(context -> startTests(context, com.mojang.brigadier.arguments.StringArgumentType.getString(context, "filter")))))
 				.then(Commands.literal("gui")
 						.then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
 								.suggests((context, builder) -> ISuggestionProvider.suggestIterable(allIds(), builder))
@@ -224,6 +230,20 @@ public class RTDebugCommand
 		boolean cleaned = true;
 		int opened;
 		final List<String> failed = new ArrayList<>();
+	}
+
+	private static int startTests(CommandContext<CommandSource> context, String filter) throws CommandSyntaxException
+	{
+		String error = lumien.randomthings.debug.test.RTTestRunner.start(context.getSource().asPlayer(), filter == null || filter.trim().isEmpty() ? null : filter.trim());
+
+		if (error != null)
+		{
+			context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] " + error));
+			return 0;
+		}
+
+		context.getSource().sendFeedback(new StringTextComponent("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
+		return 1;
 	}
 
 	private static AllGuisRun run;
