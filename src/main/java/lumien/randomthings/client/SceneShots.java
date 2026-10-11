@@ -31,6 +31,8 @@ public final class SceneShots
 	private static int index;
 	private static int wait;
 	private static boolean requested;
+	private static boolean hoodPlayersAdded;
+	private static final java.util.List<Integer> remotePlayers = new java.util.ArrayList<>();
 	private static int creativePage;
 	private static int creativePages;
 
@@ -63,6 +65,11 @@ public final class SceneShots
 				wait = 20;
 				return false;
 			case SCENES:
+				if (requested && !hoodPlayersAdded && wait == 30 && index < ids.size() && ids.get(index).equals("magic_hood"))
+				{
+					addHoodPlayers(mc);
+				}
+
 				if (wait-- > 0)
 				{
 					return false;
@@ -93,6 +100,19 @@ public final class SceneShots
 				}
 
 				save(mc, new File(mc.gameDir, "screenshots/randomthings_debug/scenes/" + id + ".png"));
+
+				if (hoodPlayersAdded)
+				{
+					for (int entityId : remotePlayers)
+					{
+						mc.world.removeEntityFromWorld(entityId);
+					}
+
+					remotePlayers.clear();
+					hoodPlayersAdded = false;
+					mc.gameSettings.hideGUI = true;
+				}
+
 				requested = false;
 				index++;
 				wait = 5;
@@ -130,6 +150,36 @@ public final class SceneShots
 			default:
 				return true;
 		}
+	}
+
+	/**
+	 * Magic Hood scene: two other players in front of the camera, one wearing the hood. Vanilla draws a player's nameplate;
+	 * the hood must hide it ({@code MagicHoodTransformer}), which only shows with the GUI visible.
+	 */
+	private static void addHoodPlayers(Minecraft mc)
+	{
+		double y = mc.player.posY - 2.0;
+		String[] names = { "NoHood", "WithHood" };
+
+		for (int i = 0; i < 2; i++)
+		{
+			net.minecraft.client.entity.player.RemoteClientPlayerEntity other = new net.minecraft.client.entity.player.RemoteClientPlayerEntity(mc.world, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]));
+			other.setPosition(mc.player.posX + (i == 0 ? -1.2 : 1.2), y, mc.player.posZ + 4.0);
+			other.rotationYaw = 180.0F;
+			other.rotationYawHead = 180.0F;
+
+			if (i == 1)
+			{
+				other.setItemStackToSlot(net.minecraft.inventory.EquipmentSlotType.HEAD, new ItemStack(ModItems.MAGIC_HOOD));
+			}
+
+			int entityId = -9000 - i;
+			mc.world.addPlayer(entityId, other);
+			remotePlayers.add(entityId);
+		}
+
+		hoodPlayersAdded = true;
+		mc.gameSettings.hideGUI = false;
 	}
 
 	private static void startCreative(Minecraft mc)

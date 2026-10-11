@@ -50,6 +50,8 @@ public class AutoTest
 		switch (state)
 		{
 			case MENU:
+				// an unattended run loses window focus; vanilla would then open the pause menu over every screenshot
+				mc.gameSettings.pauseOnLostFocus = false;
 				if (mc.currentScreen instanceof MainMenuScreen && ticks > 60)
 				{
 					RTDebug.log("AutoTest: opening world {}", WORLD);

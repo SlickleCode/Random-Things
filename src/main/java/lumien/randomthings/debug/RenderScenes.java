@@ -90,7 +90,7 @@ public final class RenderScenes
 			ids.add("blocks_" + i);
 		}
 
-		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
+		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
 		return ids;
 	}
 
@@ -389,6 +389,24 @@ public final class RenderScenes
 				camera(player, 4, 2.5, -1, 0, 12);
 				return null;
 			}
+			case "light_redirector":
+			{
+				// Redirector R: the block east of it must draw as the block WEST of it and vice versa (client-only render trick,
+				// BlockRendererDispatcherTransformer). Back row = the same blocks around plain stone, as the control.
+				place(world, new BlockPos(x0 - 5, y0, z0 + 8), Blocks.GOLD_BLOCK);
+				place(world, new BlockPos(x0 - 4, y0, z0 + 8), Blocks.STONE);
+				place(world, new BlockPos(x0 - 3, y0, z0 + 8), Blocks.DIAMOND_BLOCK);
+
+				place(world, new BlockPos(x0 + 2, y0, z0 + 4), Blocks.GOLD_BLOCK);
+				place(world, new BlockPos(x0 + 4, y0, z0 + 4), Blocks.DIAMOND_BLOCK);
+				place(world, new BlockPos(x0 + 3, y0, z0 + 4), ModBlocks.LIGHT_REDIRECTOR);
+				camera(player, 1, 3, -2, 0, 14);
+				return null;
+			}
+			case "magic_hood":
+				// the two remote players (one wearing a Magic Hood) are added on the client by SceneShots
+				camera(player, 0, 2, -1, 0, 6);
+				return null;
 			case "blazing_fire":
 			{
 				place(world, origin, Blocks.NETHERRACK);

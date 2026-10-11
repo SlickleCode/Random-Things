@@ -90,6 +90,17 @@ install a real server once (`java -jar forge-<ver>-installer.jar --installServer
 `java -Drandomthings.debug=true -Drandomthings.autotest=true -Drandomthings.autotest.exit=true -jar forge-<ver>.jar nogui`; the report is
 `randomthings_tests.txt` in that folder. Delete its `RTServerTest` world when switching versions.
 
+#### Production client (render coremods)
+
+The client-only coremods (dye on items/armor, rain suppression, light redirector, Magic Hood) need a production *client*. Once per version,
+in `prod-test/<ver>/`: create `client/launcher_profiles.json` containing `{"profiles":{},"version":3}`, run
+`java -jar forge-<ver>-installer.jar --installClient client`, copy `docs/testing/prod-test-scripts/{fetch-libs.py,run-client.py}` next to
+`client/` (they work for any version), run `python fetch-libs.py` (downloads the vanilla libraries and Windows natives the installer skips,
+sha1-checked), put the built jar in `client-run/mods/`, then
+`python run-client.py -Drandomthings.autotest=true -Drandomthings.autotest.noguis=true -Drandomthings.autotest.exit=true` (suite) or
+`-Drandomthings.autotest.scenes=true [-Drandomthings.autotest.scenes.only=id,id]` (screenshots in
+`client-run/screenshots/randomthings_debug/scenes/`). Needs the Gradle caches (assets, vanilla `version.json`) from having built the project once.
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different

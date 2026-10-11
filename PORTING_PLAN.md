@@ -100,7 +100,7 @@ working rules. **Update this file whenever features change** (see CLAUDE.md).
 - **Peace Candle village churches shipped 2026-09-29** via a delegating `JigsawPattern` wrapper
   (`PeaceCandleChurchPool`) + user-authored `peace_candle_church.nbt` (needs a jigsaw block at the door).
 
-**Production names (2026-10-11):** transformers match MCP and SRG names and reflection uses `ObfuscationReflectionHelper`; static registries use `util/WeakSets`; both verified on a production server (`prod-test/`, see `docs/testing/README.md`).
+**Production names (2026-10-11):** transformers match MCP and SRG names and reflection uses `ObfuscationReflectionHelper`; static registries use `util/WeakSets`; both verified on a production server and a production client (`prod-test/`, see `docs/testing/README.md`; scenes `light_redirector` and `magic_hood` added for the render coremods).
 
 **Test tooling (2026-10-11):** the GUI click-through and render-scene screenshot passes were backported from the 1.16.5 branch (`RT_AUTOTEST_CLICKS`, `RT_AUTOTEST_SCENES`; inventory in `docs/testing/test-inventory.md`).
 
