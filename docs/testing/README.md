@@ -81,6 +81,13 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 
 The audit always runs; the filter only applies to the in-game tests.
 
+### Switching branches
+
+`run/` is gitignored and shared by every branch. Before running the tests after switching to a different
+Minecraft version branch, delete the old test worlds and reports (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs
+run/randomthings_*.txt run/screenshots/randomthings_debug`); a world saved by another version hangs the client or stops the
+dedicated server at a confirmation prompt, and stale reports/screenshots can be mistaken for the new run's.
+
 ### Interactive use
 
 With the dev switch on (`runClient` does this) and operator permission, in the `RTAutoTest` flat world:
