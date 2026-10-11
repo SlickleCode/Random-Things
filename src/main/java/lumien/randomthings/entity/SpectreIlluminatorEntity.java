@@ -1,5 +1,6 @@
 package lumien.randomthings.entity;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.entity.Entity;
@@ -22,9 +23,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.Heightmap;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 /**
  * A floating orb, placed by right-clicking with a {@link
@@ -104,7 +103,7 @@ import java.util.WeakHashMap;
 @net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = IRendersAsItem.class)
 public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
 
-    public static final Set<SpectreIlluminatorEntity> ILLUMINATORS = Collections.newSetFromMap(new WeakHashMap<>());
+    public static final Set<SpectreIlluminatorEntity> ILLUMINATORS = WeakSets.create();
 
     private static final DataParameter<Boolean> ILLUMINATED = EntityDataManager.createKey(SpectreIlluminatorEntity.class, DataSerializers.BOOLEAN);
 

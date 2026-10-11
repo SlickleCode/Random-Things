@@ -38,10 +38,9 @@ public class PotionMetadataUtil {
         }
 
         try {
-            Field field = LivingEntity.class.getDeclaredField("potionsNeedUpdate");
-            field.setAccessible(true);
-            potionsNeedUpdateField = field;
-        } catch (NoSuchFieldException e) {
+            // field_70752_e = potionsNeedUpdate (SRG name so it also resolves in a production jar)
+            potionsNeedUpdateField = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(LivingEntity.class, "field_70752_e");
+        } catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             lookupFailed = true;
         }
 

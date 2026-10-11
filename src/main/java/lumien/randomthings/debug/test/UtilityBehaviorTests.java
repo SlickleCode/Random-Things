@@ -216,6 +216,51 @@ final class UtilityBehaviorTests
 			c.check(te.itemHandler().getStackInSlot(1).isEmpty(), "the potion was loaded into the tank");
 		}));
 
+		// ---- Static registries (thread safety) --------------------------------------------------
+		tests.add(RTTest.named("registry.weak_sets_survive_concurrent_add_remove_and_iteration").run(c -> {
+			java.util.Set<Object> set = lumien.randomthings.util.WeakSets.create();
+			Object[] keep = new Object[200];
+
+			for (int i = 0; i < keep.length; i++)
+			{
+				keep[i] = new Object();
+			}
+
+			Throwable[] failure = new Throwable[1];
+			Thread writer = new Thread(() -> {
+				try
+				{
+					for (int round = 0; round < 2000; round++)
+					{
+						for (Object o : keep)
+						{
+							set.add(o);
+						}
+
+						for (Object o : keep)
+						{
+							set.remove(o);
+						}
+					}
+				}
+				catch (Throwable t)
+				{
+					failure[0] = t;
+				}
+			});
+			writer.start();
+
+			while (writer.isAlive())
+			{
+				for (Object o : lumien.randomthings.util.WeakSets.snapshot(set))
+				{
+					o.hashCode();
+				}
+			}
+
+			c.check(failure[0] == null, "writer thread failed: " + failure[0]);
+		}));
+
 		return tests;
 	}
 }

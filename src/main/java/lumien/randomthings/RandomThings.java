@@ -1,5 +1,6 @@
 package lumien.randomthings;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.*;
 import lumien.randomthings.client.renderer.*;
@@ -553,13 +554,13 @@ public class RandomThings {
 
             boolean consumed = false;
 
-            for (ChatDetectorTileEntity detector : ChatDetectorTileEntity.detectors) {
+            for (ChatDetectorTileEntity detector : WeakSets.snapshot(ChatDetectorTileEntity.detectors)) {
                 if (detector.checkMessage(event.getPlayer(), event.getMessage())) {
                     consumed = true;
                 }
             }
 
-            for (GlobalChatDetectorTileEntity detector : GlobalChatDetectorTileEntity.detectors) {
+            for (GlobalChatDetectorTileEntity detector : WeakSets.snapshot(GlobalChatDetectorTileEntity.detectors)) {
                 if (detector.checkMessage(event.getPlayer(), event.getMessage())) {
                     consumed = true;
                 }

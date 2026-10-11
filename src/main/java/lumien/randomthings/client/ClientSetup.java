@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.*;
 import lumien.randomthings.client.renderer.*;
@@ -229,7 +230,7 @@ public class ClientSetup {
         ResourceLocation soundLocation = sound.getSoundLocation();
         BlockPos soundPosition = new BlockPos(sound.getX(), sound.getY(), sound.getZ());
 
-        for (SoundDampenerTileEntity dampener : SoundDampenerTileEntity.loadedDampeners) {
+        for (SoundDampenerTileEntity dampener : WeakSets.snapshot(SoundDampenerTileEntity.loadedDampeners)) {
             if (dampener.getWorld() == thePlayer.world && !dampener.isRemoved() && dampener.getPos().distanceSq(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
                 event.setResultSound(null);
                 return;

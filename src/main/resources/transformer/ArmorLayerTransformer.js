@@ -29,7 +29,7 @@ function initializeCoreMod() {
                     // before that second render() call; the hook re-applies GL color, overriding
                     // whatever the vanilla call just set, only when the worn item carries a Dyeing
                     // Machine "rtDye" tag.
-                    if (method.name !== "renderArmorLayer" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;FFFFFFFLnet/minecraft/inventory/EquipmentSlotType;)V") {
+                    if (method.name !== "renderArmorLayer" && method.name !== "func_188361_a" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;FFFFFFFLnet/minecraft/inventory/EquipmentSlotType;)V") {
                         continue;
                     }
 
@@ -39,7 +39,7 @@ function initializeCoreMod() {
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
-                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/client/renderer/entity/model/BipedModel" && insn.name === "render" && insn.desc === "(Lnet/minecraft/entity/LivingEntity;FFFFFF)V") {
+                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/client/renderer/entity/model/BipedModel" && (insn.name === "render" || insn.name === "func_78088_a") && insn.desc === "(Lnet/minecraft/entity/LivingEntity;FFFFFF)V") {
                             if (renderCallIndex === 1) {
                                 var toInsert = new InsnList();
                                 toInsert.add(new VarInsnNode(Opcodes.ALOAD, 10));

@@ -1,8 +1,7 @@
 package lumien.randomthings.tileentity;
 
-import java.util.Collections;
+import lumien.randomthings.util.WeakSets;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -29,7 +28,7 @@ import net.minecraft.world.World;
  */
 public class SlimeCubeTileEntity extends TileEntity
 {
-	public static final Set<SlimeCubeTileEntity> cubes = Collections.newSetFromMap(new WeakHashMap<>());
+	public static final Set<SlimeCubeTileEntity> cubes = WeakSets.create();
 
 	private boolean powered;
 

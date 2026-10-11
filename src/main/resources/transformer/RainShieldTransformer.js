@@ -22,7 +22,7 @@ function initializeCoreMod() {
                     // .shouldRain) - see AsmHandler#overrideIsRainingAt's javadoc. 4 early-exit
                     // branches, 4 ireturn sites - same collect-then-wrap pattern as
                     // MagicHoodTransformer's canRenderName redirect.
-                    if (method.name !== "isRainingAt" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;)Z") {
+                    if (method.name !== "isRainingAt" && method.name !== "func_175727_C" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;)Z") {
                         continue;
                     }
 

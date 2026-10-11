@@ -9,6 +9,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 | Resource audit | `RT_AUTOTEST=true` | `client/AutoTest` + audit code | `run/randomthings_audit.txt` | Every block/item/recipe: models, textures, lang keys, loot, recipe parsing. Always runs. |
 | In-game tests (client) | `RT_AUTOTEST=true` | `debug/test/*` via `/rtdebug test` | `run/randomthings_tests.txt` | Behaviour, NBT round trips, coremod hooks, run inside a flat test world on the integrated server. |
 | In-game tests (dedicated server) | `RT_AUTOTEST=true` with `runServer` | `debug/test/ServerAutoTest` | `run/randomthings_tests.txt` | The same suite on a headless server (catches client-class leaks). |
+| Production-jar server run | manual (see README) | `prod-test/<version>/` (untracked) | `randomthings_tests.txt` there | The same server suite on a real SRG-named Forge install with the built jar; catches coremod/reflection name problems. |
 | GUI screenshots | `RT_AUTOTEST=true` (omit `_NO_GUIS`) | `client/AutoTest` `/rtdebug allguis` | `run/screenshots/randomthings_debug/` | One screenshot of each of the GUIs, to compare by eye. |
 | Render scenes | `RT_AUTOTEST_SCENES=true` [`_SCENES_ONLY=id,id`] | `debug/RenderScenes`, `client/SceneShots` | `run/screenshots/randomthings_debug/scenes/` | Built scenes for every block entity/entity renderer, items, armor dye, fluids, rain, Spectre sky + creative-tab item pages. Reviewed by eye. |
 | GUI click-through | `RT_AUTOTEST_CLICKS=true` | `client/GuiClickTest` | `run/randomthings_clicks.txt` | Opens every GUI, hovers/clicks every button, diffs server-side NBT, types into text fields, reopens to check persistence. |
@@ -66,7 +67,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.sound_box.pattern_toggles_the_block_state_and_survives_nbt`
 - `behavior.sound_dampener.muted_set_follows_its_patterns_and_the_block_registers_itself`
 
-### test\UtilityBehaviorTests.java (6)
+### test\UtilityBehaviorTests.java (7)
 
 - `behavior.entity_detector.powers_while_an_entity_is_in_range_and_ignores_far_ones`
 - `behavior.entity_detector.monster_filter_and_invert`
@@ -74,6 +75,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.ender_mailbox.unknown_receiver_keeps_the_letter`
 - `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper`
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
+- `registry.weak_sets_survive_concurrent_add_remove_and_iteration`
 
 ## Generated in-game tests
 
@@ -83,12 +85,12 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `nbt.entity.<id>` - same for every entity type
 - `nbt.item.<id>` - same for item stack NBT of every item
 
-Together with the named tests above this is the 333-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
+Together with the named tests above this is the 334-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
 
 ## Tooling pieces
 
-- `RTTestPlayer` (1.16.5): detached `ServerPlayerEntity` with a real `ServerPlayNetHandler`, because Forge's `FakePlayer` sits at 0,0,0 and ignores net calls. Behaviour tests that need a connection check `getClass() != ServerPlayNetHandler.class`.
-- `AutoTest` (1.16.5): auto-presses the 1.16 world-open dialogs (`ConfirmScreen`, `ConfirmBackupScreen`), `allguis 40` slower GUI pass.
+- `RTTestPlayer` (1.16.5 only): detached `ServerPlayerEntity` with a real `ServerPlayNetHandler`, because Forge's `FakePlayer` sits at 0,0,0 and ignores net calls. Behaviour tests that need a connection check `getClass() != ServerPlayNetHandler.class`.
+- `AutoTest` (1.16.5 only): auto-presses the 1.16 world-open dialogs (`ConfirmScreen`, `ConfirmBackupScreen`), `allguis 40` slower GUI pass.
 - `/rtdebug` command: `allguis [delay]`, `gui <id> [sneak]`, `scene <id>`, `test [filter]`.
 
 ## Not automated (needs a human)

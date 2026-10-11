@@ -1,5 +1,6 @@
 package lumien.randomthings.client.renderer;
 
+import lumien.randomthings.util.WeakSets;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -58,7 +59,7 @@ public class RedstoneObserverLineRenderer
 
 		GlStateManager.begin(GL11.GL_LINES);
 
-		for (RedstoneObserverTileEntity observer : RedstoneObserverTileEntity.loadedObservers)
+		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(RedstoneObserverTileEntity.loadedObservers))
 		{
 			if (observer.isRemoved() || observer.getWorld() != player.world || observer.getTarget() == null)
 			{

@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.entity.SpectreIlluminatorEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -34,7 +35,7 @@ public class SpectreIlluminatorItem extends Item {
 
             boolean alreadyLit = false;
 
-            for (SpectreIlluminatorEntity illuminator : SpectreIlluminatorEntity.ILLUMINATORS) {
+            for (SpectreIlluminatorEntity illuminator : WeakSets.snapshot(SpectreIlluminatorEntity.ILLUMINATORS)) {
                 if (illuminator.isInChunk(world, cp)) {
                     alreadyLit = true;
                     break;

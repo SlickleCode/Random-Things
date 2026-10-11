@@ -228,11 +228,10 @@ public final class SuperLubricentPhysics
 
 		try
 		{
-			Field field = BoatEntity.class.getDeclaredField("deltaRotation");
-			field.setAccessible(true);
-			deltaRotationField = field;
+			// field_184475_as = deltaRotation (SRG name so it also resolves in a production jar)
+			deltaRotationField = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BoatEntity.class, "field_184475_as");
 		}
-		catch (NoSuchFieldException e)
+		catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e)
 		{
 			deltaRotationLookupFailed = true;
 		}

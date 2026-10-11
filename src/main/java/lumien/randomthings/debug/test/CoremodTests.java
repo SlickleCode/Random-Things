@@ -204,16 +204,9 @@ final class CoremodTests
 			fake.inventory.setInventorySlotContents(0, anchored);
 			fake.inventory.setInventorySlotContents(1, new ItemStack(Items.COBBLESTONE, 5));
 
-			try
-			{
-				Method drop = PlayerEntity.class.getDeclaredMethod("dropInventory");
-				drop.setAccessible(true);
-				drop.invoke(fake);
-			}
-			catch (NoSuchMethodException e)
-			{
-				throw new TestCtx.Skip("PlayerEntity.dropInventory not found under this name: " + e.getMessage());
-			}
+			// func_213337_cE = PlayerEntity.dropInventory (SRG name, resolves in dev and in a production jar)
+			Method drop = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findMethod(PlayerEntity.class, "func_213337_cE");
+			drop.invoke(fake);
 
 			c.eq(Items.IRON_SWORD, fake.inventory.getStackInSlot(0).getItem(), "anchored item must stay in its slot");
 			c.check(fake.inventory.getStackInSlot(1).isEmpty(), "an ordinary item must be removed from the inventory");

@@ -33,11 +33,10 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
         Field primary = null;
         Field secondary = null;
         try {
-            primary = BeaconTileEntity.class.getDeclaredField("primaryEffect");
-            primary.setAccessible(true);
-            secondary = BeaconTileEntity.class.getDeclaredField("secondaryEffect");
-            secondary.setAccessible(true);
-        } catch (NoSuchFieldException e) {
+            // SRG names (primaryEffect / secondaryEffect) so they also resolve in a production jar
+            primary = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BeaconTileEntity.class, "field_146013_m");
+            secondary = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BeaconTileEntity.class, "field_146010_n");
+        } catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
         }
         PRIMARY_EFFECT = primary;

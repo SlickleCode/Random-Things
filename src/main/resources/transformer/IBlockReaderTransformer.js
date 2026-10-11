@@ -23,7 +23,7 @@ function initializeCoreMod() {
                     // lookup, calls exactly this method on a Chunk instance every time
                     // (confirmed via javap -c) - one shared choke point, same as
                     // SpawnPlacementTransformer's EntitySpawnPlacementRegistry redirect.
-                    if (method.name !== "getLightValue" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;)I") {
+                    if (method.name !== "getLightValue" && method.name !== "func_217298_h" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;)I") {
                         continue;
                     }
 

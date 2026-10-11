@@ -32,7 +32,7 @@ function initializeCoreMod() {
                     // entry instead: call AsmHandler first, and only fall through to the
                     // original (untouched) body when it says this isn't the Spectre
                     // dimension.
-                    if (method.name !== "makePortal" || method.desc !== "(Lnet/minecraft/entity/Entity;)Z") {
+                    if (method.name !== "makePortal" && method.name !== "func_85188_a" || method.desc !== "(Lnet/minecraft/entity/Entity;)Z") {
                         continue;
                     }
 

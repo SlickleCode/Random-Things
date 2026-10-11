@@ -1,5 +1,6 @@
 package lumien.randomthings.asm;
 
+import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.entity.SpectreIlluminatorEntity;
@@ -168,7 +169,7 @@ public class AsmHandler {
         if (type == EntityType.SLIME) {
             ChunkPos chunkPos = new ChunkPos(pos);
 
-            for (SlimeCubeTileEntity cube : SlimeCubeTileEntity.cubes) {
+            for (SlimeCubeTileEntity cube : WeakSets.snapshot(SlimeCubeTileEntity.cubes)) {
                 if (cube.isInChunk(world, chunkPos)) {
                     return !cube.isPowered();
                 }
@@ -178,7 +179,7 @@ public class AsmHandler {
         }
 
         if (type.getClassification() == EntityClassification.MONSTER) {
-            for (PeaceCandleTileEntity candle : PeaceCandleTileEntity.candles) {
+            for (PeaceCandleTileEntity candle : WeakSets.snapshot(PeaceCandleTileEntity.candles)) {
                 if (candle.isInRange(world, pos, PEACE_CANDLE_CHUNK_RADIUS)) {
                     return false;
                 }
@@ -239,7 +240,7 @@ public class AsmHandler {
             return false;
         }
 
-        for (RainShieldTileEntity shield : RainShieldTileEntity.shields) {
+        for (RainShieldTileEntity shield : WeakSets.snapshot(RainShieldTileEntity.shields)) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
                 return false;
             }
@@ -272,7 +273,7 @@ public class AsmHandler {
     public static Biome getBiomeForRainRender(World world, BlockPos pos) {
         Biome real = world.getBiome(pos);
 
-        for (RainShieldTileEntity shield : RainShieldTileEntity.shields) {
+        for (RainShieldTileEntity shield : WeakSets.snapshot(RainShieldTileEntity.shields)) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
                 return net.minecraft.world.biome.Biomes.DESERT;
             }
@@ -314,7 +315,7 @@ public class AsmHandler {
 
         ChunkPos chunkPos = new ChunkPos(pos);
 
-        for (SpectreIlluminatorEntity illuminator : SpectreIlluminatorEntity.ILLUMINATORS) {
+        for (SpectreIlluminatorEntity illuminator : WeakSets.snapshot(SpectreIlluminatorEntity.ILLUMINATORS)) {
             if (illuminator.isInChunk(realWorld, chunkPos)) {
                 return 14;
             }

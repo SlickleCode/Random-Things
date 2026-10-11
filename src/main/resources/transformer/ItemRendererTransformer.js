@@ -29,7 +29,7 @@ function initializeCoreMod() {
                     // shape 1.12.2's own ClassTransformer#patchRenderItem used at this call site (see
                     // that method's history in PORTING_PLAN.md), minus the luminous-item hooking
                     // 1.12.2 interleaved here - LuminousHandler doesn't exist in this port.
-                    if (method.name !== "renderQuads" || method.desc !== "(Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;ILnet/minecraft/item/ItemStack;)V") {
+                    if (method.name !== "renderQuads" && method.name !== "func_191970_a" || method.desc !== "(Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;ILnet/minecraft/item/ItemStack;)V") {
                         continue;
                     }
 

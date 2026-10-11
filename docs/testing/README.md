@@ -81,6 +81,15 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 
 The audit always runs; the filter only applies to the in-game tests.
 
+### Production-jar test (coremod / reflection names)
+
+The dev environment uses MCP names, a real install uses SRG names, so coremods and reflection can pass `runClient`/`runServer` and
+still break in a release jar. To check: `./gradlew build`, then in the untracked `prod-test/<mc-version>/` folder (gitignored)
+install a real server once (`java -jar forge-<ver>-installer.jar --installServer`), copy `build/libs/*.jar` into its `mods/`, put
+`eula=true` and `server.properties` (`level-name=RTServerTest`, `online-mode=true`, `level-type=flat`) there, and run
+`java -Drandomthings.debug=true -Drandomthings.autotest=true -Drandomthings.autotest.exit=true -jar forge-<ver>.jar nogui`; the report is
+`randomthings_tests.txt` in that folder. Delete its `RTServerTest` world when switching versions.
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different

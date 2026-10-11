@@ -23,7 +23,7 @@ function initializeCoreMod() {
                     // Rain Shield's radius and returns the real biome everywhere else. No
                     // other World.getBiome call anywhere in the game is touched - this only
                     // ever fires from inside this one method.
-                    if (method.name !== "renderRainSnow" || method.desc !== "(F)V") {
+                    if (method.name !== "renderRainSnow" && method.name !== "func_78474_d" || method.desc !== "(F)V") {
                         continue;
                     }
 
@@ -36,7 +36,7 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/World" && insn.name === "getBiome" && insn.desc === "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;") {
+                        if (insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/World" && (insn.name === "getBiome" || insn.name === "func_180494_b") && insn.desc === "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;") {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "getBiomeForRainRender";
