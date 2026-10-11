@@ -17,6 +17,18 @@ project state from scratch; that file is kept current after every slice.
   to read the real original of any file).
 - `main` — landing-page README only, no code.
 
+## Switching branches: clean `run/`
+
+Each branch's Minecraft version writes its own world format into the gitignored `run/` directory, and a
+newer-format world (e.g. `run/saves/RTAutoTest` from 1.16.5) makes an older client hang on load. **Whenever
+you `git checkout` another version branch, clear the old state first** (this is not tracked, so safe):
+
+```
+rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run/screenshots/randomthings_debug
+```
+
+(delete any other test worlds in `run/saves` the same way; the autotest recreates `RTAutoTest`).
+
 ## Toolchain
 
 ```

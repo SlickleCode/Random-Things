@@ -25,7 +25,7 @@ public class AutoTest
 
 	private enum State
 	{
-		MENU, LOADING, SETTLING, TESTING, RUNNING, DONE
+		MENU, LOADING, SETTLING, TESTING, RUNNING, SCENES, CLICKS, DONE
 	}
 
 	private static State state = State.MENU;
@@ -69,6 +69,20 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.clicks"))
+				{
+					state = State.CLICKS;
+					ticks = 0;
+					break;
+				}
+
+				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.scenes"))
+				{
+					state = State.SCENES;
+					ticks = 0;
+					break;
+				}
+
 				if (ticks > 200)
 				{
 					ResourceAudit audit = ResourceAudit.run();
@@ -99,7 +113,7 @@ public class AutoTest
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.sendChatMessage("/rtdebug allguis");
+					mc.player.sendChatMessage("/rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;
@@ -108,6 +122,30 @@ public class AutoTest
 				{
 					RTDebug.log("AutoTest: timed out waiting for the in-game tests (is the player op and the world flat?)");
 					state = State.DONE;
+				}
+				break;
+			case CLICKS:
+				if (GuiClickTest.tick(mc))
+				{
+					RTDebug.log("AutoTest: GUI click test finished");
+					state = State.DONE;
+
+					if (Boolean.getBoolean("randomthings.autotest.exit"))
+					{
+						mc.shutdown();
+					}
+				}
+				break;
+			case SCENES:
+				if (SceneShots.tick(mc))
+				{
+					RTDebug.log("AutoTest: scenes finished");
+					state = State.DONE;
+
+					if (Boolean.getBoolean("randomthings.autotest.exit"))
+					{
+						mc.shutdown();
+					}
 				}
 				break;
 			case RUNNING:

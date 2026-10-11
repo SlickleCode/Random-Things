@@ -54,6 +54,12 @@ public class RTDebugCommand
 {
 	private static boolean tickRegistered;
 
+	/** The (block/item id, "sneak" or "") list shared with the client click test. */
+	public static String[][] guiList()
+	{
+		return ALL_GUIS;
+	}
+
 	/** Set when an {@code allguis} run completes (read by the client auto-test to exit). */
 	public static volatile boolean allGuisFinished;
 
@@ -75,6 +81,20 @@ public class RTDebugCommand
 						.executes(context -> startAllGuis(context, 30))
 						.then(Commands.argument("delayTicks", IntegerArgumentType.integer(5, 400))
 								.executes(context -> startAllGuis(context, IntegerArgumentType.getInteger(context, "delayTicks")))))
+				.then(Commands.literal("scene")
+						.then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+								.suggests((context, builder) -> ISuggestionProvider.suggest(RenderScenes.ids(), builder))
+								.executes(context -> {
+									String error = RenderScenes.build(context.getSource().asPlayer(), com.mojang.brigadier.arguments.StringArgumentType.getString(context, "id"));
+
+									if (error != null)
+									{
+										context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] " + error));
+										return 0;
+									}
+
+									return 1;
+								})))
 				.then(Commands.literal("test")
 						.executes(context -> startTests(context, null))
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())

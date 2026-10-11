@@ -1,5 +1,7 @@
 # Automated testing for Random Things (dev-only)
 
+Full list of every test and tool: [test-inventory.md](test-inventory.md).
+
 This project ships a small automated test setup that runs **inside the real game** (client + integrated
 server). It exists because most bugs in this port were invisible to the compiler and only showed up at
 runtime: registry/ObjectHolder crashes, missing render layers, models rejected by the game's parser,
@@ -73,8 +75,18 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 | `RT_AUTOTEST_NO_GUIS=true` | Skip the GUI screenshot pass at the end (recommended for quick runs) |
 | `RT_AUTOTEST_FILTER=<text>` | Only run tests whose name contains the text (case-insensitive), e.g. `block_breaker`, `nbt.item`, `iron_dropper` |
 | `RT_AUTOTEST_EXIT=true` | Quit the client when done |
+| `RT_AUTOTEST_SCENES=true` | Render screenshot pass (`debug/RenderScenes` + `client/SceneShots`): builds each scene (`/rtdebug scene <id>`), saves HUD-less screenshots to `run/screenshots/randomthings_debug/scenes/<id>.png`, then pages through the Random Things creative tab (`items_N.png`). Review the images by eye. |
+| `RT_AUTOTEST_SCENES_ONLY=id,id` | With `_SCENES`: only these scene ids (skips the creative-tab pages) |
+| `RT_AUTOTEST_CLICKS=true` | GUI click-through (`client/GuiClickTest`): opens every GUI, hovers and clicks every button through `mouseClicked`, compares server-side block/item NBT before and after, types into every text field and reopens the GUI to check the text was saved. Report: `run/randomthings_clicks.txt`. Slots are not exercised yet. |
 
 The audit always runs; the filter only applies to the in-game tests.
+
+### Switching branches
+
+`run/` is gitignored and shared by every branch. Before running the tests after switching to a different
+Minecraft version branch, delete the old test world and reports (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt
+run/screenshots/randomthings_debug`); a world saved by a newer version hangs an older client at load, and stale
+reports/screenshots can be mistaken for the new run's.
 
 ### Interactive use
 
@@ -157,3 +169,4 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
   harvest paths). Add a behavior test per coremod-backed feature when practical.
 - The behavior suite covers a representative subset of machines. Adding coverage is cheap — see
   [writing-tests.md](writing-tests.md).
+
