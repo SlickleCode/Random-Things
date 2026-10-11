@@ -101,6 +101,12 @@ sha1-checked), put the built jar in `client-run/mods/`, then
 `-Drandomthings.autotest.scenes=true [-Drandomthings.autotest.scenes.only=id,id]` (screenshots in
 `client-run/screenshots/randomthings_debug/scenes/`). Needs the Gradle caches (assets, vanilla `version.json`) from having built the project once.
 
+#### Real-world generation check
+
+`docs/testing/prod-test-scripts/realgen.py` (copy it into `prod-test/<ver>/` next to the installed server, mod jar in `mods/`) starts the production server on a real default overworld,
+force-loads ~1,700 chunks, saves and counts region-file chunks that contain a Glowing Mushroom. Use it after touching natural generation; it caught that new 1.16.5 worlds never
+generated mushrooms while the in-test cave checks first looked fine.
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different

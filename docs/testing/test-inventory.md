@@ -77,12 +77,14 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
 - `registry.weak_sets_survive_concurrent_add_remove_and_iteration`
 
-### test\WorldgenTests.java (10)
+### test\WorldgenTests.java (12)
 
 - `worldgen.glowing_mushroom.is_registered_in_every_biome_with_the_original_rarity`
 - `worldgen.glowing_mushroom.patch_in_a_sealed_cave_places_only_roofed_valid_mushrooms`
 - `worldgen.glowing_mushroom.config_switch_stops_the_patches`
 - `worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground`
+- `worldgen.glowing_mushroom.placed_mushroom_survives_updates_in_the_dark`
+- `worldgen.glowing_mushroom.spreads_in_a_dark_cave`
 - `worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper`
 - `worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches`
 - `worldgen.peace_candle.config_switch_stops_the_swap`
@@ -92,7 +94,9 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 
 ## World generation tests (`worldgen.*`, deterministic)
 
-Random-chance worldgen is verified without playing: every random source is seeded, so a result never changes. Layers: (1) the feature is registered in every biome with the original rarity; (2) run directly in a sealed cave it places only roofed, valid mushrooms inside the +-7/+-3 patch; (3) real vanilla terrain is generated (terrain, caves, the real decorator, 12 areas of 5x5 chunks) and mushrooms must appear underground (13 in 7 chunks on the dev client); (4) the plains houses pool is the Peace Candle wrapper and swaps 33.2% of church candidate lists (996 of 3000); (5) 60 real jigsaw village assemblies contain 19 Peace Candle and 20 vanilla churches; (6) the church template has the vanilla footprint and places a working Peace Candle (tile entity registered); (7) both config switches stop generation (via `PeaceCandleChurchPool.enabled` / `GlowingMushroomFeature.enabled`, so the config file is never rewritten). Numbers are logged as `worldgen test:` lines in `run/logs/latest.log`.
+Random-chance worldgen is verified without playing: every random source is seeded, so a result never changes. Layers: (1) the feature is registered in every biome with the original rarity; (2) run directly in a sealed cave it places only roofed, valid mushrooms inside the +-7/+-3 patch; (3) a placed mushroom survives neighbour updates and spreads (found a real bug); (4) real vanilla terrain is generated (terrain, caves, the real decorator; 12 areas of 5x5 chunks) and mushrooms must appear underground; (5) the plains houses pool is the Peace Candle wrapper and swaps 33.2% of church candidate lists (996 of 3000); (6) 60 real jigsaw village assemblies contain 19 Peace Candle and 20 vanilla churches; (7) the church template places a working Peace Candle (tile entity registered); (8) both config switches stop generation (via `PeaceCandleChurchPool.enabled` / `GlowingMushroomFeature.enabled`, so the config file is never rewritten). Numbers are logged as `worldgen test:` lines in `run/logs/latest.log`.
+
+**Real-world cross-check (production server, not part of the suite):** `docs/testing/prod-test-scripts/realgen.py` (copied into `prod-test/<ver>/`) force-generates ~1,700 chunks of a real default overworld and counts region-file chunks containing a Glowing Mushroom (1.14.4: 77 after the fix, 74 before; 1.16.5 after its fix: 70, before it: 0).
 
 ## Generated in-game tests
 
@@ -102,7 +106,7 @@ Random-chance worldgen is verified without playing: every random source is seede
 - `nbt.entity.<id>` - same for every entity type
 - `nbt.item.<id>` - same for item stack NBT of every item
 
-Together with the named tests above this is the 344-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
+Together with the named tests above this is the 346-test suite (+1 skipped: `behavior.ender_mailbox.unknown_receiver_keeps_the_letter` on servers that resolve arbitrary names).
 
 ## Tooling pieces
 

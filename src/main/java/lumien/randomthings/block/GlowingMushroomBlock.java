@@ -21,9 +21,16 @@ public class GlowingMushroomBlock extends Block
 {
 	protected static final VoxelShape SHAPE = Block.makeCuboidShape(4.8, 0, 4.8, 11.2, 6.4, 11.2);
 
+	/**
+	 * Light the mushroom gives off. Must stay below 13: the survival rule ({@link #canBlockStay}) rejects light of 13+ at the
+	 * mushroom's own position (1.12.2's "not in a bright spot" rule), so a brighter mushroom counted its own glow, dropped itself
+	 * on its first neighbour update and could never spread (its neighbours are one level dimmer than itself).
+	 */
+	public static final int GLOW_LEVEL = 12;
+
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).lightValue(15).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
+		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).lightValue(GLOW_LEVEL).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
 	}
 
 	@Override
@@ -98,6 +105,22 @@ public class GlowingMushroomBlock extends Block
 			spawnDrops(state, worldIn, pos);
 			worldIn.setBlockState(pos, Blocks.AIR.getDefaultState(), 3);
 		}
+	}
+
+	/**
+	 * Placement check for world generation: the soil rule of {@link #canBlockStay} without the light rule. Chunks that are still being
+	 * generated have no reliable light data (1.16's light engine reports full sky light there, which stopped every patch from
+	 * generating on that branch); generation already requires "no sky access" separately.
+	 */
+	public static boolean canGrowDuringWorldgen(IWorldReader worldIn, BlockPos pos)
+	{
+		if (pos.getY() < 0 || pos.getY() >= 256)
+		{
+			return false;
+		}
+
+		BlockState soil = worldIn.getBlockState(pos.down());
+		return soil.getBlock() == Blocks.MYCELIUM || canSustainBush(soil);
 	}
 
 	public static boolean canBlockStay(IWorldReader worldIn, BlockPos pos)

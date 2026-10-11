@@ -2,13 +2,13 @@
 
 The full numbered sheet with every row's test steps and your results (2026-10-11) is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md). This file lists only what still needs you. Record a result by filling the Result column here (Pass / Fail + one sentence), or just tell Claude the row number. Root-cause / fix writeups: [`docs/testing/fix-log/`](docs/testing/fix-log/README.md).
 
-**Totals (388 rows):** PASS 227, blank 105, DONE 40, FIXED 12, REMOVED 4
+**Totals (389 rows):** PASS 227, blank 105, DONE 40, FIXED 13, REMOVED 4
 
 ## A. Failing or partial (0)
 
 None.
 
-## B. Fixed, waiting for your retest (12)
+## B. Fixed, waiting for your retest (13)
 
 | # | Feature | Result | Feedback |
 |---|---|---|---|
@@ -24,6 +24,7 @@ None.
 | 279 | Portkey — combine a Portkey with any other single item in a crafting table: the Portkey is disguised as that item (in every context - inventory, held, dropped on the ground, item frame), the donor item is returned unconsumed | FIXED | |
 | 287 | Redstone Remote — craft: 3 Redstone Activators across the top, obsidian + a Stable Ender Pearl in the middle row, obsidian across the bottom; sneak-right-click opens an "edit" GUI (9 Position Filter slots, same as the Advanced Interface, plus your normal inventory) to bind up to 9 targets; plain right-click opens a compact "use" GUI with one button per bound target, each firing a 20-tick strength-15 pulse at its position when pressed | FIXED | |
 | 293 | Block Destabilizer — a redstone pulse flood-fills every block connected to the one directly in front of it that matches the same exact `BlockState` (not just the same block with different properties) *and is a normal full cube*, up to 50 blocks, then drops the whole matched structure as falling-block entities top row first, nearest-to-the-machine first within each row | FIXED | |
+| 387 | **Glowing Mushroom survival and spreading (found by the new `worldgen.*` tests):** a placed mushroom dropped itself on its first neighbour update and could never spread, because its own light (15) failed its own "light < 13" rule; its light is now 12 (a bit dimmer, still glows) and generation uses a soil-only rule. Real-world check on a production server: 77 chunks of 1,687 contain mushrooms | FIXED | |
 
 (What was fixed and why: the row's entry in `docs/testing/fix-log/`, or the row text in the archive.)
 

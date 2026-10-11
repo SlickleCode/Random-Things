@@ -25,6 +25,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Automated:** client and dedicated-server suites 344 passed (1 environment-dependent skip), resource audit 0 failures, GUI click-through
   (buttons, text fields, slot tooltips), render-scene screenshots, and the same suites on a *production* (SRG-named) Forge server and client in
   `prod-test/` (all coremods verified). Everything is dev-only; see `docs/testing/README.md` and `docs/testing/test-inventory.md`.
+- **Worldgen bug found by the tests (2026-10-11):** the Glowing Mushroom dropped itself on its first neighbour update and could not spread (own light 15 vs its "light < 13" rule): light is now 12 (`GlowingMushroomBlock.GLOW_LEVEL`), worldgen uses `canGrowDuringWorldgen`; checklist #387 awaits retest.
 - **Worldgen:** Glowing Mushroom and Peace Candle church generation are covered by deterministic `worldgen.*` tests (real terrain + village assembly), so rows #49/#270/#341/#356b need no manual hunting.
 - **Uncommitted on this branch (until the user says commit):** Sound Dampener GUI tooltip fix (`AbstractSoundDampenerScreen.render`), the slot-tooltip
   check in `GuiClickTest`, and the documentation restructuring below.

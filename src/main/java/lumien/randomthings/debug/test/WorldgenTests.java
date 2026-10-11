@@ -448,6 +448,48 @@ final class WorldgenTests
 			c.check(chunks >= 2, "mushroom patches must show up in several chunks (got " + chunks + ")");
 		}));
 
+		// a placed mushroom lights its own block; the block's survival rule must not count that light, or it drops on the next update
+		final BlockPos[] planted = new BlockPos[1];
+		tests.add(RTTest.named("worldgen.glowing_mushroom.placed_mushroom_survives_updates_in_the_dark").run(c -> buildCave(c)).waitTicks(30).run(c -> {
+			planted[0] = new BlockPos(c.origin.getX(), CAVE_Y + 1, c.origin.getZ());
+			c.world.setBlockState(planted[0], ModBlocks.GLOWING_MUSHROOM.getDefaultState(), 3);
+			c.check(c.world.getBlockState(planted[0]).getBlock() == ModBlocks.GLOWING_MUSHROOM, "the mushroom must be placeable in a dark cave");
+		}).waitTicks(40).run(c -> {
+			// nudge the neighbours, which is what a drop check listens for
+			c.world.setBlockState(planted[0].east(), Blocks.STONE.getDefaultState(), 3);
+			c.world.setBlockState(planted[0].east(), Blocks.AIR.getDefaultState(), 3);
+		}).waitTicks(10).run(c -> {
+			boolean still = c.world.getBlockState(planted[0]).getBlock() == ModBlocks.GLOWING_MUSHROOM;
+			clearCave(c);
+			c.check(still, "a Glowing Mushroom in a dark cave must not drop itself because of its own light");
+		}));
+
+		// ...and it must spread to dark neighbouring spots (the neighbours of a lit mushroom are one light level dimmer than it)
+		tests.add(RTTest.named("worldgen.glowing_mushroom.spreads_in_a_dark_cave").run(c -> buildCave(c)).waitTicks(30).run(c -> {
+			planted[0] = new BlockPos(c.origin.getX(), CAVE_Y + 1, c.origin.getZ());
+			c.world.setBlockState(planted[0], ModBlocks.GLOWING_MUSHROOM.getDefaultState(), 3);
+		}).waitTicks(40).run(c -> {
+			Random random = new Random(99);
+
+			for (int i = 0; i < 4000; i++)
+			{
+				BlockPos source = planted[0];
+				List<BlockPos> found = new ArrayList<>();
+
+				if (countMushrooms(c, found) == 0)
+				{
+					break;
+				}
+
+				source = found.get(random.nextInt(found.size()));
+				ModBlocks.GLOWING_MUSHROOM.tick(c.world.getBlockState(source), c.world, source, random);
+			}
+
+			int count = countMushrooms(c, null);
+			clearCave(c);
+			c.check(count > 1, "a lone Glowing Mushroom must spread to neighbouring dark spots after many random ticks (got " + count + ")");
+		}));
+
 		// ---- Peace Candle church -------------------------------------------------------------
 		tests.add(RTTest.named("worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper").run(c -> {
 			JigsawPattern pool = housesPool();

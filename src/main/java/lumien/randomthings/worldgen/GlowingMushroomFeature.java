@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import com.mojang.datafixers.Dynamic;
 
+import lumien.randomthings.block.GlowingMushroomBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.config.RTConfig;
 import net.minecraft.block.BlockState;
@@ -49,7 +50,7 @@ public class GlowingMushroomFeature extends Feature<NoFeatureConfig> {
         for (int i = 0; i < 64; ++i) {
             BlockPos target = center.add(rand.nextInt(8) - rand.nextInt(8), rand.nextInt(4) - rand.nextInt(4), rand.nextInt(8) - rand.nextInt(8));
 
-            if (target.getY() > 0 && target.getY() < 255 && worldIn.isAirBlock(target) && mushroom.isValidPosition(worldIn, target) && !worldIn.canBlockSeeSky(target)) {
+            if (target.getY() > 0 && target.getY() < 255 && worldIn.isAirBlock(target) && GlowingMushroomBlock.canGrowDuringWorldgen(worldIn, target) && !worldIn.canBlockSeeSky(target)) {
                 worldIn.setBlockState(target, mushroom, 2);
             }
         }
