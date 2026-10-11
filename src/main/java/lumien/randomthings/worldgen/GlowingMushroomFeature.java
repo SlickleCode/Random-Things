@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.function.Function;
 
 
+import lumien.randomthings.block.GlowingMushroomBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.config.RTConfig;
 import net.minecraft.block.BlockState;
@@ -25,13 +26,16 @@ import lumien.randomthings.util.BiomeUtil;
  * one in an air block that can hold it and has no sky access.
  */
 public class GlowingMushroomFeature extends Feature<NoFeatureConfig> {
+    /** The {@code GlowingMushrooms} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
+    public static java.util.function.BooleanSupplier enabled = () -> RTConfig.GLOWING_MUSHROOM.get();
+
     public GlowingMushroomFeature(Codec<NoFeatureConfig> codec) {
         super(codec);
     }
 
     @Override
     public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
-        if (!RTConfig.GLOWING_MUSHROOM.get()) {
+        if (!enabled.getAsBoolean()) {
             return false;
         }
 
@@ -47,7 +51,7 @@ public class GlowingMushroomFeature extends Feature<NoFeatureConfig> {
         for (int i = 0; i < 64; ++i) {
             BlockPos target = center.add(rand.nextInt(8) - rand.nextInt(8), rand.nextInt(4) - rand.nextInt(4), rand.nextInt(8) - rand.nextInt(8));
 
-            if (target.getY() > 0 && target.getY() < 255 && worldIn.isAirBlock(target) && mushroom.isValidPosition(worldIn, target) && !worldIn.canBlockSeeSky(target)) {
+            if (target.getY() > 0 && target.getY() < 255 && worldIn.isAirBlock(target) && GlowingMushroomBlock.canGrowDuringWorldgen(worldIn, target) && !worldIn.canBlockSeeSky(target)) {
                 worldIn.setBlockState(target, mushroom, 2);
             }
         }

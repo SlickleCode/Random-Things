@@ -77,8 +77,11 @@ public class PeaceCandleChurchPool extends JigsawPattern {
         }
     }
 
+    /** The {@code PeaceCandle} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
+    public static java.util.function.BooleanSupplier enabled = () -> RTConfig.PEACE_CANDLE.get();
+
     private static boolean shouldSwap(Random rand) {
-        return RTConfig.PEACE_CANDLE.get() && rand.nextInt(3) == 0;
+        return enabled.getAsBoolean() && rand.nextInt(3) == 0;
     }
 
     private static JigsawPiece swap(JigsawPiece piece) {

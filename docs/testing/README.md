@@ -100,6 +100,12 @@ the installer skips, sha1-checked), put the built jar in `client-run/mods/`, the
 `-Drandomthings.autotest.scenes=true` (screenshots in `client-run/screenshots/randomthings_debug/scenes/`). Put `pauseOnLostFocus:false` in `client-run/options.txt` or the game pauses when its window is not focused and the screenshots show the pause menu. Needs the Gradle caches (assets,
 vanilla `version.json`) from having built the project once.
 
+#### Real-world generation check
+
+`docs/testing/prod-test-scripts/realgen.py` (copy it into `prod-test/<ver>/` next to the installed server, mod jar in `mods/`) starts the production server on a real default overworld,
+force-loads ~1,700 chunks, saves and counts region-file chunks that contain a Glowing Mushroom. It caught that new 1.16.5 worlds never generated mushrooms (0 chunks) while the
+in-test cave and terrain checks first looked fine; use it after touching natural generation.
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different
