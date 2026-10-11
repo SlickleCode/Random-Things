@@ -17,7 +17,7 @@ public final class DevTools
 	{
 		RTDebug.log("Developer tools enabled (-Drandomthings.debug=true)");
 
-		MinecraftForge.EVENT_BUS.addListener((FMLServerStartingEvent event) -> RTDebugCommand.register(event.getCommandDispatcher()));
+		MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.RegisterCommandsEvent event) -> RTDebugCommand.register(event.getDispatcher()));
 		MinecraftForge.EVENT_BUS.addListener(RTTestRunner::onServerTick);
 		lumien.randomthings.debug.test.ServerAutoTest.init();
 

@@ -23,6 +23,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.RangedWrapper;
+import net.minecraft.block.BlockState;
 
 /**
  * Exposes the linked player's inventory as an {@code IItemHandler} capability
@@ -119,9 +120,9 @@ public class PlayerInterfaceTileEntity extends TileEntity
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		if (compound.contains("playerUUID"))
 		{

@@ -14,6 +14,12 @@ import net.minecraft.item.DyeColor;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.Minecraft;
 
 /**
  * Draws each placed rune as a small colored square, plus a thin connecting
@@ -39,17 +45,23 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
     private static final ResourceLocation FLAT = new ResourceLocation(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
     private static final Direction[] SIDE_ORDER = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
 
+    public RuneBaseTileEntityRenderer(TileEntityRendererDispatcher dispatcher) {
+        super(dispatcher);
+    }
+
     @Override
-    public void render(RuneBaseTileEntity te, double x, double y, double z, float partialTicks, int destroyStage) {
+    public void render(RuneBaseTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer renderBuffer, int combinedLight, int combinedOverlay) {
         DyeColor[][] runeData = te.getRuneData();
 
         if (te.isEmpty()) {
             return;
         }
 
-        this.setLightmapDisabled(true);
-        this.bindTexture(RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
-        GlStateManager.enableTexture();
+        Minecraft.getInstance().gameRenderer.getLightTexture().disableLightmap();
+        Minecraft.getInstance().getTextureManager().bindTexture(RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
+        Matrix4f matrix = matrixStack.getLast().getMatrix();
+        double x = 0, y = 0, z = 0;
+        RenderSystem.enableTexture();
         // Real bug #2, found 2026-09-27 (the color4f reset below wasn't enough on its
         // own): TileEntityRendererDispatcher.render() calls RenderHelper
         // .enableStandardItemLighting() (real GL_LIGHTING, with fixed-function light
@@ -63,10 +75,9 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         // TESR-adjacent renderer - already disables lighting for exactly this reason;
         // missed here since it wasn't obviously needed for what looked like a plain
         // "flat color" draw.
-        GlStateManager.disableLighting();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.disableCull();
         // Real bug #1, found 2026-09-27: every vertex color below is multiplied by
         // this global GL color state, which isn't reset between renderers - without
         // setting it to opaque white here, whatever alpha was left over from the last
@@ -74,8 +85,8 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         // despite the tile entity/data placing correctly. Every other custom TESR in
         // this project that draws its own colors already does this - missed here
         // specifically because this is the only one using per-vertex BufferBuilder.color(...) instead of a single
-        // GlStateManager.color4f(...) call per shape.
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        // RenderSystem.color4f(...) call per shape.
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = tessellator.getBuffer();
@@ -103,14 +114,14 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
                 float[] rgb = color.getColorComponentValues();
 
                 // The pixel itself: 2 units wide, centered in its 4-unit cell.
-                addQuad(buffer, x, y, z, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
+                addQuad(matrix, buffer, x, y, z, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
 
                 for (Direction dir : SIDE_ORDER) {
                     u = rng.nextInt(8) * 2;
                     v = rng.nextInt(8) * 2;
 
                     if (isConnected(te, runeData, cx, cy, color, dir)) {
-                        addConnectionStrip(buffer, x, y, z, cx, cy, dir, rgb, u, v);
+                        addConnectionStrip(matrix, buffer, x, y, z, cx, cy, dir, rgb, u, v);
                     }
                 }
             }
@@ -118,10 +129,9 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
 
         tessellator.draw();
 
-        GlStateManager.enableCull();
-        GlStateManager.enableLighting();
-        GlStateManager.enableTexture();
-        this.setLightmapDisabled(false);
+        RenderSystem.enableCull();
+        RenderSystem.enableTexture();
+        Minecraft.getInstance().gameRenderer.getLightTexture().enableLightmap();
     }
 
     private boolean isConnected(RuneBaseTileEntity te, DyeColor[][] runeData, int cx, int cy, DyeColor color, Direction dir) {
@@ -144,7 +154,7 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         return ((RuneBaseTileEntity) neighborTe).getRuneData()[mirroredX][mirroredY] == color;
     }
 
-    private void addConnectionStrip(BufferBuilder buffer, double x, double y, double z, int cx, int cy, Direction dir, float[] rgb, float u, float v) {
+    private void addConnectionStrip(Matrix4f matrix, BufferBuilder buffer, double x, double y, double z, int cx, int cy, Direction dir, float[] rgb, float u, float v) {
         int baseX = cx * 4;
         int baseY = cy * 4;
 
@@ -178,11 +188,11 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
                 break;
         }
 
-        addQuad(buffer, x, y, z, x1, x2, y1, y2, rgb, u, v);
+        addQuad(matrix, buffer, x, y, z, x1, x2, y1, y2, rgb, u, v);
     }
 
     /** {@code u}/{@code v} pick the top-left texel of a region as big as the quad, in 1/16 texture units. */
-    private void addQuad(BufferBuilder buffer, double x, double y, double z, double x1, double x2, double y1, double y2, float[] rgb, float u, float v) {
+    private void addQuad(Matrix4f matrix, BufferBuilder buffer, double x, double y, double z, double x1, double x2, double y1, double y2, float[] rgb, float u, float v) {
         double lx1 = x + x1 * UNIT;
         double lx2 = x + x2 * UNIT;
         double lz1 = z + y1 * UNIT;
@@ -194,9 +204,9 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         float v1 = v / 16F;
         float v2 = (v + (float) (y2 - y1)) / 16F;
 
-        buffer.pos(lx1, ly, lz1).tex(u1, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(lx1, ly, lz2).tex(u1, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(lx2, ly, lz2).tex(u2, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(lx2, ly, lz1).tex(u2, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.pos(matrix, (float) lx1, (float) ly, (float) lz1).tex(u1, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.pos(matrix, (float) lx1, (float) ly, (float) lz2).tex(u1, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.pos(matrix, (float) lx2, (float) ly, (float) lz2).tex(u2, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.pos(matrix, (float) lx2, (float) ly, (float) lz1).tex(u2, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
     }
 }

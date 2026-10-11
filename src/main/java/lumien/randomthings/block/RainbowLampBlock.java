@@ -16,7 +16,7 @@ public class RainbowLampBlock extends Block
 
 	public RainbowLampBlock()
 	{
-		super(Block.Properties.create(Material.REDSTONE_LIGHT).lightValue(15).hardnessAndResistance(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.create(Material.REDSTONE_LIGHT).setLightLevel(state -> 15).hardnessAndResistance(0.3F).sound(SoundType.GLASS));
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(COLOR, DyeColor.WHITE));
 	}

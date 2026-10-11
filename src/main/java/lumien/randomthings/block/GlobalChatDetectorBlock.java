@@ -20,6 +20,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Like {@link ChatDetectorBlock}, but listens for any player's chat instead
@@ -79,7 +80,7 @@ public class GlobalChatDetectorBlock extends Block
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -96,7 +97,7 @@ public class GlobalChatDetectorBlock extends Block
 			}
 		}
 
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 
 	@Override

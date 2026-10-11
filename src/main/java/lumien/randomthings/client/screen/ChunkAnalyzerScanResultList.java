@@ -8,6 +8,9 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.widget.list.ExtendedList;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * Scrollable list of scan results (icon, count, block name), one row per
@@ -55,9 +58,7 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        GlStateManager.disableLighting();
-        GlStateManager.disableFog();
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
@@ -66,13 +67,13 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         // GuiScanResultList glScissor'd the same way) - otherwise they draw over the title,
         // the Scan button and below the GUI (reported 2026-10-03).
         ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        this.renderList(matrixStack, rowLeft, rowTop, mouseX, mouseY, partialTicks);
         ListClip.end();
 
-        renderScrollbar();
+        renderScrollbar(matrixStack);
     }
 
-    private void renderScrollbar() {
+    private void renderScrollbar(MatrixStack matrixStack) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.y1 - this.y0;
 
@@ -85,8 +86,8 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         int thumbHeight = Math.max(32, visibleHeight * visibleHeight / totalHeight);
         int thumbY = this.y0 + (int) ((visibleHeight - thumbHeight) * (this.getScrollAmount() / maxScroll));
 
-        fill(scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF000000);
-        fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);
+        AbstractGui.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF000000);
+        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);
     }
 
     public void setResults(ChunkAnalyzerResult results) {
@@ -111,15 +112,13 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         }
 
         @Override
-        public void render(int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void render(MatrixStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             Minecraft mc = Minecraft.getInstance();
 
-            RenderHelper.enableGUIStandardItemLighting();
             mc.getItemRenderer().renderItemAndEffectIntoGUI(mc.player, stack, left + 2, top + 1);
-            RenderHelper.disableStandardItemLighting();
 
             String countText = count + "x ";
-            mc.fontRenderer.drawString(countText, left + 2 + 16 + 4, top + 5, 16777215);
+            mc.fontRenderer.drawString(matrixStack, countText, left + 2 + 16 + 4, top + 5, 16777215);
 
             String displayDescription = description;
 
@@ -127,7 +126,7 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
                 displayDescription = displayDescription.substring(0, 19) + "...";
             }
 
-            mc.fontRenderer.drawString(displayDescription, left + 2 + 16 + 4 + 50, top + 5, 16777215);
+            mc.fontRenderer.drawString(matrixStack, displayDescription, left + 2 + 16 + 4 + 50, top + 5, 16777215);
         }
     }
 }

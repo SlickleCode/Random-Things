@@ -9,9 +9,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.storage.loot.LootContext;
-import net.minecraft.world.storage.loot.LootParameters;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.loot.LootContext;
+import net.minecraft.loot.LootParameters;
 
 /**
  * Caps a fully-grown magic bean stalk. Drops come from the
@@ -46,11 +45,5 @@ public class PodBlock extends Block
 		}
 
 		return drops;
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 }

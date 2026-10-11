@@ -25,7 +25,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.ByteNBT;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.Difficulty;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
@@ -44,7 +44,7 @@ final class CoremodTests
 
 	private static boolean canSpawn(TestCtx c, EntityType<?> type, BlockPos pos)
 	{
-		return EntitySpawnPlacementRegistry.func_223515_a(type, c.world, SpawnReason.NATURAL, pos, c.world.rand);
+		return EntitySpawnPlacementRegistry.canSpawnEntity(type, c.world, SpawnReason.NATURAL, pos, c.world.rand);
 	}
 
 	/** Vanilla's light check is randomised against the sky light, so "can spawn" is true if any of several tries is. */
@@ -72,7 +72,7 @@ final class CoremodTests
 	{
 		FakePlayer fake = FakePlayerFactory.get(c.world, new GameProfile(UUID.nameUUIDFromBytes("RTCoremodTest".getBytes()), "RTCoremodTest"));
 		fake.inventory.clear();
-		fake.setMotion(Vec3d.ZERO);
+		fake.setMotion(Vector3d.ZERO);
 		fake.setSneaking(false);
 		return fake;
 	}
@@ -148,7 +148,7 @@ final class CoremodTests
 			resetTrackers();
 			c.floor();
 			c.world.getWorldInfo().setRaining(true);
-			c.world.getWorldInfo().setRainTime(6000);
+			((net.minecraft.world.storage.IServerWorldInfo) c.world.getWorldInfo()).setRainTime(6000);
 		}).waitTicks(40).run(c -> {
 			if (!c.world.isRainingAt(c.at(0, 1, 0)))
 			{
@@ -200,7 +200,7 @@ final class CoremodTests
 			fake.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 2, c.origin.getZ() + 0.5);
 
 			ItemStack anchored = new ItemStack(Items.IRON_SWORD);
-			anchored.getOrCreateTag().put("spectreAnchor", new ByteNBT((byte) 0));
+			anchored.getOrCreateTag().put("spectreAnchor", ByteNBT.valueOf((byte) 0));
 			fake.inventory.setInventorySlotContents(0, anchored);
 			fake.inventory.setInventorySlotContents(1, new ItemStack(Items.COBBLESTONE, 5));
 
@@ -262,9 +262,9 @@ final class CoremodTests
 		fake.setItemStackToSlot(EquipmentSlotType.FEET, boots ? new ItemStack(ModItems.SUPER_LUBRICENT_BOOTS) : ItemStack.EMPTY);
 		fake.setSneaking(sneaking);
 		fake.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
-		fake.onGround = true;
-		fake.setMotion(new Vec3d(1.0, 0.0, 0.0));
-		fake.travel(Vec3d.ZERO);
+		fake.setOnGround(true);
+		fake.setMotion(new Vector3d(1.0, 0.0, 0.0));
+		fake.travel(Vector3d.ZERO);
 		return fake.getMotion().x;
 	}
 }

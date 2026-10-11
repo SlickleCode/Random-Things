@@ -24,6 +24,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * Emits redstone based on whether any entity matching a configurable filter
@@ -235,9 +236,9 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		powered = compound.getBoolean("powered");
 		rangeX = compound.getInt("rangeX");

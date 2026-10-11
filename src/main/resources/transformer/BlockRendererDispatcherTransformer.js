@@ -19,14 +19,14 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    // renderBlock(BlockState, BlockPos, IEnviromentBlockReader, BufferBuilder,
-                    // Random, IModelData)Z - the real method ChunkRender actually calls (confirmed
-                    // via source, not the deprecated 5-arg func_215330_a overload it delegates
-                    // from). Same "early conditional-IRETURN at method entry" idiom as
-                    // TeleporterTransformer.js: call ClientAsmHandler first, and only fall through
-                    // to the original body (real vanilla per-block rendering) when it says this
-                    // position isn't redirected by any Light Redirector.
-                    if (method.name !== "renderBlock" || method.desc !== "(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IEnviromentBlockReader;Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
+                    // 1.16 BlockRendererDispatcher.renderModel(BlockState, BlockPos, IBlockDisplayReader,
+                    // MatrixStack, IVertexBuilder, boolean checkSides, Random, IModelData)Z - the method the
+                    // chunk renderer calls for each block (the 7-arg overload delegates to it). Same "early
+                    // conditional-IRETURN at method entry" idiom as before: call ClientAsmHandler first, and
+                    // only fall through to the original body (real vanilla per-block rendering) when it says
+                    // this position isn't redirected by any Light Redirector.
+                    // Locals: 0 this, 1 state, 2 pos, 3 world, 4 matrixStack, 5 vertexBuilder, 6 checkSides, 7 random.
+                    if (method.name !== "renderModel" || method.desc !== "(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
                         continue;
                     }
 
@@ -41,7 +41,9 @@ function initializeCoreMod() {
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 3));
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 4));
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 5));
-                    prologue.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "renderBlock", "(Lnet/minecraft/client/renderer/BlockRendererDispatcher;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IEnviromentBlockReader;Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/Random;)I", false));
+                    prologue.add(new VarInsnNode(Opcodes.ILOAD, 6));
+                    prologue.add(new VarInsnNode(Opcodes.ALOAD, 7));
+                    prologue.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "renderBlock", "(Lnet/minecraft/client/renderer/BlockRendererDispatcher;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;)I", false));
                     prologue.add(new InsnNode(Opcodes.DUP));
                     prologue.add(new InsnNode(Opcodes.ICONST_2));
                     prologue.add(new JumpInsnNode(Opcodes.IF_ICMPEQ, continueLabel));

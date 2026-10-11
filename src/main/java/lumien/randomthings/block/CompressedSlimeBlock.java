@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IEnviromentBlockReader;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
 
 public class CompressedSlimeBlock extends Block implements IRTBlockColor
@@ -62,7 +62,7 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 		{
 			int compression = state.get(COMPRESSION);
 
-			entityIn.onGround = false;
+			entityIn.setOnGround(false);
 
 			double motionY = 0.8 + compression * 0.4;
 			entityIn.setMotion(entityIn.getMotion().x, motionY, entityIn.getMotion().z);
@@ -71,7 +71,7 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 	}
 
 	@Override
-	public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex)
+	public int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex)
 	{
 		return COMPRESSION_COLORS[state.get(COMPRESSION)];
 	}

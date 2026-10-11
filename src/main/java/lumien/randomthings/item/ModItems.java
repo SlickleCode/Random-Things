@@ -225,13 +225,13 @@ public class ModItems {
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("super_lubricent_tincture"));
 
         // Divining Rods
-        registerDiviningRod(registry, "coal", new Color(20, 20, 20, 50), Tags.Blocks.ORES_COAL.getId().toString());
-        registerDiviningRod(registry, "iron", new Color(211, 180, 159, 50), Tags.Blocks.ORES_IRON.getId().toString());
-        registerDiviningRod(registry, "gold", new Color(246, 233, 80, 50), Tags.Blocks.ORES_GOLD.getId().toString());
-        registerDiviningRod(registry, "lapis", new Color(5, 45, 150, 50), Tags.Blocks.ORES_LAPIS.getId().toString());
-        registerDiviningRod(registry, "redstone", new Color(211, 1, 1, 50), Tags.Blocks.ORES_REDSTONE.getId().toString());
-        registerDiviningRod(registry, "emerald", new Color(0, 220, 0, 50), Tags.Blocks.ORES_EMERALD.getId().toString());
-        registerDiviningRod(registry, "diamond", new Color(87, 221, 229, 50), Tags.Blocks.ORES_DIAMOND.getId().toString());
+        registerDiviningRod(registry, "coal", new Color(20, 20, 20, 50), Tags.Blocks.ORES_COAL.getName().toString());
+        registerDiviningRod(registry, "iron", new Color(211, 180, 159, 50), Tags.Blocks.ORES_IRON.getName().toString());
+        registerDiviningRod(registry, "gold", new Color(246, 233, 80, 50), Tags.Blocks.ORES_GOLD.getName().toString());
+        registerDiviningRod(registry, "lapis", new Color(5, 45, 150, 50), Tags.Blocks.ORES_LAPIS.getName().toString());
+        registerDiviningRod(registry, "redstone", new Color(211, 1, 1, 50), Tags.Blocks.ORES_REDSTONE.getName().toString());
+        registerDiviningRod(registry, "emerald", new Color(0, 220, 0, 50), Tags.Blocks.ORES_EMERALD.getName().toString());
+        registerDiviningRod(registry, "diamond", new Color(87, 221, 229, 50), Tags.Blocks.ORES_DIAMOND.getName().toString());
         registerDiviningRod(registry, "vanilla", DiviningRodScratch.COLOR_HOLDER.toArray(new Color[0]), DiviningRodScratch.TAG_HOLDER.toArray(new String[0]));
 
         DiviningRodScratch.TAG_HOLDER.clear();
@@ -279,7 +279,7 @@ public class ModItems {
             Item coloredGrassItem = new BlockItem(ModBlocks.COLORED_GRASS, new Item.Properties()) {
                 @Override
                 public net.minecraft.util.text.ITextComponent getDisplayName(ItemStack stack) {
-                    return new net.minecraft.util.text.TranslationTextComponent("block.randomthings.colored_grass." + lumien.randomthings.block.ColoredGrassBlock.getColor(stack).getName());
+                    return new net.minecraft.util.text.TranslationTextComponent("block.randomthings.colored_grass." + lumien.randomthings.block.ColoredGrassBlock.getColor(stack).getTranslationKey());
                 }
             };
             coloredGrassItem.setRegistryName(ModBlocks.COLORED_GRASS.getRegistryName());
@@ -288,7 +288,7 @@ public class ModItems {
 
         registry.register(new GrassSeedsItem(new Item.Properties().group(RT_ITEM_GROUP), null).setRegistryName("grass_seeds"));
         for (DyeColor color : DyeColor.values()) {
-            registry.register(new GrassSeedsItem(new Item.Properties().group(RT_ITEM_GROUP), color).setRegistryName("grass_seeds_" + color.getName()));
+            registry.register(new GrassSeedsItem(new Item.Properties().group(RT_ITEM_GROUP), color).setRegistryName("grass_seeds_" + color.getTranslationKey()));
         }
 
         for (DyeColor color : DyeColor.values()) {
@@ -341,7 +341,7 @@ public class ModItems {
 
         for (DyeColor color : DyeColor.values()) {
             RuneDustItem dust = new RuneDustItem(new Item.Properties().group(RT_ITEM_GROUP), color);
-            dust.setRegistryName("rune_dust_" + color.getName());
+            dust.setRegistryName("rune_dust_" + color.getTranslationKey());
             registry.register(dust);
             RuneDustItems.BY_COLOR.put(color, dust);
         }
@@ -385,7 +385,7 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.BLOCK_DESTABILIZER);
 
         registry.register(new SpectreIlluminatorItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_illuminator"));
-        registry.register(new PortkeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).setTEISR(() -> lumien.randomthings.client.renderer.PortkeyItemRenderer::new)).setRegistryName("portkey"));
+        registry.register(new PortkeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).setISTER(() -> lumien.randomthings.client.renderer.PortkeyItemRenderer::new)).setRegistryName("portkey"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_anchor"));
         registry.register(new lumien.randomthings.item.RedstoneActivatorItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_activator"));
         registry.register(new lumien.randomthings.item.RedstoneRemoteItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("redstone_remote"));

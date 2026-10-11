@@ -48,7 +48,7 @@ public class RTPacketHandler
 
 	public static void sendToAllNear(IRTMessage message, World world, BlockPos pos, float radius)
 	{
-		PacketTarget target = PacketDistributor.NEAR.with(() -> new TargetPoint(pos.getX(), pos.getY(), pos.getZ(), radius, world.getDimension().getType()));
+		PacketTarget target = PacketDistributor.NEAR.with(() -> new TargetPoint(pos.getX(), pos.getY(), pos.getZ(), radius, world.getDimensionKey()));
 		HANDLER.send(target, message);
 	}
 

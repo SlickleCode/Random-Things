@@ -16,7 +16,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
@@ -111,9 +111,9 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		this.redstoneMode = REDSTONE_MODE.values()[compound.getInt("redstoneMode")];
 		this.pickupDelay = PICKUP_DELAY.values()[compound.getInt("pickupDelay")];
 		this.effects = EFFECTS.values()[compound.getInt("effects")];
@@ -309,7 +309,7 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 			motionZ += facing.getZOffset() * 0.5 * 0.0075D * speed;
 		}
 
-		itemEntity.setMotion(new Vec3d(motionX, motionY, motionZ));
+		itemEntity.setMotion(new Vector3d(motionX, motionY, motionZ));
 
 		((ServerWorld) world).addEntity(itemEntity);
 	}

@@ -10,6 +10,9 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * Port of 1.12.2's {@code GuiPotionVaporizer}: a shrinking flame (fuel burn)
@@ -33,21 +36,19 @@ public class PotionVaporizerScreen extends ContainerScreen<PotionVaporizerContai
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
+	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
 	{
-		RenderHelper.disableStandardItemLighting();
-		this.font.drawString(this.title.getString(), 8, 6, 4210752);
-		RenderHelper.enableGUIStandardItemLighting();
+		this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
+	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
 		int x = (this.width - this.xSize) / 2;
 		int y = (this.height - this.ySize) / 2;
-		this.blit(x, y, 0, 0, this.xSize, this.ySize);
+		this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
 
 		int duration = this.container.duration.get();
 
@@ -57,12 +58,12 @@ public class PotionVaporizerScreen extends ContainerScreen<PotionVaporizerContai
 			int tankProgress = (int) Math.floor(14F - (14F / duration * durationLeft));
 
 			Color c = new Color(this.container.color.get());
-			GlStateManager.color4f(c.getRed() / 255F, c.getGreen() / 255F, c.getBlue() / 255F, 1.0F);
-			this.blit(x + 81, y + 18 + tankProgress, 176, 30, 14, 14 - tankProgress);
-			GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.color4f(c.getRed() / 255F, c.getGreen() / 255F, c.getBlue() / 255F, 1.0F);
+			this.blit(matrixStack, x + 81, y + 18 + tankProgress, 176, 30, 14, 14 - tankProgress);
+			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		}
 
-		this.blit(x + 80, y + 17, 176, 14, 16, 16);
+		this.blit(matrixStack, x + 80, y + 17, 176, 14, 16, 16);
 
 		int fuelBurnTime = this.container.fuelBurnTime.get();
 
@@ -70,15 +71,15 @@ public class PotionVaporizerScreen extends ContainerScreen<PotionVaporizerContai
 		{
 			int fuelBurn = this.container.fuelBurn.get();
 			int fuelProgress = 15 - (int) Math.floor(14F - (14F / fuelBurn * fuelBurnTime));
-			this.blit(x + 81, y + 50 - fuelProgress, 176, 14 - fuelProgress, 14, fuelProgress);
+			this.blit(matrixStack, x + 81, y + 50 - fuelProgress, 176, 14 - fuelProgress, 14, fuelProgress);
 		}
 	}
 
 	@Override
-	public void render(int mouseX, int mouseY, float partialTicks)
+	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
-		this.renderBackground();
-		super.render(mouseX, mouseY, partialTicks);
-		this.renderHoveredToolTip(mouseX, mouseY);
+		this.renderBackground(matrixStack);
+		super.render(matrixStack, mouseX, mouseY, partialTicks);
+		this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
 	}
 }

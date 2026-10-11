@@ -645,3 +645,30 @@ did and was the correct place to hide particles by zeroing the colour. Check wha
 that it exists.
 
 **L20. A 'fix' to the original needs a test too.** The port 'corrected' a coordinate comparison in the Spectre cube lookup that was actually consistent in the original; the replacement only matched the first cube. When you change original logic because it looks wrong, write a behavior test that exercises the second, third and Nth case, not just the first.
+
+---
+
+## M. Found porting 1.14.4 -> 1.16.5 (2026-10-11)
+
+**M1. A Forge build newer than your build tool.** Forge 1.16.5-36.2.40+ only runs in a dev environment under ForgeGradle 5/6; with FG 4.1 the client dies at
+model baking (`IllegalAccessError ... TransformationMatrix.inverseVanilla`). When a dev client crashes inside vanilla/Forge classes before any mod code runs, suspect
+the Forge/FG pairing first and try the previous Forge build.
+
+**M2. Vanilla resource renames break your JSON silently.** Model parents lost/gained prefixes (`block/fire_floor` -> `block/template_fire_floor`); the game logged
+"Unable to load model" warnings and did not fail. Grep the log for `Unable to load model` after every version bump.
+
+**M3. `FakePlayer` is not a position-faithful player in 1.16.** Its `getPosition()` / `getPositionVec()` always return (0, 0, 0) and its network handler ignores every
+call (so a teleport through `connection.setPlayerLocation` does nothing). Test players need their own subclass and a real detached `ServerPlayNetHandler`.
+
+**M4. Forced chunks are not where you think.** A test origin derived from a position that reads as (0, 0, 0) put the test outside the force-loaded area: block entities
+there were never "ticking" (`ServerChunkProvider.canTick` false, chunk `BORDER`) and time-based tests failed only on the dedicated server. Log `canTick` and the chunk's
+location type before suspecting the code under test.
+
+**M5. Custom dimensions: JSON vs code.** A datapack dimension is flagged experimental immediately (prompt on world creation); code-registered dimension type + dimension
+avoid that on creation, but 1.16.5 still flags any world with an extra dimension as experimental when it is reopened.
+
+**M6. Weak-hash sets are not thread-safe to iterate.** A `WeakHashMap`-backed set read by the render thread while the server thread adds to it throws
+`ConcurrentModificationException`; hand out synchronized snapshots for any static registry both threads touch.
+
+**M7. Headless runners must answer dialogs.** 1.16 shows confirmation screens when opening a world (experimental settings, backup); the autotest now detects
+`ConfirmScreen` / `ConfirmBackupScreen` and presses the right button, and logs the dialog text.

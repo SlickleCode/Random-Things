@@ -76,7 +76,7 @@ public class ResourceAudit
 	public static ResourceAudit run()
 	{
 		Minecraft mc = Minecraft.getInstance();
-		ResourceAudit audit = new ResourceAudit(mc.getResourceManager(), mc.getIntegratedServer() != null ? mc.getIntegratedServer().getResourceManager() : mc.getResourceManager());
+		ResourceAudit audit = new ResourceAudit(mc.getResourceManager(), mc.getIntegratedServer() != null ? mc.getIntegratedServer().getDataPackRegistries().getResourceManager() : mc.getResourceManager());
 
 		audit.auditBlocks();
 		audit.auditItems();

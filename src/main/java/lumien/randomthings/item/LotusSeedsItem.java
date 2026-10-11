@@ -48,7 +48,7 @@ public class LotusSeedsItem extends Item implements IPlantable {
 
     @Override
     public PlantType getPlantType(net.minecraft.world.IBlockReader world, BlockPos pos) {
-        return PlantType.Plains;
+        return PlantType.PLAINS;
     }
 
     @Override

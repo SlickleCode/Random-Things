@@ -10,6 +10,11 @@ import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 /**
  * Draws the Time in a Bottle item icon as a camera-facing billboard on all 6
@@ -36,29 +41,25 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
     }
 
     @Override
-    public void doRender(TimeAcceleratorEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
+    public void render(TimeAcceleratorEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
         ItemStack stack = entity.getItem();
         float offset = 0.5F + SURFACE_GAP;
 
-        this.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
-
         for (Direction direction : Direction.values()) {
-            GlStateManager.pushMatrix();
-            GlStateManager.translatef((float) x + direction.getXOffset() * offset, (float) y + direction.getYOffset() * offset, (float) z + direction.getZOffset() * offset);
-            GlStateManager.enableRescaleNormal();
-            GlStateManager.rotatef(-this.renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-            GlStateManager.rotatef((this.renderManager.options.thirdPersonView == 2 ? -1.0F : 1.0F) * this.renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            matrixStack.push();
+            matrixStack.translate(direction.getXOffset() * offset, direction.getYOffset() * offset, direction.getZOffset() * offset);
+            // billboard: face the camera, then flip like the 1.14.4 renderer did
+            matrixStack.rotate(this.renderManager.getCameraOrientation());
+            matrixStack.rotate(Vector3f.YP.rotationDegrees(180.0F));
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
 
-            GlStateManager.disableRescaleNormal();
-            GlStateManager.popMatrix();
+            matrixStack.pop();
         }
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(TimeAcceleratorEntity entity) {
+    public ResourceLocation getEntityTexture(TimeAcceleratorEntity entity) {
         return null;
     }
 }

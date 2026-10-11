@@ -20,6 +20,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.block.BlockState;
 
 /**
  * Multi-target half of the Redstone Interface family: a 9-slot Position
@@ -128,8 +129,8 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         positionInventory.deserializeNBT(compound.getCompound("inventory"));
         refreshTargets();

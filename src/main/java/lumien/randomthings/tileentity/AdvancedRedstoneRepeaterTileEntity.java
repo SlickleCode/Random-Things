@@ -10,6 +10,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.block.BlockState;
 
 /**
  * Holds the configurable on/off delay (in game ticks, 2-10000) for
@@ -36,9 +37,9 @@ public class AdvancedRedstoneRepeaterTileEntity extends TileEntity implements IN
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		this.turnOnDelay = compound.getInt("turnOnDelay");
 		this.turnOffDelay = compound.getInt("turnOffDelay");
 	}

@@ -271,8 +271,8 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         state = State.values()[compound.getInt("state")];
         lazy = compound.getBoolean("lazy");

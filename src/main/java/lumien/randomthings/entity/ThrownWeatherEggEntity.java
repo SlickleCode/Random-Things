@@ -31,17 +31,17 @@ public class ThrownWeatherEggEntity extends net.minecraft.entity.projectile.Proj
     public ThrownWeatherEggEntity(World world, LivingEntity thrower, Item eggItem) {
         super(ModEntityTypes.THROWN_WEATHER_EGG, thrower, world);
 
-        this.func_213884_b(new ItemStack(eggItem));
+        this.setItem(new ItemStack(eggItem));
     }
 
     public ThrownWeatherEggEntity(World world, double x, double y, double z, Item eggItem) {
         super(ModEntityTypes.THROWN_WEATHER_EGG, x, y, z, world);
 
-        this.func_213884_b(new ItemStack(eggItem));
+        this.setItem(new ItemStack(eggItem));
     }
 
     @Override
-    protected Item func_213885_i() {
+    protected Item getDefaultItem() {
         return ModItems.WEATHER_EGG_SUN;
     }
 
@@ -49,7 +49,7 @@ public class ThrownWeatherEggEntity extends net.minecraft.entity.projectile.Proj
     public void handleStatusUpdate(byte id) {
         if (id == 3) {
             for (int i = 0; i < 8; ++i) {
-                this.world.addParticle(new ItemParticleData(ParticleTypes.ITEM, this.getItem()), this.posX, this.posY, this.posZ, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D);
+                this.world.addParticle(new ItemParticleData(ParticleTypes.ITEM, this.getItem()), this.getPosX(), this.getPosY(), this.getPosZ(), ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D);
             }
         }
     }
@@ -58,7 +58,7 @@ public class ThrownWeatherEggEntity extends net.minecraft.entity.projectile.Proj
     protected void onImpact(RayTraceResult result) {
         if (result.getType() == RayTraceResult.Type.ENTITY) {
             Entity hitEntity = ((EntityRayTraceResult) result).getEntity();
-            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), 1.0F);
+            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getShooter()), 1.0F);
         }
 
         if (!this.world.isRemote) {

@@ -11,6 +11,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Shared needle-angle logic for {@link GoldenCompassItem} and
@@ -23,20 +25,25 @@ import net.minecraft.world.World;
  * own compass uses, so the item model JSON's {@code overrides} predicates
  * work exactly like vanilla's 32-frame compass model.
  */
-public abstract class CompassItemBase extends Item
-{
+public abstract class CompassItemBase extends Item implements IClientItemProperties{
 	public CompassItemBase(Item.Properties properties)
 	{
 		super(properties);
 
-		this.addPropertyOverride(new ResourceLocation("angle"), new IItemPropertyGetter()
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void registerClientProperties()
+	{
+		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("angle"), new IItemPropertyGetter()
 		{
 			private double rotation;
 			private double rota;
 			private long lastUpdateTick;
 
 			@Override
-			public float call(ItemStack stack, World worldIn, LivingEntity entityIn)
+			public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, LivingEntity entityIn)
 			{
 				if (entityIn == null && !stack.isOnItemFrame())
 				{
@@ -46,9 +53,11 @@ public abstract class CompassItemBase extends Item
 				boolean heldByEntity = entityIn != null;
 				Entity entity = heldByEntity ? entityIn : stack.getItemFrame();
 
-				if (worldIn == null)
+				World world = worldIn;
+
+				if (world == null)
 				{
-					worldIn = entity.world;
+					world = entity.world;
 				}
 
 				double angle;
@@ -70,7 +79,7 @@ public abstract class CompassItemBase extends Item
 
 				if (heldByEntity && !hasTarget)
 				{
-					angle = wobble(worldIn, angle);
+					angle = wobble(world, angle);
 				}
 
 				float f = (float) (angle / (Math.PI * 2D));
@@ -107,7 +116,7 @@ public abstract class CompassItemBase extends Item
 			 */
 			private double getAngleToPos(Entity entity, BlockPos pos)
 			{
-				return Math.atan2((pos.getZ() + 0.5D) - entity.posZ, (pos.getX() + 0.5D) - entity.posX);
+				return Math.atan2((pos.getZ() + 0.5D) - entity.getPosZ(), (pos.getX() + 0.5D) - entity.getPosX());
 			}
 		});
 	}

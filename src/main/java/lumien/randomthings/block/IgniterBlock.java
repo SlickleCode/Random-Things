@@ -20,6 +20,8 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.world.IWorldReader;
 
 /**
  * A block version of flint and steel: reacts to redstone changes on itself
@@ -57,7 +59,7 @@ public class IgniterBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public boolean isFireSource(BlockState state, IBlockReader world, BlockPos pos, Direction side)
+	public boolean isFireSource(BlockState state, IWorldReader world, BlockPos pos, Direction side)
 	{
 		return side == state.get(FACING);
 	}
@@ -98,7 +100,7 @@ public class IgniterBlock extends Block
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -110,6 +112,6 @@ public class IgniterBlock extends Block
 			}
 		}
 
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 }

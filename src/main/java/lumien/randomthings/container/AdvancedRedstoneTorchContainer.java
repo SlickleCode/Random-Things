@@ -91,7 +91,7 @@ public class AdvancedRedstoneTorchContainer extends Container implements ISignal
 							break;
 					}
 
-					art.getWorld().notifyNeighbors(art.getPos(), art.getBlockState().getBlock());
+					art.getWorld().notifyNeighborsOfStateChange(art.getPos(), art.getBlockState().getBlock());
 				}
 			});
 		}

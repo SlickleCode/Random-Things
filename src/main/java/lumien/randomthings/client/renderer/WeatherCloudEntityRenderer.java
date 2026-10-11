@@ -4,6 +4,8 @@ import lumien.randomthings.entity.WeatherCloudEntity;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 
 /**
  * {@link WeatherCloudEntity} has no visual of its own - it's entirely
@@ -20,11 +22,11 @@ public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntit
     }
 
     @Override
-    public void doRender(WeatherCloudEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
+    public void render(WeatherCloudEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(WeatherCloudEntity entity) {
+    public ResourceLocation getEntityTexture(WeatherCloudEntity entity) {
         return null;
     }
 }

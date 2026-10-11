@@ -8,11 +8,11 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Random;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * Vanilla's LeavesBlock already implements the distance-based leaf decay
@@ -32,7 +32,7 @@ public class SpectreLeafBlock extends LeavesBlock
 	}
 
 	@Override
-	public void randomTick(BlockState state, World worldIn, BlockPos pos, Random random)
+	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
 	{
 		super.randomTick(state, worldIn, pos, random);
 
@@ -52,10 +52,4 @@ public class SpectreLeafBlock extends LeavesBlock
 	 * Without this override, Spectre Leaves render solid/opaque under "Fast"
 	 * graphics like any other leaves would, which is what was reported as a
 	 * regression - restoring the original's fixed value.
-	 */
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
-	}
-}
+	 */}

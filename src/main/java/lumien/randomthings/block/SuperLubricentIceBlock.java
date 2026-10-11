@@ -5,7 +5,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
@@ -37,11 +36,5 @@ public class SuperLubricentIceBlock extends Block
 	public float getSlipperiness(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
 	{
 		return SuperLubricentPhysics.slipperinessFor(entity, super.getSlipperiness(state, world, pos, entity));
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
 	}
 }

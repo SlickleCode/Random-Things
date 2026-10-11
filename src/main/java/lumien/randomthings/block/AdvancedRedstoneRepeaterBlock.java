@@ -16,6 +16,8 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.TickPriority;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * A repeater whose on/off delay is a TileEntity-backed 2-10000 tick value
@@ -49,7 +51,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -61,7 +63,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 			}
 		}
 
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 
 	private static AdvancedRedstoneRepeaterTileEntity getTE(World world, BlockPos pos)
@@ -114,7 +116,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (this.isLocked(worldIn, pos, state))
 		{

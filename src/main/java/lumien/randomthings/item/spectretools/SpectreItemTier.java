@@ -5,13 +5,13 @@ import java.util.UUID;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.item.IItemTier;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.LazyLoadBase;
+import net.minecraft.util.LazyValue;
 
 /**
  * Ported from 1.12.2's {@code EnumHelper.addToolMaterial("spectre", 3, 2000, 8, 3, 22)} (repair item
  * Spectre Ingot) - 1.14.4 replaced the enum-extension trick with a plain {@link IItemTier}
  * implementation, modeled directly on vanilla's own {@code ItemTier} enum constants. The repair
- * {@link Ingredient} is wrapped in a {@link LazyLoadBase} exactly like every vanilla tier, since
+ * {@link Ingredient} is wrapped in a {@link LazyValue} exactly like every vanilla tier, since
  * {@code ModItems#SPECTRE_INGOT} isn't populated by its {@code ObjectHolder} until after the item
  * registry event this tier is constructed during has finished.
  */
@@ -31,7 +31,7 @@ public class SpectreItemTier implements IItemTier {
      */
     public static final UUID REACH_MODIFIER_UUID = UUID.nameUUIDFromBytes("SpectreRangeModifier".getBytes());
 
-    private final LazyLoadBase<Ingredient> repairMaterial = new LazyLoadBase<>(() -> Ingredient.fromItems(ModItems.SPECTRE_INGOT));
+    private final LazyValue<Ingredient> repairMaterial = new LazyValue<>(() -> Ingredient.fromItems(ModItems.SPECTRE_INGOT));
 
     @Override
     public int getMaxUses() {

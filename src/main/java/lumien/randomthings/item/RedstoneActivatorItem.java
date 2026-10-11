@@ -18,6 +18,8 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Right-click a block to broadcast a strength-15 "phantom" redstone signal
@@ -27,18 +29,12 @@ import java.util.List;
  * {@code addPropertyOverride} pattern as {@link SoundRecorderItem}). Direct
  * port of 1.12.2's {@code ItemRedstoneActivator}.
  */
-public class RedstoneActivatorItem extends Item {
+public class RedstoneActivatorItem extends Item implements IClientItemProperties{
     private static final int[] DURATIONS = new int[] { 2, 20, 100 };
 
     public RedstoneActivatorItem(Item.Properties properties) {
         super(properties);
 
-        this.addPropertyOverride(new ResourceLocation("duration_index"), new IItemPropertyGetter() {
-            @Override
-            public float call(ItemStack stack, World worldIn, LivingEntity entityIn) {
-                return getDurationIndex(stack);
-            }
-        });
     }
 
     @Override
@@ -86,4 +82,16 @@ public class RedstoneActivatorItem extends Item {
     public static void setDurationIndex(ItemStack stack, int index) {
         stack.getOrCreateTag().putInt("durationIndex", index);
     }
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void registerClientProperties()
+	{
+		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("duration_index"), new IItemPropertyGetter() {
+            @Override
+            public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, LivingEntity entityIn) {
+                return getDurationIndex(stack);
+            }
+        });
+	}
 }

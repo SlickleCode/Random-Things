@@ -31,10 +31,10 @@ public class FlooFireplace {
 
     public void write(CompoundNBT compound) {
         if (creatorPlayerUUID != null) {
-            compound.put("creatorPlayerUUID", NBTUtil.writeUniqueId(creatorPlayerUUID));
+            compound.put("creatorPlayerUUID", NBTUtil.func_240626_a_(creatorPlayerUUID));
         }
 
-        compound.put("masterUUID", NBTUtil.writeUniqueId(masterUUID));
+        compound.put("masterUUID", NBTUtil.func_240626_a_(masterUUID));
 
         if (name != null) {
             compound.putString("name", name);

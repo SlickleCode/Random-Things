@@ -52,10 +52,10 @@ public class FlooFireplaceEntity extends Entity {
     private void spawnParticles() {
         for (float modX = -1; modX <= 1; modX += 0.2F) {
             for (float modZ = -1; modZ <= 1; modZ += 0.2F) {
-                double px = posX + modX + (this.rand.nextFloat() * 0.2 - 0.1);
-                double pz = posZ + modZ + (this.rand.nextFloat() * 0.1 - 0.05);
+                double px = getPosX() + modX + (this.rand.nextFloat() * 0.2 - 0.1);
+                double pz = getPosZ() + modZ + (this.rand.nextFloat() * 0.1 - 0.05);
 
-                this.world.addParticle(ParticleTypes.FLAME, px, posY + 0.05, pz, 0, this.rand.nextDouble() * 0.01, 0);
+                this.world.addParticle(ParticleTypes.FLAME, px, getPosY() + 0.05, pz, 0, this.rand.nextDouble() * 0.01, 0);
             }
         }
     }

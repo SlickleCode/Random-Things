@@ -4,11 +4,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.material.MaterialColor;
-import net.minecraft.util.BlockRenderLayer;
 
 public class StainedBrickBlock extends Block
 {
 	private final boolean luminous;
+
+	public boolean isLuminous()
+	{
+		return luminous;
+	}
 
 	public StainedBrickBlock(boolean luminous)
 	{
@@ -19,12 +23,6 @@ public class StainedBrickBlock extends Block
 
 	private static Block.Properties withLight(Block.Properties properties, boolean luminous)
 	{
-		return luminous ? properties.lightValue(15) : properties;
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return luminous ? BlockRenderLayer.CUTOUT_MIPPED : super.getRenderLayer();
+		return luminous ? properties.setLightLevel(state -> 15) : properties;
 	}
 }

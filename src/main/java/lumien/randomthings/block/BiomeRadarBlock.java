@@ -12,13 +12,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IEnviromentBlockReader;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Insert a {@link BiomeCrystalItem} and redstone-power it (with the iron-bars
@@ -61,12 +61,12 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
     }
 
     @Override
-    public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex) {
+    public int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex) {
         if (pos == null) {
             return 0xFFFFFF;
         }
 
-        int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(worldIn, worldIn.getBiome(pos), pos);
+        int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(worldIn, null, pos);
         return new java.awt.Color(rgb).brighter().getRGB();
     }
 
@@ -80,12 +80,12 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         ItemStack equipped = player.getHeldItem(hand);
         TileEntity te = worldIn.getTileEntity(pos);
 
         if (!(te instanceof BiomeRadarTileEntity)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         BiomeRadarTileEntity biomeRadar = (BiomeRadarTileEntity) te;
@@ -99,7 +99,7 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
                         worldIn.addBlockEvent(pos, this, 1037, 0);
                     }
 
-                    return true;
+                    return ActionResultType.SUCCESS;
                 }
             } else {
                 if (equipped.isEmpty()) {
@@ -111,7 +111,7 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
                         worldIn.addBlockEvent(pos, this, 1036, 0);
                     }
 
-                    return true;
+                    return ActionResultType.SUCCESS;
                 }
             }
         } else if (biomeRadar.getState() == STATE.FINISHED) {
@@ -123,15 +123,10 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
                     player.inventory.addItemStackToInventory(positionFilter);
                 }
 
-                return true;
+                return ActionResultType.SUCCESS;
             }
         }
 
-        return false;
-    }
-
-    @Override
-    public BlockRenderLayer getRenderLayer() {
-        return BlockRenderLayer.CUTOUT;
+        return ActionResultType.PASS;
     }
 }

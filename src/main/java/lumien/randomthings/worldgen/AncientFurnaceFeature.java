@@ -1,17 +1,18 @@
 package lumien.randomthings.worldgen;
 
-import com.mojang.datafixers.Dynamic;
 import lumien.randomthings.block.ModBlocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationSettings;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
 
 import java.util.Random;
 import java.util.function.Function;
+import com.mojang.serialization.Codec;
+import net.minecraft.world.ISeedReader;
+import lumien.randomthings.util.BiomeUtil;
 
 /**
  * Naturally embeds a single {@code ANCIENT_FURNACE} at the surface, replacing
@@ -24,12 +25,12 @@ import java.util.function.Function;
  * counterpart used for its own (opposite) warm-biome restriction.
  */
 public class AncientFurnaceFeature extends Feature<NoFeatureConfig> {
-    public AncientFurnaceFeature(Function<Dynamic<?>, ? extends NoFeatureConfig> deserializer) {
-        super(deserializer);
+    public AncientFurnaceFeature(Codec<NoFeatureConfig> codec) {
+        super(codec);
     }
 
     @Override
-    public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
         if (!lumien.randomthings.config.RTConfig.ANCIENT_FURNACE.get()) {
             return false;
         }

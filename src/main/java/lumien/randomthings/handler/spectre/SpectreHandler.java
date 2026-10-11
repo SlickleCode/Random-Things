@@ -7,15 +7,16 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraft.world.storage.WorldSavedData;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 
 /**
  * Direct port of 1.12.2's {@code SpectreHandler}, restructured onto 1.14.4's
@@ -38,7 +39,7 @@ public class SpectreHandler extends WorldSavedData {
     }
 
     public static SpectreHandler getInstance(MinecraftServer server) {
-        ServerWorld world = DimensionManager.getWorld(server, ModDimensions.SPECTRE_TYPE, true, true);
+        ServerWorld world = ModDimensions.getSpectreWorld(server);
 
         if (world == null) {
             return null;
@@ -47,8 +48,8 @@ public class SpectreHandler extends WorldSavedData {
         return world.getSavedData().getOrCreate(SpectreHandler::new, ID);
     }
 
-    public World getWorld() {
-        return DimensionManager.getWorld(ServerLifecycleHooks.getCurrentServer(), ModDimensions.SPECTRE_TYPE, true, true);
+    public ServerWorld getWorld() {
+        return ModDimensions.getSpectreWorld(ServerLifecycleHooks.getCurrentServer());
     }
 
     /**
@@ -59,7 +60,7 @@ public class SpectreHandler extends WorldSavedData {
      * tile (found by the behavior test {@code behavior.spectre.*}).
      */
     public SpectreCube getSpectreCubeFromPos(World world, BlockPos pos) {
-        if (world.getDimension().getType() != ModDimensions.SPECTRE_TYPE || pos.getZ() > 16 || pos.getZ() < 0) {
+        if (!ModDimensions.isSpectre(world) || pos.getZ() > 16 || pos.getZ() < 0) {
             return null;
         }
 
@@ -80,10 +81,10 @@ public class SpectreHandler extends WorldSavedData {
 
     public void teleportPlayerToSpectreCube(ServerPlayerEntity player) {
         CompoundNBT persistentData = player.getPersistentData();
-        persistentData.putDouble("spectrePosX", player.posX);
-        persistentData.putDouble("spectrePosY", player.posY);
-        persistentData.putDouble("spectrePosZ", player.posZ);
-        persistentData.putInt("spectreDimension", player.dimension.getId());
+        persistentData.putDouble("spectrePosX", player.getPosX());
+        persistentData.putDouble("spectrePosY", player.getPosY());
+        persistentData.putDouble("spectrePosZ", player.getPosZ());
+        persistentData.putString("spectreDimension", player.world.getDimensionKey().getLocation().toString());
 
         UUID uuid = player.getGameProfile().getId();
         SpectreCube spectreCube = cubes.get(uuid);
@@ -94,8 +95,10 @@ public class SpectreHandler extends WorldSavedData {
 
         BlockPos spawn = spectreCube.getSpawnBlock();
 
-        if (player.dimension != ModDimensions.SPECTRE_TYPE) {
-            player.changeDimension(ModDimensions.SPECTRE_TYPE);
+        ServerWorld spectreWorld = getWorld();
+
+        if (!ModDimensions.isSpectre(player.world) && spectreWorld != null) {
+            player.changeDimension(spectreWorld, SpectreTeleporter.INSTANCE);
         }
 
         player.connection.setPlayerLocation(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
@@ -111,16 +114,25 @@ public class SpectreHandler extends WorldSavedData {
         double spectrePosX = persistentData.getDouble("spectrePosX");
         double spectrePosY = persistentData.getDouble("spectrePosY");
         double spectrePosZ = persistentData.getDouble("spectrePosZ");
-        DimensionType spectreDimension = DimensionType.getById(persistentData.getInt("spectreDimension"));
+        MinecraftServer server = player.getServer();
+        ServerWorld destination = null;
 
-        if (player.dimension != spectreDimension) {
-            player.changeDimension(spectreDimension);
+        if (persistentData.contains("spectreDimension", 8)) {
+            destination = server.getWorld(RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(persistentData.getString("spectreDimension"))));
+        }
+
+        if (destination == null) {
+            destination = server.getWorld(World.OVERWORLD);
+        }
+
+        if (player.world != destination) {
+            player.changeDimension(destination, SpectreTeleporter.INSTANCE);
         }
 
         player.connection.setPlayerLocation(spectrePosX, spectrePosY, spectrePosZ, player.rotationYaw, player.rotationPitch);
 
-        while (!player.world.isCollisionBoxesEmpty(player, player.getBoundingBox()) && player.posY < 256.0D) {
-            player.setPosition(player.posX, player.posY + 1.0D, player.posZ);
+        while (!player.world.hasNoCollisions(player, player.getBoundingBox()) && player.getPosY() < 256.0D) {
+            player.setPosition(player.getPosX(), player.getPosY() + 1.0D, player.getPosZ());
         }
 
         player.connection.captureCurrentPosition();

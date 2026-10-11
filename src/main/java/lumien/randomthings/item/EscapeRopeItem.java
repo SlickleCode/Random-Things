@@ -48,7 +48,7 @@ public class EscapeRopeItem extends Item {
     public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
         ItemStack stack = playerIn.getHeldItem(hand);
 
-        if (!worldIn.getDimension().hasSkyLight() || worldIn.canBlockSeeSky(playerIn.getPosition()) || !worldIn.isAirBlock(playerIn.getPosition())) {
+        if (!worldIn.getDimensionType().hasSkyLight() || worldIn.canBlockSeeSky(playerIn.getPosition()) || !worldIn.isAirBlock(playerIn.getPosition())) {
             return new ActionResult<>(ActionResultType.FAIL, stack);
         }
 
@@ -80,7 +80,7 @@ public class EscapeRopeItem extends Item {
                 double z = Math.cos((count + i * 20) / (10F + c));
                 double y = Math.sin((count + i * 20) / (15F + c));
 
-                entity.world.addParticle(ParticleTypes.PORTAL, entity.posX + x, entity.posY + 1 + y, entity.posZ + z, 0, alpha * 0.1D, 0);
+                entity.world.addParticle(ParticleTypes.PORTAL, entity.getPosX() + x, entity.getPosY() + 1 + y, entity.getPosZ() + z, 0, alpha * 0.1D, 0);
             }
         }
     }

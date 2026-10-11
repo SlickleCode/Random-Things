@@ -4,6 +4,8 @@ import lumien.randomthings.entity.FlooFireplaceEntity;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 
 /**
  * {@link FlooFireplaceEntity} has no visual of its own - its flame effect is
@@ -19,11 +21,11 @@ public class FlooFireplaceEntityRenderer extends EntityRenderer<FlooFireplaceEnt
     }
 
     @Override
-    public void doRender(FlooFireplaceEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
+    public void render(FlooFireplaceEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(FlooFireplaceEntity entity) {
+    public ResourceLocation getEntityTexture(FlooFireplaceEntity entity) {
         return null;
     }
 }

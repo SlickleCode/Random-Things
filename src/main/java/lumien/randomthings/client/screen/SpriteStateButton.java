@@ -11,6 +11,9 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
 /**
  * Port of 1.12.2's {@code GuiEnumButton}/{@code GuiBoolButton}: a button drawn from its own
@@ -26,7 +29,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 	public SpriteStateButton(int x, int y, int width, int height, ResourceLocation texture, IntSupplier state, IntFunction<String> tooltip, IPressable onPress)
 	{
-		super(x, y, width, height, "", onPress);
+		super(x, y, width, height, new StringTextComponent(""), onPress);
 
 		this.texture = texture;
 		this.state = state;
@@ -34,12 +37,12 @@ public class SpriteStateButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderButton(int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft.getInstance().getTextureManager().bindTexture(this.texture);
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		GlStateManager.enableBlend();
-		this.blit(this.x, this.y, this.state.getAsInt() * this.width, this.isHovered() ? this.height : 0, this.width, this.height);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.enableBlend();
+		this.blit(matrixStack, this.x, this.y, this.state.getAsInt() * this.width, this.isHovered() ? this.height : 0, this.width, this.height);
 	}
 
 	@Override
@@ -52,7 +55,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 	 * Call from {@code drawGuiContainerForegroundLayer} (coordinates there are relative to the
 	 * GUI's top-left corner) to show the tooltip of whichever {@link SpriteStateButton} is hovered.
 	 */
-	public static void renderTooltips(Screen screen, List<? extends Widget> buttons, int mouseX, int mouseY, int guiLeft, int guiTop)
+	public static void renderTooltips(MatrixStack matrixStack, Screen screen, List<? extends Widget> buttons, int mouseX, int mouseY, int guiLeft, int guiTop)
 	{
 		for (Widget widget : buttons)
 		{
@@ -62,7 +65,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 				if (text != null)
 				{
-					screen.renderTooltip(text, mouseX - guiLeft, mouseY - guiTop);
+					screen.renderTooltip(matrixStack, new StringTextComponent(text), mouseX - guiLeft, mouseY - guiTop);
 				}
 
 				return;

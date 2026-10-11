@@ -18,7 +18,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
@@ -82,7 +82,7 @@ public class RuneBaseBlock extends Block {
 
     @Override
     public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!Block.hasSolidSide(worldIn.getBlockState(pos.down()), worldIn, pos.down(), Direction.UP)) {
+        if (!Block.hasEnoughSolidSide(worldIn, pos.down(), Direction.UP)) {
             worldIn.removeBlock(pos, false);
         }
     }
@@ -128,8 +128,8 @@ public class RuneBaseBlock extends Block {
     @Override
     public void onBlockClicked(BlockState state, World worldIn, BlockPos pos, PlayerEntity playerIn) {
         if (!worldIn.isRemote) {
-            Vec3d start = playerIn.getEyePosition(1.0F);
-            Vec3d end = start.add(playerIn.getLookVec().scale(6));
+            Vector3d start = playerIn.getEyePosition(1.0F);
+            Vector3d end = start.add(playerIn.getLookVec().scale(6));
 
             RayTraceResult result = worldIn.rayTraceBlocks(new RayTraceContext(start, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, playerIn));
 

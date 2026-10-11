@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ScreenShotHelper;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * Debug feature ({@code debug.DebugGuiScreenshots}): screenshots every Random Things GUI a few
@@ -59,7 +60,7 @@ public class GuiDebugScreenshots
 			dir.mkdirs();
 			File out = new File(dir, screen.getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date()) + ".png");
 
-			try (NativeImage image = ScreenShotHelper.createScreenshot(mc.mainWindow.getFramebufferWidth(), mc.mainWindow.getFramebufferHeight(), mc.getFramebuffer()))
+			try (NativeImage image = ScreenShotHelper.createScreenshot(mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer()))
 			{
 				image.write(out);
 			}

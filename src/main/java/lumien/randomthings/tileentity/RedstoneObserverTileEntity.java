@@ -151,7 +151,7 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 	@Override
 	public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt)
 	{
-		this.read(pkt.getNbtCompound());
+		this.read(this.getBlockState(), pkt.getNbtCompound());
 	}
 
 	public int getWeakPower(Direction side)
@@ -198,9 +198,9 @@ public class RedstoneObserverTileEntity extends TileEntity implements INamedCont
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		if (compound.contains("targetX"))
 		{

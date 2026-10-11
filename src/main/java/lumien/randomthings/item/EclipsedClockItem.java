@@ -9,6 +9,8 @@ import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Right-click a wall to hang an {@link EclipsedClockEntity} on it. Its "time"
@@ -18,32 +20,10 @@ import net.minecraft.util.math.BlockPos;
  * the stored NBT target time exactly like the placed entity does. Direct
  * port of 1.12.2's {@code ItemEclipsedClock}.
  */
-public class EclipsedClockItem extends Item {
+public class EclipsedClockItem extends Item implements IClientItemProperties{
     public EclipsedClockItem(Item.Properties properties) {
         super(properties);
 
-        this.addPropertyOverride(new ResourceLocation("time"), (stack, world, entity) -> {
-            int time = 6000;
-
-            if (stack.hasTag() && stack.getTag().contains("targetTime")) {
-                time = stack.getTag().getInt("targetTime");
-            }
-
-            int i = time % 24000;
-            float f = ((float) i) / 24000.0F - 0.25F;
-
-            if (f < 0.0F) {
-                ++f;
-            }
-
-            if (f > 1.0F) {
-                --f;
-            }
-
-            float f1 = 1.0F - (float) ((Math.cos((double) f * Math.PI) + 1.0D) / 2.0D);
-            f = f + (f1 - f) / 3.0F;
-            return f;
-        });
     }
 
     @Override
@@ -69,4 +49,32 @@ public class EclipsedClockItem extends Item {
 
         return ActionResultType.SUCCESS;
     }
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void registerClientProperties()
+	{
+		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("time"), (stack, world, entity) -> {
+            int time = 6000;
+
+            if (stack.hasTag() && stack.getTag().contains("targetTime")) {
+                time = stack.getTag().getInt("targetTime");
+            }
+
+            int i = time % 24000;
+            float f = ((float) i) / 24000.0F - 0.25F;
+
+            if (f < 0.0F) {
+                ++f;
+            }
+
+            if (f > 1.0F) {
+                --f;
+            }
+
+            float f1 = 1.0F - (float) ((Math.cos((double) f * Math.PI) + 1.0D) / 2.0D);
+            f = f + (f1 - f) / 3.0F;
+            return f;
+        });
+	}
 }

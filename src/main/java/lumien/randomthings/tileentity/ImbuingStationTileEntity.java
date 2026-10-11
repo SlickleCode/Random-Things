@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.block.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityImbuingStation}: once the 3
@@ -119,8 +120,8 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         imbuingProgress = compound.getInt("imbuingProgress");
 

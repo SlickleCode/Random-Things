@@ -12,6 +12,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * Draws an {@link EclipsedClockEntity} as its own held-item model, hung flat
@@ -38,56 +44,52 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
     }
 
     @Override
-    public void doRender(EclipsedClockEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        GlStateManager.pushMatrix();
+    public void render(EclipsedClockEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
+        matrixStack.push();
 
+        // the matrix is already translated to the entity; the clock hangs centered on its block
         BlockPos blockpos = entity.getHangingPosition();
-        double d0 = (double) blockpos.getX() - entity.posX + x;
-        double d1 = (double) blockpos.getY() - entity.posY + y;
-        double d2 = (double) blockpos.getZ() - entity.posZ + z;
+        double d0 = (double) blockpos.getX() - entity.getPosX();
+        double d1 = (double) blockpos.getY() - entity.getPosY();
+        double d2 = (double) blockpos.getZ() - entity.getPosZ();
 
-        GlStateManager.translated(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
-        GlStateManager.rotatef(180.0F - entity.rotationYaw, 0.0F, 1.0F, 0.0F);
-        GlStateManager.translatef(0.0F, 0.0F, 0.4375F);
-        GlStateManager.scalef(0.5F, 0.5F, 0.5F);
+        matrixStack.translate(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
+        matrixStack.rotate(Vector3f.YP.rotationDegrees(180.0F - entity.rotationYaw));
+        matrixStack.translate(0.0D, 0.0D, 0.4375D);
+        matrixStack.scale(0.5F, 0.5F, 0.5F);
 
         ItemStack stack = new ItemStack(ModItems.ECLIPSED_CLOCK);
         CompoundNBT tag = new CompoundNBT();
         tag.putInt("targetTime", entity.getTargetTime());
         stack.setTag(tag);
 
-        Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
+        Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
 
-        GlStateManager.popMatrix();
+        matrixStack.pop();
 
         if (entity.shouldDisplayTime()) {
-            this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y - 0.55, z, 64);
-        }
-    }
-
-    /**
-     * Also show the target time whenever this clock is the one under the
-     * crosshair, even without a recent interaction - matches 1.12.2's own
-     * separate {@code renderName} override. (1.14.4 has no static
-     * {@code EntityRenderer.drawNameplate} helper the way 1.12.2 did, so both
-     * this and the recent-interaction display above go through the same
-     * {@code renderLivingLabel} instance method instead - a forced API
-     * adaptation, not a deliberate behavior change.)
-     */
-    @Override
-    protected void renderName(EclipsedClockEntity entity, double x, double y, double z) {
-        if (this.renderManager.pointedEntity == entity) {
+            drawLabel(entity, -0.55D, matrixStack, buffer, packedLight);
+        } else if (this.renderManager.pointedEntity == entity) {
+            // Also show the target time whenever this clock is the one under the crosshair, even without a
+            // recent interaction - matches 1.12.2's separate renderName override.
             double distanceSq = entity.getDistanceSq(Minecraft.getInstance().getRenderViewEntity());
             float range = entity.isSneaking() ? 32.0F : 64.0F;
 
             if (distanceSq < (double) (range * range)) {
-                this.renderLivingLabel(entity, entity.getStringTargetTime(), x, y - 1.0, z, 64);
+                drawLabel(entity, -1.0D, matrixStack, buffer, packedLight);
             }
         }
     }
 
+    private void drawLabel(EclipsedClockEntity entity, double yOffset, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
+        matrixStack.push();
+        matrixStack.translate(0.0D, yOffset, 0.0D);
+        this.renderName(entity, new StringTextComponent(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
+        matrixStack.pop();
+    }
+
     @Override
-    protected ResourceLocation getEntityTexture(EclipsedClockEntity entity) {
+    public ResourceLocation getEntityTexture(EclipsedClockEntity entity) {
         return null;
     }
 }

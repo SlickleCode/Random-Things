@@ -169,7 +169,7 @@ public class TimeInABottleItem extends Item {
 
                     world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, pitch);
                 } else if (player != null) {
-                    player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").applyTextStyle(TextFormatting.RED), false);
+                    player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").mergeStyle(TextFormatting.RED), false);
                 }
             }
         } else {
@@ -188,7 +188,7 @@ public class TimeInABottleItem extends Item {
                 world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, 0.749154F);
                 world.addEntity(n);
             } else if (player != null) {
-                player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").applyTextStyle(TextFormatting.RED), false);
+                player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").mergeStyle(TextFormatting.RED), false);
             }
         }
 

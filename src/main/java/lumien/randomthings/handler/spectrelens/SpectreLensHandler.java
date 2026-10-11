@@ -11,8 +11,9 @@ import net.minecraft.potion.Effect;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.world.World;
 
 /**
  * Ported from 1.12.2's {@code SpectreLensHandler} - tracks which players have an active Spectre Lens
@@ -24,7 +25,7 @@ import net.minecraft.world.storage.WorldSavedData;
  *
  * <p>Deliberately kept the original's cross-dimension scoping (1.12.2's {@code getPerWorldStorage()},
  * unlike {@code SpectreCoilHandler}'s deliberately-preserved per-dimension one) - the overworld's own
- * {@code DimensionSavedDataManager}, fetched via {@code server.getWorld(DimensionType.OVERWORLD)}
+ * {@code DimensionSavedDataManager}, fetched via {@code server.getWorld(World.OVERWORLD)}
  * regardless of which dimension the call site is actually in, matching {@code World.getPerWorldStorage()}'s
  * original semantics exactly.
  */
@@ -38,7 +39,7 @@ public class SpectreLensHandler extends WorldSavedData {
     }
 
     public static SpectreLensHandler get(MinecraftServer server) {
-        return server.getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(SpectreLensHandler::new, ID);
+        return server.getWorld(World.OVERWORLD).getSavedData().getOrCreate(SpectreLensHandler::new, ID);
     }
 
     public void removeLens(UUID uuid) {

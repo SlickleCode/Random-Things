@@ -13,6 +13,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Single-target half of the Redstone Interface family - see {@link
@@ -57,7 +58,7 @@ public class BasicRedstoneInterfaceBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
 
@@ -66,6 +67,6 @@ public class BasicRedstoneInterfaceBlock extends Block {
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 }

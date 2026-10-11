@@ -34,6 +34,7 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.items.IItemHandler;
 
 import java.util.Random;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A personal mailbox: whichever player placed it can right-click it to see
@@ -127,16 +128,16 @@ public class EnderMailboxBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         if (worldIn.isRemote) {
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
         ItemStack heldItem = player.getHeldItemMainhand();
 
         if (player.isSneaking() && heldItem.getItem() == ModItems.ENDER_LETTER) {
             deliverLetter(worldIn, pos, player, heldItem);
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
         TileEntity te = worldIn.getTileEntity(pos);
@@ -148,12 +149,12 @@ public class EnderMailboxBlock extends Block {
                 if (mailbox.getOwner().equals(player.getUniqueID())) {
                     net.minecraftforge.fml.network.NetworkHooks.openGui((net.minecraft.entity.player.ServerPlayerEntity) player, mailbox, pos);
                 } else {
-                    player.sendStatusMessage(new TranslationTextComponent("block.randomthings.ender_mailbox.owner").applyTextStyle(TextFormatting.RED), false);
+                    player.sendStatusMessage(new TranslationTextComponent("block.randomthings.ender_mailbox.owner").mergeStyle(TextFormatting.RED), false);
                 }
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     private void deliverLetter(World worldIn, BlockPos pos, PlayerEntity player, ItemStack heldItem) {
@@ -166,7 +167,7 @@ public class EnderMailboxBlock extends Block {
         GameProfile profile = ((ServerWorld) worldIn).getServer().getPlayerProfileCache().getGameProfileForUsername(compound.getString("receiver"));
 
         if (profile == null || profile.getId() == null) {
-            player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_player", compound.getString("receiver")).applyTextStyle(TextFormatting.DARK_PURPLE), false);
+            player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_player", compound.getString("receiver")).mergeStyle(TextFormatting.DARK_PURPLE), false);
             return;
         }
 
@@ -187,6 +188,6 @@ public class EnderMailboxBlock extends Block {
             }
         }
 
-        player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_space").applyTextStyle(TextFormatting.DARK_PURPLE), false);
+        player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_space").mergeStyle(TextFormatting.DARK_PURPLE), false);
     }
 }

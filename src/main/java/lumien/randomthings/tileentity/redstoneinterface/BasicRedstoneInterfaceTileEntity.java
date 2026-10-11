@@ -11,6 +11,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.block.BlockState;
 
 /**
  * Single-target half of the Redstone Interface family: bind a target with
@@ -90,8 +91,8 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("targetX")) {
             target = new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ"));

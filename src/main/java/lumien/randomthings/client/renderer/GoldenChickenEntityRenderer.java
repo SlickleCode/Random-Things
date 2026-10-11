@@ -21,7 +21,7 @@ public class GoldenChickenEntityRenderer extends MobRenderer<GoldenChickenEntity
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(GoldenChickenEntity entity) {
+    public ResourceLocation getEntityTexture(GoldenChickenEntity entity) {
         return TEXTURE;
     }
 

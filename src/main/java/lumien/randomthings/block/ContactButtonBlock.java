@@ -17,6 +17,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
 import java.util.Random;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * A pressure-plate-like button that is triggered by external code (e.g. an
@@ -71,7 +72,7 @@ public class ContactButtonBlock extends Block {
     }
 
     @Override
-    public void tick(BlockState state, World worldIn, BlockPos pos, Random rand) {
+    public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
         if (!worldIn.isRemote && state.get(POWERED)) {
             worldIn.setBlockState(pos, state.with(POWERED, false));
             this.notifyNeighbors(worldIn, pos, state.get(FACING));

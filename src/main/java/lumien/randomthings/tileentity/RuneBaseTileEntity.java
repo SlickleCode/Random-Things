@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.block.BlockState;
 
 /**
  * A 4x4 grid of colored rune pixels ({@code null} = empty). Direct port of
@@ -70,7 +71,7 @@ public class RuneBaseTileEntity extends TileEntity {
      */
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     @Override
@@ -96,8 +97,8 @@ public class RuneBaseTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("runeData")) {
             byte[] flat = compound.getByteArray("runeData");

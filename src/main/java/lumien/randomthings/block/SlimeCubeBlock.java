@@ -13,7 +13,6 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.util.BlockRenderLayer;
 
 /**
  * A small glowing block that always/never allows slime spawns in its own
@@ -79,11 +78,5 @@ public class SlimeCubeBlock extends Block
 		{
 			((SlimeCubeTileEntity) te).updatePowerState(powered);
 		}
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
 	}
 }

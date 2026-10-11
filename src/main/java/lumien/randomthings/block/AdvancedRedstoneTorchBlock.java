@@ -30,6 +30,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.particles.ParticleTypes;
 
 public class AdvancedRedstoneTorchBlock extends TorchBlock
 {
@@ -38,7 +41,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 		GREEN, RED;
 
 		@Override
-		public String getName()
+		public String getString()
 		{
 			return this == GREEN ? "green" : "red";
 		}
@@ -49,13 +52,13 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 
 	protected AdvancedRedstoneTorchBlock()
 	{
-		super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0.0F).lightValue(7).sound(SoundType.WOOD));
+		super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0.0F).setLightLevel(state -> 7).sound(SoundType.WOOD), ParticleTypes.FLAME);
 		this.setDefaultState(this.stateContainer.getBaseState().with(COLOR_PROPERTY, COLOR.RED));
 	}
 
 	protected AdvancedRedstoneTorchBlock(Block.Properties properties)
 	{
-		super(properties);
+		super(properties, ParticleTypes.FLAME);
 	}
 
 	@Override
@@ -70,11 +73,11 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 		return new AdvancedRedstoneTorchTileEntity();
 	}
 
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (worldIn.isRemote)
 		{
-			return true;
+			return ActionResultType.SUCCESS;
 		}
 		else
 		{
@@ -85,7 +88,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 				NetworkHooks.openGui((ServerPlayerEntity) player, art);
 			}
 
-			return true;
+			return ActionResultType.SUCCESS;
 		}
 	}
 
@@ -140,7 +143,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock
 		return worldIn.isSidePowered(pos.down(), Direction.DOWN);
 	}
 
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
 	{
 		update(state, worldIn, pos, random, this.shouldBeGreen(worldIn, pos, state));
 	}

@@ -20,6 +20,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * A tiny redstone-comparator-like nub: whatever item sits in its own single
@@ -128,9 +129,9 @@ public class InventoryTesterTileEntity extends TileEntity implements ITickableTi
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		this.emitRedstone = compound.getBoolean("emitRedstone");
 		this.invertSignal = compound.getBoolean("invertSignal");
 		itemHandler.deserializeNBT(compound.getCompound("inventory"));

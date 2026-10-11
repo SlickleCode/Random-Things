@@ -14,7 +14,6 @@ import net.minecraft.block.material.MaterialColor;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -22,6 +21,8 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraft.pathfinding.PathType;
 
 /**
  * A block of glass that becomes fully walk-through (no collision, no
@@ -63,15 +64,17 @@ public class TriggerGlassBlock extends Block
 
 	public TriggerGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).hardnessAndResistance(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> !state.get(TRIGGERED)));
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(TRIGGERED, false));
 	}
 
+	/** 1.14.4 switched this block to Material.PLANTS while triggered (so mobs path through it); 1.16 has no per-state material, so pathing is allowed explicitly. */
 	@Override
-	public Material getMaterial(BlockState state)
+	@SuppressWarnings("deprecation")
+	public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type)
 	{
-		return state.get(TRIGGERED) ? Material.PLANTS : super.getMaterial(state);
+		return state.get(TRIGGERED) ? true : super.allowsMovement(state, worldIn, pos, type);
 	}
 
 	@Override
@@ -79,13 +82,6 @@ public class TriggerGlassBlock extends Block
 	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
 	{
 		return state.get(TRIGGERED) ? VoxelShapes.empty() : super.getCollisionShape(state, worldIn, pos, context);
-	}
-
-	@Override
-	@SuppressWarnings("deprecation")
-	public boolean causesSuffocation(BlockState state, IBlockReader worldIn, BlockPos pos)
-	{
-		return !state.get(TRIGGERED);
 	}
 
 	@Override
@@ -146,7 +142,7 @@ public class TriggerGlassBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (!worldIn.isRemote && state.get(TRIGGERED))
 		{
@@ -158,11 +154,5 @@ public class TriggerGlassBlock extends Block
 	protected void fillStateContainer(Builder<Block, BlockState> builder)
 	{
 		builder.add(TRIGGERED);
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
 	}
 }

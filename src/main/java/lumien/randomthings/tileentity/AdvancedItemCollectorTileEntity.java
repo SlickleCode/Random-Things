@@ -24,6 +24,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * A long-range item vacuum: pulls dropped items within a configurable
@@ -195,9 +196,9 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		rangeX = compound.getInt("rangeX");
 		rangeY = compound.getInt("rangeY");
 		rangeZ = compound.getInt("rangeZ");

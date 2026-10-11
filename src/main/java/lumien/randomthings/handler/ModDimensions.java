@@ -1,61 +1,75 @@
 package lumien.randomthings.handler;
 
-import io.netty.buffer.Unpooled;
-import lumien.randomthings.handler.spectre.SpectreDimension;
-import net.minecraft.network.PacketBuffer;
+import lumien.randomthings.handler.spectre.SpectreChunkGenerator;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.ModDimension;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.world.RegisterDimensionsEvent;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.DimensionType;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
+import java.util.Optional;
+import com.mojang.serialization.Lifecycle;
+import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.registry.MutableRegistry;
+import net.minecraft.util.registry.SimpleRegistry;
+import net.minecraft.world.Dimension;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.provider.SingleBiomeProvider;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import lumien.randomthings.handler.spectre.SpectreDimensionType;
 
 /**
- * Direct port of 1.12.2's {@code ModDimensions}, restructured onto 1.14.4's
- * two-step dimension registration: {@code ModDimension} is itself a Forge
- * registry entry (registered during the normal, once-per-process registry-
- * event phase, same as every other registry in this mod), but the actual
- * {@link DimensionType} - the thing with a real numeric ID - has to be
- * (re-)created per world load, on {@link RegisterDimensionsEvent}, not once
- * at mod-loading time.
+ * The Spectre dimension (ported from 1.12.2's {@code ModDimensions}). 1.16 made dimensions data: a dimension type
+ * (here {@link SpectreDimensionType}), a dimension (our chunk generator over a fixed {@code the_void} biome) and a
+ * client-side sky/fog look ({@code effects}, registered in {@code ClientSetup}) replace 1.14.4's
+ * {@code ModDimension} / {@code RegisterDimensionsEvent} / {@code DimensionManager} / {@code Dimension} subclass.
  * <p>
- * Real bug found and fixed (reported by user: a
- * {@code NullPointerException: Dimension type must not be null} crash on
- * joining a world that had previously visited the Spectre dimension).
- * Ground-truthed from {@code DimensionManager}'s own source: every world
- * load calls {@code readRegistry}, which unconditionally clears the *entire*
- * dimension-type registry back down to vanilla-only and then repopulates it
- * strictly from whatever *that specific world's own save data* has recorded
- * - nothing else. {@code RegisterDimensionsEvent} fires immediately after,
- * specifically so mods can (re-)register whatever their own dimension(s)
- * that particular world doesn't already have saved. Calling {@code
- * DimensionManager.registerDimension} once from {@code FMLCommonSetupEvent}
- * (mod-loading time, long before any world/save is even chosen) got wiped
- * out the moment any world actually loaded, for any world that hadn't
- * already saved a {@code randomthings:spectre} registry entry - leaving
- * {@link #SPECTRE_TYPE} a dangling reference no longer present in the live
- * registry, so any later {@code DimensionType.getById} lookup for it (e.g.
- * resolving a player's own persisted "last dimension" NBT field, itself
- * stored as a raw int ID - confirmed via {@code Entity#read}) returned null.
- * {@link #registerDimension} now runs on {@code RegisterDimensionsEvent}
- * instead, using {@code registerOrGetDimension} (idempotent - returns the
- * existing entry if this world already has one) rather than the plain
- * {@code registerDimension} used before, matching the API's own documented
- * intent for this hook.
+ * The dimension type and the dimension are registered from code, not as datapack JSON: a datapack-defined dimension is
+ * flagged as experimental, which makes the game show "Worlds using Experimental Settings are not supported" every time
+ * a world is opened. The type goes into the builtin dynamic registry (copied into every world), the dimension is added
+ * to the world's dimension list when the server is about to start (before the worlds are created).
  */
 public class ModDimensions {
-    public static ModDimension SPECTRE_MOD_DIMENSION;
-    public static DimensionType SPECTRE_TYPE;
+    public static final ResourceLocation SPECTRE_ID = new ResourceLocation("randomthings", "spectre");
+    public static final RegistryKey<World> SPECTRE_WORLD = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, SPECTRE_ID);
+    public static final RegistryKey<DimensionType> SPECTRE_TYPE = RegistryKey.getOrCreateKey(Registry.DIMENSION_TYPE_KEY, SPECTRE_ID);
+    public static final RegistryKey<Dimension> SPECTRE_DIMENSION = RegistryKey.getOrCreateKey(Registry.DIMENSION_KEY, SPECTRE_ID);
 
-    public static void registerModDimensions(RegistryEvent.Register<ModDimension> event) {
-        IForgeRegistry<ModDimension> registry = event.getRegistry();
+    /** Run once at mod setup, before any world is created or loaded. */
+    public static void registerBuiltin() {
+        Registry.register(Registry.CHUNK_GENERATOR_CODEC, SPECTRE_ID, SpectreChunkGenerator.CODEC);
 
-        SPECTRE_MOD_DIMENSION = ModDimension.withFactory(SpectreDimension::new).setRegistryName("spectre");
-        registry.register(SPECTRE_MOD_DIMENSION);
+        DynamicRegistries.Impl builtin = ObfuscationReflectionHelper.getPrivateValue(DynamicRegistries.class, null, "field_243600_c");
+        Optional<MutableRegistry<DimensionType>> types = builtin.func_230521_a_(Registry.DIMENSION_TYPE_KEY);
+
+        if (types.isPresent() && !types.get().getOptional(SPECTRE_ID).isPresent()) {
+            types.get().register(SPECTRE_TYPE, new SpectreDimensionType(), Lifecycle.stable());
+        }
     }
 
-    public static void registerDimension(RegisterDimensionsEvent event) {
-        SPECTRE_TYPE = DimensionManager.registerOrGetDimension(new ResourceLocation("randomthings", "spectre"), SPECTRE_MOD_DIMENSION, new PacketBuffer(Unpooled.buffer()), false);
+    /** Adds the Spectre dimension to this world's dimension list if it is not there yet (new worlds, and old worlds on first load). */
+    public static void addToServer(MinecraftServer server) {
+        SimpleRegistry<Dimension> dimensions = server.getServerConfiguration().getDimensionGeneratorSettings().func_236224_e_();
+
+        if (dimensions.getOptional(SPECTRE_ID).isPresent()) {
+            return;
+        }
+
+        Registry<DimensionType> types = server.getDynamicRegistries().getRegistry(Registry.DIMENSION_TYPE_KEY);
+        Registry<Biome> biomes = server.getDynamicRegistries().getRegistry(Registry.BIOME_KEY);
+        DimensionType type = types.getOrThrow(SPECTRE_TYPE);
+
+        dimensions.register(SPECTRE_DIMENSION, new Dimension(() -> type, new SpectreChunkGenerator(new SingleBiomeProvider(biomes.getOrThrow(Biomes.THE_VOID)))), Lifecycle.stable());
+    }
+
+    public static boolean isSpectre(World world) {
+        return world != null && SPECTRE_WORLD.equals(world.getDimensionKey());
+    }
+
+    /** The loaded Spectre world. */
+    public static ServerWorld getSpectreWorld(MinecraftServer server) {
+        return server == null ? null : server.getWorld(SPECTRE_WORLD);
     }
 }

@@ -3,11 +3,12 @@ function initializeCoreMod() {
         'armorlayertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.entity.layers.ArmorLayer'
+                'name': 'net.minecraft.client.renderer.entity.layers.BipedArmorLayer'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
                 var VarInsnNode = Java.type("org.objectweb.asm.tree.VarInsnNode");
+                var InsnNode = Java.type("org.objectweb.asm.tree.InsnNode");
                 var MethodInsnNode = Java.type("org.objectweb.asm.tree.MethodInsnNode");
                 var InsnList = Java.type("org.objectweb.asm.tree.InsnList");
 
@@ -16,40 +17,65 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    // renderArmorLayer(LivingEntity,F,F,F,F,F,F,F,EquipmentSlotType)V - ground-
-                    // truthed via javap -c. Calls BipedModel.render(...) exactly twice: once inside
-                    // the IDyeableArmorItem (leather) branch, with the vanilla dye color already
-                    // applied via GlStateManager.color4f, and once unconditionally afterward (the
-                    // only render() call at all for non-leather armor) preceded by its own plain
-                    // color4f(colorR,colorG,colorB,alpha) call. That SECOND render() call is the one
-                    // that always fires regardless of armor type - same call 1.12.2's own
-                    // ClassTransformer#patchLayerArmorBase targeted via its "renderCounter == 1"
-                    // (second occurrence) check on func_78088_a. This inserts
-                    // ClientAsmHandler.armorColorHook(itemstack) - itemstack is local var 10 - right
-                    // before that second render() call; the hook re-applies GL color, overriding
-                    // whatever the vanilla call just set, only when the worn item carries a Dyeing
-                    // Machine "rtDye" tag.
-                    if (method.name !== "renderArmorLayer" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;FFFFFFFLnet/minecraft/inventory/EquipmentSlotType;)V") {
+                    // 1.16 BipedArmorLayer: func_241739_a_(MatrixStack, IRenderTypeBuffer, LivingEntity,
+                    // EquipmentSlotType, int, BipedModel)V draws one armor piece (local 7 = the ItemStack).
+                    // 1.14.4 patched the second BipedModel.render call to re-apply the GL colour from the
+                    // Dyeing Machine's "rtDye" tag; 1.16 passes the colour to renderModel(...) as three floats,
+                    // so the same effect is two edits here:
+                    //  1) leather (IDyeableArmorItem) branch: IDyeableArmorItem.getColor(stack) is redirected to
+                    //     ClientAsmHandler.dyedColor, which returns the rtDye colour when the stack has one;
+                    //  2) every other armor: the three constant 1.0F colour arguments of the LAST renderModel
+                    //     call (the plain, non-leather branch) become ClientAsmHandler.armorChannel(stack, i, 1.0F).
+                    // The "overlay" call keeps white, as in vanilla.
+                    if (method.name !== "func_241739_a_" || method.desc !== "(Lcom/mojang/blaze3d/matrix/MatrixStack;Lnet/minecraft/client/renderer/IRenderTypeBuffer;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/inventory/EquipmentSlotType;ILnet/minecraft/client/renderer/entity/model/BipedModel;)V") {
                         continue;
                     }
 
                     var instructions = method.instructions;
-                    var renderCallIndex = 0;
+                    var renderModelCalls = [];
 
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
-                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/client/renderer/entity/model/BipedModel" && insn.name === "render" && insn.desc === "(Lnet/minecraft/entity/LivingEntity;FFFFFF)V") {
-                            if (renderCallIndex === 1) {
-                                var toInsert = new InsnList();
-                                toInsert.add(new VarInsnNode(Opcodes.ALOAD, 10));
-                                toInsert.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorColorHook", "(Lnet/minecraft/item/ItemStack;)V", false));
+                        if (!insn.getOpcode) {
+                            continue;
+                        }
 
-                                instructions.insertBefore(insn, toInsert);
-                                break;
+                        if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/item/IDyeableArmorItem" && insn.name === "getColor" && insn.desc === "(Lnet/minecraft/item/ItemStack;)I") {
+                            insn.setOpcode(Opcodes.INVOKESTATIC);
+                            insn.owner = "lumien/randomthings/asm/ClientAsmHandler";
+                            insn.name = "dyedColor";
+                            insn.desc = "(Lnet/minecraft/item/IDyeableArmorItem;Lnet/minecraft/item/ItemStack;)I";
+                            insn.itf = false;
+                        } else if (insn.getOpcode() === Opcodes.INVOKESPECIAL && insn.name === "renderModel") {
+                            renderModelCalls.push(i);
+                        }
+                    }
+
+                    if (renderModelCalls.length >= 2) {
+                        var previousCall = renderModelCalls[renderModelCalls.length - 2];
+                        var lastCall = renderModelCalls[renderModelCalls.length - 1];
+                        var constants = [];
+
+                        for (var j = previousCall + 1; j < lastCall; j++) {
+                            var candidate = instructions.get(j);
+
+                            if (candidate.getOpcode && candidate.getOpcode() === Opcodes.FCONST_1) {
+                                constants.push(candidate);
                             }
+                        }
 
-                            renderCallIndex++;
+                        if (constants.length === 3) {
+                            for (var c = 0; c < 3; c++) {
+                                var replacement = new InsnList();
+                                replacement.add(new VarInsnNode(Opcodes.ALOAD, 7));
+                                replacement.add(new InsnNode(Opcodes.ICONST_0 + c));
+                                replacement.add(new InsnNode(Opcodes.FCONST_1));
+                                replacement.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorChannel", "(Lnet/minecraft/item/ItemStack;IF)F", false));
+
+                                instructions.insertBefore(constants[c], replacement);
+                                instructions.remove(constants[c]);
+                            }
                         }
                     }
 

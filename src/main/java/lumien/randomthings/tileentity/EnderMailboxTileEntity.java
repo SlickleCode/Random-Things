@@ -74,8 +74,8 @@ public class EnderMailboxTileEntity extends TileEntity implements ITickableTileE
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("owner")) {
             this.owner = UUID.fromString(compound.getString("owner"));

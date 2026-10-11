@@ -20,6 +20,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.biome.BiomeContainer;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityAncientFurnace} heating/explosion
@@ -95,10 +99,10 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
      * MUTATED_BIRCH_FOREST}->{@code TALL_BIRCH_FOREST}, {@code
      * MUTATED_BIRCH_FOREST_HILLS}->{@code TALL_BIRCH_HILLS}).
      */
-    private static final Map<Biome, Biome> COLD_TO_WARM = buildConversionMap();
+    private static final Map<RegistryKey<Biome>, RegistryKey<Biome>> COLD_TO_WARM = buildConversionMap();
 
-    private static Map<Biome, Biome> buildConversionMap() {
-        Map<Biome, Biome> map = new HashMap<>();
+    private static Map<RegistryKey<Biome>, RegistryKey<Biome>> buildConversionMap() {
+        Map<RegistryKey<Biome>, RegistryKey<Biome>> map = new HashMap<>();
         map.put(Biomes.TAIGA, Biomes.FOREST);
         map.put(Biomes.FROZEN_OCEAN, Biomes.OCEAN);
         map.put(Biomes.FROZEN_RIVER, Biomes.RIVER);
@@ -168,14 +172,17 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
                     continue;
                 }
 
-                Biome warmBiome = COLD_TO_WARM.get(world.getBiome(columnPos));
+                Registry<Biome> biomeRegistry = world.func_241828_r().getRegistry(Registry.BIOME_KEY);
+                RegistryKey<Biome> coldKey = biomeRegistry.getOptionalKey(world.getBiome(columnPos)).orElse(null);
+                RegistryKey<Biome> warmKey = coldKey == null ? null : COLD_TO_WARM.get(coldKey);
+                Biome warmBiome = warmKey == null ? null : biomeRegistry.getValueForKey(warmKey);
 
                 if (warmBiome == null) {
                     continue;
                 }
 
                 Chunk chunk = world.getChunkAt(columnPos);
-                chunk.getBiomes()[(z & 15) << 4 | (x & 15)] = warmBiome;
+                setBiomeColumn(chunk, x, z, warmBiome);
                 chunk.markDirty();
                 touchedChunks.add(chunk);
 
@@ -212,6 +219,26 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
      * #sendChunkData} uses when a chunk first loads for a player, just
      * invoked directly since that method itself is private.
      */
+    private static final java.lang.reflect.Field BIOME_ARRAY = ObfuscationReflectionHelper.findField(BiomeContainer.class, "field_227054_f_");
+
+    /**
+     * 1.16 stores biomes per 4x4x4 cell ({@code BiomeContainer.biomes}, private final), not per block column as in
+     * 1.14.4, so the whole column of the cell is rewritten: the conversion is effectively quantized to 4x4 blocks.
+     */
+    private static void setBiomeColumn(Chunk chunk, int x, int z, Biome biome) {
+        try {
+            Biome[] biomes = (Biome[]) BIOME_ARRAY.get(chunk.getBiomes());
+            int cellX = (x >> 2) & BiomeContainer.HORIZONTAL_MASK;
+            int cellZ = (z >> 2) & BiomeContainer.HORIZONTAL_MASK;
+
+            for (int cellY = 0; cellY <= BiomeContainer.VERTICAL_MASK; cellY++) {
+                biomes[cellY << 4 | cellZ << 2 | cellX] = biome;
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void resyncBiomesToClients(World world, Set<Chunk> touchedChunks) {
         if (!(world instanceof ServerWorld) || touchedChunks.isEmpty()) {
             return;
@@ -236,8 +263,8 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
         this.heating = compound.getBoolean("heating");
         this.ticks = compound.getInt("ticks");
     }

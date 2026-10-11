@@ -12,6 +12,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * Holds the one example-item filter slot used by
@@ -58,9 +59,9 @@ public class FilteredSuperLubricentPlatformTileEntity extends TileEntity impleme
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		filterInventory.deserializeNBT(compound.getCompound("inventory"));
 	}
 

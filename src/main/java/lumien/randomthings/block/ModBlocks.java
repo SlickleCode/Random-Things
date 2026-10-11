@@ -282,12 +282,12 @@ public class ModBlocks
 	 */
 	public static String stainedBrickRegistryName(DyeColor color, boolean luminous)
 	{
-		return (luminous ? "luminous_stained_brick_" : "stained_brick_") + color.getName();
+		return (luminous ? "luminous_stained_brick_" : "stained_brick_") + color.getTranslationKey();
 	}
 
 	public static String luminousBlockRegistryName(DyeColor color, boolean translucent)
 	{
-		return (translucent ? "luminous_block_translucent_" : "luminous_block_") + color.getName();
+		return (translucent ? "luminous_block_translucent_" : "luminous_block_") + color.getTranslationKey();
 	}
 
 	public static void registerBlocks(RegistryEvent.Register<Block> blockRegistryEvent)

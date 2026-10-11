@@ -25,6 +25,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A wall-mounted clock face (like an item frame) that shows a chosen target
@@ -133,10 +134,10 @@ public class EclipsedClockEntity extends HangingEntity {
                 long remaining = fastForwardTarget - current;
 
                 if (remaining <= FAST_FORWARD_RATE) {
-                    this.world.setDayTime(fastForwardTarget);
+                    ((net.minecraft.world.server.ServerWorld) this.world).setDayTime(fastForwardTarget);
                     fastForwardTarget = -1;
                 } else {
-                    this.world.setDayTime(current + FAST_FORWARD_RATE);
+                    ((net.minecraft.world.server.ServerWorld) this.world).setDayTime(current + FAST_FORWARD_RATE);
                 }
             }
         }
@@ -150,7 +151,7 @@ public class EclipsedClockEntity extends HangingEntity {
                 double angle = this.rand.nextDouble() * Math.PI * 2;
                 double radius = this.rand.nextDouble() * 0.3 + 0.1;
 
-                this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.posX + Math.cos(angle) * radius, this.posY + this.rand.nextDouble() * 0.5, this.posZ + Math.sin(angle) * radius, 0.5 - this.rand.nextDouble(), this.rand.nextDouble() * 0.2, 0.5 - this.rand.nextDouble());
+                this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.getPosX() + Math.cos(angle) * radius, this.getPosY() + this.rand.nextDouble() * 0.5, this.getPosZ() + Math.sin(angle) * radius, 0.5 - this.rand.nextDouble(), this.rand.nextDouble() * 0.2, 0.5 - this.rand.nextDouble());
             }
         }
     }
@@ -160,7 +161,7 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    public boolean processInitialInteract(PlayerEntity player, Hand hand) {
+    public ActionResultType processInitialInteract(PlayerEntity player, Hand hand) {
         ItemStack held = player.getHeldItem(hand);
 
         if (held.getItem() instanceof TimeInABottleItem) {
@@ -204,7 +205,7 @@ public class EclipsedClockEntity extends HangingEntity {
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     public int getTargetTime() {

@@ -10,6 +10,9 @@ import net.minecraft.client.renderer.model.ModelResourceLocation;
 import net.minecraft.client.renderer.tileentity.ItemStackTileEntityRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 
 /**
  * Draws whatever item a {@link PortkeyItem} is disguised as ("camo" NBT) in
@@ -53,7 +56,7 @@ import net.minecraft.util.ResourceLocation;
  * **2026-09-28, a second real bug found and fixed (reported by user): both renders were still
  * off-center, even after the above.** Root cause: {@code ItemRenderer.renderItem(ItemStack,
  * IBakedModel)} - what this method is already being called *from* (confirmed via its own
- * decompiled source) - unconditionally applies its own {@code GlStateManager.translatef(-0.5,
+ * decompiled source) - unconditionally applies its own {@code RenderSystem.translatef(-0.5,
  * -0.5, -0.5)} centering offset before ever checking whether the model is builtin-rendered,
  * i.e. before calling into {@code renderByItem} at all. Every overload this class calls back
  * out to in order to draw the camo'd/plain stack ({@code renderItem(stack, TransformType)} and
@@ -65,23 +68,25 @@ import net.minecraft.util.ResourceLocation;
  * first (+0.5 on all three axes) so the inner call's own -0.5 is the only one that survives.
  */
 public class PortkeyItemRenderer extends ItemStackTileEntityRenderer {
-    private static final ModelResourceLocation BASE_MODEL = new ModelResourceLocation(new ResourceLocation("randomthings", "portkey_base"), "inventory");
+    private static final ResourceLocation BASE_MODEL = new ResourceLocation("randomthings", "item/portkey_base");
 
     @Override
-    public void renderByItem(ItemStack stack) {
+    public void func_239207_a_(ItemStack stack, ItemCameraTransforms.TransformType transformType, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
         ItemStack camo = PortkeyItem.getCamoStack(stack);
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translatef(0.5F, 0.5F, 0.5F);
+        matrixStack.push();
+        // ItemRenderer.renderItem has already applied this item's display transform and its own -0.5 centering
+        // before calling us; the nested renderItem below applies the -0.5 centering a second time, so cancel it.
+        matrixStack.translate(0.5D, 0.5D, 0.5D);
 
         if (!camo.isEmpty()) {
-            Minecraft.getInstance().getItemRenderer().renderItem(camo, ItemCameraTransforms.TransformType.NONE);
+            Minecraft.getInstance().getItemRenderer().renderItem(camo, ItemCameraTransforms.TransformType.NONE, combinedLight, combinedOverlay, matrixStack, buffer);
         } else {
             IBakedModel baseModel = Minecraft.getInstance().getModelManager().getModel(BASE_MODEL);
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, baseModel);
+            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.NONE, false, matrixStack, buffer, combinedLight, combinedOverlay, baseModel);
         }
 
-        GlStateManager.popMatrix();
+        matrixStack.pop();
     }
 }

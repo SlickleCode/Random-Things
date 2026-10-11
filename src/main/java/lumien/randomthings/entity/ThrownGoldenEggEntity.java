@@ -35,7 +35,7 @@ public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.Proje
     }
 
     @Override
-    protected Item func_213885_i() {
+    protected Item getDefaultItem() {
         return ModItems.GOLDEN_EGG;
     }
 
@@ -43,7 +43,7 @@ public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.Proje
     public void handleStatusUpdate(byte id) {
         if (id == 3) {
             for (int i = 0; i < 8; ++i) {
-                this.world.addParticle(new ItemParticleData(ParticleTypes.ITEM, this.getItem()), this.posX, this.posY, this.posZ, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D);
+                this.world.addParticle(new ItemParticleData(ParticleTypes.ITEM, this.getItem()), this.getPosX(), this.getPosY(), this.getPosZ(), ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D);
             }
         }
     }
@@ -52,12 +52,12 @@ public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.Proje
     protected void onImpact(RayTraceResult result) {
         if (result.getType() == RayTraceResult.Type.ENTITY) {
             Entity hitEntity = ((EntityRayTraceResult) result).getEntity();
-            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), 1.0F);
+            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getShooter()), 1.0F);
         }
 
         if (!this.world.isRemote) {
             GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.world);
-            chicken.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F);
+            chicken.setLocationAndAngles(this.getPosX(), this.getPosY(), this.getPosZ(), this.rotationYaw, 0.0F);
             this.world.addEntity(chicken);
 
             this.world.setEntityState(this, (byte) 3);

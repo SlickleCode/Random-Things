@@ -7,6 +7,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.Rotation;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraft.block.BlockState;
 
 /**
  * Holds the fluid it's displaying, whether it shows the still or flowing
@@ -74,7 +75,7 @@ public class FluidDisplayTileEntity extends TileEntity {
      */
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     @Override
@@ -99,8 +100,8 @@ public class FluidDisplayTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("fluidStack")) {
             // an unset display is written as an empty compound; load it back as "unset" (null) rather than an

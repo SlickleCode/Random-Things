@@ -111,9 +111,8 @@ final class RoundTripTests
 		CompoundNBT first = original.write(new CompoundNBT());
 
 		TileEntity copy = type.create();
-		copy.setWorld(c.world);
-		copy.setPos(pos);
-		copy.read(first);
+		copy.setWorldAndPos(c.world, pos);
+		copy.read(copy.getBlockState(), first);
 		CompoundNBT second = copy.write(new CompoundNBT());
 
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");

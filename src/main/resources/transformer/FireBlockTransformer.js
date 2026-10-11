@@ -90,6 +90,31 @@ function initializeCoreMod() {
                     break;
                 }
 
+                // 1.16 removed FireBlock.tickRate(): the delay between fire ticks is the private static
+                // getTickCooldown(Random)I, called from tick() and onBlockAdded(). Every call is redirected
+                // to AsmHandler.fireTickCooldown(Random, FireBlock)I (pushing `this` after the Random
+                // argument), which gives Blazing Fire its shorter 15-tick delay and leaves every other fire
+                // block on vanilla's value.
+                for (m in methods) {
+                    var cooldownMethod = methods[m];
+                    var cooldownInstructions = cooldownMethod.instructions;
+
+                    for (var k = 0; k < cooldownInstructions.size(); k++) {
+                        var cooldownInsn = cooldownInstructions.get(k);
+
+                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/block/FireBlock" && cooldownInsn.name === "getTickCooldown" && cooldownInsn.desc === "(Ljava/util/Random;)I") {
+                            var pushFire = new InsnList();
+                            pushFire.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                            cooldownInstructions.insertBefore(cooldownInsn, pushFire);
+
+                            cooldownInsn.owner = "lumien/randomthings/asm/AsmHandler";
+                            cooldownInsn.name = "fireTickCooldown";
+                            cooldownInsn.desc = "(Ljava/util/Random;Lnet/minecraft/block/FireBlock;)I";
+                            k++;
+                        }
+                    }
+                }
+
                 return classNode;
             }
         }

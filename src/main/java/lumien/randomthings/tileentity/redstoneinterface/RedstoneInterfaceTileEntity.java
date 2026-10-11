@@ -15,6 +15,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import net.minecraft.block.BlockState;
 
 /**
  * Shared base for {@link BasicRedstoneInterfaceTileEntity}/{@link AdvancedRedstoneInterfaceTileEntity}:
@@ -135,7 +136,7 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     @Override
@@ -162,8 +163,8 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         CompoundNBT weakCompound = compound.getCompound("weakPower");
         CompoundNBT strongCompound = compound.getCompound("strongPower");

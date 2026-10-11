@@ -18,6 +18,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Ported from 1.12.2's {@code BlockBlockDestabilizer}. On a redstone pulse,
@@ -62,7 +63,7 @@ public class BlockDestabilizerBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
 
@@ -71,7 +72,7 @@ public class BlockDestabilizerBlock extends Block {
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     @Override

@@ -20,6 +20,12 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.math.vector.Vector3d;
 
 /**
  * Draws {@link DiaphanousBlockTileEntity}'s displayed block as a real baked
@@ -48,17 +54,22 @@ import net.minecraft.world.World;
 public class DiaphanousBlockTileEntityRenderer extends TileEntityRenderer<DiaphanousBlockTileEntity> {
     private final Random random = new Random();
 
+    public DiaphanousBlockTileEntityRenderer(TileEntityRendererDispatcher dispatcher) {
+        super(dispatcher);
+    }
+
     @Override
-    public void render(DiaphanousBlockTileEntity te, double x, double y, double z, float partialTicks, int destroyStage) {
+    public void render(DiaphanousBlockTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
         BlockState display = te.getDisplayState();
 
         if (display.getRenderType() != BlockRenderType.MODEL) {
             return;
         }
 
-        double dx = te.getPos().getX() + 0.5 - TileEntityRendererDispatcher.staticPlayerX;
-        double dy = te.getPos().getY() + 0.5 - TileEntityRendererDispatcher.staticPlayerY;
-        double dz = te.getPos().getZ() + 0.5 - TileEntityRendererDispatcher.staticPlayerZ;
+        Vector3d camera = this.renderDispatcher.renderInfo.getProjectedView();
+        double dx = te.getPos().getX() + 0.5 - camera.x;
+        double dy = te.getPos().getY() + 0.5 - camera.y;
+        double dz = te.getPos().getZ() + 0.5 - camera.z;
         double distance = Math.max(0, dx * dx + dy * dy + dz * dz - 5);
 
         float curve = -0.5F * ((float) Math.cos(Math.PI * Math.min(Math.max(0, distance - 8), 25) / 25) - 1);
@@ -69,60 +80,11 @@ public class DiaphanousBlockTileEntityRenderer extends TileEntityRenderer<Diapha
         }
 
         World world = te.getWorld();
-        Minecraft mc = Minecraft.getInstance();
-        BlockRendererDispatcher dispatcher = mc.getBlockRendererDispatcher();
+        BlockRendererDispatcher dispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
         IBakedModel model = dispatcher.getModelForState(display);
 
-        this.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+        IVertexBuilder translucent = new AlphaVertexBuilder(buffer.getBuffer(RenderType.getTranslucent()), alpha);
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translated(x - te.getPos().getX(), y - te.getPos().getY(), z - te.getPos().getZ());
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-        buffer.begin(7, DefaultVertexFormats.BLOCK);
-
-        dispatcher.getBlockModelRenderer().renderModel(world, model, display, te.getPos(), buffer, true, random, display.getPositionRandom(te.getPos()));
-
-        overrideAlpha(buffer, alpha);
-
-        tessellator.draw();
-
-        GlStateManager.popMatrix();
-    }
-
-    private static void overrideAlpha(BufferBuilder buffer, float alpha) {
-        int alphaByte = MathHelper.clamp((int) (alpha * 255F), 0, 255);
-        int vertexCount = buffer.getVertexCount();
-
-        if (vertexCount == 0) {
-            return;
-        }
-
-        ByteBuffer byteBuffer = buffer.getByteBuffer();
-        byteBuffer.order(ByteOrder.nativeOrder());
-        boolean littleEndian = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-
-        for (int v = 0; v < vertexCount; v++) {
-            int colorIndex = buffer.getColorIndex(v);
-            int packed = byteBuffer.getInt(colorIndex * 4);
-
-            int r, g, b;
-
-            if (littleEndian) {
-                r = packed & 0xFF;
-                g = (packed >> 8) & 0xFF;
-                b = (packed >> 16) & 0xFF;
-            } else {
-                r = (packed >> 24) & 0xFF;
-                g = (packed >> 16) & 0xFF;
-                b = (packed >> 8) & 0xFF;
-            }
-
-            buffer.putColorRGBA(colorIndex, r, g, b, alphaByte);
-        }
+        dispatcher.getBlockModelRenderer().renderModel(world, model, display, te.getPos(), matrixStack, translucent, true, random, display.getPositionRandom(te.getPos()), combinedOverlay);
     }
 }

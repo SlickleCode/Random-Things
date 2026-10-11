@@ -10,6 +10,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * GlobalChatDetectorScreen
@@ -34,7 +37,7 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	{
 		super.init();
 
-		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 20, 127, 15, "");
+		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 20, 127, 15, new StringTextComponent(""));
 		this.messageField.setMaxStringLength(256);
 		this.messageField.setText(this.container.getChatMessage());
 		this.lastSent = this.messageField.getText();
@@ -86,10 +89,10 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	}
 
 	@Override
-	public void removed()
+	public void onClose()
 	{
 		submitMessage();
-		super.removed();
+		super.onClose();
 	}
 
 	private void submitMessage()
@@ -100,37 +103,35 @@ public class GlobalChatDetectorScreen extends ContainerScreen<GlobalChatDetector
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
+	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
 	{
-		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("gui.randomthings.global_chat_detector.message"), 8, 6, 4210752);
-		this.font.drawString(I18n.format("container.inventory"), 8, 65, 4210752);
+		this.font.drawString(matrixStack, I18n.format("gui.randomthings.global_chat_detector.message"), 8, 6, 4210752);
+		this.font.drawString(matrixStack, I18n.format("container.inventory"), 8, 65, 4210752);
 
 		if (this.buttons.get(1).isHovered())
 		{
 			boolean consume = this.container.consume.get() != 0;
-			this.renderTooltip(I18n.format(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no"), mouseX - this.guiLeft, mouseY - this.guiTop);
+			this.renderTooltip(matrixStack, new StringTextComponent(I18n.format(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.guiLeft, mouseY - this.guiTop);
 		}
 
-		RenderHelper.enableGUIStandardItemLighting();
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
+	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
-		this.blit(i, j, 0, 0, this.xSize, this.ySize);
+		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
 	}
 
 	@Override
-	public void render(int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground();
-		super.render(p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredToolTip(p_render_1_, p_render_2_);
+		this.renderBackground(matrixStack);
+		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
+		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

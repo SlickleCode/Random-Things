@@ -49,4 +49,25 @@ High value (very popular version); recommended tier A.
 
 ## Work log
 
-*(none yet — add dated notes, findings and links here as work on this version proceeds.)*
+### 2026-10-11 - port started (branch `1.16.5`, plan: `../plans/1.16.5-port-plan.md`)
+
+Toolchain findings (these cost real time; see also the pitfall catalog):
+- **Forge 1.16.5-36.2.40 and newer cannot be used with ForgeGradle 4.1** (the dev client dies at model baking with
+  `IllegalAccessError: TransformationMatrix.inverseVanilla()`): those builds renamed vanilla methods and rely on a
+  coremod bouncer that the FG4 userdev binpatch does not match. The port uses **36.2.39** (last build before that
+  change) with FG 4.1.x and Gradle 6.8.3. Moving to a later 1.16.5 build means moving to ForgeGradle 5/6 first.
+- ForgeGradle 4.1 on Windows failed on the first run with `NoSuchFileException ... srg_to_snapshot_<mappings>.tsrg`; creating
+  the missing parent directory under `~/.gradle/caches/forge_gradle/minecraft_user_repo/de/oceanlabs/mcp/mcp_config/<version>/`
+  once fixes it. After a failed first run delete the generated `minecraft_user_repo/.../forge/1.16.5-*` folders so they are rebuilt.
+- javac stops at 100 errors by default; `-Xmaxerrs 10000` in `build.gradle` gives the whole list.
+
+API changes that mattered for this mod (all verified with `javap` on the mapped jar):
+- `TileEntity.read(BlockState, CompoundNBT)`; `Block.onBlockActivated`, `Entity.processInitialInteract`, `Item.itemInteractionForEntity` return `ActionResultType`.
+- Block `tick`/`randomTick` take `ServerWorld`; `IGrowable.grow` takes `ServerWorld`; `tickRate`, `getMaterial`, `getRenderLayer`, `causesSuffocation`, `lightValue(n)` are gone (render layers are `RenderTypeLookup.setRenderLayer`, light is `setLightLevel(state -> n)`, suffocation `setSuffocates`).
+- Entities: `posX/posY/posZ` -> `getPosX()...`/`setRawPosition`; attributes are a static map registered on `EntityAttributeCreationEvent`; `doRender` -> `render(.., MatrixStack, IRenderTypeBuffer, light)`.
+- Rendering: everything takes a `MatrixStack`; `GlStateManager` -> `RenderSystem`; block entity renderers register with `ClientRegistry.bindTileEntityRenderer(TileEntityType, ...)`; ISTER method is `func_239207_a_`.
+- GUI: `Screen.render`, `blit`, `fill`, `drawString`, `renderTooltip`, `renderBackground` take a `MatrixStack`; titles and button labels are `ITextComponent`; `removed()` is `onClose()`; widget draw is `renderWidget`.
+- Dimensions are data: `dimension_type` + `dimension` JSON plus a registered chunk-generator codec; teleporting uses `Entity.changeDimension(ServerWorld, ITeleporter)` (replaces the old Teleporter coremod).
+- Biomes are data: biome keys are `RegistryKey<Biome>`, `BiomeDictionary` is keyed by them, features are registered `ConfiguredFeature`s added in `BiomeLoadingEvent`.
+- Vanilla model parents were renamed with a `template_` prefix (`template_fire_floor`, `template_torch_wall`, ...).
+- Jigsaw (village) pools are in the server's dynamic registry; wrap an entry at `FMLServerAboutToStartEvent`.

@@ -10,6 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.block.BlockState;
 
 /**
  * Holds one {@link SoundPatternItem} and plays it (at the block, volume/pitch
@@ -78,8 +79,8 @@ public class SoundBoxTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         this.pattern = compound.contains("pattern") ? ItemStack.read(compound.getCompound("pattern")) : ItemStack.EMPTY;
     }

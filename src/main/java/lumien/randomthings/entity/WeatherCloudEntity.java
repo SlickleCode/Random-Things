@@ -12,7 +12,7 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.world.storage.WorldInfo;
+import net.minecraft.world.storage.IServerWorldInfo;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import java.util.Random;
@@ -73,11 +73,11 @@ public class WeatherCloudEntity extends Entity {
 
         if (this.age < 200) {
             this.setMotion(this.getMotion().x, 0.007, this.getMotion().z);
-        } else if (this.posY < this.world.getHeight()) {
+        } else if (this.getPosY() < this.world.getHeight()) {
             this.setMotion(this.getMotion().x, (this.getMotion().y + 0.001) * 1.02, this.getMotion().z);
         } else if (!this.world.isRemote) {
             int duration = (300 + new Random().nextInt(600)) * 20;
-            WorldInfo info = this.world.getWorldInfo();
+            IServerWorldInfo info = (IServerWorldInfo) this.world.getWorldInfo();
 
             int type = this.dataManager.get(EGG_TYPE);
 
@@ -124,14 +124,14 @@ public class WeatherCloudEntity extends Entity {
                 double a = 0.25 / (1.5 + Math.random());
                 double b = 0.35 / (1.5 + Math.random());
 
-                this.world.addParticle(ParticleTypes.BUBBLE, this.posX + a * Math.cos(t), this.posY - 0.2, this.posZ + b * Math.sin(t), 0, -0.05, 0);
+                this.world.addParticle(ParticleTypes.BUBBLE, this.getPosX() + a * Math.cos(t), this.getPosY() - 0.2, this.getPosZ() + b * Math.sin(t), 0, -0.05, 0);
             }
         } else if (type == 2) {
             double t = Math.PI * 2 * Math.random();
             double a = 0.25 / (1.5 + Math.random());
             double b = 0.35 / (1.5 + Math.random());
 
-            this.world.addParticle(new RedstoneParticleData(1F, 1F, 0F, 1F), this.posX + a * Math.cos(t), this.posY, this.posZ + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
+            this.world.addParticle(new RedstoneParticleData(1F, 1F, 0F, 1F), this.getPosX() + a * Math.cos(t), this.getPosY(), this.getPosZ() + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
         }
     }
 
@@ -141,7 +141,7 @@ public class WeatherCloudEntity extends Entity {
                 double a = 0.25 / (Math.abs(y) * 0.5 + 1);
                 double b = 0.35 / (Math.abs(y) * 0.5 + 1);
 
-                this.world.addParticle(ParticleTypes.CLOUD, this.posX + a * Math.cos(t), this.posY + y / 8, this.posZ + b * Math.sin(t), 0, -0.03, 0);
+                this.world.addParticle(ParticleTypes.CLOUD, this.getPosX() + a * Math.cos(t), this.getPosY() + y / 8, this.getPosZ() + b * Math.sin(t), 0, -0.03, 0);
             }
         }
     }

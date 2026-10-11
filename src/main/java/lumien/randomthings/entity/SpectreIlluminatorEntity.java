@@ -25,6 +25,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A floating orb, placed by right-clicking with a {@link
@@ -172,14 +173,14 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
     }
 
     @Override
-    public boolean processInitialInteract(PlayerEntity player, Hand hand) {
+    public ActionResultType processInitialInteract(PlayerEntity player, Hand hand) {
         if (!this.world.isRemote) {
             this.remove();
 
             this.entityDropItem(new net.minecraft.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     public boolean isInChunk(World world, ChunkPos chunkPos) {
@@ -196,7 +197,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
         super.tick();
 
         if (!this.world.isRemote) {
-            Chunk chunk = this.world.getChunk(((int) this.posX) >> 4, ((int) this.posZ) >> 4);
+            Chunk chunk = this.world.getChunk(((int) this.getPosX()) >> 4, ((int) this.getPosZ()) >> 4);
 
             int highestBlockInChunk = 0;
 
@@ -210,10 +211,10 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
                 }
             }
 
-            if (Math.abs(highestBlockInChunk - this.posY) > 0.05) {
-                this.setMotion(this.getMotion().x, highestBlockInChunk < this.posY ? -0.05 : 0.05, this.getMotion().z);
+            if (Math.abs(highestBlockInChunk - this.getPosY()) > 0.05) {
+                this.setMotion(this.getMotion().x, highestBlockInChunk < this.getPosY() ? -0.05 : 0.05, this.getMotion().z);
             } else {
-                this.posY = highestBlockInChunk;
+                this.setRawPosition(this.getPosX(), highestBlockInChunk, this.getPosZ());
                 this.setMotion(this.getMotion().x, 0, this.getMotion().z);
             }
 
@@ -222,27 +223,27 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
             double chunkX = (chunkPos.getXStart() + chunkPos.getXEnd()) / 2D;
             double chunkZ = (chunkPos.getZStart() + chunkPos.getZEnd()) / 2D;
 
-            if (Math.abs(posX - chunkX) > 0.03) {
-                this.setMotion(chunkX > posX ? 0.03 : -0.03, this.getMotion().y, this.getMotion().z);
+            if (Math.abs(getPosX() - chunkX) > 0.03) {
+                this.setMotion(chunkX > getPosX() ? 0.03 : -0.03, this.getMotion().y, this.getMotion().z);
             } else {
-                this.posX = chunkX;
+                this.setRawPosition(chunkX, this.getPosY(), this.getPosZ());
                 this.setMotion(0, this.getMotion().y, this.getMotion().z);
             }
 
-            if (Math.abs(posZ - chunkZ) > 0.03) {
-                this.setMotion(this.getMotion().x, this.getMotion().y, chunkZ > posZ ? 0.03 : -0.03);
+            if (Math.abs(getPosZ() - chunkZ) > 0.03) {
+                this.setMotion(this.getMotion().x, this.getMotion().y, chunkZ > getPosZ() ? 0.03 : -0.03);
             } else {
-                this.posZ = chunkZ;
+                this.setRawPosition(this.getPosX(), this.getPosY(), chunkZ);
                 this.setMotion(this.getMotion().x, this.getMotion().y, 0);
             }
 
             if (!isIlluminated()) {
                 if (this.world.getGameTime() % 100 == 0) {
-                    RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getEntityId(), posX, posY, posZ, chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
+                    RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getEntityId(), getPosX(), getPosY(), getPosZ(), chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
                 }
 
-                if (posX == chunkX && posZ == chunkZ) {
-                    RTDebug.log("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getEntityId(), posX, posY, posZ, chunkPos);
+                if (getPosX() == chunkX && getPosZ() == chunkZ) {
+                    RTDebug.log("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getEntityId(), getPosX(), getPosY(), getPosZ(), chunkPos);
 
                     this.dataManager.set(ILLUMINATED, true);
 
@@ -251,7 +252,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
             }
         } else if (isIlluminated()) {
             if (this.world.getGameTime() % 5 == 0) {
-                this.world.addParticle(ParticleTypes.END_ROD, this.posX + (this.rand.nextDouble() - 0.5) * 0.3, this.posY + this.rand.nextDouble() * 0.3, this.posZ + (this.rand.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
+                this.world.addParticle(ParticleTypes.END_ROD, this.getPosX() + (this.rand.nextDouble() - 0.5) * 0.3, this.getPosY() + this.rand.nextDouble() * 0.3, this.getPosZ() + (this.rand.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
             }
         }
 

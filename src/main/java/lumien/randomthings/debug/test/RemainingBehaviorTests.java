@@ -39,7 +39,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -60,7 +60,7 @@ final class RemainingBehaviorTests
 
 	private static void ensureConnection(TestCtx c)
 	{
-		if (c.player.connection == null)
+		if (c.player.connection == null || c.player.connection.getClass() != ServerPlayNetHandler.class)
 		{
 			new ServerPlayNetHandler(c.world.getServer(), new NetworkManager(PacketDirection.SERVERBOUND), c.player);
 		}
@@ -165,7 +165,7 @@ final class RemainingBehaviorTests
 			String suffix = Integer.toString(new Random().nextInt(9000) + 1000);
 			String home = "Hearth" + suffix;
 			String away = "Garden" + suffix;
-			Vec3d[] home0 = { c.player.getPositionVec() };
+			Vector3d[] home0 = { c.player.getPositionVec() };
 
 			c.setQuiet(c.at(0, 1, 0), Blocks.BRICKS.getDefaultState());
 			c.setQuiet(c.at(6, 1, 0), Blocks.BRICKS.getDefaultState());
@@ -176,7 +176,7 @@ final class RemainingBehaviorTests
 				sign.setDisplayName(new StringTextComponent(def[0]));
 				c.player.setHeldItem(Hand.MAIN_HAND, sign);
 				BlockPos brick = c.at(Integer.parseInt(def[1]), 1, 0);
-				ModItems.FLOO_SIGN.onItemUse(new ItemUseContext(c.player, Hand.MAIN_HAND, new BlockRayTraceResult(new Vec3d(brick), Direction.NORTH, brick, false)));
+				ModItems.FLOO_SIGN.onItemUse(new ItemUseContext(c.player, Hand.MAIN_HAND, new BlockRayTraceResult(Vector3d.copy(brick), Direction.NORTH, brick, false)));
 			}
 
 			c.check(c.world.getBlockState(c.at(0, 1, 0)).getBlock() == ModBlocks.FLOO_BRICK, "the sign converts the brick into a Floo brick");
@@ -186,8 +186,8 @@ final class RemainingBehaviorTests
 			c.player.setPosition(c.at(0, 2, 0).getX() + 0.5, c.at(0, 2, 0).getY(), c.at(0, 2, 0).getZ() + 0.5);
 
 			ServerChatEvent event = chat(c, "Gardne" + suffix); // typo of the destination name
-			boolean arrived = Math.abs(c.player.posX - (c.at(6, 2, 0).getX() + 0.5)) < 1.0;
-			double landedX = c.player.posX;
+			boolean arrived = Math.abs(c.player.getPosX() - (c.at(6, 2, 0).getX() + 0.5)) < 1.0;
+			double landedX = c.player.getPosX();
 
 			FlooNetworkHandler handler = FlooNetworkHandler.get(c.world);
 			handler.brokenMaster(c.tile(c.at(0, 1, 0), FlooBrickTileEntity.class).getFirePlaceUid());
@@ -350,7 +350,7 @@ final class RemainingBehaviorTests
 			c.check(box.hasPattern(), "pattern stored");
 
 			SoundBoxTileEntity copy = new SoundBoxTileEntity();
-			copy.read(box.write(new net.minecraft.nbt.CompoundNBT()));
+			copy.read(box.getBlockState(), box.write(new net.minecraft.nbt.CompoundNBT()));
 			c.check(copy.hasPattern() && "minecraft:block.note_block.harp".equals(SoundPatternItem.getSoundLocation(copy.getPattern()).toString()), "pattern survives an NBT round trip");
 		}));
 

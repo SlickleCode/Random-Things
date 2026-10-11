@@ -7,6 +7,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.AxeItem;
 import net.minecraft.item.Item;
+import com.google.common.collect.ArrayListMultimap;
+import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraftforge.common.ForgeMod;
 
 /**
  * Ported from 1.12.2's {@code ItemSpectreAxe} - 8.0 attack damage / -3.0 attack speed hardcoded
@@ -28,11 +31,11 @@ public class SpectreAxeItem extends AxeItem {
     }
 
     @Override
-    public Multimap<String, AttributeModifier> getAttributeModifiers(EquipmentSlotType equipmentSlot) {
-        Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(equipmentSlot);
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlotType equipmentSlot) {
+        Multimap<Attribute, AttributeModifier> multimap = ArrayListMultimap.create(super.getAttributeModifiers(equipmentSlot));
 
         if (equipmentSlot == EquipmentSlotType.MAINHAND) {
-            multimap.put(PlayerEntity.REACH_DISTANCE.getName(), new AttributeModifier(SpectreItemTier.REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, AttributeModifier.Operation.ADDITION));
+            multimap.put(ForgeMod.REACH_DISTANCE.get(), new AttributeModifier(SpectreItemTier.REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, AttributeModifier.Operation.ADDITION));
         }
 
         return multimap;

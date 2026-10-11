@@ -29,9 +29,4 @@ public class BlazingFireBlock extends FireBlock
 		super(Block.Properties.from(Blocks.FIRE).sound(SoundType.CLOTH));
 	}
 
-	@Override
-	public int tickRate(IWorldReader worldIn)
-	{
-		return 15;
-	}
 }

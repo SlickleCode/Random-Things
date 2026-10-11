@@ -63,7 +63,7 @@ public class DiaphanousBlockTileEntity extends TileEntity {
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     @Override
@@ -82,8 +82,8 @@ public class DiaphanousBlockTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("block")) {
             this.displayState = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(compound.getString("block"))).getDefaultState();

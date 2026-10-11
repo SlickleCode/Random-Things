@@ -73,6 +73,9 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 | `RT_AUTOTEST_NO_GUIS=true` | Skip the GUI screenshot pass at the end (recommended for quick runs) |
 | `RT_AUTOTEST_FILTER=<text>` | Only run tests whose name contains the text (case-insensitive), e.g. `block_breaker`, `nbt.item`, `iron_dropper` |
 | `RT_AUTOTEST_EXIT=true` | Quit the client when done |
+| `RT_AUTOTEST_SCENES=true` | Render screenshot pass (`debug/RenderScenes` + `client/SceneShots`): builds each scene (`/rtdebug scene <id>`), saves HUD-less screenshots to `run/screenshots/randomthings_debug/scenes/<id>.png`, then pages through the Random Things creative tab (`items_N.png`). Review the images by eye. |
+| `RT_AUTOTEST_SCENES_ONLY=id,id` | With `_SCENES`: only these scene ids (skips the creative-tab pages) |
+| `RT_AUTOTEST_CLICKS=true` | GUI click-through (`client/GuiClickTest`): opens every GUI, hovers and clicks every button through `mouseClicked`, compares server-side block/item NBT before and after, types into every text field and reopens the GUI to check the text was saved. Report: `run/randomthings_clicks.txt`. Slots are not exercised yet. |
 
 The audit always runs; the filter only applies to the in-game tests.
 
@@ -147,6 +150,12 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 | **Imbuing Station consumed its inputs but never produced anything** - it delivered the result with `insertItem` into a slot that rejects insertion | behavior test `imbuing_station.brews_mossy_cobblestone...` (found while adding tests on the dedicated server) | Validated handler vs machine output |
 | The Peace Candle baseline test was flaky on the client once more tests ran before it (light engine not settled after 8 ticks) | repeated full runs | Test timing; wait raised to 30 ticks |
 | **Spectre cubes after the first were never recognised as the owner's**, so the anti-trespass check kept pinning players to their spawn tile | behavior test `behavior.spectre.*` | Wrong coordinate space in a lookup (a previous 'fix' of the original was itself wrong) |
+
+## Notes for 1.16.x (added on the 1.16.5 branch)
+
+- The dedicated-server suite uses `RTTestPlayer` (a `FakePlayer` that reports its real position and gets a real detached network handler); plain `FakePlayer` cannot be teleported or located.
+- The client autotest answers the "experimental settings" / backup dialogs itself and logs them (`AutoTest: confirming ... dialog`).
+- The world is created with the 1.16 `createWorld` flow (flat generator); an existing `run/saves/RTAutoTest` is simply reopened.
 
 ## Known limits
 

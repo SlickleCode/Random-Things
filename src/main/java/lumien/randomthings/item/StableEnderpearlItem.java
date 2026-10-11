@@ -94,11 +94,11 @@ public class StableEnderpearlItem extends Item
 				if (player != null)
 				{
 					player.world.playSound(null, player.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-					player.connection.setPlayerLocation(entityItem.posX, entityItem.posY, entityItem.posZ, player.rotationYaw, player.rotationPitch);
+					player.connection.setPlayerLocation(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ(), player.rotationYaw, player.rotationPitch);
 				}
 				else
 				{
-					List<LivingEntity> entityList = entityItem.world.getEntitiesWithinAABB(LivingEntity.class, new AxisAlignedBB(entityItem.posX - 10, entityItem.posY - 10, entityItem.posZ - 10, entityItem.posX + 10, entityItem.posY + 10, entityItem.posZ + 10), (e) -> true);
+					List<LivingEntity> entityList = entityItem.world.getEntitiesWithinAABB(LivingEntity.class, new AxisAlignedBB(entityItem.getPosX() - 10, entityItem.getPosY() - 10, entityItem.getPosZ() - 10, entityItem.getPosX() + 10, entityItem.getPosY() + 10, entityItem.getPosZ() + 10), (e) -> true);
 
 					if (!entityList.isEmpty())
 					{
@@ -108,12 +108,12 @@ public class StableEnderpearlItem extends Item
 						{
 							ServerPlayerEntity targetPlayer = (ServerPlayerEntity) target;
 							targetPlayer.world.playSound(null, targetPlayer.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							targetPlayer.connection.setPlayerLocation(entityItem.posX, entityItem.posY, entityItem.posZ, targetPlayer.rotationYaw, targetPlayer.rotationPitch);
+							targetPlayer.connection.setPlayerLocation(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ(), targetPlayer.rotationYaw, targetPlayer.rotationPitch);
 						}
 						else
 						{
 							target.world.playSound(null, target.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							target.setPositionAndUpdate(entityItem.posX, entityItem.posY, entityItem.posZ);
+							target.setPositionAndUpdate(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ());
 						}
 					}
 				}

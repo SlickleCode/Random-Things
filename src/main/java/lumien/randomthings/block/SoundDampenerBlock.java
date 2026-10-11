@@ -15,6 +15,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A 9-slot filter of {@link lumien.randomthings.item.SoundPatternItem}s -
@@ -58,7 +59,7 @@ public class SoundDampenerBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
 
@@ -67,6 +68,6 @@ public class SoundDampenerBlock extends Block {
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 }

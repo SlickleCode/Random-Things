@@ -29,6 +29,7 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.particles.ParticleTypes;
 
 public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 {
@@ -37,7 +38,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 
 	protected AdvancedRedstoneWallTorchBlock()
 	{
-		super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0).lightValue(7).sound(SoundType.WOOD));
+		super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0).setLightLevel(state -> 7).sound(SoundType.WOOD));
 		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
 	}
 
@@ -51,7 +52,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 
 	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
 	{
-		return WallTorchBlock.func_220289_j(state);
+		return WallTorchBlock.getShapeForState(state);
 	}
 
 	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)

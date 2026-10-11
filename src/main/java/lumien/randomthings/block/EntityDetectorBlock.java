@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Emits redstone when an entity matching a configurable filter is within a
@@ -87,7 +88,7 @@ public class EntityDetectorBlock extends Block
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -99,6 +100,6 @@ public class EntityDetectorBlock extends Block
 			}
 		}
 
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 }

@@ -11,6 +11,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * EntityDetectorScreen. The original's icon-sprite invert/strong-output
@@ -34,24 +37,24 @@ public class EntityDetectorScreen extends ContainerScreen<EntityDetectorContaine
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 25, 10, 10, "-", (b) -> this.container.send(0, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 25, 10, 10, new StringTextComponent("-"), (b) -> this.container.send(0, (pb) -> {
 		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 25, 10, 10, "+", (b) -> this.container.send(1, (pb) -> {
-		})));
-
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 45, 10, 10, "-", (b) -> this.container.send(2, (pb) -> {
-		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 45, 10, 10, "+", (b) -> this.container.send(3, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 25, 10, 10, new StringTextComponent("+"), (b) -> this.container.send(1, (pb) -> {
 		})));
 
-		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 65, 10, 10, "-", (b) -> this.container.send(4, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 45, 10, 10, new StringTextComponent("-"), (b) -> this.container.send(2, (pb) -> {
 		})));
-		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 65, 10, 10, "+", (b) -> this.container.send(5, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 45, 10, 10, new StringTextComponent("+"), (b) -> this.container.send(3, (pb) -> {
+		})));
+
+		this.addButton(new Button(this.guiLeft + 39, this.guiTop + 65, 10, 10, new StringTextComponent("-"), (b) -> this.container.send(4, (pb) -> {
+		})));
+		this.addButton(new Button(this.guiLeft + 119, this.guiTop + 65, 10, 10, new StringTextComponent("+"), (b) -> this.container.send(5, (pb) -> {
 		})));
 
 		// 1.12.2 layout: filter text button 70x16 at (20,95); the two 20x20 sprite toggles
 		// (invert at 92, strong output at 115, both y93) come from the GUI texture at (176,0)/(216,0)
-		this.addButton(new Button(this.guiLeft + 20, this.guiTop + 95, 70, 16, "", (b) -> this.container.send(6, (pb) -> {
+		this.addButton(new Button(this.guiLeft + 20, this.guiTop + 95, 70, 16, new StringTextComponent(""), (b) -> this.container.send(6, (pb) -> {
 		})));
 
 		this.addButton(new ToggleIconButton(this.guiLeft + 92, this.guiTop + 93, 20, 20, GUI_TEXTURES, 176, 0, () -> this.container.invert.get() != 0, (b) -> this.container.send(7, (pb) -> {
@@ -67,44 +70,42 @@ public class EntityDetectorScreen extends ContainerScreen<EntityDetectorContaine
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
+	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
 	{
-		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(I18n.format("block.randomthings.entity_detector"), 22, 6, 4210752);
+		this.font.drawString(matrixStack, I18n.format("block.randomthings.entity_detector"), 22, 6, 4210752);
 
 		String radiusX = I18n.format("gui.randomthings.entity_detector.range_x", this.container.rangeX.get());
-		this.font.drawString(radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 26, 4210752);
+		this.font.drawString(matrixStack, radiusX, xSize / 2 - this.font.getStringWidth(radiusX) / 2 - 3, 26, 4210752);
 
 		String radiusY = I18n.format("gui.randomthings.entity_detector.range_y", this.container.rangeY.get());
-		this.font.drawString(radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 46, 4210752);
+		this.font.drawString(matrixStack, radiusY, xSize / 2 - this.font.getStringWidth(radiusY) / 2 - 3, 46, 4210752);
 
 		String radiusZ = I18n.format("gui.randomthings.entity_detector.range_z", this.container.rangeZ.get());
-		this.font.drawString(radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 66, 4210752);
+		this.font.drawString(matrixStack, radiusZ, xSize / 2 - this.font.getStringWidth(radiusZ) / 2 - 3, 66, 4210752);
 
 		FILTER filter = FILTER.values()[this.container.filter.get()];
-		this.buttons.get(6).setMessage(filterLabel(filter));
+		this.buttons.get(6).setMessage(new StringTextComponent(filterLabel(filter)));
 
-		SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
+		SpriteStateButton.renderTooltips(matrixStack, this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
 
-		RenderHelper.enableGUIStandardItemLighting();
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
+	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
-		this.blit(i, j, 0, 0, this.xSize, this.ySize);
+		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
 	}
 
 	@Override
-	public void render(int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground();
-		super.render(p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredToolTip(p_render_1_, p_render_2_);
+		this.renderBackground(matrixStack);
+		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
+		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

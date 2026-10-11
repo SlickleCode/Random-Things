@@ -48,7 +48,7 @@ public class LotusBlossomItem extends Item {
             while (remaining > 0) {
                 int split = ExperienceOrbEntity.getXPSplit(remaining);
                 remaining -= split;
-                worldIn.addEntity(new ExperienceOrbEntity(worldIn, entityLiving.posX, entityLiving.posY, entityLiving.posZ, split));
+                worldIn.addEntity(new ExperienceOrbEntity(worldIn, entityLiving.getPosX(), entityLiving.getPosY(), entityLiving.getPosZ(), split));
             }
         }
 

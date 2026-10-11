@@ -71,6 +71,6 @@ public class DiaphanousBlockItem extends BlockItem {
             }
         }
 
-        return name.appendText(" <").appendSibling(new ItemStack(displayBlock).getDisplayName()).appendText(">");
+        return new net.minecraft.util.text.StringTextComponent("").appendSibling(name).appendString(" <").appendSibling(new ItemStack(displayBlock).getDisplayName()).appendString(">");
     }
 }

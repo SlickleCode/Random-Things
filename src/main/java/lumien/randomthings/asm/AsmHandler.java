@@ -29,6 +29,7 @@ import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
+import java.util.Random;
 
 /**
  * Static targets the coremod transformers in {@code src/main/resources/transformer/} redirect
@@ -53,6 +54,15 @@ public class AsmHandler {
      * unchanged from the Mixin this replaces (see {@code
      * BlazingFireBlock}'s own class javadoc for the original derivation).
      */
+    /** Replaces FireBlock's private static getTickCooldown(Random) - see FireBlockTransformer.js. */
+    public static int fireTickCooldown(Random rand, FireBlock fire) {
+        if (fire instanceof lumien.randomthings.block.BlazingFireBlock) {
+            return 15;
+        }
+
+        return 30 + rand.nextInt(10);
+    }
+
     public static int boostFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face, FireBlock fireBlock) {
         int flammability = state.getFlammability(world, pos, face);
         return fireBlock instanceof BlazingFireBlock ? flammability * 4 : flammability;
@@ -162,7 +172,7 @@ public class AsmHandler {
      */
     private static final int PEACE_CANDLE_CHUNK_RADIUS = 3;
 
-    public static boolean overrideSpawnResult(boolean original, EntityType<?> type, IWorld iWorld, BlockPos pos) {
+    public static boolean overrideSpawnResult(boolean original, EntityType<?> type, net.minecraft.world.IServerWorld iWorld, BlockPos pos) {
         World world = iWorld.getWorld();
 
         if (type == EntityType.SLIME) {
@@ -239,7 +249,7 @@ public class AsmHandler {
             return false;
         }
 
-        for (RainShieldTileEntity shield : RainShieldTileEntity.shields) {
+        for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
                 return false;
             }
@@ -269,12 +279,16 @@ public class AsmHandler {
      * of {@code World.getBiome} everywhere else in the game is untouched;
      * this only ever fires from inside that one call site.
      */
+    public static Biome getBiomeForRainRender(IWorldReader reader, BlockPos pos) {
+        return reader instanceof World ? getBiomeForRainRender((World) reader, pos) : reader.getBiome(pos);
+    }
+
     public static Biome getBiomeForRainRender(World world, BlockPos pos) {
         Biome real = world.getBiome(pos);
 
-        for (RainShieldTileEntity shield : RainShieldTileEntity.shields) {
+        for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
-                return net.minecraft.world.biome.Biomes.DESERT;
+                return net.minecraft.util.registry.WorldGenRegistries.BIOME.getValueForKey(net.minecraft.world.biome.Biomes.DESERT);
             }
         }
 
@@ -321,45 +335,6 @@ public class AsmHandler {
         }
 
         return original;
-    }
-
-    /**
-     * Injection target for {@code Teleporter.makePortal(Entity)}'s method
-     * entry - see {@code TeleporterTransformer.js}. Ground-truthed via
-     * {@code javap -c}/source that this Forge version (28.2.26) has no
-     * {@code ITeleporter} hook at all (that's a later Forge addition) -
-     * {@code ServerWorld.getDefaultTeleporter()} always returns one plain
-     * {@code Teleporter} per world, unconditionally, with no override point.
-     * 1.12.2's own {@code SpectreHandler} sidestepped this entirely by
-     * passing a custom {@code SimpleTeleporter} into {@code
-     * PlayerList.transferPlayerToDimension}, a parameter this version's
-     * {@code PlayerList} no longer even has (confirmed via {@code javap -p} -
-     * only {@code recreatePlayerEntity} remains). Without a patch here,
-     * {@code Entity/ServerPlayerEntity#changeDimension}'s generic (non-
-     * Nether/End) travel path would search for a real nether-portal frame at
-     * the scaled destination coordinate and, finding none in the Spectre
-     * void, physically carve one out of obsidian - this early-returns
-     * {@code true} (success, no search/build needed) and places the entity
-     * at a safe filler position instead, whenever the *destination* world
-     * (the {@code Teleporter} instance's own world, not the entity's - this
-     * needs to catch travel in *both* directions, into and back out of
-     * Spectre) is the Spectre dimension. {@link lumien.randomthings.handler.spectre.SpectreHandler}
-     * immediately overwrites this filler position with the real target via
-     * {@code connection.setPlayerLocation} right after {@code
-     * changeDimension} returns, matching 1.12.2's own transfer-then-
-     * explicit-reposition pattern. Every other dimension (Nether/End/
-     * Overworld, and any other mod's) falls through to vanilla's completely
-     * unpatched original behavior.
-     */
-    public static boolean overrideMakePortal(net.minecraft.world.server.ServerWorld destWorld, Entity entity) {
-        if (destWorld.getDimension().getType() != lumien.randomthings.handler.ModDimensions.SPECTRE_TYPE) {
-            return false;
-        }
-
-        entity.setLocationAndAngles(8.5D, 1.0D, 8.5D, entity.rotationYaw, entity.rotationPitch);
-        entity.setMotion(net.minecraft.util.math.Vec3d.ZERO);
-
-        return true;
     }
 
     /**

@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -37,14 +36,14 @@ public class FluidDisplayBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         if (worldIn.isRemote) {
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
         TileEntity te = worldIn.getTileEntity(pos);
         if (!(te instanceof FluidDisplayTileEntity)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         FluidDisplayTileEntity display = (FluidDisplayTileEntity) te;
@@ -58,9 +57,9 @@ public class FluidDisplayBlock extends Block {
             if (contents != null && !contents.isEmpty()) {
                 display.setFluidStack(new FluidStack(contents.getFluid(), 1000, contents.getTag()));
                 display.syncTE();
-                return true;
+                return ActionResultType.SUCCESS;
             }
-            return false;
+            return ActionResultType.PASS;
         }
 
         if (player.isSneaking()) {
@@ -68,7 +67,7 @@ public class FluidDisplayBlock extends Block {
         } else {
             display.toggleFlowing();
         }
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     /**
@@ -97,11 +96,6 @@ public class FluidDisplayBlock extends Block {
      * Material#isOpaque()} instead, not render layer - this is a real 1.14.4 API
      * coupling with no 1.12.2 counterpart, not a disclosed simplification.
      */
-    @Override
-    public BlockRenderLayer getRenderLayer() {
-        return BlockRenderLayer.CUTOUT;
-    }
-
     @Override
     public boolean hasTileEntity(BlockState state) {
         return true;

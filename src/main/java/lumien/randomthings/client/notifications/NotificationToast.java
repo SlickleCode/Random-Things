@@ -5,6 +5,8 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.toasts.IToast;
 import net.minecraft.client.gui.toasts.ToastGui;
 import net.minecraft.item.ItemStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
 
 /**
  * A vanilla-style toast showing a title/description and an item icon,
@@ -30,7 +32,7 @@ public class NotificationToast implements IToast
 	}
 
 	@Override
-	public Visibility draw(ToastGui toastGui, long delta)
+	public Visibility func_230444_a_(MatrixStack matrixStack, ToastGui toastGui, long delta)
 	{
 		if (newDisplay)
 		{
@@ -39,11 +41,11 @@ public class NotificationToast implements IToast
 		}
 
 		toastGui.getMinecraft().getTextureManager().bindTexture(TEXTURE_TOASTS);
-		GlStateManager.color3f(1.0F, 1.0F, 1.0F);
-		toastGui.blit(0, 0, 0, 0, 160, 32);
+		RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+		toastGui.blit(matrixStack, 0, 0, 0, 0, 160, 32);
 
-		toastGui.getMinecraft().fontRenderer.drawString(title, 30, 7, 0xFFFFFF00);
-		toastGui.getMinecraft().fontRenderer.drawString(description, 30, 18, 0xFFFFFFFF);
+		toastGui.getMinecraft().fontRenderer.drawString(matrixStack, title, 30, 7, 0xFFFFFF00);
+		toastGui.getMinecraft().fontRenderer.drawString(matrixStack, description, 30, 18, 0xFFFFFFFF);
 
 		if (!icon.isEmpty())
 		{

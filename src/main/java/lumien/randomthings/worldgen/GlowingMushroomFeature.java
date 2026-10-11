@@ -3,7 +3,6 @@ package lumien.randomthings.worldgen;
 import java.util.Random;
 import java.util.function.Function;
 
-import com.mojang.datafixers.Dynamic;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.config.RTConfig;
@@ -11,9 +10,11 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationSettings;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
+import com.mojang.serialization.Codec;
+import net.minecraft.world.ISeedReader;
+import lumien.randomthings.util.BiomeUtil;
 
 /**
  * Underground patch of Glowing Mushrooms - port of 1.12.2's {@code WorldGenEventHandler} mushroom
@@ -24,12 +25,12 @@ import net.minecraft.world.gen.feature.NoFeatureConfig;
  * one in an air block that can hold it and has no sky access.
  */
 public class GlowingMushroomFeature extends Feature<NoFeatureConfig> {
-    public GlowingMushroomFeature(Function<Dynamic<?>, ? extends NoFeatureConfig> deserializer) {
-        super(deserializer);
+    public GlowingMushroomFeature(Codec<NoFeatureConfig> codec) {
+        super(codec);
     }
 
     @Override
-    public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
         if (!RTConfig.GLOWING_MUSHROOM.get()) {
             return false;
         }

@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Insert a {@link lumien.randomthings.item.SoundPatternItem} and power it
@@ -64,11 +65,11 @@ public class SoundBoxBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         TileEntity te = worldIn.getTileEntity(pos);
 
         if (!(te instanceof SoundBoxTileEntity)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         SoundBoxTileEntity soundBox = (SoundBoxTileEntity) te;
@@ -80,7 +81,7 @@ public class SoundBoxBlock extends Block {
                 Block.spawnAsEntity(worldIn, pos.up(), pattern);
             }
 
-            return true;
+            return ActionResultType.SUCCESS;
         } else {
             ItemStack heldItem = player.getHeldItem(hand);
 
@@ -95,11 +96,11 @@ public class SoundBoxBlock extends Block {
                     }
                 }
 
-                return true;
+                return ActionResultType.SUCCESS;
             }
         }
 
-        return false;
+        return ActionResultType.PASS;
     }
 
     @Override

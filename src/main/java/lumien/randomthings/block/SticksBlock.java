@@ -15,7 +15,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -25,6 +24,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ToolType;
+import net.minecraft.world.server.ServerWorld;
 
 public class SticksBlock extends Block
 {
@@ -51,12 +51,6 @@ public class SticksBlock extends Block
 		{
 			worldIn.getPendingBlockTicks().scheduleTick(pos, this, 20 * 10);
 		}
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -86,7 +80,7 @@ public class SticksBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
 	{
 		if (!worldIn.isRemote)
 		{

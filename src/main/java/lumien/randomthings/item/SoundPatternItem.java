@@ -14,6 +14,8 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 
 import java.util.List;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * A stamped-with-one-sound recording, produced by {@link SoundRecorderItem}'s
@@ -26,16 +28,10 @@ import java.util.List;
  * that (from {@link CompassItemBase}) is an {@code IItemPropertyGetter}
  * predicate driving the item model JSON's {@code overrides}.
  */
-public class SoundPatternItem extends Item {
+public class SoundPatternItem extends Item implements IClientItemProperties{
     public SoundPatternItem(Item.Properties properties) {
         super(properties);
 
-        this.addPropertyOverride(new ResourceLocation("filled"), new IItemPropertyGetter() {
-            @Override
-            public float call(ItemStack stack, World worldIn, net.minecraft.entity.LivingEntity entityIn) {
-                return getSoundLocation(stack) != null ? 1.0F : 0.0F;
-            }
-        });
     }
 
     @Override
@@ -86,4 +82,16 @@ public class SoundPatternItem extends Item {
     public static void setSoundLocation(ItemStack pattern, String sound) {
         pattern.getOrCreateTag().putString("sound", sound);
     }
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void registerClientProperties()
+	{
+		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("filled"), new IItemPropertyGetter() {
+            @Override
+            public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, net.minecraft.entity.LivingEntity entityIn) {
+                return getSoundLocation(stack) != null ? 1.0F : 0.0F;
+            }
+        });
+	}
 }

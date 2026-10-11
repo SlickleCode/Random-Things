@@ -42,7 +42,7 @@ public class PositionFilterItem extends Item
 		{
 			if (compound != null && compound.getBoolean("hasPosition"))
 			{
-				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.dimension", compound.getInt("dimension")));
+				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
 				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
 				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
 				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
@@ -59,13 +59,13 @@ public class PositionFilterItem extends Item
 	{
 		if (!context.getWorld().isRemote)
 		{
-			setPosition(context.getItem(), context.getWorld().getDimension().getType().getId(), context.getPos());
+			setPosition(context.getItem(), context.getWorld().getDimensionKey().getLocation().toString(), context.getPos());
 		}
 
 		return ActionResultType.SUCCESS;
 	}
 
-	public static void setPosition(ItemStack positionFilter, int dimension, BlockPos pos)
+	public static void setPosition(ItemStack positionFilter, String dimension, BlockPos pos)
 	{
 		CompoundNBT compound = positionFilter.getTag();
 
@@ -75,7 +75,7 @@ public class PositionFilterItem extends Item
 		}
 
 		compound.putBoolean("hasPosition", true);
-		compound.putInt("dimension", dimension);
+		compound.putString("dimension", dimension);
 		compound.putInt("filterX", pos.getX());
 		compound.putInt("filterY", pos.getY());
 		compound.putInt("filterZ", pos.getZ());

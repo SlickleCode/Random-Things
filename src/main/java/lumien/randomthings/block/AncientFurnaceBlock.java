@@ -20,6 +20,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
 import java.util.Random;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Direct port of 1.12.2's {@code BlockAncientFurnace}: a rare, naturally
@@ -60,25 +61,25 @@ public class AncientFurnaceBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (state.get(HEATING)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         ItemStack stack = player.getHeldItem(handIn);
 
         if (stack.getItem() != Items.NETHER_STAR) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         if (worldIn.isRemote) {
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
         TileEntity te = worldIn.getTileEntity(pos);
 
         if (!(te instanceof AncientFurnaceTileEntity)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         if (!player.abilities.isCreativeMode) {
@@ -89,7 +90,7 @@ public class AncientFurnaceBlock extends Block {
         ((AncientFurnaceTileEntity) te).startHeating();
         worldIn.playSound(null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, 0.6F);
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     @Override

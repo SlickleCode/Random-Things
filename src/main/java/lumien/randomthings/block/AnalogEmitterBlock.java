@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Redstone signal amplifier: reads the power level coming in on the facing
@@ -101,7 +102,7 @@ public class AnalogEmitterBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
 
@@ -110,6 +111,6 @@ public class AnalogEmitterBlock extends Block {
             }
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 }

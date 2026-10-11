@@ -11,6 +11,7 @@ import net.minecraft.tileentity.BeaconTileEntity;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.block.BlockState;
 
 /**
  * Ported from 1.12.2's {@code TileEntitySpectreLens} - every 80 ticks, checks the {@link BeaconTileEntity}
@@ -103,8 +104,8 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("owner")) {
             owner = compound.getUniqueId("owner");

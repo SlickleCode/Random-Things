@@ -15,9 +15,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer.Builder;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IEnviromentBlockReader;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.World;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.world.server.ServerWorld;
 
 public class ColoredGrassBlock extends Block implements IRTBlockColor
 {
@@ -51,7 +51,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 		{
 			for (DyeColor color : DyeColor.values())
 			{
-				if (color.getName().equals(tag.getString(COLOR.getName())))
+				if (color.getTranslationKey().equals(tag.getString(COLOR.getName())))
 				{
 					return color;
 				}
@@ -62,20 +62,20 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 	}
 
 	@Override
-	public net.minecraft.util.text.ITextComponent getNameTextComponent()
+	public net.minecraft.util.text.IFormattableTextComponent getTranslatedName()
 	{
 		return new net.minecraft.util.text.TranslationTextComponent("block.randomthings.colored_grass.white");
 	}
 
 	@Override
-	public int colorMultiplier(BlockState state, IEnviromentBlockReader worldIn, BlockPos pos, int tintIndex)
+	public int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex)
 	{
 		return getTint(state.get(COLOR));
 	}
 
 	/** Port of 1.12.2's {@code updateTick}: reverts to dirt when smothered, otherwise spreads its color to nearby dirt. */
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (worldIn.isRemote)
 		{
@@ -109,11 +109,5 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 				}
 			}
 		}
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 }

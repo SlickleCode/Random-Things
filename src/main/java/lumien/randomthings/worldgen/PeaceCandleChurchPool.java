@@ -1,19 +1,22 @@
 package lumien.randomthings.worldgen;
 
-import com.google.common.collect.ImmutableList;
-import lumien.randomthings.config.RTConfig;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.gen.feature.jigsaw.JigsawManager;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPattern;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPiece;
-import net.minecraft.world.gen.feature.jigsaw.SingleJigsawPiece;
-import net.minecraft.world.gen.feature.structure.PlainsVillagePools;
-import net.minecraft.world.gen.feature.template.TemplateManager;
-import org.apache.logging.log4j.LogManager;
-
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Lifecycle;
+
+import lumien.randomthings.config.RTConfig;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.RegistryKey;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.MutableRegistry;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.feature.jigsaw.JigsawPattern;
+import net.minecraft.world.gen.feature.jigsaw.JigsawPiece;
+import net.minecraft.world.gen.feature.template.TemplateManager;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Peace Candle's village-church generation. 1.12.2 patched {@code
@@ -38,41 +41,40 @@ import java.util.stream.Collectors;
 public class PeaceCandleChurchPool extends JigsawPattern {
     private static final ResourceLocation HOUSES = new ResourceLocation("village/plains/houses");
 
-    /** {@code SingleJigsawPiece#toString}'s exact format, the only public way to read a piece's template name. */
-    private static final String VANILLA_CHURCH = "Single[minecraft:village/plains/houses/plains_temple_4]";
+    /** The vanilla plains church template, matched on its piece description (the template name is not otherwise readable). */
+    private static final String VANILLA_CHURCH = "village/plains/houses/plains_temple_4";
 
-    // RIGID matches what PlainsVillagePools registers the houses pool with.
-    private static final JigsawPiece PEACE_CANDLE_CHURCH = new SingleJigsawPiece("randomthings:peace_candle_church").setPlacementBehaviour(JigsawPattern.PlacementBehaviour.RIGID);
+    // RIGID matches what the vanilla plains village registers the houses pool with.
+    private static final JigsawPiece PEACE_CANDLE_CHURCH = JigsawPiece.func_242859_b("randomthings:peace_candle_church").apply(JigsawPattern.PlacementBehaviour.RIGID);
 
     private final JigsawPattern vanilla;
 
     private PeaceCandleChurchPool(JigsawPattern vanilla) {
-        super(vanilla.func_214947_b(), vanilla.func_214948_a(), ImmutableList.of(), JigsawPattern.PlacementBehaviour.RIGID);
+        super(vanilla.getName(), vanilla.getFallback(), java.util.Collections.<Pair<JigsawPiece, Integer>>emptyList());
         this.vanilla = vanilla;
     }
 
     /**
-     * Wraps the vanilla plains houses pool. Must run on the server thread (the registry is a plain
-     * {@code HashMap}); called from {@code FMLServerAboutToStartEvent}, which fires once per world
-     * load, so it's safe to call repeatedly.
+     * Wraps the vanilla plains houses pool in this world's dynamic registry (1.16 loads jigsaw pools as data, so the
+     * 1.14.4 static-registry replacement is gone). Called from {@code FMLServerAboutToStartEvent}, which fires once
+     * per world load, so it is safe to call repeatedly.
      */
-    public static void install() {
-        // The vanilla pools are registered by this class's static initializer; init() itself is an
-        // empty method that just forces it (the village generator calls it before every village too).
-        PlainsVillagePools.init();
-
-        JigsawPattern vanilla = JigsawManager.REGISTRY.get(HOUSES);
+    public static void install(MinecraftServer server) {
+        Registry<JigsawPattern> registry = server.getDynamicRegistries().getRegistry(Registry.JIGSAW_POOL_KEY);
+        JigsawPattern vanilla = registry.getOrDefault(HOUSES);
 
         if (vanilla instanceof PeaceCandleChurchPool) {
             return;
         }
 
-        if (vanilla == JigsawPattern.INVALID) {
+        if (vanilla == null) {
             LogManager.getLogger().warn("Vanilla pool {} not found, Peace Candle churches won't generate", HOUSES);
             return;
         }
 
-        JigsawManager.REGISTRY.register(new PeaceCandleChurchPool(vanilla));
+        if (registry instanceof MutableRegistry) {
+            ((MutableRegistry<JigsawPattern>) registry).register(RegistryKey.getOrCreateKey(Registry.JIGSAW_POOL_KEY, HOUSES), new PeaceCandleChurchPool(vanilla), Lifecycle.stable());
+        }
     }
 
     private static boolean shouldSwap(Random rand) {
@@ -80,12 +82,12 @@ public class PeaceCandleChurchPool extends JigsawPattern {
     }
 
     private static JigsawPiece swap(JigsawPiece piece) {
-        return VANILLA_CHURCH.equals(piece.toString()) ? PEACE_CANDLE_CHURCH : piece;
+        return piece.toString().contains(VANILLA_CHURCH) ? PEACE_CANDLE_CHURCH : piece;
     }
 
     @Override
-    public int func_214945_a(TemplateManager templateManager) {
-        return vanilla.func_214945_a(templateManager);
+    public int getMaxSize(TemplateManager templateManager) {
+        return vanilla.getMaxSize(templateManager);
     }
 
     @Override

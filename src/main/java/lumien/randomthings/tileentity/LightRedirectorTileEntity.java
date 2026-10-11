@@ -13,6 +13,7 @@ import net.minecraft.network.play.server.SUpdateTileEntityPacket;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.block.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityLightRedirector}: which of the 6
@@ -104,7 +105,7 @@ public class LightRedirectorTileEntity extends TileEntity {
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
 
         targets.clear();
 
@@ -123,18 +124,18 @@ public class LightRedirectorTileEntity extends TileEntity {
         super.write(compound);
 
         for (Direction facing : Direction.values()) {
-            compound.putBoolean("enabled_" + facing.getName(), enabledMap.get(facing));
+            compound.putBoolean("enabled_" + facing.getString(), enabledMap.get(facing));
         }
 
         return compound;
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         for (Direction facing : Direction.values()) {
-            String key = "enabled_" + facing.getName();
+            String key = "enabled_" + facing.getString();
 
             if (compound.contains(key)) {
                 enabledMap.put(facing, compound.getBoolean(key));

@@ -12,7 +12,6 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
-import net.minecraft.util.BlockRenderLayer;
 
 /**
  * The horizontal-friction math this depends on: {@code LivingEntity.travel}
@@ -80,7 +79,7 @@ public class SuperLubricentPlatformBlock extends Block
 			return VoxelShapes.empty();
 		}
 
-		if (entity.posY < pos.getY() + 14F / 16F)
+		if (entity.getPosY() < pos.getY() + 14F / 16F)
 		{
 			return VoxelShapes.empty();
 		}
@@ -91,11 +90,5 @@ public class SuperLubricentPlatformBlock extends Block
 		}
 
 		return super.getCollisionShape(state, worldIn, pos, context);
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
 	}
 }

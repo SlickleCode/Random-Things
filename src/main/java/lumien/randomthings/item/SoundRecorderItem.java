@@ -20,6 +20,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import java.util.ArrayList;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
  * Sneak-right-click to toggle recording every sound you hear (up to 10, via
@@ -29,16 +31,10 @@ import java.util.ArrayList;
  * recorded sounds onto a blank {@link SoundPatternItem}. Direct port of
  * 1.12.2's {@code ItemSoundRecorder}.
  */
-public class SoundRecorderItem extends Item implements INamedContainerProvider {
+public class SoundRecorderItem extends Item implements INamedContainerProvider, IClientItemProperties{
     public SoundRecorderItem(Item.Properties properties) {
         super(properties);
 
-        this.addPropertyOverride(new ResourceLocation("recording"), new IItemPropertyGetter() {
-            @Override
-            public float call(ItemStack stack, World worldIn, net.minecraft.entity.LivingEntity entityIn) {
-                return isRecording(stack) ? 1.0F : 0.0F;
-            }
-        });
     }
 
     @Override
@@ -83,7 +79,7 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider {
             }
         }
 
-        recordList.add(new StringNBT(soundName));
+        recordList.add(StringNBT.valueOf(soundName));
 
         if (recordList.size() >= 10) {
             compound.putBoolean("recording", false);
@@ -117,4 +113,16 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider {
     public ITextComponent getDisplayName() {
         return new TranslationTextComponent("item.randomthings.sound_recorder");
     }
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void registerClientProperties()
+	{
+		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("recording"), new IItemPropertyGetter() {
+            @Override
+            public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, net.minecraft.entity.LivingEntity entityIn) {
+                return isRecording(stack) ? 1.0F : 0.0F;
+            }
+        });
+	}
 }

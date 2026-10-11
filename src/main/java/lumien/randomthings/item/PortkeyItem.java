@@ -73,7 +73,7 @@ public class PortkeyItem extends Item {
             tooltip.add(new TranslationTextComponent(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
         } else if (Screen.hasShiftDown()) {
             if (compound != null && compound.getBoolean("hasTarget")) {
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.dimension", compound.getInt("dimension")));
+                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.dimension", compound.getString("dimension")));
                 tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.x", compound.getInt("targetX")));
                 tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.y", compound.getInt("targetY")));
                 tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.z", compound.getInt("targetZ")));
@@ -93,7 +93,7 @@ public class PortkeyItem extends Item {
             CompoundNBT compound = context.getItem().getOrCreateTag();
 
             compound.putBoolean("hasTarget", true);
-            compound.putInt("dimension", context.getWorld().getDimension().getType().getId());
+            compound.putString("dimension", context.getWorld().getDimensionKey().getLocation().toString());
             compound.putInt("targetX", context.getPos().getX());
             compound.putInt("targetY", context.getPos().getY());
             compound.putInt("targetZ", context.getPos().getZ());

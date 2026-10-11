@@ -11,6 +11,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Direct port of 1.12.2's {@code GuiDyeingMachine}, including its cosmetic
@@ -67,27 +69,27 @@ public class DyeingMachineScreen extends ContainerScreen<DyeingMachineContainer>
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        this.font.drawString(this.title.getString(), 8, 6, 4210752);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
         int x = (this.width - this.xSize) / 2;
         int y = (this.height - this.ySize) / 2;
-        this.blit(x, y, 0, 0, this.xSize, this.ySize);
+        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
 
         Color c = new Color(currentColor);
-        GlStateManager.color3f(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue());
-        this.blit(x + 102, y + 23, 176, 21, 22, 15);
+        RenderSystem.color3f(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue());
+        this.blit(matrixStack, x + 102, y + 23, 176, 21, 22, 15);
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 }

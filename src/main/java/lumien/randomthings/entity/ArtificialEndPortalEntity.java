@@ -15,7 +15,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.DimensionType;
 import net.minecraftforge.fml.network.NetworkHooks;
 
 import java.util.List;
@@ -72,13 +72,13 @@ public class ArtificialEndPortalEntity extends Entity {
 
         if (!this.world.isRemote) {
             if (this.world.getGameTime() % 40 == 0) {
-                if (!isValidPosition(this.world, new BlockPos(this.posX, this.posY, this.posZ), false)) {
+                if (!isValidPosition(this.world, new BlockPos(this.getPosX(), this.getPosY(), this.getPosZ()), false)) {
                     this.remove();
                 }
             }
         } else {
             if (actionTimer == 85) {
-                this.world.playSound(this.posX, this.posY, this.posZ, SoundEvents.BLOCK_PORTAL_TRAVEL, SoundCategory.BLOCKS, 0.2F, 1, false);
+                this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), SoundEvents.BLOCK_PORTAL_TRAVEL, SoundCategory.BLOCKS, 0.2F, 1, false);
             }
         }
     }
@@ -88,7 +88,7 @@ public class ArtificialEndPortalEntity extends Entity {
             double modX = this.rand.nextFloat() * 0.05 - 0.025;
             double modZ = this.rand.nextFloat() * 0.05 - 0.025;
 
-            this.world.addParticle(ParticleTypes.ENCHANT, this.posX + modX, this.posY + 2, this.posZ + modZ, modX * 2, 1, modZ * 2);
+            this.world.addParticle(ParticleTypes.ENCHANT, this.getPosX() + modX, this.getPosY() + 2, this.getPosZ() + modZ, modX * 2, 1, modZ * 2);
         }
     }
 
@@ -97,7 +97,7 @@ public class ArtificialEndPortalEntity extends Entity {
         super.onCollideWithPlayer(entityIn);
 
         if (!this.world.isRemote && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isBeingRidden()) {
-            entityIn.changeDimension(DimensionType.THE_END);
+            entityIn.changeDimension(this.world.getServer().getWorld(World.THE_END));
         }
     }
 

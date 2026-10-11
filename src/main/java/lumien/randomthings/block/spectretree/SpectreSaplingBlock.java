@@ -17,7 +17,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * The 1.12.2 version generated its grown tree through a custom
@@ -54,7 +54,7 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -78,7 +78,7 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 	}
 
 	@Override
-	public void grow(World worldIn, Random rand, BlockPos pos, BlockState state)
+	public void grow(ServerWorld worldIn, Random rand, BlockPos pos, BlockState state)
 	{
 		if (state.get(STAGE) == 0)
 		{
@@ -130,11 +130,5 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
 	{
 		return worldIn.getBlockState(pos.down()).canSustainPlant(worldIn, pos.down(), net.minecraft.util.Direction.UP, this);
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.TRANSLUCENT;
 	}
 }

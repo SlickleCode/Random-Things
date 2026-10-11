@@ -124,7 +124,7 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
                 BlockState targetBlock = world.getBlockState(target);
 
                 if (targetBlock.ticksRandomly()) {
-                    targetBlock.randomTick(world, target, world.rand);
+                    targetBlock.randomTick((net.minecraft.world.server.ServerWorld) world, target, world.rand);
                 }
             }
         }
@@ -149,7 +149,7 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
             double dy = (this.rand.nextDouble() - 0.5) * 1.05;
             double dz = (this.rand.nextDouble() - 0.5) * 1.05;
 
-            this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.posX + dx, this.posY + dy, this.posZ + dz, 0, 0, 0);
+            this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.getPosX() + dx, this.getPosY() + dy, this.getPosZ() + dz, 0, 0, 0);
         }
     }
 

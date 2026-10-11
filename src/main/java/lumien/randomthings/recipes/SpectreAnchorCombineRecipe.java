@@ -73,7 +73,7 @@ public class SpectreAnchorCombineRecipe extends SpecialRecipe {
         }
 
         ItemStack result = target.copy();
-        result.getOrCreateTag().put("spectreAnchor", new ByteNBT((byte) 0));
+        result.getOrCreateTag().put("spectreAnchor", ByteNBT.valueOf((byte) 0));
 
         return result;
     }

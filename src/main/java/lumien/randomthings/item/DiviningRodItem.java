@@ -33,7 +33,7 @@ public class DiviningRodItem extends Item {
 
     public int matches(BlockState blockState) {
         for (int i = 0; i < detectingTags.length; i++) {
-            Tag<Block> t = BlockTags.getCollection().get(new ResourceLocation(detectingTags[i]));
+            net.minecraft.tags.ITag<Block> t = BlockTags.getCollection().get(new ResourceLocation(detectingTags[i]));
 
             if (t != null && t.contains(blockState.getBlock())) {
                 return i;

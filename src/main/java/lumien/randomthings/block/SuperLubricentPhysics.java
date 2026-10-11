@@ -5,7 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.BoatEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 
 import java.lang.reflect.Field;
 
@@ -176,7 +176,7 @@ public final class SuperLubricentPhysics
 
 	public static void capHorizontalSpeed(Entity entity)
 	{
-		Vec3d motion = entity.getMotion();
+		Vector3d motion = entity.getMotion();
 		double horizontalSpeedSq = motion.x * motion.x + motion.z * motion.z;
 		double maxSpeedSq = MAX_HORIZONTAL_SPEED * MAX_HORIZONTAL_SPEED;
 
@@ -252,7 +252,7 @@ public final class SuperLubricentPhysics
 	 */
 	public static boolean isOnLubricentBlock(Entity entity)
 	{
-		BlockPos underfoot = new BlockPos(entity.posX, entity.getBoundingBox().minY - 1.0D, entity.posZ);
+		BlockPos underfoot = new BlockPos(entity.getPosX(), entity.getBoundingBox().minY - 1.0D, entity.getPosZ());
 		Block block = entity.world.getBlockState(underfoot).getBlock();
 
 		return block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock;

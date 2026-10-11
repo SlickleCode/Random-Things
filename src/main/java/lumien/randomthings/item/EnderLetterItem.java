@@ -52,7 +52,7 @@ public class EnderLetterItem extends Item {
         super.addInformation(stack, world, tooltip, flagIn);
 
         if (!stack.hasTag() || !stack.getTag().getBoolean("received")) {
-            tooltip.add(new TranslationTextComponent("item.randomthings.ender_letter.how_to_send").applyTextStyle(TextFormatting.GRAY));
+            tooltip.add(new TranslationTextComponent("item.randomthings.ender_letter.how_to_send").mergeStyle(TextFormatting.GRAY));
         }
 
         if (stack.hasTag()) {

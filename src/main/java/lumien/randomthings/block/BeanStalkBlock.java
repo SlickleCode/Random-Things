@@ -9,7 +9,6 @@ import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
@@ -19,6 +18,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * Grows upward one segment per scheduled tick (faster for the "magic" bean
@@ -55,7 +55,7 @@ public class BeanStalkBlock extends Block
 	@Override
 	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
 	{
-		if (entityIn.onGround || entityIn.collidedVertically)
+		if (entityIn.isOnGround() || entityIn.collidedVertically)
 		{
 			return;
 		}
@@ -64,12 +64,12 @@ public class BeanStalkBlock extends Block
 
 		if (entityIn.getMotion().y >= 0.1)
 		{
-			entityIn.setPosition(entityIn.posX, entityIn.posY + speed, entityIn.posZ);
+			entityIn.setPosition(entityIn.getPosX(), entityIn.getPosY() + speed, entityIn.getPosZ());
 		}
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (worldIn.isRemote)
 		{
@@ -120,12 +120,6 @@ public class BeanStalkBlock extends Block
 	public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos)
 	{
 		return !stateIn.isValidPosition(worldIn, currentPos) ? Blocks.AIR.getDefaultState() : super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 
 	@Override

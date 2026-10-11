@@ -91,7 +91,7 @@ public class FlooNetworkHandler extends WorldSavedData {
         }
 
         if (targetFirePlace.getLastKnownPosition().equals(originPos)) {
-            player.sendMessage(new TranslationTextComponent("floo.info.same"));
+            player.sendMessage(new TranslationTextComponent("floo.info.same"), net.minecraft.util.Util.DUMMY_UUID);
             return false;
         }
 
@@ -105,7 +105,7 @@ public class FlooNetworkHandler extends WorldSavedData {
             BlockPos teleportTarget = targetPos.up();
             player.connection.setPlayerLocation(teleportTarget.getX() + 0.5, teleportTarget.getY(), teleportTarget.getZ() + 0.5, tpFacing.getHorizontalAngle(), 0);
 
-            player.sendMessage(new TranslationTextComponent("floo.info.teleport", targetFirePlace.getName()));
+            player.sendMessage(new TranslationTextComponent("floo.info.teleport", targetFirePlace.getName()), net.minecraft.util.Util.DUMMY_UUID);
 
             if (originPos != null && originTE != null) {
                 spawnFlameBurst((ServerWorld) player.world, originPos, originTE.getChildren());

@@ -1,16 +1,17 @@
 package lumien.randomthings.worldgen;
 
-import com.mojang.datafixers.Dynamic;
 import lumien.randomthings.block.ModBlocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationSettings;
 import net.minecraft.world.gen.feature.Feature;
 import net.minecraft.world.gen.feature.NoFeatureConfig;
 
 import java.util.Random;
 import java.util.function.Function;
+import com.mojang.serialization.Codec;
+import net.minecraft.world.ISeedReader;
+import lumien.randomthings.util.BiomeUtil;
 
 /**
  * Naturally spawns a single {@code BEAN_SPROUT} at the resolved surface
@@ -23,12 +24,12 @@ import java.util.function.Function;
  * the final per-position validity check.
  */
 public class BeanSproutFeature extends Feature<NoFeatureConfig> {
-    public BeanSproutFeature(Function<Dynamic<?>, ? extends NoFeatureConfig> deserializer) {
-        super(deserializer);
+    public BeanSproutFeature(Codec<NoFeatureConfig> codec) {
+        super(codec);
     }
 
     @Override
-    public boolean place(IWorld worldIn, ChunkGenerator<? extends GenerationSettings> generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
         if (pos.getY() <= 0 || pos.getY() >= 255 || !worldIn.isAirBlock(pos)) {
             return false;
         }

@@ -1,11 +1,11 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -15,12 +15,14 @@ apply plugin: 'maven-publish'
 
 version = '5.0'
 group = 'lumien.randomthings'
-archivesBaseName = 'RandomThings-MC1.14.3'
+archivesBaseName = 'RandomThings-MC1.16.5'
+
+tasks.withType(JavaCompile) { options.compilerArgs << '-Xmaxerrs' << '10000' }
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings channel: 'snapshot', version: '20190819-1.14.3'
+    mappings channel: 'snapshot', version: '20210309-1.16.5'
     
     // accessTransformer = file('build/resources/main/META-INF/accesstransformer.cfg')
 
@@ -42,6 +44,11 @@ minecraft {
             property 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
             property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
             property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
+            // RT_AUTOTEST_SCENES=true: skip the tests/GUI pass and screenshot the render scenes instead (debug/RenderScenes, client/SceneShots)
+            property 'randomthings.autotest.scenes', System.getenv('RT_AUTOTEST_SCENES') ?: 'false'
+            property 'randomthings.autotest.scenes.only', System.getenv('RT_AUTOTEST_SCENES_ONLY') ?: ''
+            // RT_AUTOTEST_CLICKS=true: skip the tests/GUI pass and click through every GUI (client/GuiClickTest)
+            property 'randomthings.autotest.clicks', System.getenv('RT_AUTOTEST_CLICKS') ?: 'false'
 
             jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
 
@@ -91,8 +98,7 @@ minecraft {
 }
 
 dependencies {
-    // 28.2.26 also matches the Forge version the user's real test install (PrismLauncher) runs.
-    minecraft 'net.minecraftforge:forge:1.14.4-28.2.26'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

@@ -17,6 +17,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * Links to whoever placed it and pops a toast on their screen (title,
@@ -126,9 +127,9 @@ public class NotificationInterfaceTileEntity extends TileEntity implements IName
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		title = compound.getString("title");
 		description = compound.getString("description");

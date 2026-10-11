@@ -3,9 +3,6 @@ package lumien.randomthings.client.util;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import java.util.Random;
-import java.util.function.Function;
-
-import javax.vecmath.Vector3f;
 
 import org.lwjgl.opengl.GL11;
 
@@ -15,131 +12,70 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.util.math.vector.Matrix4f;
 
 public class RenderUtils
 {
-	public static void drawFunctionLinePart(Function<Float, Vector3f> function, float lineLength, float progress)
+	public static void drawCube(MatrixStack matrixStack, float posX, float posY, float posZ, float width, float length, float height, int red, int green, int blue, int alpha)
 	{
-		// Setup Render
-		GlStateManager.enableDepthTest();
-		GlStateManager.disableTexture();
-		GlStateManager.color4f(1, 1, 1, 1);
-		GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-		GlStateManager.lineWidth(2f);
-		GlStateManager.alphaFunc(GL11.GL_ALWAYS, 0);
-
-		// Numbers
-		float neededProgress = progress + lineLength;
-		float mappedProgress = progress * neededProgress;
-
-		float progressStart = Math.max(0, mappedProgress - lineLength);
-		float progressEnd = Math.min(mappedProgress, 1);
-
-		float range = progressEnd - progressStart;
-
-		int lineSegments = 100;
-
-		float step = range / lineSegments;
-
-		// Render
-		GlStateManager.lineWidth(2F);
-		GlStateManager.begin(GL11.GL_LINE_STRIP);
-
-		if (range != 0)
-		{
-			for (int seg = 0; seg < lineSegments; seg++)
-			{
-				float p = progressStart + seg * step;
-				Vector3f vec = function.apply(p);
-
-				float alpha = seg > lineSegments - 10 ? (10 - (seg - (lineSegments - 10))) / 10f : 1f;
-				alpha = 0.5F;
-
-				GlStateManager.color4f(1, 0, 0, alpha);
-				GlStateManager.vertex3f(vec.x, vec.y, vec.z);
-			}
-		}
-
-		Vector3f last = function.apply(progressEnd);
-
-		GlStateManager.vertex3f(last.x, last.y, last.z);
-
-		GlStateManager.end();
-
-		GlStateManager.enableTexture();
-		RenderUtils.enableDefaultBlending();
-	}
-
-	public static Function<Float, Vector3f> getLineFunction(Vector3f from, Vector3f to)
-	{
-		return (progress) -> {
-			Vector3f between = new Vector3f();
-			between.interpolate(from, to, progress);
-			return between;
-		};
-	}
-
-	public static void drawCube(float posX, float posY, float posZ, float width, float length, float height, int red, int green, int blue, int alpha)
-	{
-		GlStateManager.disableLighting();
-
 		Tessellator t = Tessellator.getInstance();
 		BufferBuilder wr = t.getBuffer();
 
-		GlStateManager.disableTexture();
+		RenderSystem.disableTexture();
 
-		GlStateManager.translated(posX, posY, posZ);
+		matrixStack.push();
+		matrixStack.translate(posX, posY, posZ);
+		Matrix4f m = matrixStack.getLast().getMatrix();
 
 		wr.begin(7, DefaultVertexFormats.POSITION_COLOR);
 
-		wr.pos(0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(width, height, 0F).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P2
+		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P3
+		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
-		wr.pos(width, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(width, height, length).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(width, 0F, length).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P2
+		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P3
+		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
-		wr.pos(width, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(0F, height, length).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(width, height, length).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(width, height, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P2
+		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P3
+		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
 		t.draw();
 
-		GlStateManager.translated(-posX, -posY, -posZ);
-		GlStateManager.enableTexture();
-
-		GlStateManager.enableLighting();
+		matrixStack.pop();
+		RenderSystem.enableTexture();
 	}
 
-	public static void drawCube(float posX, float posY, float posZ, float size, int red, int green, int blue, int alpha)
+	public static void drawCube(MatrixStack matrixStack, float posX, float posY, float posZ, float size, int red, int green, int blue, int alpha)
 	{
-		drawCube(posX, posY, posZ, size, size, size, red, green, blue, alpha);
+		drawCube(matrixStack, posX, posY, posZ, size, size, size, red, green, blue, alpha);
 	}
 
 	public static void drawCylinder(float x1, float y1, float z1, float x2, float y2, float z2)
 	{
-		GlStateManager.disableLighting();
-		GlStateManager.disableTexture();
+		RenderSystem.disableTexture();
 
 		Tessellator t = Tessellator.getInstance();
 		BufferBuilder wr = t.getBuffer();
@@ -172,13 +108,12 @@ public class RenderUtils
 
 
 
-		GlStateManager.enableTexture();
-		GlStateManager.enableLighting();
+		RenderSystem.enableTexture();
 	}
 
 	public static void enableDefaultBlending()
 	{
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		RenderSystem.enableBlend();
+		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 	}
 }

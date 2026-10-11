@@ -72,6 +72,11 @@ public class MagicHoodItem extends ArmorItem {
         }
 
         @Override
+        public float getKnockbackResistance() {
+            return ArmorMaterial.CHAIN.getKnockbackResistance();
+        }
+
+        @Override
         public String getName() {
             return ArmorMaterial.CHAIN.getName();
         }

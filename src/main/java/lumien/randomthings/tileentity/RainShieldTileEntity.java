@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
+import net.minecraft.block.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityRainShield} - a plain marker with
@@ -24,7 +25,15 @@ import java.util.WeakHashMap;
  * strictly more correct than what it replaces.
  */
 public class RainShieldTileEntity extends TileEntity {
-    public static final Set<RainShieldTileEntity> shields = Collections.newSetFromMap(new WeakHashMap<>());
+    /** Read from the render thread (rain drawing) and the server thread, so every access goes through the lock. */
+    public static final Set<RainShieldTileEntity> shields = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /** A copy that is safe to iterate while shields are added or removed on another thread. */
+    public static java.util.List<RainShieldTileEntity> snapshot() {
+        synchronized (shields) {
+            return shields.isEmpty() ? Collections.<RainShieldTileEntity>emptyList() : new java.util.ArrayList<>(shields);
+        }
+    }
 
     private boolean active = true;
 
@@ -75,8 +84,8 @@ public class RainShieldTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
         this.active = !compound.contains("active") || compound.getBoolean("active");
     }
 

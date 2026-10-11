@@ -10,7 +10,6 @@ import lumien.randomthings.debug.RTDebug;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.WorldType;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 
@@ -32,7 +31,7 @@ public final class RTTestRunner
 	private static int testIndex;
 	private static int stepIndex;
 	private static int wait;
-	private static TestCtx ctx;
+	static TestCtx ctx;
 	private static ServerPlayerEntity player;
 
 	private static int passed;
@@ -53,7 +52,7 @@ public final class RTTestRunner
 
 		ServerWorld world = starter.getServerWorld();
 
-		if (world.getWorldType() != WorldType.FLAT)
+		if (!(world.getChunkProvider().getChunkGenerator() instanceof net.minecraft.world.gen.FlatChunkGenerator))
 		{
 			return "refusing to run: the test area is wiped between tests, so use a flat world (e.g. the RTAutoTest world)";
 		}
@@ -209,7 +208,7 @@ public final class RTTestRunner
 
 		if (player != null)
 		{
-			player.sendMessage(new StringTextComponent("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"));
+			player.sendMessage(new StringTextComponent("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"), net.minecraft.util.Util.DUMMY_UUID);
 		}
 
 		finished = true;

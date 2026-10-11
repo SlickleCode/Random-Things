@@ -10,6 +10,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * NotificationInterfaceScreen
@@ -36,12 +39,12 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	{
 		super.init();
 
-		this.titleField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 18, 130, 15, "");
+		this.titleField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 18, 130, 15, new StringTextComponent(""));
 		this.titleField.setMaxStringLength(64);
 		this.titleField.setText(this.container.getTitle());
 		this.addButton(this.titleField);
 
-		this.descriptionField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 40, 130, 15, "");
+		this.descriptionField = new TextFieldWidget(this.font, this.guiLeft + 34, this.guiTop + 40, 130, 15, new StringTextComponent(""));
 		this.descriptionField.setMaxStringLength(256);
 		this.descriptionField.setText(this.container.getDescription());
 		this.addButton(this.descriptionField);
@@ -93,10 +96,10 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	}
 
 	@Override
-	public void removed()
+	public void onClose()
 	{
 		submit();
-		super.removed();
+		super.onClose();
 	}
 
 	private void submit()
@@ -112,32 +115,30 @@ public class NotificationInterfaceScreen extends ContainerScreen<NotificationInt
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
+	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
 	{
-		RenderHelper.disableStandardItemLighting();
 
-		this.font.drawString(this.title.getString(), 8, 6, 4210752);
+		this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
 		// label for the icon slot (x8,y31): the item shown in the notification toast
-		this.font.drawString(I18n.format("gui.randomthings.notification_interface.icon"), 8, 21, 4210752);
+		this.font.drawString(matrixStack, I18n.format("gui.randomthings.notification_interface.icon"), 8, 21, 4210752);
 
-		RenderHelper.enableGUIStandardItemLighting();
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
+	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
 		int i = (this.width - this.xSize) / 2;
 		int j = (this.height - this.ySize) / 2;
-		this.blit(i, j, 0, 0, this.xSize, this.ySize);
+		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
 	}
 
 	@Override
-	public void render(int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground();
-		super.render(p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredToolTip(p_render_1_, p_render_2_);
+		this.renderBackground(matrixStack);
+		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
+		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

@@ -13,6 +13,7 @@ import net.minecraft.util.IItemProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Extends vanilla's CropsBlock, which already implements the age/growth/
@@ -35,7 +36,7 @@ public class BeanSproutBlock extends CropsBlock
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (this.isMaxAge(state))
 		{
@@ -51,7 +52,7 @@ public class BeanSproutBlock extends CropsBlock
 				}
 			}
 
-			return true;
+			return ActionResultType.SUCCESS;
 		}
 
 		return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);

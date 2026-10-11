@@ -30,7 +30,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.items.IItemHandler;
@@ -102,7 +102,7 @@ final class UtilityBehaviorTests
 
 			BlockPos pos = c.at(0, 1, 0);
 			ModBlocks.ENDER_MAILBOX.onBlockActivated(c.world.getBlockState(pos), c.world, pos, c.player, Hand.MAIN_HAND,
-					new BlockRayTraceResult(new Vec3d(pos), Direction.UP, pos, false));
+					new BlockRayTraceResult(Vector3d.copy(pos), Direction.UP, pos, false));
 			c.player.setSneaking(false);
 
 			IItemHandler inbox = EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.getId());
@@ -131,7 +131,7 @@ final class UtilityBehaviorTests
 
 			BlockPos pos = c.at(0, 1, 0);
 			ModBlocks.ENDER_MAILBOX.onBlockActivated(c.world.getBlockState(pos), c.world, pos, c.player, Hand.MAIN_HAND,
-					new BlockRayTraceResult(new Vec3d(pos), Direction.UP, pos, false));
+					new BlockRayTraceResult(Vector3d.copy(pos), Direction.UP, pos, false));
 			c.player.setSneaking(false);
 
 			c.check(!c.player.getHeldItemMainhand().isEmpty(), "the letter must stay in the hand when the receiver is unknown");
@@ -139,13 +139,13 @@ final class UtilityBehaviorTests
 		}));
 
 		// ---- Portkey --------------------------------------------------------------------------
-		Vec3d[] portkeyHome = new Vec3d[1];
+		Vector3d[] portkeyHome = new Vector3d[1];
 		tests.add(RTTest.named("behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper").run(c -> {
 			c.floor();
 			ItemStack key = new ItemStack(ModItems.PORTKEY);
 			c.player.setHeldItem(Hand.MAIN_HAND, key);
 			BlockPos target = c.at(8, 0, 0);
-			ModItems.PORTKEY.onItemUse(new ItemUseContext(c.player, Hand.MAIN_HAND, new BlockRayTraceResult(new Vec3d(target), Direction.UP, target, false)));
+			ModItems.PORTKEY.onItemUse(new ItemUseContext(c.player, Hand.MAIN_HAND, new BlockRayTraceResult(Vector3d.copy(target), Direction.UP, target, false)));
 			CompoundNBT tag = key.getTag();
 			c.check(tag != null && tag.getBoolean("hasTarget"), "right-click must bind a target");
 			c.eq(target.getX(), tag.getInt("targetX"), "bound x");
@@ -158,12 +158,12 @@ final class UtilityBehaviorTests
 			c.check(drop.getItem().getTag().getInt("dropCounter") < 100, "not primed yet after about 60 ticks");
 			c.player.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			MinecraftForge.EVENT_BUS.post(new EntityItemPickupEvent(c.player, drop));
-			c.check(c.player.posX < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.posX + ")");
+			c.check(c.player.getPosX() < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.getPosX() + ")");
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
 			c.check(drop.getItem().getTag().getInt("dropCounter") > 100, "primed after more than 100 ticks");
 
-			if (c.player.connection == null)
+			if (c.player.connection == null || c.player.connection.getClass() != ServerPlayNetHandler.class)
 			{
 				// The teleport goes through the player's network handler; a fake player has none unless we give it a detached one.
 				new ServerPlayNetHandler(c.world.getServer(), new NetworkManager(PacketDirection.SERVERBOUND), c.player);
@@ -171,9 +171,9 @@ final class UtilityBehaviorTests
 
 			c.player.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			MinecraftForge.EVENT_BUS.post(new EntityItemPickupEvent(c.player, drop));
-			c.check(Math.abs(c.player.posX - (c.origin.getX() + 8)) <= 3.0, "picker-upper must land near the bound target (x=" + c.player.posX + ")");
-			boolean nearSurface = Math.abs(c.player.posY - (c.origin.getY() + 1)) <= 1.5;
-			double landedY = c.player.posY;
+			c.check(Math.abs(c.player.getPosX() - (c.origin.getX() + 8)) <= 3.0, "picker-upper must land near the bound target (x=" + c.player.getPosX() + ")");
+			boolean nearSurface = Math.abs(c.player.getPosY() - (c.origin.getY() + 1)) <= 1.5;
+			double landedY = c.player.getPosY();
 			c.player.setPosition(portkeyHome[0].x, portkeyHome[0].y, portkeyHome[0].z);
 			c.check(nearSurface, "and on the surface (y=" + landedY + ")");
 		}));

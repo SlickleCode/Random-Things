@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
+import net.minecraft.block.BlockState;
 
 /**
  * A 9-slot inventory of {@link lumien.randomthings.item.SoundPatternItem}s;
@@ -93,7 +94,7 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
      */
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     /**
@@ -127,8 +128,8 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         itemHandler.deserializeNBT(compound.getCompound("inventory"));
         recomputeMutedSounds();

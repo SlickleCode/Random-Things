@@ -45,9 +45,9 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		this.mode = MODE.values()[compound.getInt("mode")];
 	}
 

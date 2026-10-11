@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IEnviromentBlockReader;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
@@ -42,14 +42,14 @@ public class BiomeColorUtil {
      * {@code biome} directly regardless of position (used for a stored/target
      * biome that isn't actually under the caller, e.g. a Biome Crystal).
      */
-    public static int getBiomeColor(IEnviromentBlockReader worldIn, final Biome biome, final BlockPos pos) {
+    public static int getBiomeColor(IBlockDisplayReader worldIn, final Biome biome, final BlockPos pos) {
         if (worldIn != null) {
             int i = 0;
             int j = 0;
             int k = 0;
 
             for (BlockPos p : BlockPos.getAllInBoxMutable(pos.add(-1, 0, -1), pos.add(1, 0, 1))) {
-                Biome biomeA = worldIn.getBiome(p);
+                Biome biomeA = getBiomeAt(worldIn, p);
                 int l = singleBiomeColor(biomeA, p);
 
                 i += (l & 16711680) >> 16;
@@ -63,16 +63,25 @@ public class BiomeColorUtil {
         }
     }
 
+    /** 1.16: {@code IBlockDisplayReader} has no biome lookup, so go through the world when the reader is one. */
+    private static Biome getBiomeAt(IBlockDisplayReader reader, BlockPos pos) {
+        if (reader instanceof net.minecraft.world.IWorldReader) {
+            return ((net.minecraft.world.IWorldReader) reader).getBiome(pos);
+        }
+
+        return net.minecraft.client.Minecraft.getInstance().world.getBiome(pos);
+    }
+
     private static int singleBiomeColor(final Biome biome, final BlockPos pos) {
         try {
             return biomeColorCache.get(biome, new Callable<Integer>() {
                 @Override
                 public Integer call() throws Exception {
-                    Set<Type> types = BiomeDictionary.getTypes(biome);
+                    Set<Type> types = BiomeUtil.types(biome);
 
-                    Color foliageColor = new Color(biome.getFoliageColor(pos));
+                    Color foliageColor = new Color(biome.getFoliageColor());
                     Color waterColorMultiplier = new Color(biome.getWaterColor());
-                    Color grassColor = new Color(biome.getGrassColor(pos));
+                    Color grassColor = new Color(biome.getGrassColor(pos.getX(), pos.getZ()));
 
                     Color colorResult = blend(blend(foliageColor, waterColorMultiplier, 0.5f), grassColor, 0.5f);
 

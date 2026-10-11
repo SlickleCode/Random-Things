@@ -5,7 +5,6 @@ import net.minecraft.entity.AgeableEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.goal.FollowParentGoal;
 import net.minecraft.entity.ai.goal.LookAtGoal;
 import net.minecraft.entity.ai.goal.LookRandomlyGoal;
@@ -32,6 +31,10 @@ import net.minecraftforge.common.Tags;
 
 import java.util.List;
 import java.util.Set;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * A cosmetically-reskinned chicken (see {@link
@@ -81,11 +84,8 @@ public class GoldenChickenEntity extends AnimalEntity {
         this.goalSelector.addGoal(7, new LookRandomlyGoal(this));
     }
 
-    @Override
-    protected void registerAttributes() {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(4.0D);
-        this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.25D);
+    public static AttributeModifierMap.MutableAttribute registerAttributes() {
+        return MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 4.0D).createMutableAttribute(Attributes.MOVEMENT_SPEED, 0.25D);
     }
 
     @Override
@@ -93,16 +93,16 @@ public class GoldenChickenEntity extends AnimalEntity {
         super.livingTick();
         this.oFlap = this.wingRotation;
         this.oFlapSpeed = this.destPos;
-        this.destPos = (float) ((double) this.destPos + (double) (this.onGround ? -1 : 4) * 0.3D);
+        this.destPos = (float) ((double) this.destPos + (double) (this.isOnGround() ? -1 : 4) * 0.3D);
         this.destPos = MathHelper.clamp(this.destPos, 0.0F, 1.0F);
 
-        if (!this.onGround && this.wingRotDelta < 1.0F) {
+        if (!this.isOnGround() && this.wingRotDelta < 1.0F) {
             this.wingRotDelta = 1.0F;
         }
 
         this.wingRotDelta = (float) ((double) this.wingRotDelta * 0.9D);
 
-        if (!this.onGround && this.getMotion().y < 0.0D) {
+        if (!this.isOnGround() && this.getMotion().y < 0.0D) {
             this.setMotion(this.getMotion().mul(1.0, 0.6, 1.0));
         }
 
@@ -131,7 +131,8 @@ public class GoldenChickenEntity extends AnimalEntity {
     }
 
     @Override
-    public void fall(float distance, float damageMultiplier) {
+    public boolean onLivingFall(float distance, float damageMultiplier) {
+        return false;
     }
 
     @Override
@@ -160,7 +161,7 @@ public class GoldenChickenEntity extends AnimalEntity {
     }
 
     @Override
-    public GoldenChickenEntity createChild(AgeableEntity ageable) {
+    public GoldenChickenEntity createChild(ServerWorld serverWorld, AgeableEntity ageable) {
         return new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.world);
     }
 
@@ -198,7 +199,7 @@ public class GoldenChickenEntity extends AnimalEntity {
         super.updatePassenger(passenger);
         float f = MathHelper.sin(this.renderYawOffset * 0.017453292F);
         float f1 = MathHelper.cos(this.renderYawOffset * 0.017453292F);
-        passenger.setPosition(this.posX + (double) (0.1F * f), this.posY + (double) (this.getHeight() * 0.5F) + passenger.getYOffset(), this.posZ - (double) (0.1F * f1));
+        passenger.setPosition(this.getPosX() + (double) (0.1F * f), this.getPosY() + (double) (this.getHeight() * 0.5F) + passenger.getYOffset(), this.getPosZ() - (double) (0.1F * f1));
 
         if (passenger instanceof LivingEntity) {
             ((LivingEntity) passenger).renderYawOffset = this.renderYawOffset;

@@ -23,6 +23,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.PlantType;
 import net.minecraftforge.common.ToolType;
+import net.minecraft.world.server.ServerWorld;
 
 
 public class FertilizedDirtBlock extends Block
@@ -40,7 +41,7 @@ public class FertilizedDirtBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
 	{
 		super.tick(state, worldIn, pos, random);
 
@@ -101,22 +102,33 @@ public class FertilizedDirtBlock extends Block
 			return true;
 		}
 
-		switch (plantType)
+		if (plantType == PlantType.DESERT)
 		{
-			case Desert:
-				return !tilled;
-			case Nether:
-				return false;
-			case Crop:
-				return tilled;
-			case Cave:
-				return !tilled;
-			case Plains:
-				return !tilled || tilled && world.getBlockState(pos.up()).getBlock() == Blocks.BEETROOTS;
-			case Water:
-				return false;
-			case Beach:
-				return !tilled;
+			return !tilled;
+		}
+		else if (plantType == PlantType.NETHER)
+		{
+			return false;
+		}
+		else if (plantType == PlantType.CROP)
+		{
+			return tilled;
+		}
+		else if (plantType == PlantType.CAVE)
+		{
+			return !tilled;
+		}
+		else if (plantType == PlantType.PLAINS)
+		{
+			return !tilled || tilled && world.getBlockState(pos.up()).getBlock() == Blocks.BEETROOTS;
+		}
+		else if (plantType == PlantType.WATER)
+		{
+			return false;
+		}
+		else if (plantType == PlantType.BEACH)
+		{
+			return !tilled;
 		}
 
 		return false;

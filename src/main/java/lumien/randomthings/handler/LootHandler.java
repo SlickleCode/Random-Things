@@ -10,17 +10,21 @@ import lumien.randomthings.item.ModItems;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.loot.ConstantRange;
-import net.minecraft.world.storage.loot.EmptyLootEntry;
-import net.minecraft.world.storage.loot.ItemLootEntry;
-import net.minecraft.world.storage.loot.LootContext;
-import net.minecraft.world.storage.loot.LootFunction;
-import net.minecraft.world.storage.loot.LootPool;
-import net.minecraft.world.storage.loot.LootTable;
-import net.minecraft.world.storage.loot.conditions.ILootCondition;
-import net.minecraft.world.storage.loot.conditions.RandomChance;
+import net.minecraft.loot.ConstantRange;
+import net.minecraft.loot.EmptyLootEntry;
+import net.minecraft.loot.ItemLootEntry;
+import net.minecraft.loot.LootContext;
+import net.minecraft.loot.LootFunction;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.LootTable;
+import net.minecraft.loot.conditions.ILootCondition;
+import net.minecraft.loot.conditions.RandomChance;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.loot.LootFunctionType;
+import net.minecraft.util.registry.Registry;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonDeserializationContext;
 
 /**
  * Injects this mod's items into vanilla chest loot, port of 1.12.2's {@code LootHandler}.
@@ -84,12 +88,35 @@ public class LootHandler
 		table.addPool(pool);
 	}
 
+	/** 1.16 loot functions carry a registered type; this one is only ever added in code, so it has no JSON form. */
+	public static final LootFunctionType RANDOM_BIOME_TYPE = new LootFunctionType(new RandomBiomeFunction.Serializer());
+
+	public static void registerFunctionTypes()
+	{
+		Registry.register(Registry.LOOT_FUNCTION_TYPE, new ResourceLocation("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
+	}
+
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */
 	private static class RandomBiomeFunction extends LootFunction
 	{
 		protected RandomBiomeFunction()
 		{
 			super(new ILootCondition[0]);
+		}
+
+		@Override
+		public LootFunctionType getFunctionType()
+		{
+			return RANDOM_BIOME_TYPE;
+		}
+
+		static class Serializer extends LootFunction.Serializer<RandomBiomeFunction>
+		{
+			@Override
+			public RandomBiomeFunction deserialize(JsonObject object, JsonDeserializationContext context, ILootCondition[] conditions)
+			{
+				return new RandomBiomeFunction();
+			}
 		}
 
 		@Override

@@ -44,7 +44,7 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.GenerationStage;
@@ -86,6 +86,7 @@ public class RandomThings {
         INSTANCE = this;
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupCommon);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerEntityAttributes);
         // All client-only wiring lives in ClientSetup; this class must not reference client classes (dedicated server).
         net.minecraftforge.fml.DistExecutor.runWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT, () -> lumien.randomthings.client.ClientSetup::init);
 
@@ -93,14 +94,15 @@ public class RandomThings {
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        // Must happen here, not FMLCommonSetupEvent - see ModDimensions#registerDimension's javadoc
-        // for why mod-loading time is too early for this specific registration.
-        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.ModDimensions::registerDimension);
         MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
+        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.worldgen.ModFeatures::onBiomeLoading);
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install());
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> {
+            lumien.randomthings.handler.ModDimensions.addToServer(event.getServer());
+            lumien.randomthings.worldgen.PeaceCandleChurchPool.install(event.getServer());
+        });
 
         // Developer-only tooling (commands, in-game tests, audit, GUI screenshots): nothing of it is
         // registered or even loaded unless -Drandomthings.debug=true, so normal play pays nothing.
@@ -247,7 +249,7 @@ public class RandomThings {
         MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
             LivingEntity entity = event.getEntityLiving();
 
-            if (!entity.onGround) {
+            if (!entity.isOnGround()) {
                 return;
             }
 
@@ -322,7 +324,7 @@ public class RandomThings {
 
             ServerPlayerEntity player = (ServerPlayerEntity) event.getEntityLiving();
 
-            if (player.dimension == lumien.randomthings.handler.ModDimensions.SPECTRE_TYPE) {
+            if (lumien.randomthings.handler.ModDimensions.isSpectre(player.world)) {
                 lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.getServer());
 
                 if (spectreHandler != null) {
@@ -386,7 +388,7 @@ public class RandomThings {
 
             PlayerEntity player = event.getPlayer();
 
-            if (!(player instanceof ServerPlayerEntity) || player.world.getDimension().getType().getId() != compound.getInt("dimension")) {
+            if (!(player instanceof ServerPlayerEntity) || !player.world.getDimensionKey().getLocation().toString().equals(compound.getString("dimension"))) {
                 return;
             }
 
@@ -402,7 +404,7 @@ public class RandomThings {
                         BlockPos evPos = new BlockPos(targetX + modX, y, targetZ + modZ);
                         BlockState belowState = ei.world.getBlockState(evPos);
 
-                        if (Block.hasSolidSide(belowState, ei.world, evPos, net.minecraft.util.Direction.UP) && ei.world.isAirBlock(evPos.up()) && ei.world.isAirBlock(evPos.up().up())) {
+                        if (Block.hasEnoughSolidSide(ei.world, evPos, net.minecraft.util.Direction.UP) && ei.world.isAirBlock(evPos.up()) && ei.world.isAirBlock(evPos.up().up())) {
                             possiblePositions.add(evPos);
                         }
                     }
@@ -458,7 +460,7 @@ public class RandomThings {
                         newPlayer.inventory.setInventorySlotContents(i, stack.copy());
                     } else {
                         LOGGER.info("Couldn't keep Anchored Item in the Inventory");
-                        net.minecraft.inventory.InventoryHelper.spawnItemStack(oldPlayer.world, oldPlayer.posX, oldPlayer.posY, oldPlayer.posZ, stack);
+                        net.minecraft.inventory.InventoryHelper.spawnItemStack(oldPlayer.world, oldPlayer.getPosX(), oldPlayer.getPosY(), oldPlayer.getPosZ(), stack);
                     }
                 }
             }
@@ -495,14 +497,13 @@ public class RandomThings {
             World spiritWorld = event.getEntityLiving().world;
 
             if (spiritWorld.canBlockSeeSky(event.getEntityLiving().getPosition()) && !spiritWorld.isDaytime()) {
-                net.minecraft.world.dimension.Dimension dimension = spiritWorld.getDimension();
-                float moonFactor = net.minecraft.world.dimension.Dimension.MOON_PHASE_FACTORS[dimension.getMoonPhase(spiritWorld.getDayTime())];
+                float moonFactor = net.minecraft.world.DimensionType.MOON_PHASE_FACTORS[spiritWorld.getDimensionType().getMoonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
             }
 
             if (Math.random() < chance) {
-                spiritWorld.addEntity(new lumien.randomthings.entity.SpiritEntity(spiritWorld, event.getEntity().posX, event.getEntity().posY, event.getEntity().posZ));
+                spiritWorld.addEntity(new lumien.randomthings.entity.SpiritEntity(spiritWorld, event.getEntity().getPosX(), event.getEntity().getPosY(), event.getEntity().getPosZ()));
             }
         });
 
@@ -662,45 +663,22 @@ public class RandomThings {
         // fired in this Forge build, so a global loot modifier replaces 1.12.2's ASM item catcher).
     }
 
+    /** 1.16: living entities need their attribute map registered (it was set in {@code registerAttributes()} per instance before). */
+    private void registerEntityAttributes(final net.minecraftforge.event.entity.EntityAttributeCreationEvent event) {
+        event.put(ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.entity.GoldenChickenEntity.registerAttributes().create());
+        event.put(ModEntityTypes.SPIRIT, lumien.randomthings.entity.SpiritEntity.registerAttributes().create());
+    }
+
     private void setupCommon(final FMLCommonSetupEvent event) {
         AsmHandler.modBlockLight(0F, 1);
         RTPacketHandler.register();
+        event.enqueueWork(lumien.randomthings.handler.ModDimensions::registerBuiltin);
+        event.enqueueWork(lumien.randomthings.handler.LootHandler::registerFunctionTypes);
 
         registerImbuingRecipes();
-        registerWorldgenFeatures();
+        event.enqueueWork(lumien.randomthings.worldgen.ModFeatures::registerConfiguredFeatures);
     }
 
-    /**
-     * Injects this port's natural-surface-plant features into every already-
-     * registered biome. Forge 1.14.4/28.2.26 has no {@code BiomeLoadingEvent}
-     * (confirmed via a jar-content check - that's a later-Forge addition),
-     * so the only mechanism available is mutating live {@code Biome}
-     * instances directly, matching how this project's own (since-deleted)
-     * Blood Rose feature already did this. Each feature's own {@code place}
-     * does the actual biome/temperature gating (matching 1.12.2's {@code
-     * WorldGenPlants} exactly, which checked conditions per-attempt rather
-     * than filtering which biomes got the generator at all) rather than
-     * filtering here, so registration stays the same simple unconditional
-     * loop for all three, and behaves identically to the original per-biome.
-     * <p>
-     * Ancient Furnace is registered the same unconditional way - its "cold
-     * biomes only" restriction (see the wiki) is a per-attempt {@code
-     * biome.getTemperature(pos)} check inside {@link
-     * lumien.randomthings.worldgen.AncientFurnaceFeature#place}, the same
-     * division of labor a prior version of this file's now-removed Pitcher
-     * Plant feature used for its own (opposite) "warm biomes only"
-     * restriction. The
-     * {@code ChanceConfig} here is a hand-picked "rare" value - the wiki
-     * gives no exact rarity to match.
-     */
-    private void registerWorldgenFeatures() {
-        ForgeRegistries.BIOMES.forEach(biome -> {
-            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.BEAN_SPROUT, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(2)));
-            biome.addFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Biome.createDecoratedFeature(ModFeatures.LOTUS, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(10)));
-            biome.addFeature(GenerationStage.Decoration.LOCAL_MODIFICATIONS, Biome.createDecoratedFeature(ModFeatures.ANCIENT_FURNACE, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(400)));
-            biome.addFeature(GenerationStage.Decoration.UNDERGROUND_DECORATION, Biome.createDecoratedFeature(ModFeatures.GLOWING_MUSHROOM, IFeatureConfig.NO_FEATURE_CONFIG, Placement.CHANCE_HEIGHTMAP, new ChanceConfig(4)));
-        });
-    }
 
     /**
      * Direct port of 1.12.2's {@code ModRecipes.register}'s Imbuing Station
@@ -837,11 +815,6 @@ public class RandomThings {
         @SubscribeEvent
         public static void onEntityTypesRegistry(final RegistryEvent.Register<EntityType<?>> entityTypeRegistryEvent) {
             ModEntityTypes.registerEntityTypes(entityTypeRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onModDimensionsRegistry(final RegistryEvent.Register<net.minecraftforge.common.ModDimension> modDimensionRegistryEvent) {
-            lumien.randomthings.handler.ModDimensions.registerModDimensions(modDimensionRegistryEvent);
         }
 
         @SubscribeEvent

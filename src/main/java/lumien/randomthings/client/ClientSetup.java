@@ -47,7 +47,7 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.GenerationStage;
@@ -108,7 +108,7 @@ public class ClientSetup {
             ItemStack stack = event.getItemStack();
 
             if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
-                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").applyTextStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
+                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").mergeStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
             }
         });
 
@@ -155,35 +155,50 @@ public class ClientSetup {
     }
 
     private static void setupClient(final FMLClientSetupEvent event) {
+        RenderLayerSetup.apply();
+
+        event.enqueueWork(() -> {
+            // the Spectre dimension type names this id as its sky/fog "effects"
+            it.unimi.dsi.fastutil.objects.Object2ObjectMap<ResourceLocation, net.minecraft.client.world.DimensionRenderInfo> renderInfos = net.minecraftforge.fml.common.ObfuscationReflectionHelper.getPrivateValue(net.minecraft.client.world.DimensionRenderInfo.class, null, "field_239208_a_");
+            renderInfos.put(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
+        });
+
+        event.enqueueWork(() -> {
+            for (net.minecraft.item.Item item : net.minecraftforge.registries.ForgeRegistries.ITEMS.getValues()) {
+                if (item instanceof lumien.randomthings.item.IClientItemProperties) {
+                    ((lumien.randomthings.item.IClientItemProperties) item).registerClientProperties();
+                }
+            }
+        });
         ModScreens.register();
 
-        ClientRegistry.bindTileEntitySpecialRenderer(BiomeRadarTileEntity.class, new BiomeRadarTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(RuneBaseTileEntity.class, new RuneBaseTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.FluidDisplayTileEntity.class, new lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(lumien.randomthings.tileentity.DiaphanousBlockTileEntity.class, new lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer());
+        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.BIOME_RADAR, BiomeRadarTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.RUNE_BASE, RuneBaseTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.FLUID_DISPLAY, lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.DIAPHANOUS_BLOCK, lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer::new);
 
-        RenderingRegistry.registerEntityRenderingHandler(FlooFireplaceEntity.class, FlooFireplaceEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(EclipsedClockEntity.class, EclipsedClockEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(ThrownWeatherEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(WeatherCloudEntity.class, WeatherCloudEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.FLOO_FIREPLACE, FlooFireplaceEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.ECLIPSED_CLOCK, EclipsedClockEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.THROWN_WEATHER_EGG, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.WEATHER_CLOUD, WeatherCloudEntityRenderer::new);
         // Custom renderer draws the bottle icon on all 6 faces of the target
         // block - per user request, 2026-09-27, replacing a brief SpriteRenderer
         // first pass (which can only billboard at one fixed spot) - see
         // TimeAcceleratorEntityRenderer's own javadoc.
-        RenderingRegistry.registerEntityRenderingHandler(TimeAcceleratorEntity.class, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ThrownGoldenEggEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.GoldenChickenEntity.class, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ArtificialEndPortalEntity.class, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.TIME_ACCELERATOR, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.THROWN_GOLDEN_EGG, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.ARTIFICIAL_END_PORTAL, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
         // Item-icon billboard via vanilla's SpriteRenderer, same mechanism already
         // used for ThrownGoldenEggEntity/ThrownWeatherEggEntity above - per user
         // request, 2026-09-27, replacing the earlier no-visible-model design (see
         // SpectreIlluminatorEntity's own javadoc).
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpectreIlluminatorEntity.class, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.SpiritEntity.class, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.SPECTRE_ILLUMINATOR, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
+        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.SPIRIT, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
 
         MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
-            DiviningRodRenderer.get().render();
-            RedstoneObserverLineRenderer.render();
+            DiviningRodRenderer.get().render(rwl.getMatrixStack());
+            RedstoneObserverLineRenderer.render(rwl.getMatrixStack());
         });
 
         MinecraftForge.EVENT_BUS.addListener(ClientSetup::onPlaySound);
@@ -199,7 +214,7 @@ public class ClientSetup {
      * ItemStackTileEntityRenderer} without recursing back into itself).
      */
     private static void registerModels(final net.minecraftforge.client.event.ModelRegistryEvent event) {
-        net.minecraftforge.client.model.ModelLoader.addSpecialModel(new net.minecraft.client.renderer.model.ModelResourceLocation(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "portkey_base"), "inventory"));
+        net.minecraftforge.client.model.ModelLoader.addSpecialModel(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
     }
 
     /**

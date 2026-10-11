@@ -11,6 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.minecraft.block.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityFlooBrick}. One "master" brick per
@@ -52,7 +53,7 @@ public class FlooBrickTileEntity extends TileEntity {
         compound.putBoolean("amMaster", amMaster);
 
         if (amMaster) {
-            compound.put("uuid", NBTUtil.writeUniqueId(uuid));
+            compound.put("uuid", NBTUtil.func_240626_a_(uuid));
             compound.putInt("facing", facing.ordinal());
 
             ListNBT childrenTagList = new ListNBT();
@@ -63,15 +64,15 @@ public class FlooBrickTileEntity extends TileEntity {
 
             compound.put("children", childrenTagList);
         } else if (masterUUID != null) {
-            compound.put("masterUUID", NBTUtil.writeUniqueId(masterUUID));
+            compound.put("masterUUID", NBTUtil.func_240626_a_(masterUUID));
         }
 
         return compound;
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         this.amMaster = compound.getBoolean("amMaster");
 

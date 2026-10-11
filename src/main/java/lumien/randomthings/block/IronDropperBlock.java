@@ -20,6 +20,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A block-form item dropper with a configurable redstone mode/pickup delay/
@@ -95,7 +96,7 @@ public class IronDropperBlock extends Block
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (!worldIn.isRemote)
 		{
@@ -107,6 +108,6 @@ public class IronDropperBlock extends Block
 			}
 		}
 
-		return true;
+		return ActionResultType.SUCCESS;
 	}
 }

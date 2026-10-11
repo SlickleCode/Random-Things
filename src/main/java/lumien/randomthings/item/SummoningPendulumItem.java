@@ -88,9 +88,9 @@ public class SummoningPendulumItem extends Item {
     }
 
     @Override
-    public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
+    public ActionResultType itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
         if (entity.world.isRemote) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         if (!(entity instanceof IMob || entity instanceof PlayerEntity)) {
@@ -110,9 +110,9 @@ public class SummoningPendulumItem extends Item {
 
             compound.put("entitys", tagList);
             heldStack.setTag(compound);
-            return true;
+            return ActionResultType.SUCCESS;
         }
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     @Override
@@ -130,7 +130,6 @@ public class SummoningPendulumItem extends Item {
                     CompoundNBT entityNBT = tagList.getCompound(0);
                     tagList.remove(0);
 
-                    entityNBT.putInt("Dimension", world.getDimension().getType().getId());
 
                     EntityType.loadEntityUnchecked(entityNBT, world).ifPresent(entity -> {
                         entity.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);

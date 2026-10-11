@@ -11,7 +11,13 @@ import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 
 /**
  * New feature, not a 1.12.2 port: draws a red line from every loaded, linked
@@ -30,7 +36,7 @@ public class RedstoneObserverLineRenderer
 	private static final double MAX_DISTANCE = 20;
 	private static final double MAX_DISTANCE_SQ = MAX_DISTANCE * MAX_DISTANCE;
 
-	public static void render()
+	public static void render(MatrixStack matrixStack)
 	{
 		PlayerEntity player = Minecraft.getInstance().player;
 
@@ -48,15 +54,19 @@ public class RedstoneObserverLineRenderer
 		}
 
 		ActiveRenderInfo ari = Minecraft.getInstance().gameRenderer.getActiveRenderInfo();
-		Vec3d camera = ari.getProjectedView();
+		Vector3d camera = ari.getProjectedView();
 		BlockPos playerPos = player.getPosition();
 
-		GlStateManager.disableTexture();
-		GlStateManager.disableLighting();
-		GlStateManager.lineWidth(4F);
-		GlStateManager.translated(-camera.x, -camera.y, -camera.z);
+		RenderSystem.disableTexture();
+		RenderSystem.lineWidth(4F);
 
-		GlStateManager.begin(GL11.GL_LINES);
+		matrixStack.push();
+		matrixStack.translate(-camera.x, -camera.y, -camera.z);
+		Matrix4f matrix = matrixStack.getLast().getMatrix();
+
+		Tessellator tessellator = Tessellator.getInstance();
+		BufferBuilder buffer = tessellator.getBuffer();
+		buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
 		for (RedstoneObserverTileEntity observer : RedstoneObserverTileEntity.loadedObservers)
 		{
@@ -73,16 +83,13 @@ public class RedstoneObserverLineRenderer
 				continue;
 			}
 
-			GlStateManager.color4f(1F, 0F, 0F, 1F);
-			GlStateManager.vertex3f(pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F);
-			GlStateManager.color4f(1F, 0F, 0F, 1F);
-			GlStateManager.vertex3f(target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F);
+			buffer.pos(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).endVertex();
+			buffer.pos(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).endVertex();
 		}
 
-		GlStateManager.end();
+		tessellator.draw();
 
-		GlStateManager.translated(camera.x, camera.y, camera.z);
-		GlStateManager.enableLighting();
-		GlStateManager.enableTexture();
+		matrixStack.pop();
+		RenderSystem.enableTexture();
 	}
 }

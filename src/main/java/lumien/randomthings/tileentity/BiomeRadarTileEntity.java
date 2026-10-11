@@ -22,6 +22,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.block.BlockState;
 
 /**
  * Searches outward from its own position (an Archimedean-spiral column walk,
@@ -226,8 +227,8 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         this.currentCrystal = ItemStack.read(compound.getCompound("currentCrystal"));
         this.state = STATE.values()[compound.getInt("state")];
@@ -265,7 +266,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
      */
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(pkt.getNbtCompound());
+        this.read(this.getBlockState(), pkt.getNbtCompound());
     }
 
     /**
@@ -340,7 +341,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
         BlockPos foundPos = getPos(searchCounter);
         ItemStack positionFilter = new ItemStack(ModItems.POSITION_FILTER);
 
-        PositionFilterItem.setPosition(positionFilter, this.world.getDimension().getType().getId(), foundPos);
+        PositionFilterItem.setPosition(positionFilter, this.world.getDimensionKey().getLocation().toString(), foundPos);
 
         return positionFilter;
     }

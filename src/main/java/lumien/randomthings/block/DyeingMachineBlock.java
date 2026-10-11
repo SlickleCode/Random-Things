@@ -18,6 +18,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Direct port of 1.12.2's {@code BlockDyeingMachine}: a static, non-tile-entity
@@ -30,7 +31,7 @@ public class DyeingMachineBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (!worldIn.isRemote) {
             NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
                 @Override
@@ -45,6 +46,6 @@ public class DyeingMachineBlock extends Block {
             }, pos);
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 }

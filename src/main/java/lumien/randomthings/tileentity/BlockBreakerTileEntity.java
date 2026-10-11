@@ -87,7 +87,7 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         EnchantmentHelper.setEnchantments(enchantments, pickaxe);
 
         player.setHeldItem(Hand.MAIN_HAND, pickaxe);
-        player.onGround = true;
+        player.setOnGround(true);
 
         // ForgeHooks#onBlockBreakEvent unconditionally does
         // entityPlayer.connection.sendPacket(...) when breaking a block with no tile
@@ -206,7 +206,7 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         super.write(compound);
 
         if (uuid != null) {
-            compound.put("uuid", NBTUtil.writeUniqueId(uuid));
+            compound.put("uuid", NBTUtil.func_240626_a_(uuid));
         }
         compound.putBoolean("mining", mining);
         compound.putBoolean("canMine", canMine);
@@ -215,8 +215,8 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("uuid")) {
             uuid = NBTUtil.readUniqueId(compound.getCompound("uuid"));

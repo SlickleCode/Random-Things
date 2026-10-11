@@ -387,9 +387,9 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		durationLeft = compound.getInt("durationLeft");
 		fuelBurn = compound.getInt("fuelBurn");

@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:block/fire_up",
+  "parent": "minecraft:block/template_fire_up",
   "textures": {
     "fire": "randomthings:block/blazing_fire/fire_layer_1"
   }

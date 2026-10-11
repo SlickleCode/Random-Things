@@ -5,6 +5,9 @@ import net.minecraft.client.gui.widget.list.ExtendedList;
 
 import java.util.List;
 import java.util.function.Consumer;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.AbstractGui;
 
 /**
  * Scrollable list of recorded sound names, one clickable row per sound -
@@ -61,7 +64,7 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
 
     /** Rows start 2px inside the border (vanilla centers them on {@link #getRowWidth()} plus 2px, which left a wide left margin). */
     @Override
-    protected int getRowLeft() {
+    public int getRowLeft() {
         return this.x0 + 2;
     }
 
@@ -80,23 +83,21 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         // ContainerScreen#render leaves item lighting on and a stale GL color, which dimmed both the
         // hover bar and the (white) hovered text to near-black in the screenshots
-        com.mojang.blaze3d.platform.GlStateManager.disableLighting();
-        com.mojang.blaze3d.platform.GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        com.mojang.blaze3d.systems.RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
 
         ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        this.renderList(matrixStack, rowLeft, rowTop, mouseX, mouseY, partialTicks);
         ListClip.end();
 
-        renderBorder();
-        renderScrollbar();
+        renderBorder(matrixStack);
+        renderScrollbar(matrixStack);
 
-        com.mojang.blaze3d.platform.GlStateManager.enableLighting();
     }
 
     // Vanilla's drag-to-scroll only runs if the screen forwards mouseDragged here (ContainerScreen
@@ -123,17 +124,17 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
     }
 
     /** Light 1px frame around the scrollable area. */
-    private void renderBorder() {
+    private void renderBorder(MatrixStack matrixStack) {
         int color = 0xFFFFFFFF;
 
-        fill(this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
-        fill(this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
-        fill(this.x0 - 1, this.y0, this.x0, this.y1, color);
-        fill(this.x1, this.y0, this.x1 + 1, this.y1, color);
+        AbstractGui.fill(matrixStack, this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
+        AbstractGui.fill(matrixStack, this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
+        AbstractGui.fill(matrixStack, this.x0 - 1, this.y0, this.x0, this.y1, color);
+        AbstractGui.fill(matrixStack, this.x1, this.y0, this.x1 + 1, this.y1, color);
     }
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
-    private void renderScrollbar() {
+    private void renderScrollbar(MatrixStack matrixStack) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.y1 - this.y0;
 
@@ -149,9 +150,9 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.getMaxPosition())));
         int thumbY = Math.max(this.y0, Math.min(this.y1 - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.y0));
 
-        fill(scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
-        fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
-        fill(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
+        AbstractGui.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
+        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
+        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
     }
 
     public class SoundNameEntry extends ExtendedList.AbstractListEntry<SoundNameEntry> {
@@ -162,7 +163,7 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         }
 
         @Override
-        public void render(int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void render(MatrixStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             net.minecraft.client.gui.FontRenderer font = Minecraft.getInstance().fontRenderer;
 
             // Dark text on the GUI's light-gray panel (white was nearly invisible there - found via
@@ -171,7 +172,7 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
             // text is shrunk to fit (down to half size) instead of being cut off mid-id, and the
             // bar always spans the full row.
             if (isMouseOver) {
-                net.minecraft.client.gui.AbstractGui.fill(left, top - 2, left + width, top + height + 2, 0xFF404040);
+                AbstractGui.fill(matrixStack, left, top - 2, left + width, top + height + 2, 0xFF404040);
             }
 
             int available = width - 4;
@@ -179,11 +180,11 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
             float scale = textWidth > available ? Math.max(0.5F, (float) available / textWidth) : 1.0F;
             String shown = font.getStringWidth(sound) * scale > available ? font.trimStringToWidth(sound, (int) (available / scale)) : sound;
 
-            com.mojang.blaze3d.platform.GlStateManager.pushMatrix();
-            com.mojang.blaze3d.platform.GlStateManager.translatef(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0F);
-            com.mojang.blaze3d.platform.GlStateManager.scalef(scale, scale, 1.0F);
-            font.drawString(shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
-            com.mojang.blaze3d.platform.GlStateManager.popMatrix();
+            matrixStack.push();
+            matrixStack.translate(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0D);
+            matrixStack.scale(scale, scale, 1.0F);
+            font.drawString(matrixStack, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
+            matrixStack.pop();
         }
 
         @Override

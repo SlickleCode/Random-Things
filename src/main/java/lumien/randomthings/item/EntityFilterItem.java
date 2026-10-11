@@ -16,6 +16,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Right-click (attack) any living entity to "capture" its exact type as this
@@ -46,7 +47,7 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
     }
 
     @Override
-    public boolean itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
+    public ActionResultType itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
         if (!playerIn.world.isRemote) {
             if (!stack.hasTag()) {
                 stack.setTag(new CompoundNBT());
@@ -55,7 +56,7 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
             stack.getTag().putString("entityType", EntityType.getKey(target.getType()).toString());
         }
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     @Override

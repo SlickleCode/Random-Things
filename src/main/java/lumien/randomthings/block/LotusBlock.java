@@ -20,6 +20,8 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.world.server.ServerWorld;
 
 /**
  * The 1.12.2 version also implemented IGrowable, but with canUseBonemeal
@@ -64,7 +66,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		int age = state.get(AGE);
 
@@ -75,7 +77,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (state.get(AGE) == 3)
 		{
@@ -91,10 +93,10 @@ public class LotusBlock extends BushBlock
 				}
 			}
 
-			return true;
+			return ActionResultType.SUCCESS;
 		}
 
-		return false;
+		return ActionResultType.PASS;
 	}
 
 	@Override

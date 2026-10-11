@@ -156,7 +156,7 @@ public class SpectreIlluminatorRelight {
         }
 
         if (queue.jobs.isEmpty()) {
-            RTDebug.log("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimension().getType(), drained);
+            RTDebug.log("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimensionKey(), drained);
         }
     }
 

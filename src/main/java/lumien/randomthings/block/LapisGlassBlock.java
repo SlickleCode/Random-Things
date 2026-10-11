@@ -12,13 +12,12 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.util.BlockRenderLayer;
 
 public class LapisGlassBlock extends Block
 {
 	public LapisGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).hardnessAndResistance(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
 	}
 
 	/**
@@ -53,21 +52,8 @@ public class LapisGlassBlock extends Block
 		return VoxelShapes.empty();
 	}
 
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
-	}
-
 	/**
 	 * Explicit belt-and-braces version of what the dummy-context branch of
 	 * {@link #getCollisionShape} above already implies - stated directly so
 	 * it doesn't depend on the reader tracing through that chain.
-	 */
-	@Override
-	@SuppressWarnings("deprecation")
-	public boolean causesSuffocation(BlockState state, IBlockReader worldIn, BlockPos pos)
-	{
-		return false;
-	}
-}
+	 */}

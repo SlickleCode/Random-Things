@@ -1,5 +1,6 @@
 modLoader="javafml" #mandatory
-loaderVersion="[26,)" #mandatory (24 is current forge version)
+loaderVersion="[36,)" #mandatory
+license="All Rights Reserved"
 
 displayURL="https://www.curseforge.com/minecraft/mc-mods/random-things"
 authors="Lumien"

@@ -16,7 +16,6 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.util.BlockRenderLayer;
 
 /**
  * A small directional plate mounted onto an inventory that vacuums up
@@ -98,11 +97,5 @@ public class ItemCollectorBlock extends Block
 		// FACING points from this block toward the inventory it's mounted on,
 		// i.e. the side of the existing block that was clicked to place it.
 		return this.getDefaultState().with(FACING, context.getFace());
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 }

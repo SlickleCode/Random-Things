@@ -17,14 +17,17 @@ import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IEnviromentBlockReader;
+import net.minecraft.world.IBlockDisplayReader;
 import net.minecraftforge.client.model.data.IModelData;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 
 /**
  * Same role as {@link AsmHandler} - a plain static redirect target for a
  * coremod transformer - but split into its own class specifically because
  * every parameter type this one method needs ({@link BlockRendererDispatcher},
- * {@link BufferBuilder}, {@link IEnviromentBlockReader}) is {@code @OnlyIn(
+ * {@link BufferBuilder}, {@link IBlockDisplayReader}) is {@code @OnlyIn(
  * Dist.CLIENT)}. {@link AsmHandler} is loaded on both sides (several of its
  * other redirect targets, e.g. {@code overrideRedstonePower}, run on a
  * dedicated server) and only ever references common types in its own method
@@ -58,7 +61,7 @@ public class ClientAsmHandler {
      * either way) when a redirect applies - see the transformer JS for the
      * exact bytecode that interprets this.
      */
-    public static int renderBlock(BlockRendererDispatcher dispatcher, BlockState state, BlockPos pos, IEnviromentBlockReader world, BufferBuilder buffer, Random rand) {
+    public static int renderBlock(BlockRendererDispatcher dispatcher, BlockState state, BlockPos pos, IBlockDisplayReader world, MatrixStack matrixStack, IVertexBuilder buffer, boolean checkSides, Random rand) {
         synchronized (LightRedirectorTileEntity.REDIRECTORS) {
             if (LightRedirectorTileEntity.REDIRECTORS.isEmpty()) {
                 return 2;
@@ -79,13 +82,13 @@ public class ClientAsmHandler {
             }
 
             IBakedModel model = dispatcher.getModelForState(switchedState);
-            boolean rendered = dispatcher.getBlockModelRenderer().renderModel(world, model, switchedState, pos, buffer, true, rand, switchedState.getPositionRandom(switched), net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
+            boolean rendered = dispatcher.getBlockModelRenderer().renderModel(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getPositionRandom(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
 
             return rendered ? 1 : 0;
         }
     }
 
-    private static BlockPos getSwitchedPosition(IEnviromentBlockReader access, BlockPos pos) {
+    private static BlockPos getSwitchedPosition(IBlockDisplayReader access, BlockPos pos) {
         Iterator<LightRedirectorTileEntity> iterator = LightRedirectorTileEntity.REDIRECTORS.iterator();
 
         while (iterator.hasNext()) {
@@ -121,29 +124,32 @@ public class ClientAsmHandler {
     }
 
     /**
-     * Redirect target for {@code ArmorLayer.renderArmorLayer}'s second (and,
-     * for non-leather armor, only) {@code BipedModel.render} call - see
-     * {@code ArmorLayerTransformer.js}. Direct port of 1.12.2's own {@code
-     * AsmHandler#armorColorHook}: re-applies GL color right before the armor
-     * model draws, overriding whatever the vanilla leather-dye branch (or
-     * the plain white/undyed case) already set, whenever the worn item
-     * carries the Dyeing Machine's {@code rtDye} tag - letting the machine
-     * recolor any armor piece, not just vanilla's own dyeable leather. A
-     * client-only body (touches {@code GlStateManager}), so - like {@code
-     * renderBlock} above - this lives here rather than in the shared {@code
-     * AsmHandler}: {@code ArmorLayer} is itself client-only and a dedicated
-     * server never loads it, so the injected call is never reached there
-     * either.
+     * Redirect target for {@code BipedArmorLayer}'s leather-branch {@code IDyeableArmorItem.getColor(stack)} call - see
+     * {@code ArmorLayerTransformer.js}. Returns the Dyeing Machine's {@code rtDye} colour when the stack carries one,
+     * so a dyed leather piece shows the machine colour instead of its vanilla dye colour (as 1.12.2's
+     * {@code armorColorHook} overrode it for every armor piece).
      */
-    public static void armorColorHook(ItemStack stack) {
+    public static int dyedColor(net.minecraft.item.IDyeableArmorItem item, ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("rtDye")) {
+            return stack.getTag().getInt("rtDye");
+        }
+
+        return item.getColor(stack);
+    }
+
+    /**
+     * Replaces the constant {@code 1.0F} colour channels of the plain (non-leather) armor draw: channel 0/1/2 =
+     * red/green/blue of the stack's {@code rtDye} colour, or {@code defaultValue} when it has none. Lets the machine
+     * recolor any armor piece, not just vanilla's dyeable leather. Colour is now a render argument rather than GL state.
+     */
+    public static float armorChannel(ItemStack stack, int channel, float defaultValue) {
         if (stack.hasTag() && stack.getTag().contains("rtDye")) {
             int rgb = stack.getTag().getInt("rtDye");
+            int shift = channel == 0 ? 16 : (channel == 1 ? 8 : 0);
 
-            float r = ((rgb >> 16) & 255) / 255F;
-            float g = ((rgb >> 8) & 255) / 255F;
-            float b = (rgb & 255) / 255F;
-
-            GlStateManager.color4f(r, g, b, 1.0F);
+            return ((rgb >> shift) & 255) / 255F;
         }
+
+        return defaultValue;
     }
 }

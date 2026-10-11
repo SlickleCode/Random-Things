@@ -151,8 +151,8 @@ public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         state = BridgeState.values()[compound.getInt("state")];
         redstonePowered = compound.getBoolean("redstonePowered");

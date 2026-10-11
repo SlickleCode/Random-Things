@@ -7,9 +7,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.world.GameType;
 import net.minecraft.world.WorldSettings;
-import net.minecraft.world.WorldType;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.DimensionType;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.gen.DimensionSettings;
+import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.FlatChunkGenerator;
+import net.minecraft.world.gen.FlatGenerationSettings;
+import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.GameRules;
+import net.minecraft.util.datafix.codec.DatapackCodec;
 
 /**
  * Hands-free GUI pass for dev runs: when started with {@code -Drandomthings.autotest=true} (the
@@ -25,7 +36,7 @@ public class AutoTest
 
 	private enum State
 	{
-		MENU, LOADING, SETTLING, TESTING, RUNNING, DONE
+		MENU, LOADING, SETTLING, TESTING, RUNNING, SCENES, CLICKS, DONE
 	}
 
 	private static State state = State.MENU;
@@ -54,14 +65,64 @@ public class AutoTest
 				{
 					RTDebug.log("AutoTest: opening world {}", WORLD);
 
-					WorldSettings settings = mc.getSaveLoader().canLoadWorld(WORLD) ? null : new WorldSettings(4242L, GameType.CREATIVE, false, false, WorldType.FLAT).enableCommands();
-					mc.launchIntegratedServer(WORLD, WORLD, settings);
+					if (mc.getSaveLoader().canLoadWorld(WORLD))
+					{
+						mc.loadWorld(WORLD);
+					}
+					else
+					{
+						// a flat creative world: the behavior tests wipe and rebuild their test area
+						DynamicRegistries.Impl registries = DynamicRegistries.func_239770_b_();
+						Registry<DimensionType> types = registries.getRegistry(Registry.DIMENSION_TYPE_KEY);
+						Registry<Biome> biomes = registries.getRegistry(Registry.BIOME_KEY);
+						Registry<DimensionSettings> noiseSettings = registries.getRegistry(Registry.NOISE_SETTINGS_KEY);
+						ChunkGenerator flat = new FlatChunkGenerator(FlatGenerationSettings.func_242869_a(biomes));
+						DimensionGeneratorSettings generatorSettings = new DimensionGeneratorSettings(4242L, false, false, DimensionGeneratorSettings.func_242749_a(types, DimensionType.getDefaultSimpleRegistry(types, biomes, noiseSettings, 4242L), flat));
+						WorldSettings settings = new WorldSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DatapackCodec.VANILLA_CODEC);
+						mc.createWorld(WORLD, settings, registries, generatorSettings);
+					}
 
 					state = State.LOADING;
 					ticks = 0;
 				}
 				break;
 			case LOADING:
+				if (mc.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen && ticks % 40 == 20)
+				{
+					// 1.16 asks before opening some worlds (e.g. experimental settings); the autotest always accepts
+					RTDebug.log("AutoTest: confirming dialog: {}", mc.currentScreen.getNarrationMessage());
+
+					for (net.minecraft.client.gui.IGuiEventListener listener : mc.currentScreen.getEventListeners())
+					{
+						if (listener instanceof net.minecraft.client.gui.widget.button.Button)
+						{
+							((net.minecraft.client.gui.widget.button.Button) listener).onPress();
+							break;
+						}
+					}
+				}
+
+				if (mc.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmBackupScreen && ticks % 40 == 20)
+				{
+					// "this world uses experimental settings" on reopening: choose "load without backup" (second button)
+					RTDebug.log("AutoTest: confirming backup dialog");
+
+					int index = 0;
+
+					for (net.minecraft.client.gui.IGuiEventListener listener : mc.currentScreen.getEventListeners())
+					{
+						if (listener instanceof net.minecraft.client.gui.widget.button.Button && index++ == 1)
+						{
+							((net.minecraft.client.gui.widget.button.Button) listener).onPress();
+							break;
+						}
+					}
+				}
+
+				if (ticks % 200 == 0)
+				{
+					RTDebug.log("AutoTest: still loading, screen={}, server={}", mc.currentScreen, mc.getIntegratedServer());
+				}
 				if (mc.player != null && mc.world != null)
 				{
 					state = State.SETTLING;
@@ -69,6 +130,20 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.clicks"))
+				{
+					state = State.CLICKS;
+					ticks = 0;
+					break;
+				}
+
+				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.scenes"))
+				{
+					state = State.SCENES;
+					ticks = 0;
+					break;
+				}
+
 				if (ticks > 200)
 				{
 					ResourceAudit audit = ResourceAudit.run();
@@ -99,7 +174,7 @@ public class AutoTest
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.sendChatMessage("/rtdebug allguis");
+					mc.player.sendChatMessage("/rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;
@@ -108,6 +183,30 @@ public class AutoTest
 				{
 					RTDebug.log("AutoTest: timed out waiting for the in-game tests (is the player op and the world flat?)");
 					state = State.DONE;
+				}
+				break;
+			case CLICKS:
+				if (GuiClickTest.tick(mc))
+				{
+					RTDebug.log("AutoTest: GUI click test finished");
+					state = State.DONE;
+
+					if (Boolean.getBoolean("randomthings.autotest.exit"))
+					{
+						mc.shutdown();
+					}
+				}
+				break;
+			case SCENES:
+				if (SceneShots.tick(mc))
+				{
+					RTDebug.log("AutoTest: scenes finished");
+					state = State.DONE;
+
+					if (Boolean.getBoolean("randomthings.autotest.exit"))
+					{
+						mc.shutdown();
+					}
 				}
 				break;
 			case RUNNING:

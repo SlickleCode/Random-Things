@@ -21,6 +21,7 @@ import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.block.BlockState;
 
 /**
  * Like {@link ChatDetectorTileEntity}, but matches any player's chat instead
@@ -166,9 +167,9 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		consume = compound.getBoolean("consume");
 		chatMessage = compound.getString("chatMessage");

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Activates a JDK 8 toolchain for this session (Git Bash / POSIX shell),
-# analogous to a Python venv's `bin/activate`. This project (ForgeGradle 3.x +
-# Gradle 4.9, targeting Forge 1.14.4) requires a Java 8 compiler; it will not
+# analogous to a Python venv's `bin/activate`. This project (ForgeGradle 4.x +
+# Gradle 6.8.3, targeting Forge 1.16.5) requires a Java 8 compiler; it will not
 # build under a newer default JDK. This script does NOT touch your system
 # JAVA_HOME - it only changes environment variables in the CURRENT shell.
 #

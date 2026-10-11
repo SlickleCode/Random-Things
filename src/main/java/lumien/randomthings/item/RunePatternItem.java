@@ -67,7 +67,7 @@ public class RunePatternItem extends Item {
         present.sort(Comparator.comparingInt((DyeColor c) -> amounts[c.getId()]).reversed());
 
         for (DyeColor color : present) {
-            tooltip.add(new StringTextComponent("- " + amounts[color.getId()] + "x " + color.getName()));
+            tooltip.add(new StringTextComponent("- " + amounts[color.getId()] + "x " + color.getTranslationKey()));
         }
     }
 
@@ -98,7 +98,7 @@ public class RunePatternItem extends Item {
             return ActionResultType.SUCCESS;
         }
 
-        if (context.getFace() != Direction.UP || !worldIn.isAirBlock(pos.up()) || !Block.hasSolidSide(state, worldIn, pos, Direction.UP)) {
+        if (context.getFace() != Direction.UP || !worldIn.isAirBlock(pos.up()) || !Block.hasEnoughSolidSide(worldIn, pos, Direction.UP)) {
             return ActionResultType.FAIL;
         }
 

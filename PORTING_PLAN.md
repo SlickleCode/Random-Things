@@ -5,6 +5,14 @@ per-bug writeups: `TESTING_NOTES.md`; per-feature status: `WIKI_FEATURE_STATUS.m
 current truth: state, scope decisions, conventions, API gotchas, coremod map. `CLAUDE.md` has the
 working rules. **Update this file whenever features change** (see CLAUDE.md).
 
+## 1.16.5 branch (started 2026-10-11) - START HERE on this branch
+
+This branch (`1.16.5`) is the 1.14.4 port moved to **Forge 1.16.5-36.2.39** (FG 4.1, Gradle 6.8.3, JDK 8, MCP snapshot
+`20210309-1.16.5`). Plan and milestones: `docs/migration/plans/1.16.5-port-plan.md`; findings: `docs/migration/versions/mc-1.16.md`.
+Everything below this section describes the 1.14.4 code and still applies except where the plan file says otherwise.
+Status is tracked in the plan file's milestone list (and the commit log); `TESTING_CHECKLIST.md` rows were all written
+for 1.14.4 and are re-verified milestone by milestone, not assumed.
+
 ## File map
 
 | File | Purpose |
@@ -216,18 +224,19 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | Transformer | Target | Purpose |
 | --- | --- | --- |
 | `VertexLighterFlat` | `VertexLighterFlat.processQuad` | Light-tint hook (placeholder tintIndex 12340) |
-| `FireBlockTransformer` | `FireBlock.tryCatchFire` | Blazing Fire 4x catch chance / die-out / age growth |
+| `FireBlockTransformer` | `FireBlock.tryCatchFire`, `getTickCooldown` | Blazing Fire 4x catch chance / die-out / age growth, 15-tick fire delay |
 | `SuperLubricentBootsTransformer` | `LivingEntity.travel` | Boots → max slipperiness unless sneaking |
-| `SpawnPlacementTransformer` | `EntitySpawnPlacementRegistry` shared predicate dispatch | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
+| `SpawnPlacementTransformer` | `EntitySpawnPlacementRegistry.canSpawnEntity` shared predicate dispatch | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
 | `MagicHoodTransformer` | `LivingRenderer.canRenderName` (6 returns) | Hide nametag |
 | `RainShieldTransformer` | `World.isRainingAt` (4 returns) | Mechanical rain/snow suppression |
-| `GameRendererTransformer` | biome lookup in rain render loop | Visual rain suppression |
+| `WorldRendererTransformer` (was `GameRendererTransformer`) | biome lookup in `WorldRenderer.renderRainSnow` / `addRainParticles` | Visual rain suppression |
 | `IBlockReaderTransformer` | `IBlockReader.getLightValue(BlockPos)` | Spectre Illuminator light |
 | `PlayerEntityTransformer` | `PlayerInventory.dropAllItems` in `dropInventory` | Spectre Anchor keeps items |
 | `WorldRedstonePowerTransformer` / `WorldReaderStrongPowerTransformer` | `World.getRedstonePower` / `IWorldReader.getStrongPower` | Wireless Redstone Interface signals |
-| `TeleporterTransformer` | `Teleporter.makePortal` | Skip portal carving for the Spectre dimension |
-| `BlockRendererDispatcherTransformer` | block render dispatch | Light Redirector "periscope" |
-| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer | Dyeing Machine recolor |
+| `BlockRendererDispatcherTransformer` | `BlockRendererDispatcher.renderModel` (8-arg) | Light Redirector "periscope" |
+| `ItemRendererTransformer` / `ArmorLayerTransformer` | `ItemRenderer.renderQuads` colour local / `BipedArmorLayer.func_241739_a_` colour arguments | Dyeing Machine recolor |
+
+On the `1.16.5` branch: the teleporter coremod is gone (Forge 36's `ITeleporter` replaces it), the rain transformer moved from `GameRenderer` to `WorldRenderer`, the fire delay is new (1.16 removed `tickRate`), and the item/armor recolor transformers were rewritten for the `MatrixStack` render code. All 14 transformers apply (`CoremodTests` and the behavior tests pass); the render-side ones (`WorldRenderer`, `ItemRenderer`, `BipedArmorLayer`, `BlockRendererDispatcher`) have no automated visual test yet. Transformers match the *dev* (MCP) method names; whether they also match in a reobfuscated production jar has never been verified (backlog Q13).
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a

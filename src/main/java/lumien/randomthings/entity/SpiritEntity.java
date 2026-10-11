@@ -6,7 +6,6 @@ import lumien.randomthings.item.ModItems;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.FlyingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.controller.MovementController;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -18,6 +17,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.ai.attributes.AttributeModifierMap;
+import net.minecraft.entity.MobEntity;
 
 /**
  * A tiny, near-invulnerable flying wisp with a small chance to appear at the
@@ -94,15 +96,12 @@ public class SpiritEntity extends FlyingEntity {
         return super.attackEntityFrom(source, amount);
     }
 
-    @Override
-    protected void registerAttributes() {
-        super.registerAttributes();
-
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(1.0);
+    public static AttributeModifierMap.MutableAttribute registerAttributes() {
+        return MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 1.0);
     }
 
     @Override
-    public void knockBack(Entity entityIn, float strength, double xRatio, double zRatio) {
+    public void applyKnockback(float strength, double xRatio, double zRatio) {
     }
 
     @Override
@@ -175,9 +174,9 @@ public class SpiritEntity extends FlyingEntity {
     public void tick() {
         super.tick();
 
-        if (this.world.isRemote && (this.lastTickPosX != this.posX || this.lastTickPosY != this.posY || this.lastTickPosZ != this.posZ)) {
+        if (this.world.isRemote && (this.lastTickPosX != this.getPosX() || this.lastTickPosY != this.getPosY() || this.lastTickPosZ != this.getPosZ())) {
             if (Math.random() < 0.5) {
-                this.world.addParticle(ParticleTypes.ENCHANT, this.posX, this.posY, this.posZ, Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
+                this.world.addParticle(ParticleTypes.ENCHANT, this.getPosX(), this.getPosY(), this.getPosZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
             }
         }
     }
@@ -194,9 +193,9 @@ public class SpiritEntity extends FlyingEntity {
         @Override
         public void tick() {
             if (this.action == Action.MOVE_TO) {
-                double d0 = this.posX - this.parentEntity.posX;
-                double d1 = this.posY - this.parentEntity.posY;
-                double d2 = this.posZ - this.parentEntity.posZ;
+                double d0 = this.posX - this.parentEntity.getPosX();
+                double d1 = this.posY - this.parentEntity.getPosY();
+                double d2 = this.posZ - this.parentEntity.getPosZ();
                 double d3 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
 
                 if (this.isNotColliding(this.posX, this.posY, this.posZ, d3) && d3 > 0.2) {
@@ -208,15 +207,15 @@ public class SpiritEntity extends FlyingEntity {
         }
 
         private boolean isNotColliding(double targetX, double targetY, double targetZ, double distance) {
-            double stepX = (targetX - this.parentEntity.posX) / distance;
-            double stepY = (targetY - this.parentEntity.posY) / distance;
-            double stepZ = (targetZ - this.parentEntity.posZ) / distance;
+            double stepX = (targetX - this.parentEntity.getPosX()) / distance;
+            double stepY = (targetY - this.parentEntity.getPosY()) / distance;
+            double stepZ = (targetZ - this.parentEntity.getPosZ()) / distance;
             AxisAlignedBB aabb = this.parentEntity.getBoundingBox();
 
             for (int i = 1; i < distance; ++i) {
                 aabb = aabb.offset(stepX, stepY, stepZ);
 
-                if (!this.parentEntity.world.isCollisionBoxesEmpty(this.parentEntity, aabb)) {
+                if (!this.parentEntity.world.hasNoCollisions(this.parentEntity, aabb)) {
                     return false;
                 }
             }

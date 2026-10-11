@@ -12,6 +12,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraft.block.BlockState;
 
 /**
  * Ported from 1.12.2's {@code TileEntitySpectreEnergyInjector} - exposes the placing player's
@@ -93,8 +94,8 @@ public class SpectreEnergyInjectorTileEntity extends TileEntity {
     }
 
     @Override
-    public void read(CompoundNBT compound) {
-        super.read(compound);
+    public void read(BlockState tileState, CompoundNBT compound) {
+        super.read(tileState, compound);
 
         if (compound.contains("owner")) {
             owner = compound.getUniqueId("owner");

@@ -36,7 +36,7 @@ public class PlatformBlock extends Block {
     public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
         Entity entity = context.getEntity();
 
-        if (entity instanceof PlayerEntity && entity.isSneaking() || entity != null && entity.posY < pos.getY() + 14F / 16F) {
+        if (entity instanceof PlayerEntity && entity.isSneaking() || entity != null && entity.getPosY() < pos.getY() + 14F / 16F) {
             return VoxelShapes.empty();
         }
         return super.getCollisionShape(state, worldIn, pos, context);

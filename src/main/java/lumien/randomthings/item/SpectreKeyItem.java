@@ -55,7 +55,7 @@ public class SpectreKeyItem extends Item {
             SpectreHandler spectreHandler = SpectreHandler.getInstance(player.getServer());
 
             if (spectreHandler != null) {
-                if (player.dimension != ModDimensions.SPECTRE_TYPE) {
+                if (!ModDimensions.isSpectre(player.world)) {
                     spectreHandler.teleportPlayerToSpectreCube(player);
                 } else {
                     spectreHandler.teleportPlayerBack(player);
@@ -68,7 +68,7 @@ public class SpectreKeyItem extends Item {
 
     @Override
     public boolean hasEffect(ItemStack stack) {
-        return Minecraft.getInstance().player != null && Minecraft.getInstance().player.world.getDimension().getType() == ModDimensions.SPECTRE_TYPE;
+        return Minecraft.getInstance().player != null && ModDimensions.isSpectre(Minecraft.getInstance().player.world);
     }
 
     @Override
@@ -78,9 +78,9 @@ public class SpectreKeyItem extends Item {
         }
 
         for (int i = 0; i < (100 - count) / 5; i++) {
-            double x = entity.posX + Math.random() * 1.8 - 0.9;
-            double y = entity.posY + Math.random() * 1.8;
-            double z = entity.posZ + Math.random() * 1.8 - 0.9;
+            double x = entity.getPosX() + Math.random() * 1.8 - 0.9;
+            double y = entity.getPosY() + Math.random() * 1.8;
+            double z = entity.getPosZ() + Math.random() * 1.8 - 0.9;
 
             entity.world.addParticle(ParticleTypes.PORTAL, x, y, z, 0, 0, 0);
         }

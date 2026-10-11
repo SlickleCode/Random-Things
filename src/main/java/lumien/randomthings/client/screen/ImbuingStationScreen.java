@@ -8,6 +8,8 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Direct port of 1.12.2's {@code GuiImbuingStation}: a filling progress
@@ -28,35 +30,35 @@ public class ImbuingStationScreen extends ContainerScreen<ImbuingStationContaine
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        this.font.drawString(this.title.getString(), 3, 6, 4210752);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        this.font.drawString(matrixStack, this.title.getString(), 3, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
         int x = (this.width - this.xSize) / 2;
         int y = (this.height - this.ySize) / 2;
-        this.blit(x, y, 0, 0, this.xSize, this.ySize);
+        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
 
         int imbuingProgress = this.container.imbuingProgress.get();
 
         if (imbuingProgress > 0) {
             int progressArrow = (int) (22F / ImbuingStationTileEntity.IMBUING_LENGTH * imbuingProgress) + 1;
-            this.blit(x + 99, y + 54, 189, 13, progressArrow, 16);
+            this.blit(matrixStack, x + 99, y + 54, 189, 13, progressArrow, 16);
 
             if (this.container.getSlot(0).getHasStack()) {
-                this.blit(x + 82, y + 28, 176, 0, 12, progressBubble);
+                this.blit(matrixStack, x + 82, y + 28, 176, 0, 12, progressBubble);
             }
 
             if (this.container.getSlot(1).getHasStack()) {
-                this.blit(x + 54, y + 56, 189, 0, progressBubble, 12);
+                this.blit(matrixStack, x + 54, y + 56, 189, 0, progressBubble, 12);
             }
 
             if (this.container.getSlot(2).getHasStack()) {
-                this.blit(x + 82, y + 72, 176, 25, 12, 24);
-                this.blit(x + 82, y + 72, 176, 50, 12, 24 - progressBubble);
+                this.blit(matrixStack, x + 82, y + 72, 176, 25, 12, 24);
+                this.blit(matrixStack, x + 82, y + 72, 176, 50, 12, 24 - progressBubble);
             }
         }
     }
@@ -77,9 +79,9 @@ public class ImbuingStationScreen extends ContainerScreen<ImbuingStationContaine
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 }

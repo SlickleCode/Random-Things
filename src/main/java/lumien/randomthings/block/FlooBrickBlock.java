@@ -7,7 +7,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
@@ -36,11 +35,6 @@ import java.util.UUID;
 public class FlooBrickBlock extends Block {
     public FlooBrickBlock() {
         super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F, 10.0F));
-    }
-
-    @Override
-    public BlockRenderLayer getRenderLayer() {
-        return BlockRenderLayer.CUTOUT;
     }
 
     @Override

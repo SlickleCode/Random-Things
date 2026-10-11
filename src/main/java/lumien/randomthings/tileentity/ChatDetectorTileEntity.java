@@ -18,6 +18,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.block.BlockState;
 
 /**
  * Watches for its linked player to send a specific chat message, then
@@ -144,9 +145,9 @@ public class ChatDetectorTileEntity extends TileEntity implements ITickableTileE
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 
 		consume = compound.getBoolean("consume");
 		chatMessage = compound.getString("chatMessage");

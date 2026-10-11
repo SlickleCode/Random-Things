@@ -2,8 +2,9 @@ package lumien.randomthings.handler;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.world.World;
 
 /**
  * A single persistent, world-global (not per-dimension - always resolved
@@ -16,7 +17,7 @@ import net.minecraft.world.storage.WorldSavedData;
  * {@code DimensionSavedDataManager} the same way {@link
  * lumien.randomthings.handler.spectrelens.SpectreLensHandler} already was
  * ({@code world.getMapStorage()} became {@code
- * server.getWorld(DimensionType.OVERWORLD).getSavedData()}).
+ * server.getWorld(World.OVERWORLD).getSavedData()}).
  */
 public class RTWorldInformationHandler extends WorldSavedData {
     private static final String ID = "randomthings_world_info";
@@ -28,7 +29,7 @@ public class RTWorldInformationHandler extends WorldSavedData {
     }
 
     public static RTWorldInformationHandler get(MinecraftServer server) {
-        return server.getWorld(DimensionType.OVERWORLD).getSavedData().getOrCreate(RTWorldInformationHandler::new, ID);
+        return server.getWorld(World.OVERWORLD).getSavedData().getOrCreate(RTWorldInformationHandler::new, ID);
     }
 
     public boolean isDragonDefeated() {

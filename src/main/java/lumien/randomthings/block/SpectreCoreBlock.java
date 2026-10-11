@@ -12,11 +12,11 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.Hand;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
 
 /**
  * Direct port of 1.12.2's {@code BlockSpectreCore}: the 2x2 unbreakable
@@ -38,7 +38,7 @@ public class SpectreCoreBlock extends Block {
         NW, NE, ES, SW;
 
         @Override
-        public String getName() {
+        public String getString() {
             return name().toLowerCase(java.util.Locale.ROOT);
         }
     }
@@ -57,14 +57,9 @@ public class SpectreCoreBlock extends Block {
     }
 
     @Override
-    public BlockRenderLayer getRenderLayer() {
-        return BlockRenderLayer.TRANSLUCENT;
-    }
-
-    @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, net.minecraft.util.math.BlockPos pos, PlayerEntity playerIn, Hand hand, BlockRayTraceResult hit) {
-        if (worldIn.getDimension().getType() != ModDimensions.SPECTRE_TYPE) {
-            return false;
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, net.minecraft.util.math.BlockPos pos, PlayerEntity playerIn, Hand hand, BlockRayTraceResult hit) {
+        if (!lumien.randomthings.handler.ModDimensions.isSpectre(worldIn)) {
+            return ActionResultType.PASS;
         }
 
         ItemStack holding = playerIn.getHeldItem(hand);
@@ -78,15 +73,15 @@ public class SpectreCoreBlock extends Block {
                 }
             }
 
-            return true;
+            return ActionResultType.SUCCESS;
         } else if (holding.isEmpty()) {
             if (!worldIn.isRemote) {
                 SpectreHandler.getInstance(((ServerPlayerEntity) playerIn).getServer()).teleportPlayerBack((ServerPlayerEntity) playerIn);
             }
 
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
-        return false;
+        return ActionResultType.PASS;
     }
 }

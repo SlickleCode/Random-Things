@@ -13,7 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 
 /**
@@ -58,7 +58,7 @@ public class RuneDustItem extends Item implements IRTItemColor {
         } else {
             te = null;
 
-            if (net.minecraft.block.Block.hasSolidSide(targetState, world, pos, Direction.UP)) {
+            if (net.minecraft.block.Block.hasEnoughSolidSide(world, pos, Direction.UP)) {
                 BlockPos abovePos = pos.up();
                 BlockState toReplace = world.getBlockState(abovePos);
 
@@ -79,7 +79,7 @@ public class RuneDustItem extends Item implements IRTItemColor {
             return ActionResultType.FAIL;
         }
 
-        Vec3d hitVec = context.getHitVec();
+        Vector3d hitVec = context.getHitVec();
         int x = (int) Math.floor((hitVec.x - pos.getX()) * 4);
         int y = (int) Math.floor((hitVec.z - pos.getZ()) * 4);
         x = net.minecraft.util.math.MathHelper.clamp(x, 0, 3);

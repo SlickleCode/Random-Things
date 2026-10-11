@@ -33,6 +33,6 @@ public class LapisLampBlock extends Block
 {
 	public LapisLampBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).hardnessAndResistance(0.3F).lightValue(15).sound(SoundType.GLASS));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).hardnessAndResistance(0.3F).setLightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }

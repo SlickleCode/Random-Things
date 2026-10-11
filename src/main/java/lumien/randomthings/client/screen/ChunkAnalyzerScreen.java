@@ -11,6 +11,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.util.text.StringTextComponent;
 
 /**
  * Port of 1.12.2's {@code GuiChunkAnalyzer}: a "Scan" button that asks the
@@ -45,7 +48,7 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     protected void init() {
         super.init();
 
-        this.scanButton = this.addButton(new Button(this.guiLeft + 136, this.guiTop + 5, 50, 14, "Scan", (button) -> {
+        this.scanButton = this.addButton(new Button(this.guiLeft + 136, this.guiTop + 5, 50, 14, new StringTextComponent("Scan"), (button) -> {
             this.container.send(0, (pb) -> {
             });
         }));
@@ -70,17 +73,17 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        this.font.drawString(this.title.getString(), 8, 6, 4210752);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
         int x = (this.width - this.xSize) / 2;
         int y = (this.height - this.ySize) / 2;
-        this.blit(x, y, 0, 0, this.xSize, this.ySize);
+        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
     }
 
     /**
@@ -98,11 +101,11 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        this.scanResultList.render(mouseX, mouseY, partialTicks);
+        this.scanResultList.render(matrixStack, mouseX, mouseY, partialTicks);
 
         boolean scanning = this.container.scanning.get() != 0;
 
@@ -110,7 +113,7 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
 
         if (scanning) {
             String text = "Scanning Chunk" + dots();
-            this.font.drawString(text, this.guiLeft + (int) (95 - this.font.getStringWidth(text) / 2F), this.guiTop + 65, 16777215);
+            this.font.drawString(matrixStack, text, this.guiLeft + (int) (95 - this.font.getStringWidth(text) / 2F), this.guiTop + 65, 16777215);
         }
 
         if (this.wasScanning && !scanning) {
@@ -123,7 +126,7 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
 
         this.wasScanning = scanning;
 
-        this.renderHoveredToolTip(mouseX, mouseY);
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
     private String dots() {

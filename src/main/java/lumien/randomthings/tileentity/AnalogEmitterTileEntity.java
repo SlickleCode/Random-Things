@@ -34,9 +34,9 @@ public class AnalogEmitterTileEntity extends TileEntity implements INamedContain
 	}
 
 	@Override
-	public void read(CompoundNBT compound)
+	public void read(BlockState tileState, CompoundNBT compound)
 	{
-		super.read(compound);
+		super.read(tileState, compound);
 		this.emitLevel = compound.getInt("emitLevel");
 	}
 

@@ -9,6 +9,10 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.SlimeGelLayer;
 import net.minecraft.client.renderer.entity.model.SlimeModel;
 import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Reuses vanilla's own {@code SlimeModel}/{@code SlimeGelLayer} wholesale
@@ -30,23 +34,19 @@ public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, SlimeModel<S
         this.addLayer(new SlimeGelLayer<>(this));
     }
 
+    /** 1.14.4 switched lighting and the lightmap off while drawing the spirit (it glows); full block light does the same here. */
     @Override
-    public void doRender(SpiritEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        super.doRender(entity, x, y, z, entityYaw, partialTicks);
-
-        GlStateManager.enableLighting();
-        Minecraft.getInstance().gameRenderer.enableLightmap();
+    protected int getBlockLight(SpiritEntity entity, BlockPos pos) {
+        return 15;
     }
 
     @Override
-    protected void preRenderCallback(SpiritEntity entity, float partialTickTime) {
-        GlStateManager.scaled(0.5, 0.5, 0.5);
-        GlStateManager.disableLighting();
-        Minecraft.getInstance().gameRenderer.disableLightmap();
+    protected void preRenderCallback(SpiritEntity entity, MatrixStack matrixStack, float partialTickTime) {
+        matrixStack.scale(0.5F, 0.5F, 0.5F);
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(SpiritEntity entity) {
+    public ResourceLocation getEntityTexture(SpiritEntity entity) {
         return TEXTURE;
     }
 }

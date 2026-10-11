@@ -10,6 +10,8 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Ported from 1.12.2's {@code GuiBlockDestabilizer}. The original used custom
@@ -48,31 +50,31 @@ public class BlockDestabilizerScreen extends ContainerScreen<BlockDestabilizerCo
             });
         }) {
             @Override
-            public void renderButton(int mouseX, int mouseY, float partialTicks) {
+            public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
                 Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURES);
-                GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                this.blit(this.x, this.y, 85, this.isHovered() ? 20 : 0, 20, 20);
+                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+                this.blit(matrixStack, this.x, this.y, 85, this.isHovered() ? 20 : 0, 20, 20);
             }
         });
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        SpriteStateButton.renderTooltips(this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        SpriteStateButton.renderTooltips(matrixStack, this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
         int i = (this.width - this.xSize) / 2;
         int j = (this.height - this.ySize) / 2;
-        this.blit(i, j, 0, 0, this.xSize, this.ySize);
+        this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
     }
 
     @Override
-    public void render(int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground();
-        super.render(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 }

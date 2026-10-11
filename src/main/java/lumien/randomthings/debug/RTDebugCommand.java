@@ -25,7 +25,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
@@ -75,6 +75,20 @@ public class RTDebugCommand
 						.executes(context -> startAllGuis(context, 30))
 						.then(Commands.argument("delayTicks", IntegerArgumentType.integer(5, 400))
 								.executes(context -> startAllGuis(context, IntegerArgumentType.getInteger(context, "delayTicks")))))
+				.then(Commands.literal("scene")
+						.then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
+								.suggests((context, builder) -> ISuggestionProvider.suggest(RenderScenes.ids(), builder))
+								.executes(context -> {
+									String error = RenderScenes.build(context.getSource().asPlayer(), com.mojang.brigadier.arguments.StringArgumentType.getString(context, "id"));
+
+									if (error != null)
+									{
+										context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] " + error));
+										return 0;
+									}
+
+									return 1;
+								})))
 				.then(Commands.literal("test")
 						.executes(context -> startTests(context, null))
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
@@ -169,8 +183,8 @@ public class RTDebugCommand
 				BlockState state = world.getBlockState(blockPos);
 				// run the placement hooks too (e.g. the Ender Mailbox only opens for its owner, set on placement)
 				state.getBlock().onBlockPlacedBy(world, blockPos, state, player, new ItemStack(block));
-				BlockRayTraceResult hit = new BlockRayTraceResult(new Vec3d(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D), player.getHorizontalFacing().getOpposite(), blockPos, false);
-				boolean handled = state.onBlockActivated(world, player, Hand.MAIN_HAND, hit);
+				BlockRayTraceResult hit = new BlockRayTraceResult(new Vector3d(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D), player.getHorizontalFacing().getOpposite(), blockPos, false);
+				boolean handled = state.onBlockActivated(world, player, Hand.MAIN_HAND, hit).isSuccessOrConsume();
 
 				net.minecraft.tileentity.TileEntity te = world.getTileEntity(blockPos);
 
@@ -217,6 +231,12 @@ public class RTDebugCommand
 			{ "imbuing_station", "" }, { "ender_mailbox", "" }, { "block_destabilizer", "" }, { "dyeing_machine", "" },
 			{ "chunk_analyzer", "" }, { "sound_recorder", "" }, { "portable_sound_dampener", "" }, { "ender_letter", "" },
 			{ "redstone_remote", "sneak" }, { "redstone_remote", "" } };
+
+	/** The (block/item id, "sneak" or "") list shared with the client click test. */
+	public static String[][] guiList()
+	{
+		return ALL_GUIS;
+	}
 
 	private static class AllGuisRun
 	{
@@ -315,7 +335,7 @@ public class RTDebugCommand
 			r.player.setHeldItem(Hand.MAIN_HAND, r.originalHand);
 			String summary = "[rtdebug] allguis finished: " + r.opened + "/" + ALL_GUIS.length + " opened" + (r.failed.isEmpty() ? "" : ", NOT opened: " + r.failed);
 			RTDebug.log(summary);
-			r.player.sendMessage(new StringTextComponent(summary));
+			r.player.sendMessage(new StringTextComponent(summary), net.minecraft.util.Util.DUMMY_UUID);
 			run = null;
 			allGuisFinished = true;
 			return;

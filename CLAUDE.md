@@ -12,7 +12,8 @@ project state from scratch; that file is kept current after every slice.
 
 ## Branches
 
-- `1.14.4` — active port work, checked out by default.
+- `1.14.4` — the 1.14.4 port (Forge 28.2.26, Gradle 5.6.4).
+- `1.16.5` — the 1.16.5 port (Forge 36.2.39, ForgeGradle 4.1, Gradle 6.8.3), branched from `1.14.4`; plan in `docs/migration/plans/1.16.5-port-plan.md`.
 - `master` — untouched original 1.12.2-era source, kept as reference (`git show origin/1.12.2:<path>`
   to read the real original of any file).
 - `main` — landing-page README only, no code.

@@ -17,6 +17,7 @@ import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
+import lumien.randomthings.util.BiomeUtil;
 
 /**
  * A crystal tuned to one target biome (its registry name, stored in NBT).
@@ -37,7 +38,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         Biome biome = getBiome(stack);
 
         if (biome != null) {
-            name = new StringTextComponent(name.getString() + " (" + biome.getDisplayName().getString() + ")");
+            name = new StringTextComponent(name.getString() + " (" + BiomeUtil.displayName(biome).getString() + ")");
         }
 
         return name;
@@ -50,7 +51,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         Biome biome = getBiome(stack);
 
         if (biome != null) {
-            tooltip.add(biome.getDisplayName());
+            tooltip.add(BiomeUtil.displayName(biome));
         }
     }
 
@@ -58,7 +59,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     public boolean hasEffect(ItemStack stack) {
         Biome biome = getBiome(stack);
 
-        return biome != null && BiomeDictionary.hasType(biome, Type.MAGICAL);
+        return biome != null && BiomeUtil.hasType(biome, Type.MAGICAL);
     }
 
     @Override
@@ -85,6 +86,6 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     public static void setBiome(ItemStack stack, Biome biome) {
         CompoundNBT compound = stack.getOrCreateTag();
 
-        compound.putString("biomeName", ForgeRegistries.BIOMES.getKey(biome).toString());
+        compound.putString("biomeName", biome.getRegistryName().toString());
     }
 }

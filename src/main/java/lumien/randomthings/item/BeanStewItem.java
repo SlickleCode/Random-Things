@@ -33,7 +33,7 @@ public class BeanStewItem extends Item
 
 				if (!added && !worldIn.isRemote)
 				{
-					((ServerWorld) worldIn).addEntity(new ItemEntity(worldIn, livingEntity.posX, livingEntity.posY, livingEntity.posZ, new ItemStack(Items.BOWL)));
+					((ServerWorld) worldIn).addEntity(new ItemEntity(worldIn, livingEntity.getPosX(), livingEntity.getPosY(), livingEntity.getPosZ(), new ItemStack(Items.BOWL)));
 				}
 			}
 			return stack;

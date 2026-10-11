@@ -15,7 +15,7 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.world.server.ServerWorld;
 
 public class GlowingMushroomBlock extends Block
 {
@@ -23,7 +23,7 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).lightValue(15).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
+		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).setLightLevel(state -> 15).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class GlowingMushroomBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, World worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
 	{
 		if (rand.nextInt(20) == 0)
 		{
@@ -121,11 +121,5 @@ public class GlowingMushroomBlock extends Block
 	{
 		Block block = state.getBlock();
 		return block == Blocks.GRASS_BLOCK || block == Blocks.DIRT || block == Blocks.STONE || block == ModBlocks.FERTILIZED_DIRT;
-	}
-
-	@Override
-	public BlockRenderLayer getRenderLayer()
-	{
-		return BlockRenderLayer.CUTOUT;
 	}
 }

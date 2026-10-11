@@ -76,6 +76,14 @@ Findings:
 - **Plan:** keep JS coremods through Forge 1.21.10 / NeoForge 21.5. At 1.21.11 (Forge) or NeoForge 21.8+ a different mechanism is
   needed (Java-based transformer service, or Mixin); spike it when that branch starts.
 
+### Q13. Do the coremods work in a reobfuscated production jar? (found 2026-10-11, open)
+- All JS transformers match **dev (MCP) method names** (`renderModel`, `getBiome`, ...). A production Forge runs SRG names (`func_...`), so the same scripts would silently not apply.
+  Nothing in either branch has verified this. Fix pattern: match SRG ids via `ASMAPI.mapMethod("func_...")` (maps to the right name in both environments); the SRG id of each
+  method comes from the MCP `methods.csv`. Check with a real jar in a launcher install before any release.
+
+### Q14. Suppress the "experimental settings" prompt when reopening a world with the Spectre dimension (open)
+- 1.16.5 marks any world with a non-vanilla dimension as experimental on load. Options: accept (other dimension mods do), or coremod `ServerWorldInfo.getLifecycle` / the `Lifecycle.stable()` comparison in `Minecraft.loadWorld`.
+
 ### Q3. Next migration target - DECIDED 2026-10-08
 - The next target is **1.16.5 on Forge**, taken directly from 1.14.4 (1.15.2 skipped, Q11); see `versions/README.md`.
   Start it only after the 1.14.4 playtest backlog is cleared, unless the owner says otherwise.

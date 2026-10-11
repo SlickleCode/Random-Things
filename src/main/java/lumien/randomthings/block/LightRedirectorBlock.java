@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.util.ActionResultType;
 
 /**
  * A full-cube "periscope": whichever faces are left open (right-click a face
@@ -86,15 +87,15 @@ public class LightRedirectorBlock extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
+    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
         if (worldIn.isRemote) {
-            return true;
+            return ActionResultType.SUCCESS;
         }
 
         TileEntity te = worldIn.getTileEntity(pos);
 
         if (!(te instanceof LightRedirectorTileEntity)) {
-            return false;
+            return ActionResultType.PASS;
         }
 
         Direction facing = hit.getFace();
@@ -103,7 +104,7 @@ public class LightRedirectorBlock extends Block {
 
         worldIn.setBlockState(pos, state.with(propertyFor(facing), redirector.isEnabled(facing)), 3);
 
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
     @Override
