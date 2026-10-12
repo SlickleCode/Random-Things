@@ -1,0 +1,10 @@
+## 6. Not implemented yet — don't test these, they don't exist
+
+Deliberately deferred, each for a stated reason (see the plan file for full
+detail) — no point filing a bug against these:
+
+- **Voxel Projector** — undocumented (no wiki page), not migrating; shares Diaphanous Blocks/Light Redirector's old "needs a generic runtime block-model renderer" tag but was never in scope on its own.
+- **"Ender network"** — **WILL NOT MIGRATE** (confirmed final 2026-09-29): traced the real 1.12.2 source (`BlockLinkOrb`/`TileEntityLinkOrb`/`RenderLinkOrb`, `EntityEnderConnection`) and found it was abandoned, unshipped scaffolding in the original mod itself - never registered as a placeable block (no item, recipe, model, or lang key), and `EntityEnderConnection` is a bare stub with no working logic and no entity-type registration at all. No wiki page ever documented it. Nothing here ever worked, so there's nothing to port. (The rest of the "Spectre" wiki family - Illuminator #272-274, Dimension/Key/Core #297-301, Wireless Redstone Interface #283-286, Tools #303-306, the energy network's Charger/Coils/Injector #307-311, Lens #312-313 - is fully done; this was the one adjacent thing left over, and it's now closed out rather than pending.)
+- **Item Filter** — **WILL NOT MIGRATE** (confirmed final 2026-09-29): its only two consumers (Advanced Item Collector, Filtered Super Lubricent Platform) are already shipped with their own simplified built-in filters, so a standalone Item Filter item would be orphaned. See `WIKI_FEATURE_STATUS.md` for the full note.
+- **Potion of Collapse** (the `collapse` effect + brewing recipes), **Blackout Powder** (turns off a Spectre Illuminator's chunk light), and the modded-ore Divining Rods and any other mod integrations (aluminum, copper, tin, etc. - need tags from other mods) — **WILL NOT MIGRATE** (user decision 2026-09-29).
+- (Crafting recipes for everything that is ported were backfilled 2026-09-29, see #348-#352; the previous "most crafting recipes not started" line here was out of date.)

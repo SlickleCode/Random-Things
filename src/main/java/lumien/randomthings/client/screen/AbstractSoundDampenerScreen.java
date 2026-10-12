@@ -27,6 +27,14 @@ public abstract class AbstractSoundDampenerScreen<T extends AbstractSoundDampene
     }
 
     @Override
+    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(matrixStack);
+        super.render(matrixStack, mouseX, mouseY, partialTicks);
+        // 1.12.2's GuiContainerBase did this for every container GUI: without it the Sound Pattern tooltips never show
+        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+    }
+
+    @Override
     protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
         this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
     }

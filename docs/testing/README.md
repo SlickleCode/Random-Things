@@ -106,6 +106,13 @@ vanilla `version.json`) from having built the project once.
 force-loads ~1,700 chunks, saves and counts region-file chunks that contain a Glowing Mushroom. It caught that new 1.16.5 worlds never generated mushrooms (0 chunks) while the
 in-test cave and terrain checks first looked fine; use it after touching natural generation.
 
+
+### Scripted playtest scenarios (Minecraft window driven by a helper)
+
+`docs/testing/desktop-helper/` (`desk.py` + `scn.py`, copy to `prod-test/desktop/`) drives the real game window through deterministic scenarios in a fresh seed-424242 world.
+It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` its world-creation clicks need re-calibrating first
+(different create-world screen). Pixel reads must use `desk.grab()` (one frame) rather than many `desk.pixel()` calls.
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different

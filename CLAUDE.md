@@ -38,9 +38,12 @@ source env/activate.sh   # pins JDK 8
 ./gradlew build          # full build; add -x test to skip tests for a quick compile check
 ```
 
-`TESTING_CHECKLIST.md` (repo root) is the live in-game testing tracker — check it for new `FAIL` rows
-at the start of a session before starting new porting work. `WIKI_FEATURE_STATUS.md` tracks which
-wiki-documented features are DONE/NOT STARTED.
+`TESTING_CHECKLIST.md` (repo root) is the live in-game testing tracker (open rows only) — check it for new
+`FAIL` rows at the start of a session before starting new porting work; add new/changed-feature rows there as
+`FIXED`. The full finished sheet is in `docs/testing/checklist-archive/`, root-cause writeups per row in
+`docs/testing/fix-log/`. Root markdown files are deliberately short (`PORTING_PLAN.md` handoff,
+`WIKI_FEATURE_STATUS.md` scope summary); project knowledge (conventions, coremods, API gotchas, scope decisions,
+history) lives in `docs/project/` — put new detail there, not back in the root files.
 
 ## Working rules
 

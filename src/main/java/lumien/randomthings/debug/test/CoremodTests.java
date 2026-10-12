@@ -122,7 +122,7 @@ final class CoremodTests
 					}
 				}
 			}
-		}).waitTicks(100).run(c -> {
+		}).waitTicks(200).run(c -> {
 			c.check(canSpawnSometimes(c, EntityType.ZOMBIE, c.at(0, 1, 0)), "baseline: vanilla must accept a zombie spawn in a sealed dark room");
 			c.set(c.at(5, 1, 5), ModBlocks.PEACE_CANDLE);
 			c.check(!canSpawnSometimes(c, EntityType.ZOMBIE, c.at(0, 1, 0)), "a Peace Candle within 3 chunks must deny monster spawns");

@@ -247,6 +247,7 @@ public class ClientSetup {
 
         for (SoundDampenerTileEntity dampener : WeakSets.snapshot(SoundDampenerTileEntity.loadedDampeners)) {
             if (dampener.getWorld() == thePlayer.world && !dampener.isRemoved() && dampener.getPos().distanceSq(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
+                lumien.randomthings.debug.RTDebug.log("muted sound {} (placed dampener)", soundLocation);
                 event.setResultSound(null);
                 return;
             }
@@ -263,6 +264,7 @@ public class ClientSetup {
                 RTPacketHandler.sendToServer(new PlayedSoundMessage(soundLocation.toString(), slot));
             } else if (stack.getItem() == ModItems.PORTABLE_SOUND_DAMPENER) {
                 if (mutesSound(PortableSoundDampenerItem.getInventory(stack), soundLocation)) {
+                    lumien.randomthings.debug.RTDebug.log("muted sound {} (portable dampener)", soundLocation);
                     event.setResultSound(null);
                     return;
                 }

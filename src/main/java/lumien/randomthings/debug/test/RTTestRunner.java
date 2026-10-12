@@ -57,6 +57,8 @@ public final class RTTestRunner
 			return "refusing to run: the test area is wiped between tests, so use a flat world (e.g. the RTAutoTest world)";
 		}
 
+		controlWorld(world);
+
 		List<RTTest> all = new ArrayList<>();
 		all.addAll(BehaviorTests.create());
 		all.addAll(MoreBehaviorTests.create());
@@ -102,6 +104,29 @@ public final class RTTestRunner
 	public static int queued()
 	{
 		return queue == null ? 0 : queue.size();
+	}
+
+	/**
+	 * Same controlled conditions the manual playtest scenarios use (prod-test/desktop/scn.py): always day, no weather cycle, no mob
+	 * spawning, no stray mobs, so a test never depends on the time of day, rain or a wandering mob.
+	 */
+	private static void controlWorld(ServerWorld world)
+	{
+		net.minecraft.world.GameRules rules = world.getGameRules();
+		rules.get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false, world.getServer());
+		rules.get(net.minecraft.world.GameRules.DO_WEATHER_CYCLE).set(false, world.getServer());
+		rules.get(net.minecraft.world.GameRules.DO_MOB_SPAWNING).set(false, world.getServer());
+		world.setDayTime(6000);
+		world.getWorldInfo().setRaining(false);
+		((net.minecraft.world.storage.IServerWorldInfo) world.getWorldInfo()).setThundering(false);
+
+		for (net.minecraft.entity.Entity entity : world.getEntities().collect(java.util.stream.Collectors.toList()))
+		{
+			if (entity instanceof net.minecraft.entity.MobEntity)
+			{
+				entity.remove();
+			}
+		}
 	}
 
 	public static void onServerTick(TickEvent.ServerTickEvent event)

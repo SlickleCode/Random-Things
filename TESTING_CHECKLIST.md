@@ -1,690 +1,148 @@
-# Random Things 1.14.4 Port — Testing Sheet
+# Random Things - Testing Checklist (open items only)
 
-One row per individually testable feature. Fill in **Result** with `Pass` or
-`Fail` (leave blank if untested), and add a one-sentence note in **Feedback**
-— especially for a `Fail`, since I can't run the game myself and need
-specifics (what you did, what happened vs. what you expected) to fix it.
-Rows are numbered so you can reference a specific one back to me, e.g. "#47
-is broken."
+> **On the `1.16.5` branch:** this is the 1.14.4 sheet (every row was tested on 1.14.4). Rows are re-verified on 1.16.5 milestone by milestone; open 1.16.5-specific work is listed in `PORTING_PLAN.md`.
 
-Root-cause writeups and fix history for a row (mine, not yours) live in
-[`TESTING_NOTES.md`](TESTING_NOTES.md) under the same row number, not here —
-this column stays free for your own notes.
+The full numbered sheet with every row's test steps and your results (2026-10-11) is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md). This file lists only what still needs you. Record a result by filling the Result column here (Pass / Fail + one sentence), or just tell Claude the row number. Root-cause / fix writeups: [`docs/testing/fix-log/`](docs/testing/fix-log/README.md).
 
----
+**Totals (392 rows):** PASS 227, blank 105, DONE 40, FIXED 16, REMOVED 4
 
-## 1. Priority: recently fixed bugs (please confirm these first)
+**Ordered playtest route (about 90 minutes, with commands): [`docs/testing/playtest-route-1.14.4.md`](docs/testing/playtest-route-1.14.4.md).**
 
-These were reported broken previously and fixed blind (no in-game
-verification possible on my end) — highest chance of still being wrong.
+## A. Failing or partial (0)
+
+None.
+
+## B. Fixed, waiting for your retest (14)
 
 | # | Feature | Result | Feedback |
 |---|---|---|---|
-| 1 | Contact Lever — item icon (inventory/hand) renders correctly | PASS |  |
-| 2 | Contact Lever — block appearance, unpowered | PASS |  |
-| 3 | Contact Lever — block appearance, powered/active | PASS |  |
-| 4 | Luminous Brick — item icon renders at full brightness (check a few of the 16 colors) | PASS |  |
-| 5 | Stained Brick (non-luminous) — item icon renders correctly | PASS |  |
-| 6 | ~~Accelerator Plate — item icon~~ (removed per request) | DONE |  |
-| 7 | ~~Bouncy Plate — item icon~~ (removed per request) | DONE |  |
-| 8 | ~~Collection Plate — item icon~~ (removed per request) | DONE |  |
-| 9 | ~~Corrector Plate — item icon~~ (removed per request) | DONE |  |
-| 10 | ~~Directional Accelerator Plate — item icon~~ (removed per request) | DONE |  |
-| 11 | ~~Item Rejuvenator Plate — item icon~~ (removed per request) | DONE |  |
-| 12 | ~~Item Sealer Plate — item icon~~ (removed per request) | DONE |  |
-| 13 | ~~Redirector Plate — item icon~~ (removed per request) | DONE |  |
-| 14 | ~~Redstone Plate — item icon~~ (removed per request) | DONE |  |
-| 15 | Trigger Glass — unpowered: renders translucent (not opaque) | PASS |  |
-| 16 | Trigger Glass — powered: no collision, can walk through | PASS |  |
-| 17 | Trigger Glass — powered: no suffocation damage while standing in it | PASS |  |
-| 18 | Trigger Glass — powered: visibly more translucent than unpowered | PASS |  |
-| 19 | Trigger Glass — re-solidifies ~60 ticks after power is removed | PASS |  |
-| 20 | Trigger Glass — sand/gravel falls through while triggered | PASS |  |
-| 21 | Lapis Glass — solid to the player (can stand/walk on top, blocks walking through) | PASS |  |
-| 22 | Lapis Glass — passable to non-player entities (mobs/items/arrows pass through) | PASS |  |
-| 23 | Lapis Glass — no suffocation damage to the player | PASS |  |
-| 24 | Quartz Glass — passable to the player (walk straight through, no collision) | PASS |  |
-| 25 | Quartz Glass — solid to non-player entities (a mob can't walk through it) | PASS |  |
-| 26 | Quartz Glass — no suffocation damage to the player | PASS |  |
-| 27 | Lapis Glass — jumping/falling onto it from above lands correctly | PASS |  |
-| 28 | Quartz Glass — a mob correctly paths around it instead of into it | PASS |  |
-
-
----
-
-## 2. Batch 1 — standalone blocks (no GUI/tile entity)
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 29 | Lapis Lamp | PASS |  |
-| 30 | Quartz Lamp | PASS |  |
-| 31 | Super Lubricent Ice | PASS |  |
-| 32 | Super Lubricent Platform | PASS |  |
-| 136 | Super Lubricent Stone | PASS |  |
-| 33 | Compressed Slime Block | PASS |  |
-| 34 | Contact Button | PASS |  |
-| 35 | Spectre Block (plain decorative) | PASS |  |
-| 36 | Spectre Log | PASS |  |
-| 37 | Spectre Plank | PASS |  |
-| 38 | Spectre Leaves | PASS |  |
-| 39 | Spectre Sapling — grows into a tree (simplified fixed shape, not worldgen-feature-based) | PASS |  |
-| 40 | ~~Accelerator Plate — function (speeds up entities)~~ (removed per request) | DONE |  |
-| 41 | ~~Bouncy Plate — function (bounces entities)~~ (removed per request) | DONE |  |
-| 42 | ~~Collection Plate — function (pulls from neighbor inventory)~~ (removed per request) | DONE |  |
-| 43 | ~~Corrector Plate — function~~ (removed per request) | DONE |  |
-| 44 | ~~Directional Accelerator Plate — function~~ (removed per request) | DONE |  |
-| 45 | ~~Item Rejuvenator Plate — function~~ (removed per request) | DONE |  |
-| 46 | ~~Item Sealer Plate — function~~ (removed per request) | DONE |  |
-| 47 | ~~Redirector Plate — function (redirects entity movement)~~ (removed per request) | DONE |  |
-| 48 | ~~Redstone Plate — function~~ (removed per request) | DONE |  |
-| 49 | Glowing Mushroom |  |  |
-| 50 | Sided Redstone | PASS |  |
-| 51 | ~~Pitcher Plant~~ (removed per request) | DONE |  |
-| 52 | Stained Brick — non-luminous variants (spot-check a few of the 16 colors) | PASS |  |
-| 53 | Stained Brick — luminous variants, glow correctly (spot-check a few of the 16 colors) | PASS |  |
-| 54 | Biome Glass (5 variants: cobble/smooth/brick/cracked/chiseled) — tints by biome | REMOVED | Feature deliberately removed per user request 10/3/2026 (code, assets, recipes, lang all deleted). |
-| 55 | Biome Stone (5 variants) — tints by biome | REMOVED | Feature deliberately removed per user request 10/3/2026 (code, assets, recipes, lang all deleted). |
-| 56 | Colored Grass — all 16 colors via Grass Seeds, tinted, spreads, shovel preference, "<Color> Grass Block" name | PASS | Confirmed working by user 2026-10-04. |
-| 57 | Luminous Block — glows correctly (spot-check a few of the 16 colors) | PASS |  |
-| 58 | Luminous Translucent Block — glows + is see-through (spot-check a few colors) | PASS |  |
-| 59 | "Beans" item — plants Bean Sprout | PASS |  |
-| 60 | "Lesser Magic Bean" item — plants the lesser Bean Stalk | PASS |  |
-| 61 | "Magic Bean" item — plants the fast/strong magic Bean Stalk | PASS |  |
-| 62 | Bean Sprout | PASS |  |
-| 63 | Bean Stalk (lesser) | PASS |  |
-| 64 | Bean Stalk (magic) | PASS |  |
-| 65 | Pod — drops beans when broken | PASS |  |
-| 66 | Lotus Seeds — plants Lotus | PASS |  |
-| 67 | Lotus — 4 growth stages, harvestable at max age without breaking the plant<br> | PASS |  |
-| 67.1 | Lotus Blossom | PASS |  |
-| 68 | ~~Sakanade — shearable, hangs under giant mushroom caps~~ (removed per request) | DONE |  |
-| 69 | Blazing Fire — spreads noticeably faster than vanilla fire | PASS |  |
-| 70 | Blazing Fire — catches flammable blocks (wood/wool) more eagerly than vanilla (coremod-only tuning — if it behaves identical to vanilla fire, the coremod likely isn't applying) | PASS |  |
-
-Batch 1 loot tables backfilled 2026-09-29 (see #329-#333). Previously: none of them had loot tables. Was tracked as
-a follow-up cleanup slice.
-
----
-
-## 3. Batch 2 — tile-entity/GUI-backed blocks
-
-### Slice 1
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 71 | Analog Emitter — reads input side, re-emits configurable 0–15 on other sides | PASS |  |
-| 72 | Igniter — Toggle mode | PASS |  |
-| 73 | Igniter — Ignite mode | PASS |  |
-| 74 | ~~Igniter — Keep Ignited mode~~ (removed per request) | DONE |  |
-| 75 | Online Detector — emits redstone while the configured username is online | PASS |  |
-| 76 | Item Collector — vacuums nearby dropped items into attached inventory | PASS |  |
-| 77 | Item Collector — 6-way directional model looks correctly oriented on all faces | PASS | Real bug: this port's blockstate rotation values for the 4 horizontal facings didn't match 1.12.2's real numbers at all … |
-| 78 | ~~Extraction Plate — pulls items from target inventory, ejects toward cycled output side~~ (removed per request) | DONE |  |
-| 79 | ~~Processing Plate — extraction+eject timer, plus touch-triggered insert of colliding items~~ (removed per request) | DONE |  |
-
-### Slice 2
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 80 | Advanced Redstone Repeater — configurable turn-on delay respected | PASS |  |
-| 81 | Advanced Redstone Repeater — configurable turn-off delay respected (independently of turn-on) | PASS |  |
-| 81.1 | Advanced Redstone Repeater — breaking the "off" state block shows a normal break particle effect, not the pink/black missing-texture one | PASS | **2026-09-28: real bug found - same stale-vanilla-texture-name class as #80/81's original fix, one instance that pass … |
-
-### Slice 3
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 82 | Iron Dropper — 9-slot inventory GUI | PASS |  |
-| 83 | Iron Dropper — 6-way facing on placement | PASS |  |
-| 84 | Iron Dropper — redstone mode: Pulse | PASS |  |
-| 85 | Iron Dropper — redstone mode: Repeat Powered | PASS |  |
-| 86 | ~~Iron Dropper — redstone mode: Repeat~~ (removed per request) | DONE |  |
-| 87 | Iron Dropper — drops its inventory contents when broken | PASS |  |
-
-### Slice 4
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 88 | ~~Custom Workbench~~ (removed per request) | DONE |  |
-
-### Slice 5
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 89 | Player Interface — exposes placer's online inventory correctly per side (hotbar below, armor above, offhand north, rest elsewhere) | PASS | Real bug: the armor-side capability wrapped the raw player inventory directly, whose `isItemValidForSlot` always … |
-| 90 | Inventory Tester — weak signal reflects whether held item could insert into faced inventory, with invert toggle | PASS |  |
-| 91 | Inventory Rerouter — right-click cycles a side's capability redirect, and now tells you in an action-bar message exactly which direction that side redirects to (or "disabled") every time … | REMOVED | Feature deliberately removed per user request 10/3/2026 (code, assets, recipes, lang all deleted). |
-| 92 | Inventory Rerouter — two rerouters facing each other don't infinite-loop | REMOVED | Feature deliberately removed per user request 10/3/2026 (code, assets, recipes, lang all deleted). |
-| 93 | Chat Detector — GUI text field, pulses on placer typing the exact configured message | PASS | Confirmed working by user 2026-10-04. |
-
-### Slice 6
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 94 | Redstone Tool | PASS |  |
-| 95 | Redstone Observer | PASS |  |
-
-### Slice 7
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 96 | Potion Vaporizer — correctly detects the enclosed room it faces (flood fill) | PASS |  |
-| 97 | Potion Vaporizer — applies the stored potion's effect to entities inside that room | PASS |  |
-| 98 | Potion Vaporizer — burns fuel correctly | PASS |  |
-| 99 | Potion Vaporizer — bottle-out slot can't be manually filled by the player, only by the machine | PASS |  |
-| 99.1 | Potion Vaporizer - Ignore Non-full blocks like torches | PASS |  |
-
-### Slice 8
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 100 | ~~Special Chest (Nature) — placed block renders custom texture + lid animation~~ (removed per request) | DONE |  |
-| 101 | ~~Special Chest (Nature) — item icon renders as a 3D chest, not a flat icon~~ (removed per request) | DONE |  |
-| 102 | ~~Special Chest (Water) — placed block renders custom texture + lid animation~~ (removed per request) | DONE |  |
-| 103 | ~~Special Chest (Water) — item icon renders as a 3D chest, not a flat icon~~ (removed per request) | DONE |  |
-
-### Slice 9 + 10
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 104 | Entity Detector — filter modes (All/Living/Animal/Monster/Player/Items) each trigger correctly | PASS |  |
-| 105 | Entity Detector — Custom mode with an Entity Filter Item in the slot | PASS |  |
-| 106 | Entity Detector — per-axis radius (0–10) is respected | PASS |  |
-| 107 | Entity Detector — invert toggle | PASS |  |
-| 108 | Entity Filter Item — right-click an entity to capture its exact type | PASS | **Investigated, no bug found** - the capture hook (`itemInteractionForEntity`) matches 1.12.2's own mechanism exactly … |
-| 109 | ~~Filtered Redirector Plate — redirects left/right per-entity based on the two filter slots (second slot wins if both match)~~ (removed per request) | DONE |  |
-
-### Slice 11
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 110 | Slime Cube — unpowered forces slime spawns to be allowed in its chunk | PASS |  |
-| 111 | Slime Cube — powered forces slime spawns to be denied in its chunk | PASS |  |
-| 112 | Advanced Item Collector — longer range, per-axis radius, single-item filter slot | PASS |  |
-
-### Slice 12
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 113 | Filtered Super Lubricent Platform — items matching the filter slot fall through instead of sliding on top | PASS |  |
-
-### Slice 13
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 114 | Notification Interface — pops a toast (title/description/item icon) only for the linked player on a redstone rising edge | PASS |  |
-
-### Slice 14
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 115 | ID Card — right-click binds it to yourself | PASS |  |
-| 116 | Global Chat Detector — catches/hides messages from any player with a matching ID card in its whitelist | PASS |  |
-| 117 | ~~Global Chat Detector — server operators bypass the whitelist check~~ (removed per request) | DONE |  |
-
----
-
-## 4. General spot-checks across the whole port
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 118 | No raw untranslated `block.randomthings.xxx`-style strings showing up in tooltips/GUI titles | PASS |  |
-| 119 | Batch 2 blocks all drop correctly when broken (they have loot tables, unlike Batch 1) | PASS |  |
-| 120 | GUI text-cycle mode buttons (Igniter, Entity Detector, etc.) are legible and functional (plain text, not the original's icon-sprite buttons — cosmetic difference only) | PASS | GUI audit complete 2026-10-04: all 28 GUIs reviewed and marked (see `GUI_TEST_LIST.md`). |
-
----
-
-## 5. Batch 3 — remaining (non-block) items
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 121 | Bean Stew — eat it, restores 8 hunger, leaves you holding an empty bowl afterward |  |  |
-| 122 | Blaze and Steel — right-click a block face to place Blazing Fire instead of vanilla fire; damages the tool by 1 per use | PASS |  |
-| 123 | Bottle of Air — right-click while standing in water to drink; should fully refill your air/breath meter in one go and be consumed (count -1) | PASS |  |
-| 124 | Stable Ender Pearl — right-click to bind it to yourself (tooltip should show "Bound to \<your name\>"), then throw it … | PASS |  |
-| 125 | Stable Ender Pearl — thrown while unbound (fresh from creative, no right-click-to-bind first) … | PASS |  |
-| 126 | ~~Obsidian Skull~~ (removed per request) | DONE |  |
-| 127 | ~~Lava Charm~~ (removed per request) | DONE |  |
-| 128 | ~~Lava Wader~~ (removed per request) | DONE |  |
-| 129 | ~~Lava Wader~~ (removed per request) | DONE |  |
-| 130 | ~~Water Walking Boots~~ (removed per request) | DONE |  |
-| 131 | ~~Obsidian Water Walking Boots~~ (removed per request) | DONE |  |
-| 132 | ~~Obsidian Water Walking Boots~~ (removed per request) | DONE |  |
-| 133 | ~~Lava Wader~~ (removed per request) | DONE |  |
-| 134 | Super Lubricent Boots — worn as boots, makes EVERY surface as slippery as a Super Lubricent block (not just the three actual Super Lubricent blocks), sliding around constantly | PASS |  |
-| 135 | Sneaking while wearing Super Lubricent Boots — should walk normally (sneaking cancels the boots' effect, the only way to stop sliding) | PASS |  |
-| 136 | Position Filter — right-click a block to store its position … | PASS |  |
-| 137 | Golden Compass — freshly crafted (gold ingots + vanilla compass), no target set yet: needle wobbles/spins randomly like an unbound vanilla compass near the Nether, never settles | PASS |  |
-| 138 | Golden Compass — combine with a Position Filter that has a stored position at a crafting table … | PASS |  |
-| 139 | Emerald Compass — freshly crafted (emeralds + vanilla compass), no target bound yet: needle wobbles randomly, same as an unbound Golden Compass | PASS |  |
-| 140 | Emerald Compass — bind an ID Card to yourself (right-click), then combine it with the compass at a crafting table … | PASS |  |
-| 141 | Emerald Compass — bound player logs off: needle goes back to a random wobble instead of pointing at their last known position, and resumes tracking automatically once they log back in | PASS |  |
-| 142 | Escape Rope — deep underground (no sky visible from where you're standing), hold right-click … | PASS |  |
-| 143 | Escape Rope — release right-click partway through the search instead of holding it the whole time … | PASS |  |
-| 144 | Escape Rope — used 20 times (its full durability): breaks like a normal tool after the 21st successful use | PASS |  |
-| 145 | Chunk Analyzer — right-click to open the GUI, hit the "Scan" button … | PASS |  |
-| 146 | Chunk Analyzer — close the GUI and reopen it without rescanning: the previous scan results are still there (persisted in the item's own NBT), no need to rescan | PASS |  |
-| 147 | Chunk Analyzer — scan a chunk, then move to your own inventory/hotbar/armor while the scan is running (e.g. pick up or drop an item) … | PASS |  |
-| 148 | Chunk Analyzer — scan a very tall/full chunk (lots of terrain, caves, etc.) … | PASS |  |
-| 149 | Biome Radar — right-click with an empty hand and a Biome Crystal in your other hand's slot/held: inserting works, and right-clicking again with an empty hand takes the crystal back out |  |  |
-| 150 | Biome Radar — build the antenna (iron bars in the specific pattern above the radar — see `BiomeRadarTileEntity.isValid()` or just try a small iron-bars frame 2-3 blocks up), insert a crystal, then power it with redstone: it starts searching, and colored dust particles appear above the antenna as it samples biomes |  |  |
-| 151 | Biome Radar — let a search finish (crystal's target biome found): particles change to the target biome's color, then right-click with paper: consumes the paper and gives you a Position Filter pointing at the found location |  |  |
-| 152 | Biome Radar — break one of the antenna's iron bars while a search is active (not directly adjacent to the radar, so no immediate neighbor-update): within a few seconds the radar should notice and drop back to idle instead of continuing to search with a broken antenna |  |  |
-| 153 | Biome Radar — break the radar block itself while it has a crystal inserted: the crystal drops instead of being deleted |  |  |
-| 154 | Sound Recorder — sneak-right-click to start recording (icon changes), walk around hearing various sounds (footsteps, mobs, blocks, etc … | PASS |  |
-| 155 | Sound Recorder GUI — put a blank Sound Pattern in the left slot, click a sound name in the list: a "full" Sound Pattern (different icon, tooltip shows the sound's name) appears in the right slot and the blank one is consumed | PASS | Confirmed working by user 2026-10-04 (hover/click, border, scrollbar drag, row padding). |
-| 156 | Sound Pattern — sneak-right-click a full (stamped) pattern: clears it back to blank | PASS |  |
-| 157 | Sound Box — right-click with a full Sound Pattern to insert it (block's texture changes to its "full" look), then power it with redstone: plays that sound … | PASS |  |
-| 158 | Sound Dampener — place, right-click to open its 9-slot GUI, insert a few full Sound Patterns: any of those sounds played by ANYONE within ~20 blocks of the block go silent for everyone in range, not just you | FAIL | **Investigated, no bug found - matches 1.12.2 exactly** (byte-for-byte same `distanceSq < 20*20` check, confirmed via that branch's real source). Note the 20-block check is against the *sound's own origin position*, not your distance from the dampener - if the sound source (a mob, a block) was itself within 20 blocks of the dampener, it mutes regardless of how far you personally were standing when you heard it. If that's not what happened, tell me the exact distance from the sound source (not you) to the dampener and I'll dig further. |
-| 159 | Portable Sound Dampener — right-click to open its 9-slot GUI (carried in your own inventory, not placed), insert a few full Sound Patterns: those sounds go silent for you specifically no matter where you are, as long as you're carrying it anywhere in your inventory (not just held) |  |  |
-| 160 | Sound Dampener / Portable Sound Dampener — break the block or take the pattern back out of a slot: the muting stops for that sound, and any Sound Patterns inside are dropped/returned rather than deleted |  |  |
-| 161 | Rune Dust — right-click the top of a solid block: places a new, invisible-until-decorated Rune Base with one colored pixel in the corner you clicked (a 4x4 grid across the whole block) … | PASS |  |
-| 162 | Rune Base — place two side-by-side, put matching-colored pixels on the touching edge of each: a connecting strip of that color bridges the gap between them … | PASS |  |
-| 163 | Rune Base — left-click (not fully breaking) anywhere on it: every pixel on the block pops off as its own dropped Rune Dust item, and the block itself disappears immediately | PASS |  |
-| 164 | Rune Base — break the block outright (not via left-click-to-remove-one) while it still has pixels: every remaining pixel drops as its matching Rune Dust, not just one | PASS |  |
-| 165 | Rune Base — remove the solid block underneath it: the Rune Base itself breaks (and drops its pixels, per #164) | PASS |  |
-| 166 | Rune Pattern — right-click an existing Rune Base: copies its pattern onto the Rune Pattern item (tooltip lists each color and how many pixels) … | PASS |  |
-| 167 | Rune Pattern — sneak-right-click: turns back into a plain vanilla paper item | PASS |  |
-
-### Slice 15
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 168 | Imbuing Station — craft: water bucket + emerald + 2x vine + 2x lily pad + terracotta |  |  |
-| 169 | Imbuing Station — put the COBBLESTONE in the center slot and a water bottle + vine + bone meal in the 3 ingredient slots (any order, as in 1.12.2): after 200 ticks, produces Mossy Cobblestone in the output slot and consumes exactly 1 of each input | FIXED | Earlier text had the bottle and cobblestone swapped. Real bug found by `behavior.imbuing_station.*`: the machine consumed the inputs but could never put the result into its output slot (it used `insertItem`, which the output slot rejects on purpose). Fixed; please retest this and #170-173 in-game. |
-| 170 | Imbuing Station — water bottle (center) + coal + flint + blaze powder -> Fire Imbue potion |  |  |
-| 171 | Imbuing Station — water bottle (center) + spider eye + rotten flesh + red mushroom -> Poison Imbue potion |  |  |
-| 172 | Imbuing Station — water bottle (center) + Lesser Magic Bean + lapis lazuli + glowstone dust -> Experience Imbue potion |  |  |
-| 173 | Imbuing Station — water bottle (center) + wither skeleton skull + nether brick + ghast tear -> Wither Imbue potion |  |  |
-| 174 | Imbuing Station — progress arrow + the three per-slot "fill" animations only animate while a valid recipe is in progress; output slot rejects manual insertion (machine-only) |  |  |
-| 175 | Drinking a Fire/Poison/Experience/Wither Imbue potion grants its effect for 20 minutes, leaves an empty glass bottle, and shows its own HUD/inventory icon; drinking a second kind replaces the first rather than stacking |  |  |
-| 176 | While Fire Imbue is active, dealing direct melee/attack damage (not projectiles) sets the target on fire for 10s |  |  |
-| 177 | While Poison Imbue is active, a direct hit gives the target Poison II for 10s |  |  |
-| 178 | While Wither Imbue is active, a direct hit gives the target Wither II for 5s |  |  |
-| 179 | While Experience Imbue is active, killing a mob drops double XP |  |  |
-
-### Slice 16
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 180 | Floo Powder — craft: Ender Pearl top-left, Redstone top-right, Gunpowder bottom-left, plain Beans bottom-right (2x2, makes 16) | PASS | Confirmed working by user 2026-10-04. |
-| 181 | Floo Pouch — craft: leather (8-around) + Floo Powder (center); sneak-right-click tops it up from any Floo Powder in your inventory, up to 128, shown as a durability-bar-style charge meter |  |  |
-| 182 | Floo Sign — craft: Floo Powder (8-around) + any wood-type sign (center) |  |  |
-| 183 | Floo Token — craft: Floo Powder (8-around) + paper (center), makes 2 |  |  |
-| 184 | Floo Sign — right-click a vanilla Bricks block: converts the whole contiguous horizontal group it's touching (up to 20 blocks) into a named fireplace … | PASS |  |
-| 185 | Floo Sign — right-clicking a brick that's already part of an existing fireplace fails instead of double-converting it | PASS |  |
-| 186 | Breaking any single brick in a fireplace (master or a child) reverts the *entire* group back to plain Bricks | PASS |  |
-| 187 | Stand on any brick of a fireplace, hold Floo Powder (or carry a Floo Pouch with charge), and type a chat message … | PASS |  |
-| 188 | Typing a name that resolves back to the fireplace you're already standing on shows "You are already at this destination" instead of teleporting | PASS |  |
-| 189 | Departure and arrival both show a burst of flame particles, visible to any nearby player, not just the one teleporting | PASS |  |
-| 190 | Floo Token — drop it and leave it resting on the ground: after a few seconds it vanishes and a temporary fireplace (flame particles, no name) appears at that spot for a short while | PASS |  |
-| 191 | Standing in/near a temporary Floo Token fireplace and typing a chat message teleports for free (no Floo Powder/pouch charge needed) | PASS |  |
-| 192 | Dropping a second Floo Token near an already-active temporary fireplace does not spawn a duplicate | PASS |  |
-
-### Slice 17
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 193 | Eclipsed Clock — craft: 4x obsidian + 4x gold ingot + ghast tear (center) |  |  |
-| 194 | Eclipsed Clock — right-click a wall to hang it; right-click the hung clock to advance its target time by 30s, sneak-right-click to go back 30s; the dial face visually updates to match | PASS |  |
-| 195 | Eclipsed Clock — looking at it (or having just clicked it) shows the target time as floating text above it | PASS |  |
-| 196 | Eclipsed Clock — right-click it while holding a charged Time in a Bottle … | PASS |  |
-| 197 | Eclipsed Clock — breaking it drops the clock item back (preserving nothing - a fresh clock); creative-mode breaking drops nothing | PASS |  |
-| 198 | Time in a Bottle — craft: 3x gold ingot + 2x diamond + 2x lapis lazuli + clock + glass bottle |  |  |
-| 199 | Time in a Bottle — passively fills with stored time while carried anywhere in inventory (tooltip shows H/M/S); holding two at once drains the one with less time to 0 | PASS |  |
-| 200 | Time in a Bottle — right-click a block (not the Eclipsed Clock) with 30+ seconds stored … | PASS |  |
-| 201 | Time in a Bottle — right-click an existing Time Accelerator … | PASS |  |
-| 202 | Weather Egg (Sun/Rain/Storm) — craft each: obsidian corners + fire charge (center) + the type-specific ingredient (sunflower/potion/sugar) + lapis lazuli or feather per type, makes 2 |  |  |
-| 203 | Weather Egg — throwing any type spawns a rising cloud where it lands (damages any entity hit directly) | PASS |  |
-| 204 | Weather Egg cloud — rises for ~10s then floats to the world height limit, then sets the weather … | PASS |  |
-| 205 | Weather Egg cloud — visibly different particle effects per type while rising (plus a colored accent for Rain/Storm) | PASS | Confirmed working by user 2026-10-04. |
-
-### Slice 18
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 206 | Ender Mailbox — craft: 2x ender pearl + hopper (top row) + 3x iron ingot (middle row) + oak fence (bottom center) |  |  |
-| 207 | Ender Letter — craft: 2x paper (diagonal) + ender pearl (center) |  |  |
-| 208 | Ender Letter — right-click (fresh, unaddressed) opens a 9-slot "write a letter" GUI with a receiver-name text field; put items in, type a player's name | PASS |  |
-| 209 | Ender Mailbox — place one: it remembers you as its owner |  |  |
-| 210 | Ender Mailbox — sneak-right-click any mailbox (yours or anyone else's) while holding an addressed letter: delivers it into the *named recipient's* personal inbox (not the block you clicked), consumes the letter, plays a sound |  |  |
-| 211 | Ender Mailbox — sneak-right-click with an addressed letter naming a player who doesn't exist: get a "does not seem to reside in this world" message, letter untouched |  |  |
-| 212 | Ender Mailbox — right-click your own placed mailbox (not sneaking): opens your personal inbox - the same inbox no matter which of your placed mailboxes you use |  |  |
-| 213 | Ender Mailbox — right-click a mailbox someone else placed (not sneaking): "You are not the owner of this mailbox," no GUI opens |  |  |
-| 214 | Ender Mailbox — after mail arrives in your inbox, the mailbox block starts glowing/emitting portal particles within ~10 seconds; stops once you've collected everything |  |  |
-| 215 | Receiving a letter: take it from your inbox into your own inventory, right-click it - opens the same letter GUI, output-only this time (can take items out, can't add more), receiver field disabled, tooltip shows sender's name |  |  |
-| 216 | Emptying a received letter completely and closing the GUI makes the (now-empty) letter item disappear | PASS |  |
-| 217 | A received (unopened) letter shows an enchantment-glow shimmer in your inventory | PASS |  |
-
-### Slice 19
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 218 | Ender Bucket — craft: 2x iron ingot (top corners) + ender pearl (center) |  |  |
-| 219 | Ender Bucket — right-click while looking near (not necessarily exactly at) a body of water/lava: picks up 1000mB even if the exact block you're pointed at is a flowing edge, not a source … | PASS |  |
-| 220 | Ender Bucket — right-click a solid block face while full: places the contained fluid normally | PASS |  |
-| 221 | Ender Bucket — held-item tooltip/name shows "Ender Bucket of <Fluid>" while full | PASS |  |
-| 222 | Reinforced Ender Bucket — craft: obsidian (side corners) + Ender Bucket (top center) + Stable Ender Pearl (bottom center) | PASS |  |
-| 223 | Reinforced Ender Bucket — holds 10x the fluid (10000mB); durability bar shows fill level, tinted to the contained fluid's own color | PASS |  |
-| 224 | Reinforced Ender Bucket — sneak while picking up: keeps draining the whole connected body instead of stopping after the first 1000mB, until full or the body runs out | PASS |  |
-
-### Slice 20 — Summoning Pendulum, Golden Egg/Golden Chicken, Fluid Display
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 225 | Summoning Pendulum — right-click a passive (non-hostile, non-player) mob: captures it (mob disappears, enderman-teleport sound plays), up to 5 at once | PASS |  |
-| 226 | Summoning Pendulum — right-clicking a 6th mob while already holding 5 does nothing but play a firecharge-use sound instead | PASS |  |
-| 227 | Summoning Pendulum — durability bar fills as purple, up to 5/5; shows an enchant-glow shimmer once full | PASS |  |
-| 228 | Summoning Pendulum — right-click a block: releases the oldest captured mob there (FIFO order); with nothing captured, plays a firecharge-use sound instead | PASS |  |
-| 229 | Summoning Pendulum — plain tooltip shows "Holding N Entity/Entities"; holding Shift instead lists each captured mob's name | PASS |  |
-| 230 | Golden Egg — throw it (right-click): always hatches a Golden Chicken where it lands (unlike vanilla eggs' 1-in-8 chance), and damages anything it hits directly for 1 | PASS | Confirmed working by user 2026-10-04. |
-| 231 | Golden Chicken — behaves like a normal passive chicken (follows held seeds, can be led/bred by seeds) but never lays eggs and has no breeding-goal AI (matches the original's own apparent … | PASS |  |
-| 232 | Golden Chicken — periodically drops 3 gold ingots instead of laying an egg … | PASS |  |
-| 233 | Fluid Display — craft: 8x glass (ring) + glass bottle (center) | PASS |  |
-| 234 | Fluid Display — right-click with a filled fluid container (bucket, Ender Bucket, etc.): block takes on that fluid's texture/color, still image | FIXED |  |
-| 235 | Fluid Display — plain right-click (empty/non-fluid item): toggles between the still and flowing texture for the displayed fluid | PASS |  |
-| 236 | Fluid Display — sneak-right-click with a non-fluid item: rotates the displayed cube 90 degrees | PASS |  |
-| 237 | Fluid Display — breaking it drops itself as an item | PASS |  |
-
-### Slice 21 — Artificial End Portal, Creative Player Interface
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 238 | Evil Tear — craft: Wither Skeleton Skull + Ghast Tear + Ender Pearl (shapeless, any arrangement) | FIXED | Changed to `minecraft:crafting_shapeless` per request (no 1.12.2 recipe found to check against either way, so just did it). Please retest. |
-| 239 | Build the ritual structure (3x3 air pocket, End Rod above End Stone above it, End Stone floor, a surrounding obsidian ring 2 blocks out … | PASS |  |
-| 240 | Right-clicking an End Rod that ISN'T part of a valid structure does nothing (no tear consumed) | PASS |  |
-| 241 | The portal charges up for ~10 seconds (purple enchant-table sparkles rising out of it starting a couple seconds in), then shows the swirling end-portal starfield visual once fully charged | PASS |  |
-| 242 | Once fully charged, standing in it teleports you to the End (same as a vanilla end portal) - not while riding or being ridden | PASS |  |
-| 243 | Breaking any block of the supporting structure while the portal is active makes it disappear | PASS |  |
-| 244 | Creative Player Interface — creative-menu-only (no survival crafting recipe, matching 1.12.2), otherwise behaves identically to the already-shipped Player Interface (binds to whoever places it, exposes their inventory as a capability for hoppers etc.) |  |  |
-
-### Slice 22 — Ender Bridge, Ender Anchor, Prismarine Ender Bridge
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 245 | Ender Anchor — craft: 8x obsidian (ring) + Stable Ender Pearl (center) |  |  |
-| 246 | Ender Bridge — craft: 6x end stone + redstone (center) + Stable Ender Pearl (right-middle) |  |  |
-| 247 | Ender Bridge — placing it faces you (matches the direction you were looking, including straight up/down) … | PASS |  |
-| 248 | Ender Bridge — if the scan reaches an Ender Anchor before hitting anything else solid … | PASS |  |
-| 249 | Ender Bridge — if the scan instead hits any other solid block first (or the anchor's chunk isn't loaded), it just goes dark without teleporting anyone | PASS |  |
-| 250 | Ender Bridge — cutting redstone power resets it back to idle so it can be triggered again | PASS |  |
-| 251 | Prismarine Ender Bridge — craft: 4x Prismarine Shard + 4x Prismarine Crystals (corners/edges) + Ender Bridge (center) … | PASS |  |
-
-### Slice 23 — Magic Hood (Batch 7, slice 3)
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 252 | Magic Hood — no crafting recipe (dungeon-chest-only in 1.12.2 too); creative-only for now | PASS |  |
-| 253 | Magic Hood — wear it as a helmet: other players can no longer see your nametag above your head, whether you're sneaking or not |  |  |
-| 254 | Magic Hood — wear it as a helmet: your potion-effect particle swirl no longer shows to anyone, whether you're sneaking or not | FIXED | Real bug: `shouldHideParticles(true)` doesn't actually suppress particles - that flag is what vanilla itself uses for genuinely ambient effects (Beacon/Conduit), just switching to a rarer, fainter particle type, not zero. The real gate is the synced particle color; forcing it to exactly 0 is what stops spawning entirely. Please retest. |
-| 255 | Magic Hood — has durability of leather | PASS |  |
-
-### Slice 24 — Rain Shield (Batch 7, slice 4)
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 256 | Rain Shield — craft: Flint (top) + Blaze Rod (middle) + 3x Netherrack (bottom row) |  |  |
-| 257 | Rain Shield — needs solid ground underneath; breaks and drops itself if that support is removed (like a torch) | PASS |  |
-| 258 | Rain Shield — unpowered: within an 80-block horizontal radius (ignoring height entirely), no rain-wetting, no snow/ice formation, no fire extinguishing near it - the mechanical effects of rain/snow are suppressed | FIXED | The mechanical suppression itself was already confirmed correct via a bytecode-level check in an earlier session - the "still see rain particles" part of this report was really #261 (the purely visual half, disclosed as not-yet-built at the time). That's now implemented too - see #261. Please retest the mechanical side specifically (wetting/fire-extinguish) if it still seems off after that. |
-| 259 | Rain Shield — powered via redstone: shielding turns off, rain/snow affects the area normally again |  |  |
-| 260 | Rain Shield — while raining, shows a ring of flame/smoke particles swirling around its candle, regardless of whether the shield is currently active or powered | PASS |  |
-| 261 | Rain Shield — the falling rain/snow visual itself IS now locally hidden near the shield (real behavior change from 1.12.2, per explicit request) | FIXED | Implemented via a new coremod redirecting the one `World.getBiome` call inside vanilla's rain-rendering loop, substituting a real no-precipitation biome for columns inside an active shield's radius. Verified via `runClient` that the new coremod transforms cleanly (no VerifyError/crash). Please retest in-game - I can't visually confirm rain/snow rendering without a real interactive session. |
-
-### Slice 25 — Ancient Furnace, Peace Candle (worldgen batch)
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 262 | Ancient Furnace — rarely found naturally embedded (top face flush with the ground) in cold biomes (snowy tundra, taiga, mountains, etc.) … | PASS |  |
-| 263 | Ancient Furnace — right-clicking the top opening with a Nether Star consumes it (unless creative) and starts it heating … | PASS |  |
-| 264 | Ancient Furnace — right-clicking with anything else, or right-clicking one already heating, does nothing | PASS |  |
-| 265 | Ancient Furnace — after a multi-minute heat-up, it melts surface snow (and ice, to water) in a large radius around itself, reassigns that area's biome to its warmer counterpart (e.g. Snowy Tundra -> Plains), then explodes and is destroyed | FIXED | Real bug: the biome mutation itself was already correct server-side, but nothing told an already-connected client's own separate copy of the chunk's biome data to update, so the visual grass/foliage/fog color never changed even though the real biome had. Fixed by resending each affected chunk to everyone tracking it. Please retest. |
-| 266 | Ancient Furnace — very hard to break with a pickaxe if left un-activated; breaking it before activation drops itself | PASS |  |
-| 267 | Ancient Furnace — heating state (and progress) survives a world save/reload while mid-heat-up | PASS |  |
-| 268 | Peace Candle — standalone decorative candle, creative-menu obtainable; needs solid ground underneath (auto-breaks and drops otherwise, like a torch) | PASS |  |
-| 269 | Peace Candle — no hostile mobs naturally spawn within a 3-chunk radius of one (test by placing one down and waiting/forcing a spawn attempt nearby) | PASS |  |
-| 270 | Peace Candle — in a plains village, roughly a third of the tall cobblestone churches are instead the Peace Candle church (`randomthings:peace_candle_church`: same footprint as the vanilla one, custom build with a Peace Candle inside, entrance on the east side of the template); the rest stay vanilla. Needs several plains villages / churches to see both variants; its door must connect to the village street like any vanilla house |  |  |
-| 271 | ~~Special Chest (Water variant) — naturally generates in an ocean monument's treasure/core room~~ (removed per request) | DONE |  |
-| 272 | Spectre Illuminator — right-click a block to place it … | PASS |  |
-| 273 | Spectre Illuminator — once centered, its whole chunk (and only that chunk) lights up to full block-light brightness, and a soft particle trail plays around it | PASS |  |
-| 274 | Spectre Illuminator — right-click the placed orb to collect it back as an item; the chunk goes dark again | PASS |  |
-| 275 | Portkey — craft: gunpowder/stable enderpearl/gunpowder (top row) + diamond (bottom center) |  |  |
-| 276 | Portkey — right-click a block to bind it there; shift-hold shows the bound dimension/x/y/z in the tooltip (plain hover shows a "hold shift" hint instead), matching `Position Filter`'s own … | PASS |  |
-| 277 | Portkey — drop it on the ground: it glows (enchant shimmer) while unbound or freshly dropped; after ~5 real seconds undisturbed on the ground it stops despawning and stops glowing (primed); picking it back up before that resets the countdown next time it's dropped | FIXED | Real bug: the priming counter lives on the item stack's own NBT (needed for client-side rendering), but mutating that tag in place on the same object the dropped entity already had cached never actually re-syncs to the client - the check that decides whether to resend only trips for a genuinely different object. Fixed by mutating a copy instead. Please retest. |
-| 278 | Portkey — once primed and bound, the next player to pick it up (not the one who dropped it, necessarily … | PASS |  |
-| 279 | Portkey — combine a Portkey with any other single item in a crafting table: the Portkey is disguised as that item (in every context - inventory, held, dropped on the ground, item frame), the donor item is returned unconsumed | FIXED | Real bug (second one found in this same area): `ItemRenderer.renderItem` - what this item's renderer is already invoked from - applies its own centering offset before calling the renderer, and both the camo'd and plain branches called back into an overload that applies that exact same offset a second time, stacking. Fixed by cancelling the outer one first. Please retest. |
-| 280 | Portkey — an un-camouflaged Portkey still shows its own plain icon correctly (in every context) | PASS |  |
-| 281 | Spectre Anchor — craft: 6 iron ingots (top-middle, both sides of the middle row, all three of the bottom row) + 1 Ectoplasm (center) |  |  |
-| 282 | Spectre Anchor — combine it with any other single non-stackable item in a crafting table … | PASS |  |
-| 283 | Basic Redstone Interface — craft: iron ingots at the 4 corners, redstone dust on the 4 edges, a Stable Ender Pearl in the center … | PASS |  |
-| 284 | Basic/Advanced Redstone Interface — whatever redstone signal (weak or strong) is currently hitting the interface block itself gets mirrored onto its target position(s), as if a real redstone source were sitting there - e.g. redstone wire leading away from the target lights up, a comparator reading it responds, etc.; power updates live as the interface's own input changes, and stops immediately if the interface block is broken |  |  |
-| 285 | Advanced Redstone Interface — craft: redstone blocks + obsidian in a ring around a Basic Redstone Interface; right-click opens a GUI with 9 Position Filter slots instead of a single tool-bound target - drop up to 9 Position Filter items in to broadcast to all 9 positions simultaneously; removing one stops broadcasting to that position (matches the Basic interface's live power mirroring, just fanned out to multiple targets) |  |  |
-| 286 | Redstone Activator — right-click empty air to cycle its duration (2/20/100 ticks, shown both in the tooltip and as a texture swap on the item itself; shift-right-click cycles backwards) … | PASS |  |
-| 287 | Redstone Remote — craft: 3 Redstone Activators across the top, obsidian + a Stable Ender Pearl in the middle row, obsidian across the bottom; sneak-right-click opens an "edit" GUI (9 Position Filter slots, same as the Advanced Interface, plus your normal inventory) to bind up to 9 targets; plain right-click opens a compact "use" GUI with one button per bound target, each firing a 20-tick strength-15 pulse at its position when pressed | FIXED | Reported (with screenshot): the "use" screen looked like a blank white box. Real bug found - it (and the edit screen, and Advanced Redstone Interface's own screen) never drew a title at all. Fixed all three. The plain gray panel look itself is faithful to 1.12.2's own texture, not a bug. See `TESTING_NOTES.md` #287. Please retest - this may also be what the original "no slots visible" report was seeing.<br><br>**10/3/2026 camo icons added:** edit GUI now has the second row of 9 ghost slots (click one holding an item to copy it as that button's icon, click empty-handed to clear); the use GUI buttons are slot-shaped and show the camo item (or the Position Filter if none), with the Position Filter's custom name as tooltip. Please test: set a camo, reopen the use GUI, rename a Position Filter on an anvil, shift-click a Position Filter in/out, and that the remote itself can't be taken from the hotbar while editing. |
-
-### Slice 26 — Magnetic Enchantment, Block Breaker, Block Destabilizer
-
-New this session (a cloud sandbox with no Forge/Mojang Maven access - see the
-note at the top of this slice's rows and `PORTING_PLAN.md`'s handoff for what
-that means for verification). Both blocks pick up the previously-NOT-STARTED
-Magnetic Enchantment/enchantment-package prerequisite and the "new falling-
-entity type" prerequisite respectively - see `WIKI_FEATURE_STATUS.md`.
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 288 | Magnetic Enchantment — appears on pickaxes/axes/shovels from an enchanting table or anvil book, up to level 1; mining a block with it puts drops straight in your inventory instead of on the ground |  |  |
-| 289 | Block Breaker — craft: cobblestone ring + iron pickaxe (top-center) + redstone torch (middle-center); placed 6-way facing toward whichever way you were looking |  |  |
-| 290 | Block Breaker — left unpowered, continuously mines whatever's directly in front of it at real survival speed (respects the target block's actual hardness/tool-appropriateness via a … | PASS |  |
-| 291 | Block Breaker — redstone-powering it pauses mining immediately (crack overlay clears); breaking the breaker block itself while mid-swing also clears the overlay cleanly | PASS |  |
-| 292 | Block Destabilizer — craft: obsidian at the 4 corners, sand left/right of a diamond in the middle row, redstone above/below the diamond (ring pattern) |  |  |
-| 293 | Block Destabilizer — a redstone pulse flood-fills every block connected to the one directly in front of it that matches the same exact `BlockState` (not just the same block with different properties) *and is a normal full cube*, up to 50 blocks, then drops the whole matched structure as falling-block entities top row first, nearest-to-the-machine first within each row | FIXED | Implemented per request (this restriction never existed in 1.12.2 either, so it's a real behavior change, not a bug fix) - the flood-fill now skips non-full blocks (redstone, torches, levers, etc.) entirely, leaving them behind untouched instead of sweeping them up. Please retest. |
-| 294 | Block Destabilizer — GUI: Fuzzy toggle button makes the match ignore block-state variants and match by `Block` type only (e.g. matches every log rotation, every stained-glass color) |  |  |
-| 295 | Block Destabilizer — GUI: Lazy toggle remembers which connected blocks *didn't* match last time, so re-triggering doesn't re-scan the whole structure from scratch; Reset clears that memory |  |  |
-| 296 | Block Destabilizer — falling blocks landing on an obstruction (another block, a tile-entity-bearing block) vanish without dropping an item, matching 1.12.2's design (this is a demolition tool, not a block-moving one) |  |  |
-| 297 | Spectre Key — craft: Spectre Ingot at the 3 corners (top-left, middle-left, bottom-right), Stable Ender Pearl center-left; Spectre Ingot itself crafts from Lapis Lazuli + Gold Ingot + Ectoplasm (or the 9x bulk recipe: Lapis Block + Gold Block + 8x Ectoplasm); Ectoplasm has a 1/55 chance per random tick to drop from Spectre Leaves |  |  |
-| 298 | Spectre Key — hold right-click for 5 seconds (glowing cyan particle charge-up) to teleport into your own private Spectre Cube room … | PASS |  |
-| 299 | Spectre Cube room — a 16x16 room made of unbreakable/explosion-immune Spectre Block, with a 2x2 unbreakable Spectre Core pedestal at the center … | PASS |  |
-| 300 | Spectre Core — right-click with Ectoplasm raises the room's ceiling (consumes the held stack, up to however much height is left before Y 255) … | PASS |  |
-| 301 | Spectre Dimension — always dark (no skylight), flat gray-cyan fog, no mob spawns (void biome, empty chunk generator), can't be slept in/respawn-set, wandering outside your own cube (not … | PASS |  |
-| 302 | Spectre Dimension — joining/rejoining any world after having visited the Spectre dimension doesn't crash | PASS |  |
-
-### Slice 27 — Spectre Tools
-
-New this session (2026-09-28, local machine, full toolchain access). Picked from the NOT-STARTED wiki
-list now that Spectre Ingot exists (crafted in Slice 26's Spectre Key batch). All four items ground-truthed
-against the real 1.14.4 `IItemTier`/`ToolItem`/`PickaxeItem`/`AxeItem`/`ShovelItem`/`SwordItem` hierarchy
-via `javap`/real source before writing anything - one real simplification fell out of that: vanilla's own
-`AxeItem#getDestroySpeed` already does exactly what 1.12.2's `ItemSpectreAxe` custom override did (full
-efficiency on wood/plant materials regardless of the per-block list), so no override was needed there at
-all. `./gradlew build -x test` clean, plus a `runClient` smoke boot confirming all 4 items/models/textures
-load and bake with no `ModelBakery` errors and reach texture-atlas stitching with no missing-texture
-placeholder warnings for any of them. Not yet tested in-game (crafting, actual mining/reach/repair feel).
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 303 | Spectre Sword — craft: 2 Spectre Ingot stacked center column, Obsidian bottom-center; more durability (2000 uses) and enchantability (22) than a diamond sword, repairable with Spectre Ingot on an anvil |  |  |
-| 304 | Spectre Pickaxe — craft: 3 Spectre Ingot across the top row, Obsidian double-stacked below center … | PASS |  |
-| 305 | Spectre Axe — craft: 2 Spectre Ingot + 1 Obsidian in an L (top-left/middle-left/middle-center), Obsidian bottom-center … | PASS |  |
-| 306 | Spectre Shovel — craft: 1 Spectre Ingot top-center, Obsidian double-stacked below; same +3 reach | PASS |  |
-
-### Slice 28 — Spectre energy network (Charger/Coils/Injector)
-
-New this session (2026-09-28, local machine, full toolchain access). Scoped down from the full
-"Spectre energy network" wiki grouping, per user request: this slice covers the actual FE-network
-trio (per-player energy pool + its two "taps" + the wearable charger); **Spectre Lens deferred to a
-follow-up slice** since it's a functionally unrelated mechanic (extends a Beacon's buffs to its owner
-remotely - see `WIKI_FEATURE_STATUS.md`), not part of the energy network at all despite sharing a wiki
-row. `NUMBER`-tier coils also deferred (a config-gated, dungeon-loot-table-only tier in 1.12.2 - needs
-real loot-table-injection infrastructure this port hasn't built for anything yet).
-
-Ground-truthed the real 1.14.4 `IEnergyStorage`/`CapabilityEnergy`/`WorldSavedData`/
-`DimensionSavedDataManager`/`LazyOptional` APIs via `javap`/real source before writing anything - all
-stable, near-unchanged from 1.12.2's own Forge Energy API. **Real discovery while porting the
-recipes**: every Coil/Charger tier (bar the always-uncraftable Genesis ones) needs "Spectre String", an
-`ItemIngredient` sub-item that a first pass of grepping the real 1.12.2 source for its Java enum
-constant name turned up *no* recipe/drop/loot source for at all (even blacklisted from JEI as
-"unobtainable") - initially reported to the user as dead/vestigial 1.12.2 content. **That was wrong,
-caught before shipping**: a second, more careful look at the actual `recipes/` folder (not just a
-Java-source grep) found a real `spectrestring.json` recipe (4x from Ectoplasm + String + Diamond) that
-the enum-name grep had simply missed. Ported that recipe too; the user's own call (asked directly,
-since this file's own working rule says to report a "matches 1.12.2" finding and wait rather than
-silently diverge) was to match 1.12.2 exactly regardless, which turned out to be the easy case since
-the ingredient is real and obtainable after all. **Disclosed simplifications**, in order of size:
-- Coil/Injector's elaborate hand-modeled Cubik Studio meshes (a small attached nub for Coil; an
-  obsidian-pedestal-inside-a-translucent-glass-shell for the Injector, both via Forge's 1.12.2-only
-  `forge:multi-layer`/`forge_marker` blockstate format, which doesn't exist in this Forge version)
-  replaced with plain full-cube blocks reusing the original's own real (and, it turns out, already
-  animated - real `.mcmeta` files copied over unchanged) block textures - matches this port's own
-  established "small attached block" simplification precedent (`ContactButtonBlock`/
-  `ContactLeverBlock` made the same call already). The real mechanic (must attach to a face that
-  exposes an Energy capability, auto-drops otherwise) is preserved exactly, only the 3D shape/collision
-  precision is dropped.
-- All 4 Coil tiers share one texture (no per-tier tint) - the original's per-tier color was a runtime
-  render tint on the now-dropped custom mesh, not a separate baked texture per tier, and this port has
-  no `BlockColor`/`ItemColor` tint-callback infrastructure yet; building one for this alone wasn't
-  worth it. Tiers are still distinguishable by name/tooltip.
-- Coil's own tooltip (real 1.12.2 shows the FE/t transfer or generate rate) isn't ported - minor, the
-  tier name alone already conveys which one it is.
-- 1.12.2's `ItemSpectreCharger` was a Baubles belt item; Baubles is dropped project-wide (as already
-  noted for the Spectre Charger's own `WIKI_FEATURE_STATUS.md` row), so this uses the same "just has to
-  be carried anywhere in the inventory" fallback already established for Portable Sound Dampener/
-  Obsidian Skull/Lava Charm.
-- The Injector's own real recipe needs a Spectre Lens (deferred this slice) - registered with no
-  recipe for now, same treatment as the Genesis tiers, until the Lens slice lands.
-
-`./gradlew build -x test` clean. `runClient` smoke-verified further than previous slices: this boot
-actually loaded a real world (not just the main menu) and reached `RecipeManager` datapack loading with
-no parse errors for any of the 7 new recipes, and `ModelBakery`/texture-atlas stitching with no
-missing-model/missing-texture warnings for any of the new blocks/items either. Not yet tested in-game
-(placing a Coil against a real energy-capable machine needs another FE-capable mod installed, which
-this environment doesn't have - see the feedback column below).
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 307 | Spectre String — craft: Ectoplasm at the 4 corners, String on the 4 edges, a Diamond in the center; makes 4 |  |  |
-| 308 | Spectre Coil (Normal/Redstone/Ender) — craft each from the tier below it (Normal: Obsidian/Spectre String/Spectre Ingot/Glass; Redstone: Redstone Block/Redstone/Spectre String + a Normal coil; Ender: Stable Ender Pearl/Ender Pearl/Spectre String + a Redstone coil); can only be placed against a face that exposes a Forge Energy capability (auto-breaks and drops itself otherwise); once placed, continuously drains the placing player's Spectre energy pool (1024/4096/20480 FE per tick respectively) into whatever it's attached to |  |  |
-| 309 | Spectre Coil (Genesis) — same attach/drop behavior as the other tiers, but generates a flat 10,000,000 FE/tick directly into whatever it's attached to, bypassing the player's pool entirely; creative-tab only, no recipe (matches 1.12.2 exactly) |  |  |
-| 310 | Spectre Energy Injector — craft: Obsidian at the 4 corners, Spectre Lens top-center, a vanilla Beacon center, Spectre String left/right/bottom-center; once placed by a player, exposes that player's Spectre energy pool as a receive-only Forge Energy capability on every side, so an external FE-producing machine can push energy into it |  |  |
-| 311 | Spectre Charger (Normal/Redstone/Ender/Genesis) — craft the first 3 tiers same escalating pattern as the Coils (Genesis has no recipe, creative-only); right-click to toggle on/off; while on and carried anywhere in your inventory, drains your Spectre energy pool each tick to top up any other Forge-Energy-capable item stack in that same inventory (instant/unlimited for Genesis) |  |  |
-
-### Slice 29 — Spectre Lens
-
-New this session (2026-09-28, local machine, full toolchain access), completing the "Spectre energy
-network" wiki row deferred from Slice 28. Turned out to need no simplification at all: 1.12.2's real
-model for this one is already a single thin box (not an elaborate Cubik Studio mesh like Coil/Injector
-were), so it's a faithful, non-simplified port - same 1/16-tall shape, same real texture, same real
-recipe.
-
-Ground-truthed `BeaconTileEntity` via `javap` before assuming 1.12.2's reflection-based approach still
-applied: the "is the pyramid complete" private boolean 1.12.2 needed reflection for doesn't exist in
-this version at all - `BeaconTileEntity#getLevels()` (already public) is `0` exactly when the pyramid
-isn't valid, so that half of the original's reflection is gone entirely, a genuine simplification from
-the real API change rather than a choice. `primaryEffect`/`secondaryEffect` are still private with no
-getter, so those two still need reflection - using this build's own real (already MCP-mapped) field
-names directly. Also double-checked before assuming `TileEntity#remove()` was a safe drop-in for
-1.12.2's `breakBlock` hook (the only removal-lifecycle method this version's `TileEntity` exposes at
-all, unlike 1.12.2's separate `onChunkUnload`): traced `Chunk`/`World`'s real source and confirmed
-`remove()` only fires on an actual block-state change removing the tile entity, never on a chunk simply
-unloading - safe to use for "clear this player's lens entry when the block is gone" without
-accidentally clearing it every time the chunk goes out of range.
-
-| # | Feature | Result | Feedback |
-|---|---|---|---|
-| 312 | Spectre Lens — craft: Spectre Ingot at the 4 corners, Emerald top/bottom-center, Diamond left/right-center, Glass in the middle; can only be placed directly on top of a vanilla Beacon (auto-breaks and drops itself if the beacon underneath is removed or was never there) |  |  |
-| 313 | Spectre Lens — while placed on an active (fully powered pyramid) Beacon, the owning player keeps receiving that beacon's current primary/secondary effects wherever they are, any dimension … | PASS |  |
-| 314 | Diaphanous Block — craft (Quartz Glass + 4 colored glass in a ring, see recipe) places a plain Stone-displaying block; combine it with any other single non-tile-entity block item in a crafting grid to set what it displays (donor item comes back unconsumed) |  |  |
-| 315 | Diaphanous Block — displayed block fades in as you get farther away (mostly invisible up close, looks fully solid past ~33 blocks) and has no collision while not inverted (walk straight … | PASS |  |
-| 316 | Diaphanous Block — combine a lone Diaphanous Block by itself in a crafting grid to toggle "inverted" … | PASS |  |
-| 317 | Diaphanous Block — breaking it drops an item stack that remembers both the displayed block and the inverted flag (place it again elsewhere, same appearance/inverted state) | PASS |  |
-| 318 | Light Redirector — craft (planks + glass ring, see recipe); right-click a face to toggle it open/closed (texture swaps to a dimmer "disabled" look per face) |  |  |
-| 319 | Light Redirector — an *open* face shows whatever block is directly on the *opposite* side of the redirector instead of its own texture (the "periscope" effect - e.g. open only the top and bottom faces to see straight through what's below onto the top face) |  |  |
-| 320 | Dyeing Machine — craft (Green/Red/Blue Dye + White Wool + Crafting Table, see recipe) and place; right-click opens a GUI with an item slot, a dye slot, and 2 result slots (recolor + enchant-glint-color) alongside your own inventory |  |  |
-| 321 | Dyeing Machine — put any non-block item in the left slot and a vanilla dye in the dye slot; taking the "recolor" result consumes 1 of each ingredient and gives back a copy of the item tinted the dye's color everywhere it renders (held, in inventory, on the ground) - even items with no vanilla tint support of their own |  |  |
-| 322 | Dyeing Machine — taking the "enchant glint" result instead gives back a copy of the item whose enchantment shimmer (only visible if the item is actually enchanted/glowing) renders in the dye's color instead of the default purple |  |  |
-| 323 | Dyeing Machine — a dyed armor piece (from the "recolor" result) also shows tinted while worn on your character model, not just held/in inventory |  |  |
-| 324 | Dyeing Machine — closing the GUI while the item/dye slots still hold something drops those items at your feet instead of deleting them |  |  |
-| 325 | Spirit — killing any living entity has a small chance to spawn a tiny flying wisp at the death spot (higher at night under a fuller moon, and higher still once you've beaten the Ender Dragon at least once) - test by killing plenty of mobs, ideally at night with a bright moon |  |  |
-| 326 | Spirit — drifts aimlessly near where it appeared, floats through the air (not on the ground), and despawns on its own after a while if left alone |  |  |
-| 327 | Spirit — immune to regular attacks/arrows/fire/etc; only a Spectre Sword (or creative-mode/out-of-world damage) can actually hurt it, and it dies in one hit either way (1 HP) |  |  |
-| 328 | Spirit — killing it with a Spectre Sword drops 1-2 Ectoplasm |  |  |
-| 329 | Batch 1 block loot tables — break a spread of Batch 1 blocks in survival (stained brick, luminous block, biome stone/glass, lapis/quartz glass+lamp, contact button/lever, spectre log/plank/sapling, glowing mushroom, super lubricent ice/stone/platform); each drops itself |  |  |
-| 330 | Bean Sprout — breaking a fully grown (age 7) sprout drops 3-4 beans total; a young sprout drops just 1 |  |  |
-| 331 | Colored Grass — breaking it drops plain Dirt; with a Silk Touch tool it drops itself |  |  |
-| 332 | Compressed Slime Block — breaking it drops a regular vanilla Slime Block |  |  |
-| 333 | Blocks that should drop nothing still drop nothing: Blazing Fire, Floo Brick, Rune Base, Bean Stalk/Lesser Bean Stalk, Diaphanous Block (returns its camo block via its own code, not a loot table) |  |  |
-| 334 | Chest loot injection — Summoning Pendulum, Magic Hood and Slime Cube occasionally appear in dungeon chests; Magic Hood in village weaponsmith chests, Pendulum in stronghold corridor chests, Slime Cube in jungle temple chests (rare-ish; use `/loot` or open many chests) |  |  |
-| 335 | Chest loot injection — a Biome Crystal shows up in roughly 1 in 5 vanilla chests, already tuned to a random biome (name shows the biome, works with the Biome Radar) |  |  |
-| 336 | Config — first launch creates `config/randomthings-common.toml` with `[worldgen]`, `[loot]`, `[features]` boolean options, all defaulting to `true` |  |  |
-| 337 | Config — `MagneticEnchantment = false` stops Magnetic appearing at the enchanting table/on books and stops it pulling drops; `ArtificialEndPortal = false` makes Evil Tear do nothing on an End Rod; `Lotus`/`AncientFurnace = false` stop new ones generating in fresh chunks |  |  |
-| 338 | Config — `MagicHood`/`SummoningPendulum`/`SlimeCube`/`BiomeCrystal = false` under `[loot]` stops that item being injected into chests (restart the world/server after editing) |  |  |
-| 339 | Bean Pod — breaking one drops iron (8-20), gold (4-15), diamonds (1-5), 0-2 emeralds, 4-8 beans and a Golden Egg (in survival, not just creative; use `/give` beans to grow a full stalk if needed) |  |  |
-| 340 | Bean Pod — `GoldenEgg = false` in the config removes the egg from the drops; blowing the pod up with TNT drops only some of the stacks |  |  |
-| 341 | Glowing Mushrooms — generate a fresh world/new chunks and explore caves: small patches of glowing mushrooms appear underground (never with sky access), roughly one patch per 4 chunks; `GlowingMushrooms = false` stops them appearing in new chunks |  |  |
-| 342 | Grass Seeds — craft one from a Grass Block (shapeless); right-click plain Dirt with it: becomes normal grass, seed consumed (not consumed in creative; other dirt types/blocks do nothing) |  |  |
-| 343 | Colored Grass Seeds — Grass Seeds + one vanilla dye (shapeless) gives that color's seeds (16 colors); right-clicking Dirt with them makes grass tinted that color, matching the seed icon's tint |  |  |
-| 344 | Colored Grass — spreads its color onto nearby Dirt over time when lit; reverts to Dirt when covered by an opaque block; breaking drops Dirt, and with Silk Touch drops a Colored Grass block that keeps its color (icon tinted, places as the same color) |  |  |
-| 345 | Spirit config — `[numbers]` section: `SpiritLifeTime`, `SpiritChanceNormal`, `SpiritChanceMoonMult`, `SpiritChanceEndIncrease` change Spirit despawn time and spawn odds (e.g. `SpiritChanceNormal = 1.0` makes every mob kill spawn one) |  |  |
-| 346 | Runes — placed rune pixels now show the original's noisy texture (each pixel/connection strip slightly different, tinted by the dust color); the pattern stays stable while you look around/move (doesn't shimmer), and connections between same-colored neighbors, including across Rune Base edges, still render |  |  |
-| 347 | Runes — `[visual] FlatRunes = true` in the config switches them to the plain flat texture (takes effect on the next render, no restart needed if the config file is reloaded; otherwise restart) |  |  |
-| 348 | Recipes — open the recipe book / a crafting table and confirm the backfilled recipes appear and craft (45 new): Item Collector (ender pearl / hopper / 3 obsidian, left-column shape), Advanced Item Collector, Igniter, Iron Dropper, Contact Button/Lever, Chat/Global Chat/Online/Entity Detector, Inventory Tester (x2)/Rerouter, Notification Interface, Redstone Observer/Tool, Sided Redstone, Analog Emitter, Advanced Redstone Repeater, Potion Vaporizer, Player Interface, Slime Cube |  |  |
-| 349 | Recipes — Lapis Glass (x8), Quartz Glass (x8), Lapis/Quartz Lamp, Trigger Glass (x4); Biome Glass and the five Biome Stones (x16 each, ring around a Biome Crystal); Biome Sensor |  |  |
-| 350 | Recipes — Super Lubricent: Ice (x16: slimeball/ice/water bucket), Platform (x6), Filtered Platform, new **Super Lubricent Tincture** item (wheat seeds + *water bottle* + beans, x4 — a plain/awkward potion must NOT work), Boots (iron boots + tincture) |  |  |
-| 351 | Recipes — Stable Ender Pearl, Lesser Magic Bean (8 gold nuggets around Beans), Bean Stew (both orientations: wheat above/below the beans, bowl at the bottom), Blaze and Steel, ID Card (paper + ink sac), Entity Filter |  |  |
-| 352 | Recipes — shapes were ported with 1.12.2's exact (left-aligned, right-padded) layouts, so a few look lopsided (Item Collector, Advanced Item Collector, Global Chat Detector, Slime Cube, Trigger Glass, Entity Filter, Lapis/Quartz Lamp, Bean Stew, Inventory Tester, Iron Dropper 2nd row); flag any that feel like a bug rather than the original's design |  |  |
-| 353 | Config — `[visual] HideCoordinates = true`: Portkey tooltip only says `<Target set>` / `<No target set>` (no dimension/XYZ even with Shift held); Position Filter shows no coordinate tooltip and no "hold Shift" hint; default `false` leaves both as before |  |  |
-| 354 | Config — `[numbers] BlockDestabilizerLimit`: default 50 blocks per activation as before; raise it (e.g. 500) and a bigger connected mass falls at once; `0` = no limit |  |  |
-| 355 | Config — `[numbers] TriggerGlassChainLimit`: default 20 as before; lower it (e.g. 3) and only that many touching Trigger Glass blocks go passable per pulse; `0` = whole connected mass |  |  |
-| 356 | Ender Anchor chunk loading — place an Ender Anchor far from any player (e.g. 300+ blocks from an Ender Bridge facing it, or use `/forceload query` at the anchor's chunk), walk away so its chunk would normally unload: `/forceload query` at the anchor's chunk reports it as force-loaded, and a Bridge aimed at it from a distance still teleports entities/items onto it |  |  |
-| 357 | Ender Anchor chunk loading — persists across a save/quit/reload (chunk still force-loaded on reload, no duplicate registration); breaking the anchor (by hand, piston, or explosion) un-forces its chunk again, unless a second Anchor is in the same chunk, or the chunk was already `/forceload`ed before the anchor was placed (then it must stay loaded) |  |  |
-| 358 | Ender Anchor chunk loading — `[features] EnderAnchorChunkloading = false`: newly placed anchors don't force anything, and anchors that had forced a chunk release it the next time they load |  |  |
-| 359 | Ender Anchor tooltip — hovering the item (inventory/creative) shows "Keeps the chunk it is in loaded"; the line disappears when `EnderAnchorChunkloading = false` |  |  |
-| 360 | Text-field GUIs save on close — Online Detector, Chat Detector, Global Chat Detector, Notification Interface (title + description) and the Ender Letter receiver field: type text, click outside the field, press Escape, reopen: the text is still there (previously only sent from `removed()`, which raced the close-window packet; now synced on every change) | FIXED |  |
-| 361 | Ender Letter message body — the GUI title reads "Ender Letter" again, with a multiline message box under the item slots (4 visible lines, word-wrap, Enter = newline, arrows/Home/End/click/mouse-wheel/Ctrl+V work, hard cap of 200 characters shown as `n/200`); it survives close/reopen, is trimmed server-side, and a delivered letter shows it read-only. **New feature, not in 1.12.2** | FIXED |  |
-| 362 | Ender Letter tooltip shows "Sneak + right-click an Ender Mailbox to send" on unsent letters (not on received ones); Ender Mailbox GUI shows "Incoming Mail" on its title row | FIXED |  |
-| 363 | Notification Interface icon slot — now a copy/ghost slot like the Redstone Remote's camo slots: click with an item to copy one as the icon, click empty-handed to clear, shift-click does nothing; slot moved 3px right so it's centered under the "Icon" label | FIXED |  |
-| 364 | Redstone Observer / Basic Redstone Interface — "Target" label shown at the top only when a target is set (unset keeps the plain red "No Target" screen). Redstone Remote use screen — hovering a button shows the displayed (camo) item's anvil name, falling back to the Position Filter's name | FIXED |  |
-| 365 | Advanced Item Collector GUI — 24px of empty space removed (filter slot and inventory moved up, texture trimmed to match); radius buttons and filter slot all still work | FIXED |  |
-| 356 | Config — `[worldgen] PeaceCandle = false`: no plains village church is replaced any more, new villages generate exactly like vanilla (the wrapper adds no extra randomness); default `true`. Applies per world load (no restart needed), but only to villages not yet generated |  |  |
-| 366 | Fluid Display — inventory/hand/dropped item renders as an isometric full cube (was a flat square of the block texture) | FIXED | Item model now parents `block/cube_all` with GUI/hand display transforms. |
-| 367 | Stained Brick (all 16 colors) — craft: 8x bricks around 1 matching dye gives 8 | FIXED | Were missing from the port; restored from 1.12.2 `stainedBrick_*` recipes. |
-| 368 | Luminous Stained Brick (all 16 colors) — craft: Stained Brick + Luminous Powder (shapeless) | FIXED | Restored from 1.12.2 `luminousStainedBrick_*`. |
-| 369 | Luminous Block (all 16 colors) — craft: 3x Luminous Powder + matching dye in a 2x2 | FIXED | Restored from 1.12.2 `luminousBlock_*`. |
-| 370 | Translucent Luminous Block (all 16 colors) — craft: Luminous Block surrounded by 4 glass panes (plus shape) | FIXED | Restored from 1.12.2 `luminousBlock_*_t`. |
-| 371 | Automated resource audit — `RT_AUTOTEST=true RT_AUTOTEST_NO_GUIS=true RT_AUTOTEST_EXIT=true ./gradlew runClient`, then read `run/randomthings_audit.txt`: expect 0 failures (every block has blockstate+models, every item has a model, all textures exist, all recipes load, every item has a recipe unless allowlisted) | PASS | `client/ResourceAudit.java`; allowlist = items with no recipe in 1.12.2 either. |
-| 372 | Magnetic Enchantment / Block Breaker - drops of a block mined with a Magnetic tool (player or the Block Breaker's fake player) go into the miner's inventory / the chest behind the breaker; replaces #288's dead `HarvestDropsEvent` hook with a global loot modifier | FIXED | Automated test `behavior.block_breaker.mines_front_block_into_rear_inventory` passes. Please playtest #288 with a real player (also silk touch / fortune / explosions unaffected). |
-| 373 | Fluid Display - tile entity NBT is stable across save/load (an unset display stays unset) | FIXED | Found by `nbt.tile_entity.fluid_display`. |
-| 374 | Automated in-game tests - `/rtdebug test` (or the autotest) reports 0 failures (now also Contact Button/Lever, Imbuing Station, Block Destabilizer, Entity Detector, Ender Mailbox delivery, Portkey priming/teleport, Potion Vaporizer, Online/Chat/Global Chat detectors, Floo teleport, Blazing Fire, Magic Hood, Spectre cubes, Sound Box/Dampener state): Item Collector, Iron Dropper (pulse/repeat/into-inventory/into-air), Igniter (toggle/ignite), Analog Emitter, Block Breaker (mine/powered), Spectre Anchor recipe, every data recipe crafts its output, NBT/capability round trips for all tile entities, entities and items | PASS | 334 tests on 2026-10-09 (server 333 passed + 1 skip; client 333 passed + 1 skip; the skips are environment-dependent) (adds Redstone Observer and coremod-level tests: spawn control, Rain Shield, Wireless Redstone Interface, Spectre Anchor death drops, Super Lubricent Boots). See `docs/testing/`. |
-| 375 | Dev-only isolation - a normal launch (no `-Drandomthings.debug`) prints no `[RT-DEBUG]` lines and no "Developer tools enabled"; `/rtdebug` does not exist | PASS | Verified 2026-10-07 with `RT_NO_DEBUG=true ./gradlew runClient`: 0 `[RT-DEBUG]` lines, no dev-tools message, no mod exceptions. Optionally repeat on the launcher install. |
-| 376 | Wireless Redstone Interface (Basic/Advanced) - redstone power next to the interface (e.g. a redstone block or lever touching it) lights/powers the bound target (a lamp, a repeater...) and turning it off un-powers the target; before, the interface only refreshed when its own block changed, so nothing ever updated | FIXED | Found by `coremod.redstone_interface.mirrors_its_input_power_onto_the_bound_target`; now refreshed from the blocks' `neighborChanged`/`onBlockAdded`. Please playtest #283-285 with a real lever. |
-| 377 | Chest-loot injection targets (dungeon, village weaponsmith, stronghold corridor, jungle temple) exist as vanilla loot tables | PASS | Checked by the resource audit. |
-| 378 | Dedicated server - the mod loads and the server reaches "Done" (`./gradlew runServer`, stop with `stop`/kill); before, it crashed at mod construction because the mod main class (and two entities, via `IRendersAsItem`) referenced client-only classes | FIXED | Found by the new dedicated-server smoke test (backlog Q9). Client-only wiring moved to `client/ClientSetup`, reached through `DistExecutor`. Boot only: no player joined yet, so server-side gameplay is still unplayed. |
-| 379 | Automated tests also run on a dedicated server: `RT_AUTOTEST=true RT_AUTOTEST_EXIT=true ./gradlew runServer` (flat throwaway world, fake player) reports 0 failures | PASS | 317 passed / 0 failed on 2026-10-08. See `docs/testing/`. |
-| 380 | Spectre dimension - every player's private cube (not just the first) is recognised as theirs, so players are no longer pinned to their spawn tile in a second or later cube | FIXED | Found by `behavior.spectre.every_player_gets_their_own_cube...`: the lookup compared the wrong coordinates and only ever matched the first cube. Please test with two accounts or after the first cube exists (walk around inside your cube). |
-| 381 | Portkey item looks normal size in the inventory, in hand (both views), on the ground and in item frames (was tiny: it used block-style display scales) | PASS | Verified by the user on a dedicated server 2026-10-09 (size and function). `portkey.json` now uses the vanilla flat-item transforms. |
-| 382 | Dedicated server: Ender Letter receiver, Sound Recorder, Chat/Online/Global Chat Detector and Notification Interface text fields do not crash the server when a client sends text | PASS | Found in the first real client-on-server session: `PacketBuffer.readString()` is client-only and threw `NoSuchMethodError` on the server (server shut down). All reads now use `readString(32767)`. Verified 2026-10-09 on a dedicated server with a real client: a letter addressed to another player arrived in their Ender Mailbox; a letter with no address is delivered to nobody (no error). Other text-field screens (Sound Recorder, detectors, Notification Interface) share the fix but were not clicked through. |
-| 383 | Dedicated server with a real client: Spectre dimension entry, exit back to the same overworld position, and unload | PASS | Verified by the user 2026-10-09; server log clean. |
-| 384 | **1.16.5 branch:** automated suites - client `RT_AUTOTEST=true RT_AUTOTEST_EXIT=true ./gradlew runClient` and dedicated server `... runServer` both report 0 failures, `./gradlew build` passes | PASS | 2026-10-11: client 333 passed / 1 skipped (+ resource audit 0 failures, 28 GUIs opened without errors), server 333 / 1 skipped. Every `PASS` row above was recorded on the 1.14.4 port; rows below are what still needs a human on 1.16.5. |
-| 385 | 1.16.5: every GUI looks right (layout, text, buttons, tooltips, scroll lists, text fields) | PARTIAL | 2026-10-11: all 28 screens were screenshotted by the automated pass (`/rtdebug allguis 40`) and compared with the 1.14.4 screenshots; layouts, text, slots and lists are identical (hover highlights depend on the mouse position). Still needs a human: clicking buttons, hover tooltips, dragging list scrollbars, typing in text fields. 2026-10-11 automated (`RT_AUTOTEST_CLICKS=true`): 28 GUIs, 37 button clicks, 0 failures, text fields save and reload; slot interactions and visual feel still need a human. |
-| 386 | 1.16.5: block entity and entity renderers still look right - Rune Base runes, Fluid Display cube, Biome Radar crystal, Diaphanous Block fade, Eclipsed Clock (+ time label), Time Accelerator icons, Spirit (glows), Golden Chicken, Artificial End Portal, Redstone Observer lines, Divining Rod cubes | PARTIAL | All were rewritten for `MatrixStack` / `IRenderTypeBuffer`. 2026-10-11 render scenes checked by screenshot: Fluid Display, Diaphanous, Biome Radar (was black - fixed, now lit), Artificial End Portal all render; Time Accelerator icons / Eclipsed Clock label / rune close-up not confirmed. |
-| 387 | 1.16.5: item rendering - Portkey (plain and camouflaged, in every context), Dyeing Machine results show their dye on items and on worn armor (leather and non-leather), Biome Crystal tint | UNTESTED | The item/armor recolor are coremods rewritten for the 1.16 render code. |
-| 388 | 1.16.5: the Spectre dimension looks like before (fixed dark teal fog, no sun/moon, bright, clouds below) and entering/leaving works with the new teleporter | UNTESTED | Dimension is registered from code; sky/fog is `client/SpectreRenderInfo`. Automated tests cover entering, the cubes and rejoining. 2026-10-11 sky/fog screenshot looked right. |
-| 389 | 1.16.5: natural worldgen in a new world - Bean Sprout, Lotus (snowy), Ancient Furnace (cold), Glowing Mushroom | UNTESTED | Now `ConfiguredFeature`s added in `BiomeLoadingEvent`; rarity/placement was re-expressed with CHANCE + SQUARE + HEIGHTMAP placements. |
-| 390 | 1.16.5: Peace Candle church appears in plains villages (about 1 in 3 of the vanilla churches) | UNTESTED | The village pool is wrapped at server start; the vanilla church is matched by its piece name - never seen in a real village yet. |
-| 391 | 1.16.5: Rain Shield hides rain streaks and splashes inside its radius; Blazing Fire spreads fast and Light Redirector still redirects light | UNTESTED | Mechanics are automated tests; the visuals use rewritten coremods (`WorldRenderer`, `BlockRendererDispatcher`). 2026-10-11 screenshots: rain suppressed inside the Rain Shield radius, Blazing Fire renders. |
-| 392 | 1.16.5: opening a world that already contains the Spectre dimension shows vanilla's "Worlds using Experimental Settings" prompt - expected, choose Load | KNOWN | Any extra dimension triggers it in 1.16.5; see backlog Q14 for a possible fix. |
-| 393 | 1.16.5 production jar: coremods + reflection work with SRG names (server-side verified on a real Forge 1.16.5 server, `prod-test/`) | PASS | 2026-10-11: production server suite 334 passed / 0 failed after the fix (6 coremod tests failed before). Client-only coremods (armor/item dye, rain visuals, light redirector, Magic Hood) still need a production client. 2026-10-11 production CLIENT too (`prod-test/1.16.5/client`): suite 334 passed / 0 failed; scene screenshots show Rain Shield suppressing rain, dyed items and armor tinted. New scenes `light_redirector` (swapped gold/diamond blocks vs a control row) and `magic_hood` (two remote players, hooded one has no nameplate) also pass on the production client. |
-| 394 | 1.16.5 thread safety: static block entity/entity registries no longer throw `ConcurrentModificationException` (Rain Shield, Sound Dampener, Redstone Observer, Peace Candle, Slime Cube, detectors, ...) | FIXED | `util/WeakSets`; new test `registry.weak_sets_survive_concurrent_add_remove_and_iteration`. Retest by playing singleplayer with several of these placed. |
-| 395 | **1.16.5 Glowing Mushroom natural generation + survival (found by the new `worldgen.*` tests):** (a) no mushroom ever generated in new 1.16.5 worlds (the light rule rejected every spot because chunks being generated report full sky light) - now generated by a soil-only rule; (b) a placed mushroom dropped itself on its first neighbour update and could never spread (its own light 15 failed its own "light < 13" rule) - its light is now 12 | FIXED | 2026-10-11: real default-world check on a production server: 0 -> 70 chunks with mushrooms of 1,687 (1.14.4: 74). **Visible change: the mushroom is dimmer (light 12 instead of 15).** Retest: explore caves in a new world, place one in a dark cave, wait, see it stays and slowly spreads. |
-| 396 | 1.16.5 worldgen tests: Peace Candle church (swap rate 33.2%, real village starts, template places a working candle) and Glowing Mushroom (registration, cave patch, real terrain generation) run automatically - rows #389/#390 no longer need manual hunting | PASS | `worldgen.*` in the suite (346 tests); church pool/assembly verified on a production server too. |
-
----
-
-## 6. Not implemented yet — don't test these, they don't exist
-
-Deliberately deferred, each for a stated reason (see the plan file for full
-detail) — no point filing a bug against these:
-
-- **Voxel Projector** — undocumented (no wiki page), not migrating; shares Diaphanous Blocks/Light Redirector's old "needs a generic runtime block-model renderer" tag but was never in scope on its own.
-- **"Ender network"** — **WILL NOT MIGRATE** (confirmed final 2026-09-29): traced the real 1.12.2 source (`BlockLinkOrb`/`TileEntityLinkOrb`/`RenderLinkOrb`, `EntityEnderConnection`) and found it was abandoned, unshipped scaffolding in the original mod itself - never registered as a placeable block (no item, recipe, model, or lang key), and `EntityEnderConnection` is a bare stub with no working logic and no entity-type registration at all. No wiki page ever documented it. Nothing here ever worked, so there's nothing to port. (The rest of the "Spectre" wiki family - Illuminator #272-274, Dimension/Key/Core #297-301, Wireless Redstone Interface #283-286, Tools #303-306, the energy network's Charger/Coils/Injector #307-311, Lens #312-313 - is fully done; this was the one adjacent thing left over, and it's now closed out rather than pending.)
-- **Item Filter** — **WILL NOT MIGRATE** (confirmed final 2026-09-29): its only two consumers (Advanced Item Collector, Filtered Super Lubricent Platform) are already shipped with their own simplified built-in filters, so a standalone Item Filter item would be orphaned. See `WIKI_FEATURE_STATUS.md` for the full note.
-- **Potion of Collapse** (the `collapse` effect + brewing recipes), **Blackout Powder** (turns off a Spectre Illuminator's chunk light), and the modded-ore Divining Rods and any other mod integrations (aluminum, copper, tin, etc. - need tags from other mods) — **WILL NOT MIGRATE** (user decision 2026-09-29).
-- (Crafting recipes for everything that is ported were backfilled 2026-09-29, see #348-#352; the previous "most crafting recipes not started" line here was out of date.)
+| 158 | Sound Dampener — place, right-click to open its 9-slot GUI, insert a few full Sound Patterns: any of those sounds played by ANYONE within ~20 blocks of the block go silent for everyone in range, not just you | FIXED | | Scripted `sound_dampener`: muting within 20 blocks, not beyond, un-muting on removal/break (2026-10-11); tooltip is covered by the click test. |
+| 169 | Imbuing Station — put the COBBLESTONE in the center slot and a water bottle + vine + bone meal in the 3 ingredient slots (any order, as in 1.12.2): after 200 ticks, produces Mossy Cobblestone in the output slot and consumes exactly 1 of each input | FIXED | Scripted scenario `imbuing`: Mossy Cobblestone produced after ~200 ticks, all inputs consumed (2026-10-11). |
+| 234 | Fluid Display — right-click with a filled fluid container (bucket, Ender Bucket, etc.): block takes on that fluid's texture/color, still image | FIXED | | Scripted `fluid_display`: water/lava set from buckets, empty hand toggles still/flowing, sneak rotates (2026-10-11). |
+| 238 | Evil Tear — craft: Wither Skeleton Skull + Ghast Tear + Ender Pearl (shapeless, any arrangement) | FIXED | | Scripted `crafting_evil_tear_portkey`: crafted in a real crafting table, ingredients consumed (2026-10-11). |
+| 254 | Magic Hood — wear it as a helmet: your potion-effect particle swirl no longer shows to anyone, whether you're sneaking or not | FIXED | | Scripted `magic_hood`: only F5 screenshots with/without the hood (`prod-test/desktop/shots/magic_hood_*`); particles cannot be asserted - look at them. Scripted `magic_hood` now COUNTS the swirl particles (dev `ParticleProbe`): 5-9 without the hood, 0 with it, back after taking it off. |
+| 258 | Rain Shield — unpowered: within an 80-block horizontal radius (ignoring height entirely), no rain-wetting, no snow/ice formation, no fire extinguishing near it - the mechanical effects of rain/snow are suppressed | FIXED | Scripted scenario `rain_shield`: a burning pig is put out by rain; with the shield it keeps burning and takes damage (2026-10-11). |
+| 261 | Rain Shield — the falling rain/snow visual itself IS now locally hidden near the shield (real behavior change from 1.12.2, per explicit request) | FIXED | |
+| 265 | Ancient Furnace — after a multi-minute heat-up, it melts surface snow (and ice, to water) in a large radius around itself, reassigns that area's biome to its warmer counterpart (e.g. Snowy Tundra -> Plains), then explodes and is destroyed | FIXED | | Scripted `ancient_furnace` (nearest igloo of seed 424242, heating time skipped to 10 ticks): exploded, packed ice nearby became water (2026-10-11). |
+| 277 | Portkey — drop it on the ground: it glows (enchant shimmer) while unbound or freshly dropped; after ~5 real seconds undisturbed on the ground it stops despawning and stops glowing (primed); picking it back up before that resets the countdown next time it's dropped | FIXED | | Scripted `portkey_drop`: counter reaches 100 ticks, despawn age pushed back, a primed Portkey teleports the picker-up (it is consumed). Glint stopping is visual. In-game test now also asserts `hasEffect` (glow) flips off after 100 ticks; scripted `portkey_drop` for the counter/teleport. |
+| 279 | Portkey — combine a Portkey with any other single item in a crafting table: the Portkey is disguised as that item (in every context - inventory, held, dropped on the ground, item frame), the donor item is returned unconsumed | FIXED | | Scripted `crafting_evil_tear_portkey`: Portkey + pickaxe gives a Portkey with `camo`, donor returned (2026-10-11). Disguise rendering is visual. |
+| 287 | Redstone Remote — craft: 3 Redstone Activators across the top, obsidian + a Stable Ender Pearl in the middle row, obsidian across the bottom; sneak-right-click opens an "edit" GUI (9 Position Filter slots, same as the Advanced Interface, plus your normal inventory) to bind up to 9 targets; plain right-click opens a compact "use" GUI with one button per bound target, each firing a 20-tick strength-15 pulse at its position when pressed | FIXED | | Scripted `redstone_remote`: button press powers the bound position (command block fired). Binding via the edit GUI was not scripted. Scripted `redstone_remote_edit`: bound two Position Filters + a camo item in the EDIT screen, each use-screen button fires only its own target. |
+| 293 | Block Destabilizer — a redstone pulse flood-fills every block connected to the one directly in front of it that matches the same exact `BlockState` (not just the same block with different properties) *and is a normal full cube*, up to 50 blocks, then drops the whole matched structure as falling-block entities top row first, nearest-to-the-machine first within each row | FIXED | | Scripted `block_destabilizer`: exact-state flood fill drops the wall, a different state stays, idle afterwards; fuzzy toggled in the GUI drops all rotations (2026-10-11). |
+| 387 | **Glowing Mushroom survival and spreading (found by the new `worldgen.*` tests):** a placed mushroom dropped itself on its first neighbour update and could never spread, because its own light (15) failed its own "light < 13" rule; its light is now 12 (a bit dimmer, still glows) and generation uses a soil-only rule. Real-world check on a production server: 77 chunks of 1,687 contain mushrooms | FIXED | | Scripted `glowing_mushroom_cave` in a real default world: stays after placement, 1 -> 5-6 mushrooms in 27 s (6 of 7 runs on 2026-10-11/12). In ONE full run the mushroom was gone after 27 s (not reproduced; the scenario now logs per-interval state) - if you see one vanish in a real cave, tell me. |
+| 388 | **Imbue potions showed no HUD/inventory icon (found by the scripted playtest):** drinking an imbue potion used the 5-argument `EffectInstance` constructor, which ties the icon to the particles flag, so the icon (and its effect-list entry) was hidden; 1.12.2 hid only the particles. Now `showIcon=true` | FIXED | Test: `behavior.imbue.drinking_applies_a_20_minute_effect_with_icon_and_no_particles_and_replaces_the_previous_one`; scenario `imbuing` reads `ShowIcon: 1b`. Look at the effect icon top-right after drinking. |
+| 389 | **Biome Radar crystal hovered above the block (reported while watching the scripted run):** the renderer floated and bobbed the crystal ~1 block above the radar; 1.12.2 pinned the item's bob phase so it spins in place inside the block (`RenderBiomeRadar`). Now rendered at about 0.4 blocks up, no bobbing, spinning in place. | FIXED | Check by eye: insert a crystal, it spins in the middle of the radar, also while searching. |
+| 390 | **Enchant-glint colours were never rendered (found by the scripted dyeing test):** the Dyeing Machine's "enchant glint" result stored `enchantmentColor` but nothing used it, so every glint stayed purple; 1.12.2's `enchantmentColorHook` also tinted the Redstone Tool (dark red), Spectre Key (cyan), Portkey (magenta), Spectre Sword (grey) and Escape Rope (yellow). `ItemRendererTransformer` now routes the glint colour through `ClientAsmHandler.enchantmentColorHook` for items (inventory, hand, ground, frames). The worn-armor glint is hooked too (`ArmorLayerTransformer` -> `armorEnchantmentHook`). | FIXED | Scripted `dyeing_machine` measures the sheen: blue glint added red/blue 0.14 vs vanilla 0.44. Scripted `worn_armor` (F5 front view): dyed chestplate/helmet drawn in the dye colour on the player, worn glint adds red/blue 0.18 (blue) vs 0.41 (vanilla). Look at the other tinted items by eye. |
+
+(What was fixed and why: the row's entry in `docs/testing/fix-log/`, or the row text in the archive.)
+
+## C. Never tested (105 rows with no result)
+
+Row number, feature, and the archive file holding the full test steps. Mostly crafting-recipe rows (the automated suite crafts every data recipe) and secondary behaviour of features whose main rows passed. Fill any of them in when you do test it.
+
+| # | Feature (short) | Full steps in |
+|---|---|---|
+| 49 | Glowing Mushroom **[covered by automated worldgen tests]** | 2-batch-1-standalone-blocks-no-gui-tile-.md |
+| 121 | Bean Stew - eat it, restores 8 hunger, leaves you holding an empty bowl afterward **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 149 | Biome Radar - right-click with an empty hand and a Biome Crystal in your other hand's slot/held: inserting works, a... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 150 | Biome Radar - build the antenna (iron bars in the specific pattern above the radar — see `BiomeRadarTileEntity.isVa... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 151 | Biome Radar - let a search finish (crystal's target biome found): particles change to the target biome's color, the... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 152 | Biome Radar - break one of the antenna's iron bars while a search is active (not directly adjacent to the radar, so... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 153 | Biome Radar - break the radar block itself while it has a crystal inserted: the crystal drops instead of being dele... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 159 | Portable Sound Dampener - right-click to open its 9-slot GUI (carried in your own inventory, not placed), insert a ... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 160 | Sound Dampener / Portable Sound Dampener - break the block or take the pattern back out of a slot: the muting stops... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 168 | Imbuing Station - craft: water bucket + emerald + 2x vine + 2x lily pad + terracotta | 5-batch-3-remaining-non-block-items-1.md |
+| 170 | Imbuing Station - water bottle (center) + coal + flint + blaze powder -> Fire Imbue potion **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 171 | Imbuing Station - water bottle (center) + spider eye + rotten flesh + red mushroom -> Poison Imbue potion | 5-batch-3-remaining-non-block-items-1.md |
+| 172 | Imbuing Station - water bottle (center) + Lesser Magic Bean + lapis lazuli + glowstone dust -> Experience Imbue pot... | 5-batch-3-remaining-non-block-items-1.md |
+| 173 | Imbuing Station - water bottle (center) + wither skeleton skull + nether brick + ghast tear -> Wither Imbue potion | 5-batch-3-remaining-non-block-items-1.md |
+| 174 | Imbuing Station - progress arrow + the three per-slot "fill" animations only animate while a valid recipe is in pro... | 5-batch-3-remaining-non-block-items-1.md |
+| 175 | Drinking a Fire/Poison/Experience/Wither Imbue potion grants its effect for 20 minutes, leaves an empty glass bottl... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 176 | While Fire Imbue is active, dealing direct melee/attack damage (not projectiles) sets the target on fire for 10s **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 177 | While Poison Imbue is active, a direct hit gives the target Poison II for 10s **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 178 | While Wither Imbue is active, a direct hit gives the target Wither II for 5s **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 179 | While Experience Imbue is active, killing a mob drops double XP **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 181 | Floo Pouch - craft: leather (8-around) + Floo Powder (center); sneak-right-click tops it up from any Floo Powder in... | 5-batch-3-remaining-non-block-items-1.md |
+| 182 | Floo Sign - craft: Floo Powder (8-around) + any wood-type sign (center) | 5-batch-3-remaining-non-block-items-1.md |
+| 183 | Floo Token - craft: Floo Powder (8-around) + paper (center), makes 2 | 5-batch-3-remaining-non-block-items-1.md |
+| 193 | Eclipsed Clock - craft: 4x obsidian + 4x gold ingot + ghast tear (center) | 5-batch-3-remaining-non-block-items-1.md |
+| 198 | Time in a Bottle - craft: 3x gold ingot + 2x diamond + 2x lapis lazuli + clock + glass bottle | 5-batch-3-remaining-non-block-items-1.md |
+| 202 | Weather Egg (Sun/Rain/Storm) - craft each: obsidian corners + fire charge (center) + the type-specific ingredient (... | 5-batch-3-remaining-non-block-items-1.md |
+| 206 | Ender Mailbox - craft: 2x ender pearl + hopper (top row) + 3x iron ingot (middle row) + oak fence (bottom center) | 5-batch-3-remaining-non-block-items-1.md |
+| 207 | Ender Letter - craft: 2x paper (diagonal) + ender pearl (center) | 5-batch-3-remaining-non-block-items-1.md |
+| 209 | Ender Mailbox - place one: it remembers you as its owner **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 210 | Ender Mailbox - sneak-right-click any mailbox (yours or anyone else's) while holding an addressed letter: delivers ... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 211 | Ender Mailbox - sneak-right-click with an addressed letter naming a player who doesn't exist: get a "does not seem ... | 5-batch-3-remaining-non-block-items-1.md |
+| 212 | Ender Mailbox - right-click your own placed mailbox (not sneaking): opens your personal inbox - the same inbox no m... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 213 | Ender Mailbox - right-click a mailbox someone else placed (not sneaking): "You are not the owner of this mailbox," ... | 5-batch-3-remaining-non-block-items-1.md |
+| 214 | Ender Mailbox - after mail arrives in your inbox, the mailbox block starts glowing/emitting portal particles within... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 215 | Receiving a letter: take it from your inbox into your own inventory, right-click it - opens the same letter GUI, ou... **[verified by scripted playtest scenario 2026-10-11]** (letter delivery, taking it and the received flag; the read-only letter GUI is not asserted) | 5-batch-3-remaining-non-block-items-1.md |
+| 218 | Ender Bucket - craft: 2x iron ingot (top corners) + ender pearl (center) | 5-batch-3-remaining-non-block-items-1.md |
+| 244 | Creative Player Interface - creative-menu-only (no survival crafting recipe, matching 1.12.2), otherwise behaves id... | 5-batch-3-remaining-non-block-items-1.md |
+| 245 | Ender Anchor - craft: 8x obsidian (ring) + Stable Ender Pearl (center) | 5-batch-3-remaining-non-block-items-1.md |
+| 246 | Ender Bridge - craft: 6x end stone + redstone (center) + Stable Ender Pearl (right-middle) | 5-batch-3-remaining-non-block-items-1.md |
+| 253 | Magic Hood - wear it as a helmet: other players can no longer see your nametag above your head, whether you're snea... | 5-batch-3-remaining-non-block-items-1.md |
+| 256 | Rain Shield - craft: Flint (top) + Blaze Rod (middle) + 3x Netherrack (bottom row) | 5-batch-3-remaining-non-block-items-1.md |
+| 259 | Rain Shield - powered via redstone: shielding turns off, rain/snow affects the area normally again **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-1.md |
+| 270 | Peace Candle - in a plains village, roughly a third of the tall cobblestone churches are instead the Peace Candle c... **[covered by automated worldgen tests]** | 5-batch-3-remaining-non-block-items-2.md |
+| 275 | Portkey - craft: gunpowder/stable enderpearl/gunpowder (top row) + diamond (bottom center) | 5-batch-3-remaining-non-block-items-2.md |
+| 281 | Spectre Anchor - craft: 6 iron ingots (top-middle, both sides of the middle row, all three of the bottom row) + 1 E... | 5-batch-3-remaining-non-block-items-2.md |
+| 284 | Basic/Advanced Redstone Interface - whatever redstone signal (weak or strong) is currently hitting the interface bl... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-2.md |
+| 285 | Advanced Redstone Interface - craft: redstone blocks + obsidian in a ring around a Basic Redstone Interface; right-... | 5-batch-3-remaining-non-block-items-2.md |
+| 288 | Magnetic Enchantment - appears on pickaxes/axes/shovels from an enchanting table or anvil book, up to level 1; mini... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-2.md |
+| 289 | Block Breaker - craft: cobblestone ring + iron pickaxe (top-center) + redstone torch (middle-center); placed 6-way ... | 5-batch-3-remaining-non-block-items-2.md |
+| 292 | Block Destabilizer - craft: obsidian at the 4 corners, sand left/right of a diamond in the middle row, redstone abo... | 5-batch-3-remaining-non-block-items-2.md |
+| 294 | Block Destabilizer - GUI: Fuzzy toggle button makes the match ignore block-state variants and match by `Block` type... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-2.md |
+| 295 | Block Destabilizer - GUI: Lazy toggle remembers which connected blocks *didn't* match last time, so re-triggering d... **[verified by scripted playtest scenario 2026-10-12]** (`block_destabilizer_lazy`: Lazy/Reset buttons, remembered blocks skipped, cleared by Reset and by Lazy off) | 5-batch-3-remaining-non-block-items-2.md |
+| 296 | Block Destabilizer - falling blocks landing on an obstruction (another block, a tile-entity-bearing block) vanish w... **[verified by scripted playtest scenario 2026-10-12]** (`falling_block_obstruction`: onto a sign and a torch: no item, no block) | 5-batch-3-remaining-non-block-items-2.md |
+| 297 | Spectre Key - craft: Spectre Ingot at the 3 corners (top-left, middle-left, bottom-right), Stable Ender Pearl cente... | 5-batch-3-remaining-non-block-items-2.md |
+| 303 | Spectre Sword - craft: 2 Spectre Ingot stacked center column, Obsidian bottom-center; more durability (2000 uses) a... | 5-batch-3-remaining-non-block-items-2.md |
+| 307 | Spectre String - craft: Ectoplasm at the 4 corners, String on the 4 edges, a Diamond in the center; makes 4 | 5-batch-3-remaining-non-block-items-2.md |
+| 308 | Spectre Coil (Normal/Redstone/Ender) - craft each from the tier below it (Normal: Obsidian/Spectre String/Spectre I... | 5-batch-3-remaining-non-block-items-2.md |
+| 309 | Spectre Coil (Genesis) - same attach/drop behavior as the other tiers, but generates a flat 10,000,000 FE/tick dire... | 5-batch-3-remaining-non-block-items-2.md |
+| 310 | Spectre Energy Injector - craft: Obsidian at the 4 corners, Spectre Lens top-center, a vanilla Beacon center, Spect... | 5-batch-3-remaining-non-block-items-2.md |
+| 311 | Spectre Charger (Normal/Redstone/Ender/Genesis) - craft the first 3 tiers same escalating pattern as the Coils (Gen... | 5-batch-3-remaining-non-block-items-2.md |
+| 312 | Spectre Lens - craft: Spectre Ingot at the 4 corners, Emerald top/bottom-center, Diamond left/right-center, Glass i... | 5-batch-3-remaining-non-block-items-3.md |
+| 314 | Diaphanous Block - craft (Quartz Glass + 4 colored glass in a ring, see recipe) places a plain Stone-displaying blo... | 5-batch-3-remaining-non-block-items-3.md |
+| 318 | Light Redirector - craft (planks + glass ring, see recipe); right-click a face to toggle it open/closed (texture sw... | 5-batch-3-remaining-non-block-items-3.md |
+| 319 | Light Redirector - an *open* face shows whatever block is directly on the *opposite* side of the redirector instead... **[verified by scripted playtest scenario 2026-10-11]** (block state/NBT toggling; the periscope picture itself is a screenshot) | 5-batch-3-remaining-non-block-items-3.md |
+| 320 | Dyeing Machine - craft (Green/Red/Blue Dye + White Wool + Crafting Table, see recipe) and place; right-click opens ... | 5-batch-3-remaining-non-block-items-3.md |
+| 321 | Dyeing Machine - put any non-block item in the left slot and a vanilla dye in the dye slot; taking the "recolor" re... **[verified by scripted playtest scenario 2026-10-11]** (rtDye tag; the in-world tint is visual) | 5-batch-3-remaining-non-block-items-3.md |
+| 322 | Dyeing Machine - taking the "enchant glint" result instead gives back a copy of the item whose enchantment shimmer ... **[verified by scripted playtest scenario 2026-10-11]** (enchantmentColor tag; the glint colour is measured on the hotbar sprite, see #390) | 5-batch-3-remaining-non-block-items-3.md |
+| 323 | Dyeing Machine - a dyed armor piece (from the "recolor" result) also shows tinted while worn on your character mode... **[verified by scripted playtest scenario 2026-10-11]** (rtDye tag only; worn-armor tint is visual) | 5-batch-3-remaining-non-block-items-3.md |
+| 324 | Dyeing Machine - closing the GUI while the item/dye slots still hold something drops those items at your feet inste... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-3.md |
+| 325 | Spirit - killing any living entity has a small chance to spawn a tiny flying wisp at the death spot (higher at nigh... | 5-batch-3-remaining-non-block-items-3.md |
+| 326 | Spirit - drifts aimlessly near where it appeared, floats through the air (not on the ground), and despawns on its o... | 5-batch-3-remaining-non-block-items-3.md |
+| 327 | Spirit - immune to regular attacks/arrows/fire/etc; only a Spectre Sword (or creative-mode/out-of-world damage) can... | 5-batch-3-remaining-non-block-items-3.md |
+| 328 | Spirit - killing it with a Spectre Sword drops 1-2 Ectoplasm | 5-batch-3-remaining-non-block-items-3.md |
+| 329 | Batch 1 block loot tables - break a spread of Batch 1 blocks in survival (stained brick, luminous block, biome ston... | 5-batch-3-remaining-non-block-items-3.md |
+| 330 | Bean Sprout - breaking a fully grown (age 7) sprout drops 3-4 beans total; a young sprout drops just 1 | 5-batch-3-remaining-non-block-items-3.md |
+| 331 | Colored Grass - breaking it drops plain Dirt; with a Silk Touch tool it drops itself | 5-batch-3-remaining-non-block-items-3.md |
+| 332 | Compressed Slime Block - breaking it drops a regular vanilla Slime Block | 5-batch-3-remaining-non-block-items-3.md |
+| 333 | Blocks that should drop nothing still drop nothing: Blazing Fire, Floo Brick, Rune Base, Bean Stalk/Lesser Bean Sta... | 5-batch-3-remaining-non-block-items-3.md |
+| 334 | Chest loot injection - Summoning Pendulum, Magic Hood and Slime Cube occasionally appear in dungeon chests; Magic H... | 5-batch-3-remaining-non-block-items-3.md |
+| 335 | Chest loot injection - a Biome Crystal shows up in roughly 1 in 5 vanilla chests, already tuned to a random biome (... | 5-batch-3-remaining-non-block-items-3.md |
+| 336 | Config - first launch creates `config/randomthings-common.toml` with `[worldgen]`, `[loot]`, `[features]` boolean o... | 5-batch-3-remaining-non-block-items-3.md |
+| 337 | Config - `MagneticEnchantment = false` stops Magnetic appearing at the enchanting table/on books and stops it pulli... | 5-batch-3-remaining-non-block-items-3.md |
+| 338 | Config - `MagicHood`/`SummoningPendulum`/`SlimeCube`/`BiomeCrystal = false` under `[loot]` stops that item being in... | 5-batch-3-remaining-non-block-items-3.md |
+| 339 | Bean Pod - breaking one drops iron (8-20), gold (4-15), diamonds (1-5), 0-2 emeralds, 4-8 beans and a Golden Egg (i... | 5-batch-3-remaining-non-block-items-3.md |
+| 340 | Bean Pod - `GoldenEgg = false` in the config removes the egg from the drops; blowing the pod up with TNT drops only... | 5-batch-3-remaining-non-block-items-3.md |
+| 341 | Glowing Mushrooms - generate a fresh world/new chunks and explore caves: small patches of glowing mushrooms appear ... **[covered by automated worldgen tests]** | 5-batch-3-remaining-non-block-items-3.md |
+| 342 | Grass Seeds - craft one from a Grass Block (shapeless); right-click plain Dirt with it: becomes normal grass, seed ... | 5-batch-3-remaining-non-block-items-3.md |
+| 343 | Colored Grass Seeds - Grass Seeds + one vanilla dye (shapeless) gives that color's seeds (16 colors); right-clickin... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-3.md |
+| 344 | Colored Grass - spreads its color onto nearby Dirt over time when lit; reverts to Dirt when covered by an opaque bl... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-3.md |
+| 345 | Spirit config - `[numbers]` section: `SpiritLifeTime`, `SpiritChanceNormal`, `SpiritChanceMoonMult`, `SpiritChanceE... | 5-batch-3-remaining-non-block-items-3.md |
+| 346 | Runes - placed rune pixels now show the original's noisy texture (each pixel/connection strip slightly different, t... **[verified by scripted playtest scenario 2026-10-12]** (`rune_rendering`: shape joins incl. across the base edge, noise, static picture; verified to FAIL when the renderer re-rolls its noise) | 5-batch-3-remaining-non-block-items-3.md |
+| 347 | Runes - `[visual] FlatRunes = true` in the config switches them to the plain flat texture (takes effect on the next... | 5-batch-3-remaining-non-block-items-3.md |
+| 348 | Recipes - open the recipe book / a crafting table and confirm the backfilled recipes appear and craft (45 new): Ite... | 5-batch-3-remaining-non-block-items-3.md |
+| 349 | Recipes - Lapis Glass (x8), Quartz Glass (x8), Lapis/Quartz Lamp, Trigger Glass (x4); Biome Glass and the five Biom... | 5-batch-3-remaining-non-block-items-3.md |
+| 350 | Recipes - Super Lubricent: Ice (x16: slimeball/ice/water bucket), Platform (x6), Filtered Platform, new **Super Lub... | 5-batch-3-remaining-non-block-items-3.md |
+| 351 | Recipes - Stable Ender Pearl, Lesser Magic Bean (8 gold nuggets around Beans), Bean Stew (both orientations: wheat ... | 5-batch-3-remaining-non-block-items-3.md |
+| 352 | Recipes - shapes were ported with 1.12.2's exact (left-aligned, right-padded) layouts, so a few look lopsided (Item... | 5-batch-3-remaining-non-block-items-3.md |
+| 353 | Config - `[visual] HideCoordinates = true`: Portkey tooltip only says `<Target set>` / `<No target set>` (no dimens... | 5-batch-3-remaining-non-block-items-3.md |
+| 354 | Config - `[numbers] BlockDestabilizerLimit`: default 50 blocks per activation as before; raise it (e.g. 500) and a ... | 5-batch-3-remaining-non-block-items-3.md |
+| 355 | Config - `[numbers] TriggerGlassChainLimit`: default 20 as before; lower it (e.g. 3) and only that many touching Tr... | 5-batch-3-remaining-non-block-items-3.md |
+| 356 | Ender Anchor chunk loading - place an Ender Anchor far from any player (e.g. 300+ blocks from an Ender Bridge facin... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-3.md |
+| 357 | Ender Anchor chunk loading - persists across a save/quit/reload (chunk still force-loaded on reload, no duplicate r... **[verified by scripted playtest scenario 2026-10-11]** | 5-batch-3-remaining-non-block-items-3.md |
+| 358 | Ender Anchor chunk loading - `[features] EnderAnchorChunkloading = false`: newly placed anchors don't force anythin... | 5-batch-3-remaining-non-block-items-3.md |
+| 359 | Ender Anchor tooltip - hovering the item (inventory/creative) shows "Keeps the chunk it is in loaded"; the line dis... | 5-batch-3-remaining-non-block-items-3.md |
+| 356b | Config - `[worldgen] PeaceCandle = false`: no plains village church is replaced any more, new villages generate exa... **[covered by automated worldgen tests]** | 5-batch-3-remaining-non-block-items-3.md |

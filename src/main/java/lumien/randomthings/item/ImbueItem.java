@@ -72,7 +72,8 @@ public class ImbueItem extends Item {
 
             if (!worldIn.isRemote) {
                 clearImbues(playerIn);
-                playerIn.addPotionEffect(new EffectInstance(effect.get(), DURATION, 0, false, false));
+                // particles off like 1.12.2, but the HUD/inventory icon on: the 5-argument constructor ties showIcon to showParticles and hid it
+                playerIn.addPotionEffect(new EffectInstance(effect.get(), DURATION, 0, false, false, true));
             }
 
             if (!playerIn.abilities.isCreativeMode) {
