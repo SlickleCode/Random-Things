@@ -29,6 +29,29 @@ function initializeCoreMod() {
                     // shape 1.12.2's own ClassTransformer#patchRenderItem used at this call site (see
                     // that method's history in PORTING_PLAN.md), minus the luminous-item hooking
                     // 1.12.2 interleaved here - LuminousHandler doesn't exist in this port.
+                    // Enchant-glint colour (1.12.2's enchantmentColorHook): remember which stack renderItem(ItemStack, IBakedModel) is drawing, and
+                    // pass the glint's colour constant (-8372020, loaded by the private lambda$renderItem$0 that the glint pass runs) through
+                    // ClientAsmHandler.enchantmentColorHook(int) - ground-truthed via javap -c.
+                    if ((method.name === "renderItem" || method.name === "func_180454_a") && method.desc === "(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/model/IBakedModel;)V") {
+                        var head = new InsnList();
+                        head.add(new VarInsnNode(Opcodes.ALOAD, 1));
+                        head.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStack", "(Lnet/minecraft/item/ItemStack;)V", false));
+                        method.instructions.insert(head);
+                        continue;
+                    }
+
+                    if (method.name === "lambda$renderItem$0") {
+                        var ins = method.instructions;
+                        for (var k = 0; k < ins.size(); k++) {
+                            var node = ins.get(k);
+                            if (node.getOpcode && node.getOpcode() === Opcodes.LDC && node.cst !== undefined && String(node.cst) === "-8372020") {
+                                ins.insert(node, new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "enchantmentColorHook", "(I)I", false));
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+
                     if (method.name !== "renderQuads" && method.name !== "func_191970_a" || method.desc !== "(Lnet/minecraft/client/renderer/BufferBuilder;Ljava/util/List;ILnet/minecraft/item/ItemStack;)V") {
                         continue;
                     }
@@ -50,7 +73,7 @@ function initializeCoreMod() {
                         }
                     }
 
-                    break;
+                    continue;
                 }
 
                 return classNode;

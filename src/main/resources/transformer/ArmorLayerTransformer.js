@@ -29,12 +29,42 @@ function initializeCoreMod() {
                     // before that second render() call; the hook re-applies GL color, overriding
                     // whatever the vanilla call just set, only when the worn item carries a Dyeing
                     // Machine "rtDye" tag.
+                    // Worn-armor enchant glint colour (1.12.2's armorEnchantmentHook): the static glint pass func_215338_a sets the purple glint colour with
+                    // GlStateManager.color4f(0.38, 0.19, 0.608, 1) inside its 2-pass loop (the SECOND color4f in the method); right after it, let
+                    // ClientAsmHandler.armorEnchantmentHook() replace that colour for tinted stacks. Ground-truthed via javap -c.
+                    if (method.name === "func_215338_a") {
+                        var ins2 = method.instructions;
+                        var colorCalls = 0;
+                        for (var q = 0; q < ins2.size(); q++) {
+                            var n2 = ins2.get(q);
+                            if (n2.getOpcode && n2.getOpcode() === Opcodes.INVOKESTATIC && n2.owner === "com/mojang/blaze3d/platform/GlStateManager" && (n2.name === "color4f" || n2.name === "func_179131_c")) {
+                                colorCalls++;
+                                if (colorCalls === 2) {
+                                    ins2.insert(n2, new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorEnchantmentHook", "()V", false));
+                                    break;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
                     if (method.name !== "renderArmorLayer" && method.name !== "func_188361_a" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;FFFFFFFLnet/minecraft/inventory/EquipmentSlotType;)V") {
                         continue;
                     }
 
                     var instructions = method.instructions;
                     var renderCallIndex = 0;
+
+                    for (var g = 0; g < instructions.size(); g++) {
+                        var gi = instructions.get(g);
+                        if (gi.getOpcode && gi.getOpcode() === Opcodes.INVOKESTATIC && gi.name === "func_215338_a") {
+                            var pre = new InsnList();
+                            pre.add(new VarInsnNode(Opcodes.ALOAD, 10));
+                            pre.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStack", "(Lnet/minecraft/item/ItemStack;)V", false));
+                            instructions.insertBefore(gi, pre);
+                            break;
+                        }
+                    }
 
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
@@ -53,7 +83,7 @@ function initializeCoreMod() {
                         }
                     }
 
-                    break;
+                    continue;
                 }
 
                 return classNode;

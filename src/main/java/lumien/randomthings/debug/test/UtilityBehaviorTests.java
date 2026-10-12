@@ -138,6 +138,29 @@ final class UtilityBehaviorTests
 			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
 		}));
 
+		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
+		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
+			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
+			net.minecraft.item.Item tool = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("randomthings", "redstone_tool"));
+			net.minecraft.item.Item rope = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("randomthings", "escape_rope"));
+			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(ItemStack.EMPTY, vanilla), "empty stack keeps vanilla");
+			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(Items.DIAMOND_SWORD), vanilla), "an ordinary item keeps vanilla");
+			ItemStack tagged = new ItemStack(Items.IRON_HELMET);
+			tagged.getOrCreateTag().putInt("enchantmentColor", 0x3C44AA);
+			c.eq(0xFF3C44AA, lumien.randomthings.asm.GlintColors.colorFor(tagged, vanilla), "enchantmentColor tag becomes an opaque colour");
+			c.eq(0xFFB20000, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(tool), vanilla), "Redstone Tool: dark red");
+			c.eq(0xFF00B2B2, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(ModItems.SPECTRE_KEY), vanilla), "Spectre Key: dark cyan");
+			c.eq(0xFFB200B2, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(ModItems.PORTKEY), vanilla), "Portkey: dark magenta");
+			c.eq(0xFF7D7D7D, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(ModItems.SPECTRE_SWORD), vanilla), "Spectre Sword: grey");
+			c.eq(0xFFB2B200, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(rope), vanilla), "Escape Rope: dark yellow");
+			ItemStack taggedTool = new ItemStack(tool);
+			taggedTool.getOrCreateTag().putInt("enchantmentColor", 0x3C44AA);
+			c.eq(0xFFB20000, lumien.randomthings.asm.GlintColors.colorFor(taggedTool, vanilla), "the Redstone Tool's fixed tint beats the tag");
+			ItemStack taggedSword = new ItemStack(ModItems.SPECTRE_SWORD);
+			taggedSword.getOrCreateTag().putInt("enchantmentColor", 0x3C44AA);
+			c.eq(0xFF3C44AA, lumien.randomthings.asm.GlintColors.colorFor(taggedSword, vanilla), "the tag beats the Spectre Sword's tint");
+		}));
+
 		// ---- Portkey --------------------------------------------------------------------------
 		Vec3d[] portkeyHome = new Vec3d[1];
 		tests.add(RTTest.named("behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper").run(c -> {
@@ -149,6 +172,8 @@ final class UtilityBehaviorTests
 			CompoundNBT tag = key.getTag();
 			c.check(tag != null && tag.getBoolean("hasTarget"), "right-click must bind a target");
 			c.eq(target.getX(), tag.getInt("targetX"), "bound x");
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(key), "a freshly bound Portkey still glows (priming counter 0)");
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(new ItemStack(ModItems.PORTKEY)), "an unbound Portkey always glows");
 			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
 			portkeyHome[0] = c.player.getPositionVec();
 			ItemEntity dropped = c.spawnItem(0.5, 2.5, 0.5, key.copy());
@@ -156,12 +181,14 @@ final class UtilityBehaviorTests
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
 			c.check(drop.getItem().getTag().getInt("dropCounter") < 100, "not primed yet after about 60 ticks");
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(drop.getItem()), "still glowing while the counter is below 100");
 			c.player.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			MinecraftForge.EVENT_BUS.post(new EntityItemPickupEvent(c.player, drop));
 			c.check(c.player.posX < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.posX + ")");
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
 			c.check(drop.getItem().getTag().getInt("dropCounter") > 100, "primed after more than 100 ticks");
+			c.check(!((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(drop.getItem()), "the glow stops once the counter has passed 100 (primed and bound)");
 
 			if (c.player.connection == null)
 			{
@@ -214,6 +241,21 @@ final class UtilityBehaviorTests
 			c.check(pig.getActivePotionEffect(Effects.SPEED) != null, "a mob in the room must receive the potion effect");
 			c.eq(Items.GLASS_BOTTLE, te.itemHandler().getStackInSlot(2).getItem(), "an empty bottle is returned in the output slot");
 			c.check(te.itemHandler().getStackInSlot(1).isEmpty(), "the potion was loaded into the tank");
+		}));
+
+		// ---- Imbue potions --------------------------------------------------------------------
+		tests.add(RTTest.named("behavior.imbue.drinking_applies_a_20_minute_effect_with_icon_and_no_particles_and_replaces_the_previous_one").run(c -> {
+			c.player.clearActivePotions();
+			ModItems.IMBUE_FIRE.onItemUseFinish(new ItemStack(ModItems.IMBUE_FIRE), c.world, c.player);
+			net.minecraft.potion.EffectInstance fire = c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE);
+			c.check(fire != null, "drinking Fire Imbue must give the Fire Imbue effect");
+			c.check(fire.getDuration() >= 24000 - 5, "the effect lasts 20 minutes (24000 ticks), got " + fire.getDuration());
+			c.check(fire.isShowIcon(), "the effect must show its HUD/inventory icon (1.12.2 did; the 5-argument constructor hid it)");
+			c.check(!fire.doesShowParticles(), "the effect must not show particles (like 1.12.2)");
+			ModItems.IMBUE_POISON.onItemUseFinish(new ItemStack(ModItems.IMBUE_POISON), c.world, c.player);
+			c.check(c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE) == null, "drinking a second kind replaces the first");
+			c.check(c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_POISON) != null, "the second kind is active");
+			c.player.clearActivePotions();
 		}));
 
 		// ---- Static registries (thread safety) --------------------------------------------------

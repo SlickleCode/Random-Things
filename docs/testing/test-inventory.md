@@ -10,6 +10,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 | In-game tests (client) | `RT_AUTOTEST=true` | `debug/test/*` via `/rtdebug test` | `run/randomthings_tests.txt` | Behaviour, NBT round trips, coremod hooks, run inside a flat test world on the integrated server. |
 | In-game tests (dedicated server) | `RT_AUTOTEST=true` with `runServer` | `debug/test/ServerAutoTest` | `run/randomthings_tests.txt` | The same suite on a headless server (catches client-class leaks). |
 | Production-jar runs | manual (see README) | `prod-test/<version>/` (untracked) | `randomthings_tests.txt` there | The server suite and the client suite/scenes on a real SRG-named Forge install with the built jar; catches coremod/reflection name problems. |
+| Scripted playtest scenarios | `python scn.py <scenario>` (see README) | `docs/testing/desktop-helper/` | `prod-test/desktop/scenario_results.txt` | Real game window driven by commands/clicks in a fresh world per session: 21 scenarios (Imbuing Station + imbue potions and effects, Rain Shield, Ender Anchor, Sound Dampener, Fluid Display, crafting, Portkey, Redstone Remote/Interface, Block Destabilizer, Dyeing Machine, Light Redirector, Ender Mailbox, Biome Radar, Bean Stew, Magnetic, Colored Grass, Ancient Furnace, Glowing Mushroom cave), and effects, Rain Shield, Ender Anchor. |
 | GUI screenshots | `RT_AUTOTEST=true` (omit `_NO_GUIS`) | `client/AutoTest` `/rtdebug allguis` | `run/screenshots/randomthings_debug/` | One screenshot of each of the GUIs, to compare by eye. |
 | Render scenes | `RT_AUTOTEST_SCENES=true` [`_SCENES_ONLY=id,id`] | `debug/RenderScenes`, `client/SceneShots` | `run/screenshots/randomthings_debug/scenes/` | Built scenes for every block entity/entity renderer, items, armor dye, fluids, rain, Spectre sky + creative-tab item pages. Reviewed by eye. |
 | GUI click-through | `RT_AUTOTEST_CLICKS=true` | `client/GuiClickTest` | `run/randomthings_clicks.txt` | Opens every GUI, hovers/clicks every button, diffs server-side NBT, types into text fields, reopens to check persistence, hovers a filled slot in each container GUI and expects its item tooltip. |
@@ -67,13 +68,14 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.sound_box.pattern_toggles_the_block_state_and_survives_nbt`
 - `behavior.sound_dampener.muted_set_follows_its_patterns_and_the_block_registers_itself`
 
-### test\UtilityBehaviorTests.java (7)
+### test\UtilityBehaviorTests.java (8)
 
 - `behavior.entity_detector.powers_while_an_entity_is_in_range_and_ignores_far_ones`
 - `behavior.entity_detector.monster_filter_and_invert`
 - `behavior.ender_mailbox.sneak_click_with_a_letter_delivers_it_to_the_named_receivers_inbox`
 - `behavior.ender_mailbox.unknown_receiver_keeps_the_letter`
-- `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper`
+- `behavior.glint.colour_priority_matches_1_12_2`
+- `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper` (also asserts the glow stops: `hasEffect`)
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
 - `registry.weak_sets_survive_concurrent_add_remove_and_iteration`
 

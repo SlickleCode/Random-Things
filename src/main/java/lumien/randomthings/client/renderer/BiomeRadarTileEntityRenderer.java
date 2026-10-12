@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 
 /**
  * Renders the inserted {@link lumien.randomthings.item.BiomeCrystalItem}
- * hovering and slowly spinning above the radar. The 1.12.2 original
+ * spinning in place inside the radar (the 1.12.2 pose). The 1.12.2 original
  * (`RenderBiomeRadar`) got this same "floating item" look by instantiating a
  * throwaway {@code EntityItem} purely to reuse its bob/spin math and vanilla
  * dropped-item renderer - simpler to just do the bob/spin transform directly
@@ -28,8 +28,9 @@ public class BiomeRadarTileEntityRenderer extends TileEntityRenderer<BiomeRadarT
         float age = (te.getWorld().getGameTime() % 360000L) + partialTicks;
 
         GlStateManager.pushMatrix();
-        GlStateManager.translatef((float) x + 0.5F, (float) y + 1.1F + 0.1F * net.minecraft.util.math.MathHelper.sin(age / 10.0F), (float) z + 0.5F);
-        GlStateManager.rotatef((age * 2.0F) % 360.0F, 0.0F, 1.0F, 0.0F);
+        // 1.12.2 pinned the item's bob phase (hoverStart) so it spun in place INSIDE the block, about a third of the way up - no bobbing, no hovering above it
+        GlStateManager.translatef((float) x + 0.5F, (float) y + 0.4F, (float) z + 0.5F);
+        GlStateManager.rotatef((age * 2.9F) % 360.0F, 0.0F, -1.0F, 0.0F);
         GlStateManager.scalef(0.75F, 0.75F, 0.75F);
 
         Minecraft.getInstance().getItemRenderer().renderItem(currentCrystal, TransformType.GROUND);

@@ -107,6 +107,25 @@ sha1-checked), put the built jar in `client-run/mods/`, then
 force-loads ~1,700 chunks, saves and counts region-file chunks that contain a Glowing Mushroom. Use it after touching natural generation; it caught that new 1.16.5 worlds never
 generated mushrooms while the in-test cave checks first looked fine.
 
+### Scripted playtest scenarios (Minecraft window driven by a helper)
+
+`docs/testing/desktop-helper/` (`desk.py` + `scn.py`, copy to `prod-test/desktop/`): deterministic in-game scenarios run in a **fresh superflat world (seed 424242) per session**,
+with controlled rules (always day, no weather, no mobs), wiped between feature sections, deleted afterwards. Setup is done with commands (`/tp` for exact aim, `/setblock`,
+`/replaceitem` for exact hotbar slots); results are read from the game's own command output in the client log (`/data get`, `/experience query`, `/forceload query`, ...),
+screenshots only as evidence. It only types and clicks while the Minecraft window is the foreground window; if you switch windows it **pauses** and resumes when you click the game back.
+Stop: hold Ctrl+Alt+Shift (or Pause, Scroll Lock, F12), or `python desk.py stop`. Run: `python -u scn.py imbuing rain_shield ...`, or `python -u scn.py all` (every scenario, flat-world ones first,
+then the default-world ones in a second fresh world); list: `python scn.py list`. Always use `-u` when redirecting output to a file.
+Scenarios (checklist rows): `imbuing` (#169/#170/#175), `imbue_effects` (#176-179), `rain_shield` (#258/#259), `ender_anchor` (#356/#357), `sound_dampener` (#158-160, via the client's
+`[RT-DEBUG] muted sound ...` log line), `fluid_display` (#234), `crafting_evil_tear_portkey` (#238/#279), `portkey_drop` (#277), `redstone_remote` (#287), `redstone_interface` (#284),
+`block_destabilizer` (#293/#294), `dyeing_machine` (#321-324, incl. hotbar colour and glint sheen), `worn_armor` (dyed armor and tinted glint on the player in F5 view), `magic_hood` (#254, counts swirl particles via the dev `ParticleProbe`, enabled by the file `run/rt_probe`), `redstone_remote_edit` (#287 edit screen), `block_destabilizer_lazy` (#295), `falling_block_obstruction` (#296), `rune_rendering` (#346: shapes, noise, static picture), `light_redirector` (#319), `ender_mailbox` (#209/#210/#212/#214/#215),
+`biome_radar` (#149-153), `bean_stew` (#121), `magnetic` (#288), `colored_grass` (#343/#344), and in the default world `ancient_furnace` (#265, nearest igloo of the seed) and
+`glowing_mushroom_cave` (#387).
+Pitfalls learned: pixel reads must use `desk.grab()` (one frame, read in memory) - thousands of `desk.pixel()` calls take minutes and look like a hang; right-click reach is 5 blocks (`aim_at` takes the standing position); a GUI that fails to open must stop the scenario (Escape would open the pause menu and the next
+clicks hit "Save and Quit"), which `gui_open()` guards; negative checks use `execute unless ...` so a command that never ran cannot pass; the Redstone Remote/Interface power the target
+block itself (the lamp/command block must sit AT the bound position); an offline dev client resolves any receiver name, so #211 (unknown receiver) is not scriptable.
+To drive a production client set `SCN_RUN=<its game dir>` (e.g. `prod-test/1.14.4/client-run`); dev-only scenarios (sound_dampener, magic_hood) need the dev client.
+Verified 2026-10-12 on 1.14.4 (dev client): all 26 scenarios pass (see `prod-test/desktop/scenario_results.txt`).
+
 ### Switching branches
 
 `run/` is gitignored and shared by every branch. Before running the tests after switching to a different

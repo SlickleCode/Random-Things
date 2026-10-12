@@ -37,6 +37,37 @@ import net.minecraftforge.client.model.data.IModelData;
  * to this one never gets reached or resolved there either.
  */
 public class ClientAsmHandler {
+    /** The stack ItemRenderer.renderItem is currently drawing (set by the ItemRendererTransformer coremod); read by {@link #enchantmentColorHook}. */
+    private static ItemStack renderingStack = ItemStack.EMPTY;
+
+    public static void setRenderingStack(ItemStack stack) {
+        renderingStack = stack;
+    }
+
+    /**
+     * Port of 1.12.2's {@code AsmHandler.enchantmentColorHook}: the colour of the enchant glint of the stack being drawn. A Dyeing Machine "enchant glint"
+     * result ({@code enchantmentColor}) wins over the per-item colours below; anything else keeps vanilla's {@code original}.
+     */
+    public static int enchantmentColorHook(int original) {
+        return GlintColors.colorFor(renderingStack, original);
+    }
+
+    /**
+     * Port of 1.12.2's {@code armorEnchantmentHook}: called right after the armor glint pass sets vanilla's purple colour; for a tinted stack it replaces
+     * that colour with the tint, darkened by 30% like the original (the armor glint is drawn with a brighter blend than the item glint).
+     */
+    public static void armorEnchantmentHook() {
+        int color = enchantmentColorHook(-8372020);
+
+        if (color != -8372020) {
+            float r = (color >> 16 & 255) / 255.0F * 0.7F;
+            float g = (color >> 8 & 255) / 255.0F * 0.7F;
+            float b = (color & 255) / 255.0F * 0.7F;
+
+            GlStateManager.color4f(r, g, b, 1.0F);
+        }
+    }
+
     private static final Set<BlockPos> posSet = new HashSet<>();
 
     /**
