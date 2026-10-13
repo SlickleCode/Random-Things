@@ -14,6 +14,6 @@ public class SpectreBlock extends Block
 {
 	public SpectreBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.BLACK).hardnessAndResistance(-1.0F, 3600000.0F).sound(SoundType.GLASS).noDrops());
+		super(Block.Properties.create(Material.ROCK, MaterialColor.BLACK).notSolid().hardnessAndResistance(-1.0F, 3600000.0F).sound(SoundType.GLASS).noDrops());
 	}
 }

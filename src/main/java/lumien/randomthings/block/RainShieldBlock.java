@@ -44,7 +44,7 @@ public class RainShieldBlock extends Block {
     private static final VoxelShape SHAPE = Block.makeCuboidShape(6, 0, 6, 10, 16, 10);
 
     public RainShieldBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+        super(Block.Properties.create(Material.ROCK).notSolid().hardnessAndResistance(2.0F));
     }
 
     @Override

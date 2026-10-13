@@ -30,7 +30,7 @@ import net.minecraft.util.ActionResultType;
  */
 public class BiomeRadarBlock extends Block implements IRTBlockColor {
     public BiomeRadarBlock() {
-        super(Block.Properties.create(Material.IRON).hardnessAndResistance(5.0F));
+        super(Block.Properties.create(Material.IRON).notSolid().hardnessAndResistance(5.0F));
     }
 
     @Override

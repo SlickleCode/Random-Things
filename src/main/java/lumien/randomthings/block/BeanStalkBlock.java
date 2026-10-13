@@ -41,7 +41,7 @@ public class BeanStalkBlock extends Block
 
 	public BeanStalkBlock(boolean strongMagic)
 	{
-		super(Block.Properties.create(Material.PLANTS).doesNotBlockMovement().sound(SoundType.PLANT));
+		super(Block.Properties.create(Material.PLANTS).notSolid().doesNotBlockMovement().sound(SoundType.PLANT));
 
 		this.strongMagic = strongMagic;
 	}

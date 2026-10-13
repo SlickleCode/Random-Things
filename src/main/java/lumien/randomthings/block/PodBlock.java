@@ -26,7 +26,7 @@ public class PodBlock extends Block
 {
 	public PodBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(1.5F).doesNotBlockMovement());
+		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(1.5F).doesNotBlockMovement());
 	}
 
 	@Override

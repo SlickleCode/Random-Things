@@ -17,7 +17,7 @@ public class QuartzGlassBlock extends Block
 {
 	public QuartzGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).notSolid().hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
 	}
 
 	/**

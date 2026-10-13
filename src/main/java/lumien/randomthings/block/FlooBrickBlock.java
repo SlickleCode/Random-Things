@@ -34,7 +34,7 @@ import java.util.UUID;
  */
 public class FlooBrickBlock extends Block {
     public FlooBrickBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F, 10.0F));
+        super(Block.Properties.create(Material.ROCK).notSolid().hardnessAndResistance(2.0F, 10.0F));
     }
 
     @Override

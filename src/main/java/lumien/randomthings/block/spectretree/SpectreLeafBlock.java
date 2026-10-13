@@ -28,7 +28,7 @@ public class SpectreLeafBlock extends LeavesBlock
 {
 	public SpectreLeafBlock()
 	{
-		super(Block.Properties.create(Material.LEAVES, MaterialColor.PURPLE).hardnessAndResistance(0.2F).tickRandomly().sound(SoundType.PLANT));
+		super(Block.Properties.create(Material.LEAVES, MaterialColor.PURPLE).notSolid().hardnessAndResistance(0.2F).tickRandomly().sound(SoundType.PLANT));
 	}
 
 	@Override

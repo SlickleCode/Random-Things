@@ -122,6 +122,8 @@ class Game:
 
 SCENARIOS = {}
 WORLD_KIND = {}
+DIM = '"minecraft:overworld"' if (os.environ.get('SCN_MC') or '1.14').startswith('1.16') else '0'      # the dimension tag: a registry key string on 1.16, an int id on 1.14
+MC16 = (os.environ.get('SCN_MC') or '1.14').startswith('1.16')       # SCN_MC=1.16 drives the 1.16.5 menus
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
 
@@ -289,7 +291,7 @@ def pig_fire(g, label):
     """A burning pig with 1000 max health (so it survives, and real fire damage shows as lost health). Returns (fire ticks left, health)
     after the rain has had time to act: rain puts the fire out and the pig keeps full health, a shielded pig keeps burning and loses health."""
     g.cmd('kill @e[type=minecraft:pig]')
-    g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,Attributes:[{Name:"generic.maxHealth",Base:1000d}],Health:1000f}')
+    g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,Attributes:[{Name:"generic.%s",Base:1000d}],Health:1000f}' % ('max_health' if MC16 else 'maxHealth'))
     g.wait(6)
     out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] Fire')
     m = re.search(r'(-?\d+)s?$', ' '.join(out).strip())
@@ -573,7 +575,7 @@ def crafting_evil_tear_portkey(g):
 def portkey_drop(g):
     """#277: a bound Portkey on the ground counts 100 ticks (glint stops, no despawn); picking it up resets the counter."""
     arena(g)
-    g.cmd('summon item 0.5 4 3.5 {Item:{id:"randomthings:portkey",Count:1b,tag:{hasTarget:1b,dimension:0,targetX:10,targetY:4,targetZ:10}},Motion:[0.0,0.0,0.0]}')
+    g.cmd('summon item 0.5 4 3.5 {Item:{id:"randomthings:portkey",Count:1b,tag:{hasTarget:1b,dimension:' + DIM + ',targetX:10,targetY:4,targetZ:10}},Motion:[0.0,0.0,0.0]}')
     g.wait(1)
     v1 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Item.tag.dropCounter')
     c1 = int(v1) if re.fullmatch(r'-?\d+', v1) else -1
@@ -598,7 +600,7 @@ def redstone_remote(g):
     g.cmd('setblock 10 4 10 minecraft:air')
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.check(block_isnt(g, 10, 4, 10, 'minecraft:emerald_block'), 'control: the marker block is not there before the pulse')
-    pos = '{Slot:0b,id:"randomthings:position_filter",Count:1b,tag:{hasPosition:1b,dimension:0,filterX:6,filterY:4,filterZ:3}}'
+    pos = '{Slot:0b,id:"randomthings:position_filter",Count:1b,tag:{hasPosition:1b,dimension:' + DIM + ',filterX:6,filterY:4,filterZ:3}}'
     g.slot(0, 'randomthings:redstone_remote{positions:{Size:9,Items:[%s]}}' % pos)
     g.select(0)
     sky(g)
@@ -907,7 +909,7 @@ def redstone_remote_edit(g):
         g.cmd('setblock %d %d %d minecraft:air' % p)
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.cmd('setblock 8 4 3 minecraft:command_block{Command:"setblock 11 4 10 minecraft:gold_block"}')
-    pf = lambda x: 'randomthings:position_filter{hasPosition:1b,dimension:0,filterX:%d,filterY:4,filterZ:3}' % x
+    pf = lambda x: 'randomthings:position_filter{hasPosition:1b,dimension:' + DIM + ',filterX:%d,filterY:4,filterZ:3}' % x
     g.slot(0, 'randomthings:redstone_remote')
     g.slot(1, pf(6))
     g.slot(2, pf(8))
@@ -1336,14 +1338,14 @@ def ancient_furnace(g):
     The 5-minute heating time is skipped by setting the block entity's counter to 10 ticks before the end."""
     arena_default(g)
     before = g.mark()
-    g.cmd('locate Igloo', 0.5)
+    g.cmd('locatebiome minecraft:snowy_tundra' if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
     text = ''
     for _ in range(40):                       # the search generates chunks: can take a while
         g.wait(3)
         text = g.new_log(before)
-        if 'nearest Igloo' in text or 'Could not find' in text:
+        if re.search(r'nearest (igloo|minecraft:snowy_tundra)', text, re.I) or 'Could not find' in text or 'Incorrect argument' in text or 'Unknown' in text:
             break
-    m = re.search(r'nearest Igloo is at \[(-?\d+), ~, (-?\d+)\]', text)
+    m = re.search(r'(?i)nearest (?:igloo|minecraft:snowy_tundra) is at \[(-?\d+), (?:~|-?\d+), (-?\d+)\]', text)
     out = [text[-300:]]
     if not m:
         g.check(False, 'locate Igloo found nothing', ' '.join(out)[:200])
@@ -1358,15 +1360,30 @@ def ancient_furnace(g):
         return
     px, py, pz = int(math.floor(pos[0])), int(math.floor(pos[1])), int(math.floor(pos[2]))
     g.note('standing at %d %d %d' % (px, py, pz))
-    fx, fz = px + 6, pz
-    g.cmd('forceload add %d %d %d %d' % (fx - 20, fz - 20, fx + 20, fz + 20))
-    g.wait(3)
-    g.cmd('setblock %d %d %d minecraft:packed_ice' % (fx + 8, py - 1, fz))
+    fx, fz = (px, pz) if MC16 else (px + 6, pz)
+    ice = 5 if MC16 else 8
+    # 1.16: /locatebiome is approximate and biome edges are fuzzy, so one ice block may sit in a warm column. Put ice (replacing the top ground block, found with
+    # `positioned over motion_blocking`) on a ring of spots up to 40 blocks out: the furnace melts the ones in cold columns; at least one must turn to water.
+    ring = [(-40, 0), (40, 0), (0, -40), (0, 40), (-28, -28), (28, 28), (-28, 28), (28, -28), (-14, 0), (14, 0), (0, -14), (0, 14), (20, 0), (-20, 0)]
+    g.cmd('forceload add %d %d %d %d' % (fx - 56, fz - 56, fx + 56, fz + 56))      # 7x7 chunks
+    g.wait(6)
+    if MC16:
+        for dx, dz in ring:
+            g.cmd('execute positioned %d 0 %d over motion_blocking run setblock ~ ~-1 ~ minecraft:packed_ice' % (fx + dx, fz + dz), 0.3)
+    else:
+        g.cmd('setblock %d %d %d minecraft:packed_ice' % (fx + ice, py - 1, fz))
     g.cmd('setblock %d %d %d randomthings:ancient_furnace' % (fx, py, fz))
     g.cmd('data merge block %d %d %d {heating:1b,ticks:5990}' % (fx, py, fz))
-    g.wait(4)
+    g.wait(5)
     g.check(block_isnt(g, fx, py, fz, 'randomthings:ancient_furnace'), '#265: the Ancient Furnace exploded when its heating finished')
-    g.check(block_is(g, fx + 8, py - 1, fz, 'minecraft:water'), '#265: the ice in a snowy biome around it was melted to water', 'at %d %d %d' % (fx + 8, py - 1, fz))
+    if MC16:
+        melted = 0
+        for dx, dz in ring:
+            out = g.cmd('execute positioned %d 0 %d over motion_blocking if block ~ ~-1 ~ minecraft:water run say melted' % (fx + dx, fz + dz), 0.3)
+            melted += 1 if any('melted' in l for l in out) else 0
+        g.check(melted >= 1, '#265: ice in snowy columns around it was melted to water (1.16 ring of 14 spots)', '%d of %d spots melted' % (melted, len(ring)))
+    else:
+        g.check(block_is(g, fx + ice, py - 1, fz, 'minecraft:water'), '#265: the ice in a snowy biome around it was melted to water', 'at %d %d %d' % (fx + ice, py - 1, fz))
     g.shot('after_furnace')
     g.cmd('forceload remove all')
 
@@ -1436,8 +1453,12 @@ def new_world(g, world, kind='flat'):
     g.click(584, 395)                          # Create New World
     require_screen(g, 'create world', 300, 139)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', world)
-    g.click(426, 249); g.click(426, 249)       # Survival -> Hardcore -> Creative
-    g.click(426, 393)                          # More World Options
+    if MC16:                                   # 1.16 create-world screen: game mode at (266,219); picking Creative also turns cheats ON
+        g.click(266, 219); g.wait(0.6); g.click(266, 219); g.wait(0.6)      # slow click pairs are needed on the production client
+        g.click(586, 389)                      # More World Options
+    else:
+        g.click(426, 249); g.click(426, 249)   # Survival -> Hardcore -> Creative
+        g.click(426, 393)                      # More World Options
     g.wait(1.0)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', SEED)     # seed field
     if kind == 'flat':

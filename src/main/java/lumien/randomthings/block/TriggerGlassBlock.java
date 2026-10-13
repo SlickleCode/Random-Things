@@ -64,7 +64,7 @@ public class TriggerGlassBlock extends Block
 
 	public TriggerGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> !state.get(TRIGGERED)));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).notSolid().hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> !state.get(TRIGGERED)));
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(TRIGGERED, false));
 	}

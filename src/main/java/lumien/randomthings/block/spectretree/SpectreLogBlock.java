@@ -15,6 +15,6 @@ public class SpectreLogBlock extends RotatedPillarBlock
 {
 	public SpectreLogBlock()
 	{
-		super(Block.Properties.create(Material.WOOD, MaterialColor.PURPLE).hardnessAndResistance(2.0F).sound(SoundType.WOOD));
+		super(Block.Properties.create(Material.WOOD, MaterialColor.PURPLE).notSolid().hardnessAndResistance(2.0F).sound(SoundType.WOOD));
 	}
 }

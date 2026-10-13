@@ -42,6 +42,32 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 public class ClientAsmHandler {
     private static final Set<BlockPos> posSet = new HashSet<>();
 
+    /** The stack ItemRenderer.renderItem / BipedArmorLayer is currently drawing (set and cleared by the coremods); decides the enchant-glint tint. */
+    private static ItemStack renderingStack = ItemStack.EMPTY;
+
+    public static void setRenderingStack(ItemStack stack) {
+        renderingStack = stack == null ? ItemStack.EMPTY : stack;
+    }
+
+    public static void setRenderingStackFromSlot(net.minecraft.entity.LivingEntity entity, net.minecraft.inventory.EquipmentSlotType slot) {
+        renderingStack = entity.getItemStackFromSlot(slot);
+    }
+
+    public static void clearRenderingStack() {
+        renderingStack = ItemStack.EMPTY;
+    }
+
+    /**
+     * Port of 1.12.2's {@code enchantmentColorHook}/{@code armorEnchantmentHook} for 1.16: called from the {@code RenderType} glint getters by the
+     * {@code RenderTypeTransformer} coremod. Returns the glint type to use for the stack being drawn: the original, or a tinted wrapper when
+     * {@link GlintColors} gives that stack a colour other than vanilla's.
+     */
+    public static net.minecraft.client.renderer.RenderType tintGlint(net.minecraft.client.renderer.RenderType original) {
+        int color = GlintColors.colorFor(renderingStack, GlintColors.VANILLA);
+
+        return color == GlintColors.VANILLA ? original : lumien.randomthings.client.renderer.TintedGlintRenderType.of(original, color);
+    }
+
     /**
      * Redirect target for {@code BlockRendererDispatcher.renderBlock}'s
      * method entry (the 6-arg, real - not the deprecated 5-arg {@code

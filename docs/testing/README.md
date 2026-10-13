@@ -110,7 +110,7 @@ in-test cave and terrain checks first looked fine; use it after touching natural
 ### Scripted playtest scenarios (Minecraft window driven by a helper)
 
 `docs/testing/desktop-helper/` (`desk.py` + `scn.py`, copy to `prod-test/desktop/`) drives the real game window through deterministic scenarios in a fresh seed-424242 world.
-It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` its world-creation clicks need re-calibrating first
+It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` run it with `SCN_MC=1.16` (1.16 menu clicks, registry-string dimensions)
 (different create-world screen). Pixel reads must use `desk.grab()` (one frame) rather than many `desk.pixel()` calls.
 
 ### Switching branches

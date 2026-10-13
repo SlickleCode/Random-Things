@@ -17,7 +17,7 @@ public class LapisGlassBlock extends Block
 {
 	public LapisGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
+		super(Block.Properties.create(Material.GLASS, MaterialColor.BLUE).notSolid().hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
 	}
 
 	/**

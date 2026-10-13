@@ -84,7 +84,12 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
                 for (int i = 0; i < 5; i++) {
                     BlockPos testPos = getPos(searchCounter);
                     Biome testBiome = this.world.getBiome(testPos);
-                    ResourceLocation registryName = ForgeRegistries.BIOMES.getKey(testBiome);
+                    ResourceLocation registryName = biomeName(testBiome);
+
+                    if (registryName == null) {
+                        searchCounter++;
+                        continue;
+                    }
 
                     boolean exists = false;
 
@@ -106,7 +111,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
                         }
                     }
 
-                    if (testBiome == biomeToSearch) {
+                    if (registryName.equals(biomeName(biomeToSearch))) {
                         this.state = STATE.FINISHED;
 
                         this.syncTE();
@@ -157,6 +162,24 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
         double z = i > 1 ? this.pos.getZ() + 1.5 - (i - 2) * 2 : this.pos.getZ() + 0.5;
 
         this.world.addParticle(new RedstoneParticleData(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F), 1.0F), x, this.pos.getY() + 4.1, z, 0, 0, 0);
+    }
+
+    /**
+     * 1.16: the biomes a world actually uses are decoded from its data packs, so they are NOT the instances in {@code ForgeRegistries.BIOMES}
+     * (that lookup returns null for them, and {@code ==} against the crystal's biome is never true). Fall back to the world's own biome registry.
+     */
+    private ResourceLocation biomeName(Biome biome) {
+        if (biome == null) {
+            return null;
+        }
+
+        ResourceLocation key = ForgeRegistries.BIOMES.getKey(biome);
+
+        if (key == null && this.world instanceof net.minecraft.world.server.ServerWorld) {
+            key = ((net.minecraft.world.server.ServerWorld) this.world).func_241828_r().getRegistry(net.minecraft.util.registry.Registry.BIOME_KEY).getKey(biome);
+        }
+
+        return key;
     }
 
     private BlockPos getPos(int n) {

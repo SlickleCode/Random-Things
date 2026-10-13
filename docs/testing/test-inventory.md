@@ -73,6 +73,8 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.ender_mailbox.sneak_click_with_a_letter_delivers_it_to_the_named_receivers_inbox`
 - `behavior.ender_mailbox.unknown_receiver_keeps_the_letter`
 - `behavior.glint.colour_priority_matches_1_12_2`
+- `behavior.render.see_through_blocks_are_not_solid_so_neighbours_keep_their_faces`
+- `behavior.biome_radar.search_finds_the_crystals_biome_and_a_missing_biome_keeps_searching`
 - `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper` (also asserts the glow stops)
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
 - `registry.weak_sets_survive_concurrent_add_remove_and_iteration`

@@ -26,17 +26,15 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Mirrored from `1.14.4` on 2026-10-12:** Sound Dampener slot-tooltip fix + the click test that guards it, imbue effect icon fix (#388), controlled test
   world (always day, no weather/mobs), Biome Radar crystal spinning inside the block (#389), `GlintColors` + its unit test, Portkey `hasEffect`
   assertions, dev `ParticleProbe`, and the documentation layout (root files short, detail under `docs/`).
-- **NOT ported to 1.16.5 yet:**
-  1. **Enchant-glint colours (#390):** 1.16 draws the glint through `RenderType` glint states with vertex builders, so the 1.14.4 `ItemRenderer`/`ArmorLayer`
-     coremods do not apply. `GlintColors.colorFor` (the colour logic) is in place and tested; the render hook is still to be built. Until then the Dyeing
-     Machine's glint result keeps the tag but the glint stays purple on this branch.
-  2. **Scripted playtest helper:** `docs/testing/desktop-helper/` drives the 1.14.4 menus (world-creation screen coordinates); the 1.16.5 create-world screen is
-     different, so its `new_world()` needs re-calibration before the scenarios can run here. In-world coordinates and GUI layouts are the same.
+- **Also ported (2026-10-12):** enchant-glint colours (#390) via three coremods - `RenderTypeTransformer` (the seven glint `RenderType` getters return a tinted wrapper type, `TintedGlintRenderType`, for stacks with a custom colour), `ItemRendererTransformer` (captures the stack in `renderItem`), `ArmorLayerTransformer` (captures the worn stack) - because 1.16 glint types use `POSITION_TEX` (colour = GL colour at draw time) and each tinted type needs its own entry in the main buffer source's `fixedBuffers` (otherwise "BufferBuilder not started"). The scripted helper now drives the 1.16.5 menus (`SCN_MC=1.16`); dimension tags are registry strings there (`"minecraft:overworld"`), the max-health attribute is `generic.max_health`.
+- **Real 1.16.5 crash found by the scripted Biome Radar scenario:** `BiomeRadarTileEntity.tick` threw an NPE on the server (and never found its biome): a world's biomes are data-pack instances, not the `ForgeRegistries.BIOMES` ones, so `getKey` returned null and `==` never matched. It now resolves names through the world's own biome registry; guarded by `behavior.biome_radar.search_finds_the_crystals_biome_and_a_missing_biome_keeps_searching` (verified to fail without the fix).
+- **Verified on 1.16.5 (2026-10-12):** all 26 scripted scenarios pass on the dev client (`SCN_MC=1.16`); the production (SRG) client passes the render scenarios (Fluid Display, crafting, dyeing + glint, worn armor, Biome Radar, runes, falling blocks, Lazy/Reset, Remote edit), plus production server and client suites 349/0. The Ancient Furnace scenario needed a ring of ice spots on 1.16 (`/locatebiome` is approximate and biome edges are fuzzy); the furnace itself works (14 of 14 spots melted).
+- **Render fix found while doing it (reported by the user: Fluid Display neighbours showing holes):** 1.16 culls a neighbour's face against any block whose `BlockState.isSolid()` is true (default), independent of the render layer in `RenderLayerSetup`; the 1.14.4 `getRenderLayer()` overrides had no 1.16 equivalent, so every see-through/partial block (28 of them) now sets `Block.Properties.notSolid()`. Guarded by `behavior.render.see_through_blocks_are_not_solid_so_neighbours_keep_their_faces`.
 - **Checklist:** `TESTING_CHECKLIST.md` is the 1.14.4 sheet (all rows tested there); rows are re-verified on 1.16.5 per milestone, not assumed.
 
 ## What to do next
 
-1. Build the 1.16.5 glint hook (#390) and re-calibrate the helper's world creation; then run `python -u scn.py all` here.
+1. Run `SCN_MC=1.16 python -u scn.py all` end to end (needs ~15 min with Minecraft in front) and fix whatever differs on 1.16.
 2. Production-check (SRG names) the 1.16.5 jar again after any coremod change (`docs/testing/README.md`).
 3. Otherwise **ask the user which area to tackle**. After every change: full `./gradlew build`, update the checklist + this file, leave uncommitted.
 4. Open design questions: `docs/migration/open-questions-backlog.md`.

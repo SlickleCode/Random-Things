@@ -25,7 +25,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 
 	public ColoredGrassBlock()
 	{
-		super(Block.Properties.create(Material.ORGANIC, MaterialColor.GRASS).harvestTool(net.minecraftforge.common.ToolType.SHOVEL).hardnessAndResistance(0.6F).sound(SoundType.PLANT).tickRandomly());
+		super(Block.Properties.create(Material.ORGANIC, MaterialColor.GRASS).notSolid().harvestTool(net.minecraftforge.common.ToolType.SHOVEL).hardnessAndResistance(0.6F).sound(SoundType.PLANT).tickRandomly());
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(COLOR, DyeColor.WHITE));
 	}

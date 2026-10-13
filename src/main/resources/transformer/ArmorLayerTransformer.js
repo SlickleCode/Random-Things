@@ -34,6 +34,21 @@ function initializeCoreMod() {
                     var instructions = method.instructions;
                     var renderModelCalls = [];
 
+                    // Enchant-glint colour: remember the worn stack (entity.getItemStackFromSlot(slot)) for the RenderType glint getters; cleared before every return.
+                    for (var rr = 0; rr < instructions.size(); rr++) {
+                        var rnode = instructions.get(rr);
+                        if (rnode.getOpcode && rnode.getOpcode() === Opcodes.RETURN) {
+                            instructions.insertBefore(rnode, new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "clearRenderingStack", "()V", false));
+                            rr++;
+                        }
+                    }
+                    var armorHead = new InsnList();
+                    armorHead.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                    armorHead.add(new VarInsnNode(Opcodes.ALOAD, 4));
+                    // (the slot lookup lives in Java so its dev/SRG method name is remapped by the build, not hand-matched here)
+                    armorHead.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStackFromSlot", "(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/inventory/EquipmentSlotType;)V", false));
+                    instructions.insert(armorHead);
+
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 

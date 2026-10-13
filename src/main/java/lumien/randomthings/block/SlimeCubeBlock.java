@@ -27,7 +27,7 @@ public class SlimeCubeBlock extends Block
 
 	public SlimeCubeBlock()
 	{
-		super(Block.Properties.create(Material.CLAY).doesNotBlockMovement().hardnessAndResistance(0.5F));
+		super(Block.Properties.create(Material.CLAY).notSolid().doesNotBlockMovement().hardnessAndResistance(0.5F));
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, false));
 	}

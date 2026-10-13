@@ -32,7 +32,7 @@ public class SticksBlock extends Block
 
 	public SticksBlock(boolean returning)
 	{
-		super(Block.Properties.create(Material.WOOD, MaterialColor.WOOD).hardnessAndResistance(0.5F).sound(SoundType.WOOD));
+		super(Block.Properties.create(Material.WOOD, MaterialColor.WOOD).notSolid().hardnessAndResistance(0.5F).sound(SoundType.WOOD));
 
 		this.returning = returning;
 	}

@@ -34,7 +34,7 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 
 	public SpectreSaplingBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).tickRandomly().sound(SoundType.PLANT).doesNotBlockMovement());
+		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(0.0F).tickRandomly().sound(SoundType.PLANT).doesNotBlockMovement());
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(STAGE, 0));
 	}

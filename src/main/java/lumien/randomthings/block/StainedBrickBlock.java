@@ -23,6 +23,6 @@ public class StainedBrickBlock extends Block
 
 	private static Block.Properties withLight(Block.Properties properties, boolean luminous)
 	{
-		return luminous ? properties.setLightLevel(state -> 15) : properties;
+		return luminous ? properties.setLightLevel(state -> 15).notSolid() : properties;
 	}
 }

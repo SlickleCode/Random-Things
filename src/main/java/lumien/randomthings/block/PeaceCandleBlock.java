@@ -36,7 +36,7 @@ public class PeaceCandleBlock extends Block {
     private static final VoxelShape SHAPE = Block.makeCuboidShape(6, 0, 6, 10, 10, 10);
 
     public PeaceCandleBlock() {
-        super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0.0F));
+        super(Block.Properties.create(Material.MISCELLANEOUS).notSolid().doesNotBlockMovement().hardnessAndResistance(0.0F));
     }
 
     @Override

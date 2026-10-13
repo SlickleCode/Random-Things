@@ -9,6 +9,6 @@ public class SpectrePlankBlock extends Block
 {
 	public SpectrePlankBlock()
 	{
-		super(Block.Properties.create(Material.WOOD, MaterialColor.PURPLE).hardnessAndResistance(2.0F, 5.0F).sound(SoundType.WOOD));
+		super(Block.Properties.create(Material.WOOD, MaterialColor.PURPLE).notSolid().hardnessAndResistance(2.0F, 5.0F).sound(SoundType.WOOD));
 	}
 }

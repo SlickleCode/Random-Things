@@ -55,7 +55,7 @@ import net.minecraft.world.server.ServerWorld;
  */
 public class DiaphanousBlock extends Block {
     public DiaphanousBlock() {
-        super(Block.Properties.create(Material.GLASS).sound(net.minecraft.block.SoundType.GLASS).hardnessAndResistance(0.3F).doesNotBlockMovement());
+        super(Block.Properties.create(Material.GLASS).notSolid().sound(net.minecraft.block.SoundType.GLASS).hardnessAndResistance(0.3F).doesNotBlockMovement());
     }
 
     @Override

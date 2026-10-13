@@ -30,7 +30,7 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).hardnessAndResistance(0.0F).setLightLevel(state -> GLOW_LEVEL).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
+		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(0.0F).setLightLevel(state -> GLOW_LEVEL).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
 	}
 
 	@Override

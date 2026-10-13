@@ -32,7 +32,7 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
  */
 public class FluidDisplayBlock extends Block {
     public FluidDisplayBlock() {
-        super(Block.Properties.create(Material.GLASS).sound(SoundType.GLASS).hardnessAndResistance(0.3F));
+        super(Block.Properties.create(Material.GLASS).notSolid().sound(SoundType.GLASS).hardnessAndResistance(0.3F));
     }
 
     @Override
@@ -82,6 +82,10 @@ public class FluidDisplayBlock extends Block {
     }
 
     /**
+     * 1.16.5: the equivalent of the 1.14.4 {@code getRenderLayer() == CUTOUT} fix below is {@code Block.Properties.notSolid()} in the constructor -
+     * 1.16 culls a neighbour's face against any block whose {@code BlockState.isSolid()} is true (the property's default) regardless of the render layer
+     * registered in {@code RenderLayerSetup}, so every block that had a non-SOLID layer in 1.14.4 now sets {@code notSolid()}.
+     * <p>
      * Real bug, found 2026-09-28: a neighboring block (e.g. sand) was culling its
      * own face against this block entirely, showing a hole through to whatever's
      * behind instead of the neighbor's texture. Ground-truthed {@code Block

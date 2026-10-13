@@ -34,7 +34,7 @@ public class ItemCollectorBlock extends Block
 
 	public ItemCollectorBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(0.3F).doesNotBlockMovement());
+		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).notSolid().hardnessAndResistance(0.3F).doesNotBlockMovement());
 
 		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
 	}

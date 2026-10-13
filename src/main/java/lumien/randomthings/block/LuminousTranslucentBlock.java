@@ -9,6 +9,6 @@ public class LuminousTranslucentBlock extends Block
 {
 	public LuminousTranslucentBlock()
 	{
-		super(Block.Properties.create(Material.EARTH, MaterialColor.WOOL).hardnessAndResistance(0.3F).setLightLevel(state -> 15).sound(SoundType.GLASS));
+		super(Block.Properties.create(Material.EARTH, MaterialColor.WOOL).notSolid().hardnessAndResistance(0.3F).setLightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }
