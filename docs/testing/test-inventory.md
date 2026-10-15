@@ -100,6 +100,10 @@ Random-chance worldgen is verified without playing: every random source is seede
 
 **Real-world cross-check (production server, not part of the suite):** `prod-test/<ver>/realgen.py` force-generates ~1,700 chunks of a real default overworld and counts region-file chunks containing a Glowing Mushroom (1.14.4: 74, 1.16.5 after the fix: 70, before it: 0).
 
+## Use-item tests (`use_item.*`)
+
+`UseItemTests` right-clicks items with the test player (`Item.use` / `useOn` / `finishUsingItem`): Escape Rope (refuses under open sky; charges and teleports out of a roofed room through its doorway for one durability; releasing the rope cancels; a sealed room drops the rope; the 20th use breaks it), Blaze and Steel, Beans (top of farmland only), Lotus Seeds (grass yes, stone no), Lotus Blossom (3-11 XP), Grass Seeds (plain and dyed), Bottle of Air, Golden and Weather Eggs (projectile spawned, one egg used), Eclipsed Clock (wall yes, floor no). Sky light is asynchronous in 1.18, so rope tests wait 20 ticks after building before using the rope. `coremod.spawn.slime_cube_only_affects_slimes_in_its_own_chunk_and_stops_when_removed` (CoremodTests) covers the Slime Cube's chunk scoping. Mutation-checked: removing the rope's durability cost, widening the cube to every chunk and removing the seed cost each fail a test.
+
 ## Generated in-game tests
 
 `RoundTripTests` generates one test per registered object, so new content is covered automatically:

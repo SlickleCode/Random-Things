@@ -205,7 +205,7 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 - World creation in `AutoTest` uses `Minecraft.createLevel` with `RegistryAccess.builtinCopy()`; the flat world's ground is at y -61 (world bottom -64).
 - `WorldgenTests` drives the 1.18 generator by hand (9x9 chunk patch, wide placeholder regions for surface/carvers, a structure manager that knows no structures) and uses vanilla's own `village_plains` start for the Peace Candle church tests. See `docs/project/api-gotchas-1.18.2.md`.
 - A stale `java` process from an aborted run keeps the test world locked: the next server run hangs right after command registration. Kill it first.
-- Results on 2026-10-15: server 349 passed / 0 failed / 2 skipped, client audit 0 failures, GUI click test 0 failures (28 GUIs, 17 tooltips).
+- Results on 2026-10-15: server 364 passed / 0 failed / 2 skipped (349 before the `use_item.*` tests), client audit 0 failures, GUI click test 0 failures (28 GUIs, 17 tooltips).
 
 ## Known limits
 

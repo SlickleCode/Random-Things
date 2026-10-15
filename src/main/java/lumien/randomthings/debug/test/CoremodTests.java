@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
+import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.tileentity.PeaceCandleTileEntity;
@@ -141,6 +142,27 @@ final class CoremodTests
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(2).run(c -> {
 			c.check(!canSpawn(c, EntityType.SLIME, c.at(0, 2, 0)), "a powered Slime Cube must deny slime spawns in its chunk");
+		}));
+
+		tests.add(RTTest.named("coremod.spawn.slime_cube_only_affects_slimes_in_its_own_chunk_and_stops_when_removed").run(c -> {
+			resetTrackers();
+			c.floor();
+			c.set(c.at(0, 1, 0), ModBlocks.SLIME_CUBE);
+		}).waitTicks(2).run(c -> {
+			BlockPos here = c.at(0, 2, 0);
+			BlockPos nextChunk = here.offset(16, 0, 0);
+			BlockPos farChunk = here.offset(0, 0, -48);
+
+			// "original" = what vanilla's own check said; the hook must override it only for slimes in the cube's chunk
+			c.check(AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, here), "an unpowered cube forces a slime spawn through even when vanilla said no");
+			c.check(!AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, nextChunk), "the neighbouring chunk keeps vanilla's answer (no)");
+			c.check(AsmHandler.overrideSpawnResult(true, EntityType.SLIME, c.world, nextChunk), "the neighbouring chunk keeps vanilla's answer (yes)");
+			c.check(!AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, farChunk), "a distant chunk keeps vanilla's answer");
+			c.check(!AsmHandler.overrideSpawnResult(false, EntityType.COW, c.world, here), "other mobs in the cube's chunk keep vanilla's answer");
+			c.remove(c.at(0, 1, 0));
+		}).waitTicks(2).run(c -> {
+			c.check(!AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, c.at(0, 2, 0)), "a removed cube no longer overrides anything");
+			c.check(AsmHandler.overrideSpawnResult(true, EntityType.SLIME, c.world, c.at(0, 2, 0)), "a removed cube leaves vanilla's yes alone");
 		}));
 
 		// ---- Rain Shield (RainShieldTransformer on World.isRainingAt) ---------------------------

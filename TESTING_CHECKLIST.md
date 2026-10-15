@@ -107,9 +107,6 @@ Sections 1-5 list what the automated suites did **not** cover on 1.16.5 (204 row
 | 139 | Emerald Compass — freshly crafted (emeralds + vanilla compass), no target bound yet: needle wobbles randomly, same as an unbound Golden Compass |  |  |
 | 140 | Emerald Compass — bind an ID Card to yourself (right-click), then combine it with the compass at a crafting table … |  |  |
 | 141 | Emerald Compass — bound player logs off: needle goes back to a random wobble instead of pointing at their last known position, and resumes tracking automatically once they log back in |  |  |
-| 142 | Escape Rope — deep underground (no sky visible from where you're standing), hold right-click … |  |  |
-| 143 | Escape Rope — release right-click partway through the search instead of holding it the whole time … |  |  |
-| 144 | Escape Rope — used 20 times (its full durability): breaks like a normal tool after the 21st successful use |  |  |
 | 145 | Chunk Analyzer — right-click to open the GUI, hit the "Scan" button … |  |  |
 | 146 | Chunk Analyzer — close the GUI and reopen it without rescanning: the previous scan results are still there (persisted in the item's own NBT), no need to rescan |  |  |
 | 147 | Chunk Analyzer — scan a chunk, then move to your own inventory/hotbar/armor while the scan is running (e.g. pick up or drop an item) … |  |  |

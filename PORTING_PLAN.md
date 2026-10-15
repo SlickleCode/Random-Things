@@ -10,12 +10,12 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | --- | --- | --- |
 | `1.14.4` | Forge 28.2.26 port, complete | this file, `docs/project/` |
 | `1.16.5` | Forge 36.2.39 port | `docs/migration/plans/1.16.5-port-plan.md` |
-| `1.18.2` | Forge 40.3.12 port (this branch, in progress) | `docs/migration/plans/1.18.2-port-plan.md` |
+| `1.18.2` | Forge 40.3.12 port (this branch, complete) | `docs/migration/plans/1.18.2-port-plan.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 
-`source env/activate.sh` (pins JDK 8), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
-**Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
+`source env/activate.sh` (pins JDK 17 on this branch; JDK 8 on 1.14.4 / 1.16.5), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
+**Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`, `1.18.2/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
 ## Current state on this branch (`1.18.2`, 2026-10-15) - PORT IN PROGRESS
 
