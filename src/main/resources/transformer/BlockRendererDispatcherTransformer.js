@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'blockrendererdispatchertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.BlockRendererDispatcher'
+                'name': 'net.minecraft.client.renderer.block.BlockRenderDispatcher'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // only fall through to the original body (real vanilla per-block rendering) when it says
                     // this position isn't redirected by any Light Redirector.
                     // Locals: 0 this, 1 state, 2 pos, 3 world, 4 matrixStack, 5 vertexBuilder, 6 checkSides, 7 random.
-                    if (method.name !== "renderModel" && method.name !== "func_228793_a_" || method.desc !== "(Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
+                    if (method.name !== "renderBatched" && method.name !== "m_110924_" || method.desc !== "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLjava/util/Random;Lnet/minecraftforge/client/model/data/IModelData;)Z") {
                         continue;
                     }
 
@@ -43,7 +43,7 @@ function initializeCoreMod() {
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 5));
                     prologue.add(new VarInsnNode(Opcodes.ILOAD, 6));
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 7));
-                    prologue.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "renderBlock", "(Lnet/minecraft/client/renderer/BlockRendererDispatcher;Lnet/minecraft/block/BlockState;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/world/IBlockDisplayReader;Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;ZLjava/util/Random;)I", false));
+                    prologue.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "renderBlock", "(Lnet/minecraft/client/renderer/block/BlockRenderDispatcher;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/BlockAndTintGetter;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLjava/util/Random;)I", false));
                     prologue.add(new InsnNode(Opcodes.DUP));
                     prologue.add(new InsnNode(Opcodes.ICONST_2));
                     prologue.add(new JumpInsnNode(Opcodes.IF_ICMPEQ, continueLabel));

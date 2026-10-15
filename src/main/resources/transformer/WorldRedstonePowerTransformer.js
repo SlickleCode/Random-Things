@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'worldredstonepowertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.world.World'
+                'name': 'net.minecraft.world.level.Level'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -22,7 +22,7 @@ function initializeCoreMod() {
                     // funnels through (confirmed via javap -c: only one IRETURN, at
                     // the very end). Same "wrap the value right before it returns"
                     // pattern as IBlockReaderTransformer's getLightValue patch.
-                    if (method.name !== "getRedstonePower" && method.name !== "func_175651_c" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I") {
+                    if (method.name !== "getSignal" && method.name !== "m_46681_" || method.desc !== "(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I") {
                         continue;
                     }
 
@@ -41,7 +41,7 @@ function initializeCoreMod() {
                             call.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 1));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideRedstonePower", "(ILnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;)I", false));
+                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideRedstonePower", "(ILnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I", false));
                             instructions.insertBefore(insn, call);
                             break;
                         }

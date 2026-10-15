@@ -27,12 +27,12 @@ function initializeCoreMod() {
                     {
                     	var insnList = new InsnList();
                     	
-                    	insnList.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                    	insnList.add(new VarInsnNode(Opcodes.ALOAD, 4));
                     	insnList.add(new VarInsnNode(Opcodes.ILOAD, 8));
                     	insnList.add(new InsnNode(Opcodes.AALOAD));
                     	insnList.add(new InsnNode(Opcodes.ICONST_0));
                     	
-                    	insnList.add(new VarInsnNode(Opcodes.ALOAD, 3));
+                    	insnList.add(new VarInsnNode(Opcodes.ALOAD, 4));
                     	insnList.add(new VarInsnNode(Opcodes.ILOAD, 8));
                     	insnList.add(new InsnNode(Opcodes.AALOAD));
                     	insnList.add(new InsnNode(Opcodes.ICONST_0));

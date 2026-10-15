@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'rainshieldtransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.world.World'
+                'name': 'net.minecraft.world.level.Level'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -22,7 +22,7 @@ function initializeCoreMod() {
                     // .shouldRain) - see AsmHandler#overrideIsRainingAt's javadoc. 4 early-exit
                     // branches, 4 ireturn sites - same collect-then-wrap pattern as
                     // MagicHoodTransformer's canRenderName redirect.
-                    if (method.name !== "isRainingAt" && method.name !== "func_175727_C" || method.desc !== "(Lnet/minecraft/util/math/BlockPos;)Z") {
+                    if (method.name !== "isRainingAt" && method.name !== "m_46758_" || method.desc !== "(Lnet/minecraft/core/BlockPos;)Z") {
                         continue;
                     }
 
@@ -41,7 +41,7 @@ function initializeCoreMod() {
                         var call = new InsnList();
                         call.add(new VarInsnNode(Opcodes.ALOAD, 0));
                         call.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                        call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideIsRainingAt", "(ZLnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Z", false));
+                        call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideIsRainingAt", "(ZLnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Z", false));
                         instructions.insertBefore(returns[r], call);
                     }
 

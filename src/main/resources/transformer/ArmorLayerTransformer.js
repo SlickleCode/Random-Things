@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'armorlayertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.entity.layers.BipedArmorLayer'
+                'name': 'net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -27,7 +27,7 @@ function initializeCoreMod() {
                     //  2) every other armor: the three constant 1.0F colour arguments of the LAST renderModel
                     //     call (the plain, non-leather branch) become ClientAsmHandler.armorChannel(stack, i, 1.0F).
                     // The "overlay" call keeps white, as in vanilla.
-                    if (method.name !== "func_241739_a_" || method.desc !== "(Lcom/mojang/blaze3d/matrix/MatrixStack;Lnet/minecraft/client/renderer/IRenderTypeBuffer;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/inventory/EquipmentSlotType;ILnet/minecraft/client/renderer/entity/model/BipedModel;)V") {
+                    if (method.name !== "renderArmorPiece" && method.name !== "m_117118_" || method.desc !== "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;)V") {
                         continue;
                     }
 
@@ -46,7 +46,7 @@ function initializeCoreMod() {
                     armorHead.add(new VarInsnNode(Opcodes.ALOAD, 3));
                     armorHead.add(new VarInsnNode(Opcodes.ALOAD, 4));
                     // (the slot lookup lives in Java so its dev/SRG method name is remapped by the build, not hand-matched here)
-                    armorHead.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStackFromSlot", "(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/inventory/EquipmentSlotType;)V", false));
+                    armorHead.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStackFromSlot", "(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;)V", false));
                     instructions.insert(armorHead);
 
                     for (var i = 0; i < instructions.size(); i++) {
@@ -56,13 +56,13 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/item/IDyeableArmorItem" && (insn.name === "getColor" || insn.name === "func_200886_f") && insn.desc === "(Lnet/minecraft/item/ItemStack;)I") {
+                        if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/world/item/DyeableLeatherItem" && (insn.name === "getColor" || insn.name === "m_41121_") && insn.desc === "(Lnet/minecraft/world/item/ItemStack;)I") {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/ClientAsmHandler";
                             insn.name = "dyedColor";
-                            insn.desc = "(Lnet/minecraft/item/IDyeableArmorItem;Lnet/minecraft/item/ItemStack;)I";
+                            insn.desc = "(Lnet/minecraft/world/item/DyeableLeatherItem;Lnet/minecraft/world/item/ItemStack;)I";
                             insn.itf = false;
-                        } else if (insn.getOpcode() === Opcodes.INVOKESPECIAL && insn.name === "renderModel") {
+                        } else if ((insn.getOpcode() === Opcodes.INVOKESPECIAL || insn.getOpcode() === Opcodes.INVOKEVIRTUAL) && insn.owner === "net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer" && insn.desc === "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IZLnet/minecraft/client/model/Model;FFFLnet/minecraft/resources/ResourceLocation;)V") {
                             renderModelCalls.push(i);
                         }
                     }
@@ -86,7 +86,7 @@ function initializeCoreMod() {
                                 replacement.add(new VarInsnNode(Opcodes.ALOAD, 7));
                                 replacement.add(new InsnNode(Opcodes.ICONST_0 + c));
                                 replacement.add(new InsnNode(Opcodes.FCONST_1));
-                                replacement.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorChannel", "(Lnet/minecraft/item/ItemStack;IF)F", false));
+                                replacement.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorChannel", "(Lnet/minecraft/world/item/ItemStack;IF)F", false));
 
                                 instructions.insertBefore(constants[c], replacement);
                                 instructions.remove(constants[c]);

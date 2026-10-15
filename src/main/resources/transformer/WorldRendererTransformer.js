@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'worldrenderertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.WorldRenderer'
+                'name': 'net.minecraft.client.renderer.LevelRenderer'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -23,15 +23,15 @@ function initializeCoreMod() {
                     // addRainParticles(ActiveRenderInfo)V (the splash particles and rain sound) does the
                     // same lookup through IWorldReader.getBiome and gets the same treatment, so a shielded
                     // column has neither rain streaks nor splashes.
-                    var isRender = (method.name === "renderRainSnow" || method.name === "func_228438_a_") && method.desc === "(Lnet/minecraft/client/renderer/LightTexture;FDDD)V";
-                    var isParticles = (method.name === "addRainParticles" || method.name === "func_228436_a_") && method.desc === "(Lnet/minecraft/client/renderer/ActiveRenderInfo;)V";
+                    var isRender = (method.name === "renderSnowAndRain" || method.name === "m_109703_") && method.desc === "(Lnet/minecraft/client/renderer/LightTexture;FDDD)V";
+                    var isParticles = (method.name === "tickRain" || method.name === "m_109693_") && method.desc === "(Lnet/minecraft/client/Camera;)V";
 
                     if (!isRender && !isParticles) {
                         continue;
                     }
 
                     var instructions = method.instructions;
-                    var biomeDesc = "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;";
+                    var biomeDesc = "(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Holder;";
 
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
@@ -40,18 +40,18 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (isRender && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/World" && (insn.name === "getBiome" || insn.name === "func_226691_t_") && insn.desc === biomeDesc) {
+                        if (isRender && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/level/Level" && (insn.name === "getBiome" || insn.name === "m_204166_") && insn.desc === biomeDesc) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "getBiomeForRainRender";
-                            insn.desc = "(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;";
+                            insn.desc = "(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Holder;";
                             insn.itf = false;
                             break;
-                        } else if (isParticles && insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/world/IWorldReader" && (insn.name === "getBiome" || insn.name === "func_226691_t_") && insn.desc === biomeDesc) {
+                        } else if (isParticles && insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/world/level/LevelReader" && (insn.name === "getBiome" || insn.name === "m_204166_") && insn.desc === biomeDesc) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "getBiomeForRainRender";
-                            insn.desc = "(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;";
+                            insn.desc = "(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Holder;";
                             insn.itf = false;
                             break;
                         }

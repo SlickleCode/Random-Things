@@ -1,5 +1,7 @@
 package lumien.randomthings.asm;
 
+import net.minecraft.core.Holder;
+
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ModBlocks;
@@ -9,27 +11,27 @@ import lumien.randomthings.item.SuperLubricentBootsItem;
 import lumien.randomthings.tileentity.PeaceCandleTileEntity;
 import lumien.randomthings.tileentity.RainShieldTileEntity;
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.FireBlock;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.FireBlock;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.LevelChunk;
 import java.util.Random;
 
 /**
@@ -64,7 +66,7 @@ public class AsmHandler {
         return 30 + rand.nextInt(10);
     }
 
-    public static int boostFlammability(BlockState state, IBlockReader world, BlockPos pos, Direction face, FireBlock fireBlock) {
+    public static int boostFlammability(BlockState state, BlockGetter world, BlockPos pos, Direction face, FireBlock fireBlock) {
         int flammability = state.getFlammability(world, pos, face);
         return fireBlock instanceof BlazingFireBlock ? flammability * 4 : flammability;
     }
@@ -110,14 +112,14 @@ public class AsmHandler {
      * this project - the coremod path was written specifically to unblock
      * that).
      */
-    public static float bootsMaxSlip(BlockState state, IWorldReader world, BlockPos pos, Entity entity) {
-        float original = state.getSlipperiness(world, pos, entity);
+    public static float bootsMaxSlip(BlockState state, LevelReader world, BlockPos pos, Entity entity) {
+        float original = state.getFriction(world, pos, entity);
 
-        if (entity.isSneaking() || !(entity instanceof LivingEntity)) {
+        if (entity.isShiftKeyDown() || !(entity instanceof LivingEntity)) {
             return original;
         }
 
-        ItemStack boots = ((LivingEntity) entity).getItemStackFromSlot(EquipmentSlotType.FEET);
+        ItemStack boots = ((LivingEntity) entity).getItemBySlot(EquipmentSlot.FEET);
 
         return boots.getItem() instanceof SuperLubricentBootsItem ? 1F / 0.91F : original;
     }
@@ -173,8 +175,8 @@ public class AsmHandler {
      */
     private static final int PEACE_CANDLE_CHUNK_RADIUS = 3;
 
-    public static boolean overrideSpawnResult(boolean original, EntityType<?> type, net.minecraft.world.IServerWorld iWorld, BlockPos pos) {
-        World world = iWorld.getWorld();
+    public static boolean overrideSpawnResult(boolean original, EntityType<?> type, net.minecraft.world.level.ServerLevelAccessor iWorld, BlockPos pos) {
+        Level world = iWorld.getLevel();
 
         if (type == EntityType.SLIME) {
             ChunkPos chunkPos = new ChunkPos(pos);
@@ -188,18 +190,18 @@ public class AsmHandler {
             return original;
         }
 
-        if (type.getClassification() == EntityClassification.MONSTER) {
+        if (type.getCategory() == MobCategory.MONSTER) {
             for (PeaceCandleTileEntity candle : WeakSets.snapshot(PeaceCandleTileEntity.candles)) {
                 if (candle.isInRange(world, pos, PEACE_CANDLE_CHUNK_RADIUS)) {
                     return false;
                 }
             }
 
-            for (BlockPos p : BlockPos.getAllInBoxMutable(pos.add(-4, -4, -4), pos.add(4, 4, 4))) {
+            for (BlockPos p : BlockPos.betweenClosed(pos.offset(-4, -4, -4), pos.offset(4, 4, 4))) {
                 Block block = world.getBlockState(p).getBlock();
 
                 if (block == ModBlocks.LAPIS_LAMP) {
-                    return world.getWorldInfo().getDifficulty() != Difficulty.PEACEFUL;
+                    return world.getLevelData().getDifficulty() != Difficulty.PEACEFUL;
                 }
 
                 if (block == ModBlocks.QUARTZ_LAMP) {
@@ -224,11 +226,11 @@ public class AsmHandler {
      * here, same reasoning as every other Batch 7 redirect.
      */
     public static boolean overrideCanRenderName(boolean original, LivingEntity entity) {
-        if (!(entity instanceof PlayerEntity)) {
+        if (!(entity instanceof Player)) {
             return original;
         }
 
-        ItemStack helmet = entity.getItemStackFromSlot(EquipmentSlotType.HEAD);
+        ItemStack helmet = entity.getItemBySlot(EquipmentSlot.HEAD);
 
         return helmet.getItem() instanceof MagicHoodItem ? false : original;
     }
@@ -245,7 +247,7 @@ public class AsmHandler {
      */
     private static final double RAIN_SHIELD_RANGE = 80.0;
 
-    public static boolean overrideIsRainingAt(boolean original, World world, BlockPos pos) {
+    public static boolean overrideIsRainingAt(boolean original, Level world, BlockPos pos) {
         if (!original) {
             return false;
         }
@@ -280,16 +282,16 @@ public class AsmHandler {
      * of {@code World.getBiome} everywhere else in the game is untouched;
      * this only ever fires from inside that one call site.
      */
-    public static Biome getBiomeForRainRender(IWorldReader reader, BlockPos pos) {
-        return reader instanceof World ? getBiomeForRainRender((World) reader, pos) : reader.getBiome(pos);
+    public static Holder<Biome> getBiomeForRainRender(LevelReader reader, BlockPos pos) {
+        return reader instanceof Level ? getBiomeForRainRender((Level) reader, pos) : reader.getBiome(pos);
     }
 
-    public static Biome getBiomeForRainRender(World world, BlockPos pos) {
-        Biome real = world.getBiome(pos);
+    public static Holder<Biome> getBiomeForRainRender(Level world, BlockPos pos) {
+        Holder<Biome> real = world.getBiome(pos);
 
         for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
-                return net.minecraft.util.registry.WorldGenRegistries.BIOME.getValueForKey(net.minecraft.world.biome.Biomes.DESERT);
+                return world.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getHolderOrThrow(net.minecraft.world.level.biome.Biomes.DESERT);
             }
         }
 
@@ -316,12 +318,12 @@ public class AsmHandler {
      * persisted "illuminated chunks" registry + client-sync network
      * message - both sides just scan the same live-entity set).
      */
-    public static int overrideLightValue(int original, IBlockReader world, BlockPos pos) {
-        if (!(world instanceof Chunk)) {
+    public static int overrideLightValue(int original, BlockGetter world, BlockPos pos) {
+        if (!(world instanceof LevelChunk)) {
             return original;
         }
 
-        World realWorld = ((Chunk) world).getWorld();
+        Level realWorld = ((LevelChunk) world).getLevel();
 
         if (realWorld == null) {
             return original;
@@ -354,9 +356,9 @@ public class AsmHandler {
      * sides). No 1.14.4 API change forced anything here; this is purely new
      * scope (Redstone Interface family was never ported before this slice).
      */
-    public static int overrideRedstonePower(int computed, World world, BlockPos pos, Direction facing) {
+    public static int overrideRedstonePower(int computed, Level world, BlockPos pos, Direction facing) {
         int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(world, pos, facing);
-        int fromSignals = world.isRemote ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+        int fromSignals = world.isClientSide ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
 
         return Math.max(computed, Math.max(fromInterfaces, fromSignals));
     }
@@ -376,15 +378,15 @@ public class AsmHandler {
      * override when the receiver is actually a real {@code World} - anything
      * else can't sensibly hold either registry.
      */
-    public static int overrideStrongPower(int computed, IWorldReader worldReader, BlockPos pos, Direction facing) {
-        if (!(worldReader instanceof World)) {
+    public static int overrideStrongPower(int computed, LevelReader worldReader, BlockPos pos, Direction facing) {
+        if (!(worldReader instanceof Level)) {
             return computed;
         }
 
-        World world = (World) worldReader;
+        Level world = (Level) worldReader;
 
         int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getStrongPower(world, pos, facing);
-        int fromSignals = world.isRemote ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+        int fromSignals = world.isClientSide ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
 
         return Math.max(computed, Math.max(fromInterfaces, fromSignals));
     }
@@ -407,9 +409,9 @@ public class AsmHandler {
      * inside the original loop, and this version's loop has no comparable
      * per-item exit point to patch without redoing the whole thing anyway.
      */
-    public static void dropAllItemsExceptAnchored(PlayerInventory inventory) {
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
-            ItemStack stack = inventory.getStackInSlot(i);
+    public static void dropAllItemsExceptAnchored(Inventory inventory) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
 
             if (stack.isEmpty()) {
                 continue;
@@ -419,8 +421,8 @@ public class AsmHandler {
                 continue;
             }
 
-            inventory.player.dropItem(stack, true, false);
-            inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+            inventory.player.drop(stack, true, false);
+            inventory.setItem(i, ItemStack.EMPTY);
         }
     }
 

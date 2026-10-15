@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'firetransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.block.FireBlock'
+                'name': 'net.minecraft.world.level.block.FireBlock'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -48,7 +48,7 @@ function initializeCoreMod() {
                             continue;
                         }
 
-                        if (flammabilityCall === null && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/block/BlockState" && insn.name === "getFlammability") {
+                        if (flammabilityCall === null && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/level/block/state/BlockState" && insn.name === "getFlammability") {
                             flammabilityCall = insn;
                         } else if (insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "java/util/Random" && insn.name === "nextInt" && insn.desc === "(I)I") {
                             nextIntCalls.push(insn);
@@ -67,7 +67,7 @@ function initializeCoreMod() {
                         flammabilityCall.setOpcode(Opcodes.INVOKESTATIC);
                         flammabilityCall.owner = "lumien/randomthings/asm/AsmHandler";
                         flammabilityCall.name = "boostFlammability";
-                        flammabilityCall.desc = "(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/IBlockReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/Direction;Lnet/minecraft/block/FireBlock;)I";
+                        flammabilityCall.desc = "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/FireBlock;)I";
                         flammabilityCall.itf = false;
                     }
 
@@ -78,12 +78,12 @@ function initializeCoreMod() {
                     if (nextIntCalls.length >= 3) {
                         var dieOutCall = new InsnList();
                         dieOutCall.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                        dieOutCall.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "lowerDieOutBound", "(ILnet/minecraft/block/FireBlock;)I", false));
+                        dieOutCall.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "lowerDieOutBound", "(ILnet/minecraft/world/level/block/FireBlock;)I", false));
                         instructions.insertBefore(nextIntCalls[1], dieOutCall);
 
                         var growthCall = new InsnList();
                         growthCall.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                        growthCall.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "fasterAgeGrowth", "(ILnet/minecraft/block/FireBlock;)I", false));
+                        growthCall.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "fasterAgeGrowth", "(ILnet/minecraft/world/level/block/FireBlock;)I", false));
                         instructions.insertBefore(nextIntCalls[2], growthCall);
                     }
 
@@ -102,14 +102,14 @@ function initializeCoreMod() {
                     for (var k = 0; k < cooldownInstructions.size(); k++) {
                         var cooldownInsn = cooldownInstructions.get(k);
 
-                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/block/FireBlock" && (cooldownInsn.name === "getTickCooldown" || cooldownInsn.name === "func_235495_a_") && cooldownInsn.desc === "(Ljava/util/Random;)I") {
+                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/world/level/block/FireBlock" && (cooldownInsn.name === "getFireTickDelay" || cooldownInsn.name === "m_53468_") && cooldownInsn.desc === "(Ljava/util/Random;)I") {
                             var pushFire = new InsnList();
                             pushFire.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             cooldownInstructions.insertBefore(cooldownInsn, pushFire);
 
                             cooldownInsn.owner = "lumien/randomthings/asm/AsmHandler";
                             cooldownInsn.name = "fireTickCooldown";
-                            cooldownInsn.desc = "(Ljava/util/Random;Lnet/minecraft/block/FireBlock;)I";
+                            cooldownInsn.desc = "(Ljava/util/Random;Lnet/minecraft/world/level/block/FireBlock;)I";
                             k++;
                         }
                     }

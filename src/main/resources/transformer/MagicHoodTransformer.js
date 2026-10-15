@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'magichoodtransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.entity.LivingRenderer'
+                'name': 'net.minecraft.client.renderer.entity.LivingEntityRenderer'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -25,7 +25,7 @@ function initializeCoreMod() {
                     // early-exit branches means multiple ireturn sites (6 total) instead of the
                     // single-ireturn case FireBlockTransformer/SpawnPlacementTransformer had - same
                     // wrap-the-value-before-it-returns pattern, just applied at each one.
-                    if (method.name !== "canRenderName" && method.name !== "func_177070_b" || method.desc !== "(Lnet/minecraft/entity/LivingEntity;)Z") {
+                    if (method.name !== "shouldShowName" && method.name !== "m_6512_" || method.desc !== "(Lnet/minecraft/world/entity/LivingEntity;)Z") {
                         continue;
                     }
 
@@ -43,7 +43,7 @@ function initializeCoreMod() {
                     for (var r = 0; r < returns.length; r++) {
                         var call = new InsnList();
                         call.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                        call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideCanRenderName", "(ZLnet/minecraft/entity/LivingEntity;)Z", false));
+                        call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideCanRenderName", "(ZLnet/minecraft/world/entity/LivingEntity;)Z", false));
                         instructions.insertBefore(returns[r], call);
                     }
 

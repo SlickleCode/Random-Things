@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'playerentitytransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.entity.player.PlayerEntity'
+                'name': 'net.minecraft.world.entity.player.Player'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -13,7 +13,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "dropInventory" && method.name !== "func_213337_cE") {
+                    if (method.name !== "dropEquipment" && method.name !== "m_5907_") {
                         continue;
                     }
 
@@ -37,11 +37,11 @@ function initializeCoreMod() {
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
-                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/entity/player/PlayerInventory" && (insn.name === "dropAllItems" || insn.name === "func_70436_m")) {
+                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/entity/player/Inventory" && (insn.name === "dropAll" || insn.name === "m_36071_")) {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "dropAllItemsExceptAnchored";
-                            insn.desc = "(Lnet/minecraft/entity/player/PlayerInventory;)V";
+                            insn.desc = "(Lnet/minecraft/world/entity/player/Inventory;)V";
                             insn.itf = false;
                             break;
                         }

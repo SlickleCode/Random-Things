@@ -8,20 +8,20 @@ import java.util.Set;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.tileentity.LightRedirectorTileEntity;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraftforge.client.model.data.IModelData;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 /**
  * Same role as {@link AsmHandler} - a plain static redirect target for a
@@ -49,8 +49,8 @@ public class ClientAsmHandler {
         renderingStack = stack == null ? ItemStack.EMPTY : stack;
     }
 
-    public static void setRenderingStackFromSlot(net.minecraft.entity.LivingEntity entity, net.minecraft.inventory.EquipmentSlotType slot) {
-        renderingStack = entity.getItemStackFromSlot(slot);
+    public static void setRenderingStackFromSlot(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.entity.EquipmentSlot slot) {
+        renderingStack = entity.getItemBySlot(slot);
     }
 
     public static void clearRenderingStack() {
@@ -87,7 +87,7 @@ public class ClientAsmHandler {
      * either way) when a redirect applies - see the transformer JS for the
      * exact bytecode that interprets this.
      */
-    public static int renderBlock(BlockRendererDispatcher dispatcher, BlockState state, BlockPos pos, IBlockDisplayReader world, MatrixStack matrixStack, IVertexBuilder buffer, boolean checkSides, Random rand) {
+    public static int renderBlock(BlockRenderDispatcher dispatcher, BlockState state, BlockPos pos, BlockAndTintGetter world, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, Random rand) {
         synchronized (LightRedirectorTileEntity.REDIRECTORS) {
             if (LightRedirectorTileEntity.REDIRECTORS.isEmpty()) {
                 return 2;
@@ -101,20 +101,20 @@ public class ClientAsmHandler {
             }
 
             BlockState switchedState = world.getBlockState(switched);
-            BlockRenderType renderType = switchedState.getRenderType();
+            RenderShape renderType = switchedState.getRenderShape();
 
-            if (renderType != BlockRenderType.MODEL) {
+            if (renderType != RenderShape.MODEL) {
                 return 0;
             }
 
-            IBakedModel model = dispatcher.getModelForState(switchedState);
-            boolean rendered = dispatcher.getBlockModelRenderer().renderModel(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getPositionRandom(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
+            BakedModel model = dispatcher.getBlockModel(switchedState);
+            boolean rendered = dispatcher.getModelRenderer().tesselateBlock(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getSeed(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
 
             return rendered ? 1 : 0;
         }
     }
 
-    private static BlockPos getSwitchedPosition(IBlockDisplayReader access, BlockPos pos) {
+    private static BlockPos getSwitchedPosition(BlockAndTintGetter access, BlockPos pos) {
         Iterator<LightRedirectorTileEntity> iterator = LightRedirectorTileEntity.REDIRECTORS.iterator();
 
         while (iterator.hasNext()) {
@@ -125,16 +125,16 @@ public class ClientAsmHandler {
                 continue;
             }
 
-            if (!redirector.established || posSet.contains(redirector.getPos())) {
+            if (!redirector.established || posSet.contains(redirector.getBlockPos())) {
                 continue;
             }
 
-            posSet.add(redirector.getPos());
+            posSet.add(redirector.getBlockPos());
 
             if (redirector.targets.isEmpty()) {
                 for (Direction facing : Direction.values()) {
                     if (redirector.isEnabled(facing)) {
-                        redirector.targets.put(redirector.getPos().offset(facing), redirector.getPos().offset(facing.getOpposite()));
+                        redirector.targets.put(redirector.getBlockPos().relative(facing), redirector.getBlockPos().relative(facing.getOpposite()));
                     }
                 }
             }
@@ -155,7 +155,7 @@ public class ClientAsmHandler {
      * so a dyed leather piece shows the machine colour instead of its vanilla dye colour (as 1.12.2's
      * {@code armorColorHook} overrode it for every armor piece).
      */
-    public static int dyedColor(net.minecraft.item.IDyeableArmorItem item, ItemStack stack) {
+    public static int dyedColor(net.minecraft.world.item.DyeableLeatherItem item, ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("rtDye")) {
             return stack.getTag().getInt("rtDye");
         }

@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'spawnplacementtransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.entity.EntitySpawnPlacementRegistry'
+                'name': 'net.minecraft.world.entity.SpawnPlacements'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // that event ever fires (see AsmHandler#overrideSpawnResult's javadoc for the
                     // full trace). Not a Mixin because the same "can't self-bootstrap from a
                     // mods-folder jar on this Forge version" problem as Batch 7's other half.
-                    if (method.name !== "canSpawnEntity" && method.name !== "func_223515_a" || method.desc !== "(Lnet/minecraft/entity/EntityType;Lnet/minecraft/world/IServerWorld;Lnet/minecraft/entity/SpawnReason;Lnet/minecraft/util/math/BlockPos;Ljava/util/Random;)Z") {
+                    if (method.name !== "checkSpawnRules" && method.name !== "m_21759_" || method.desc !== "(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/world/entity/MobSpawnType;Lnet/minecraft/core/BlockPos;Ljava/util/Random;)Z") {
                         continue;
                     }
 
@@ -44,7 +44,7 @@ function initializeCoreMod() {
                             call.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 1));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 3));
-                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideSpawnResult", "(ZLnet/minecraft/entity/EntityType;Lnet/minecraft/world/IServerWorld;Lnet/minecraft/util/math/BlockPos;)Z", false));
+                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideSpawnResult", "(ZLnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/ServerLevelAccessor;Lnet/minecraft/core/BlockPos;)Z", false));
                             instructions.insertBefore(insn, call);
                             break;
                         }

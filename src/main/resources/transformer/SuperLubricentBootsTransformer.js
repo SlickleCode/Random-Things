@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'superlubricentbootstransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.entity.LivingEntity'
+                'name': 'net.minecraft.world.entity.LivingEntity'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -13,7 +13,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "travel" && method.name !== "func_213352_e") {
+                    if (method.name !== "travel" && method.name !== "m_7023_") {
                         continue;
                     }
 
@@ -38,11 +38,11 @@ function initializeCoreMod() {
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
-                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/block/BlockState" && insn.name === "getSlipperiness") {
+                        if (insn.getOpcode && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/level/block/state/BlockState" && insn.name === "getFriction") {
                             insn.setOpcode(Opcodes.INVOKESTATIC);
                             insn.owner = "lumien/randomthings/asm/AsmHandler";
                             insn.name = "bootsMaxSlip";
-                            insn.desc = "(Lnet/minecraft/block/BlockState;Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/Entity;)F";
+                            insn.desc = "(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/entity/Entity;)F";
                             insn.itf = false;
                             break;
                         }

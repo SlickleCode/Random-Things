@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'itemrenderertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.client.renderer.ItemRenderer'
+                'name': 'net.minecraft.client.renderer.entity.ItemRenderer'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // tint index. Same intent as the 1.14.4 patch of the LightUtil.renderQuadColor call.
                     // Enchant-glint colour: remember which stack renderItem(ItemStack, TransformType, boolean, MatrixStack, IRenderTypeBuffer, int, int, IBakedModel)
                     // is drawing, so the RenderType glint getters (RenderTypeTransformer) can pick a tinted glint type; cleared again before every return.
-                    if ((method.name === "renderItem" || method.name === "func_229111_a_") && method.desc === "(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/renderer/model/ItemCameraTransforms$TransformType;ZLcom/mojang/blaze3d/matrix/MatrixStack;Lnet/minecraft/client/renderer/IRenderTypeBuffer;IILnet/minecraft/client/renderer/model/IBakedModel;)V") {
+                    if ((method.name === "render" || method.name === "m_115143_") && method.desc === "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V") {
                         var ins0 = method.instructions;
                         for (var r = 0; r < ins0.size(); r++) {
                             var rn = ins0.get(r);
@@ -37,12 +37,12 @@ function initializeCoreMod() {
                         }
                         var head = new InsnList();
                         head.add(new VarInsnNode(Opcodes.ALOAD, 1));
-                        head.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStack", "(Lnet/minecraft/item/ItemStack;)V", false));
+                        head.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "setRenderingStack", "(Lnet/minecraft/world/item/ItemStack;)V", false));
                         ins0.insert(head);
                         continue;
                     }
 
-                    if (method.name !== "renderQuads" && method.name !== "func_229112_a_" || method.desc !== "(Lcom/mojang/blaze3d/matrix/MatrixStack;Lcom/mojang/blaze3d/vertex/IVertexBuilder;Ljava/util/List;Lnet/minecraft/item/ItemStack;II)V") {
+                    if (method.name !== "renderQuadList" && method.name !== "m_115162_" || method.desc !== "(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;Ljava/util/List;Lnet/minecraft/world/item/ItemStack;II)V") {
                         continue;
                     }
 
@@ -58,7 +58,7 @@ function initializeCoreMod() {
                                 var toInsert = new InsnList();
                                 toInsert.add(new VarInsnNode(Opcodes.ALOAD, 4));
                                 toInsert.add(new VarInsnNode(Opcodes.ILOAD, 11));
-                                toInsert.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "getColorFromItemStack", "(Lnet/minecraft/item/ItemStack;I)I", false));
+                                toInsert.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "getColorFromItemStack", "(Lnet/minecraft/world/item/ItemStack;I)I", false));
                                 toInsert.add(new VarInsnNode(Opcodes.ISTORE, 11));
 
                                 instructions.insertBefore(insn, toInsert);
