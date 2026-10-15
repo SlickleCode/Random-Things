@@ -9,25 +9,25 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import lumien.randomthings.lib.ModConstants;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.ResourceLocationArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -57,7 +57,7 @@ public class RTDebugCommand
 	/** Set when an {@code allguis} run completes (read by the client auto-test to exit). */
 	public static volatile boolean allGuisFinished;
 
-	public static void register(CommandDispatcher<CommandSource> dispatcher)
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
 		if (!RTDebug.isLogging())
 		{
@@ -70,20 +70,20 @@ public class RTDebugCommand
 			MinecraftForge.EVENT_BUS.addListener(RTDebugCommand::onServerTick);
 		}
 
-		dispatcher.register(Commands.literal("rtdebug").requires(source -> source.hasPermissionLevel(2))
+		dispatcher.register(Commands.literal("rtdebug").requires(source -> source.hasPermission(2))
 				.then(Commands.literal("allguis")
 						.executes(context -> startAllGuis(context, 30))
 						.then(Commands.argument("delayTicks", IntegerArgumentType.integer(5, 400))
 								.executes(context -> startAllGuis(context, IntegerArgumentType.getInteger(context, "delayTicks")))))
 				.then(Commands.literal("scene")
 						.then(Commands.argument("id", com.mojang.brigadier.arguments.StringArgumentType.word())
-								.suggests((context, builder) -> ISuggestionProvider.suggest(RenderScenes.ids(), builder))
+								.suggests((context, builder) -> SharedSuggestionProvider.suggest(RenderScenes.ids(), builder))
 								.executes(context -> {
-									String error = RenderScenes.build(context.getSource().asPlayer(), com.mojang.brigadier.arguments.StringArgumentType.getString(context, "id"));
+									String error = RenderScenes.build(context.getSource().getPlayerOrException(), com.mojang.brigadier.arguments.StringArgumentType.getString(context, "id"));
 
 									if (error != null)
 									{
-										context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] " + error));
+										context.getSource().sendFailure(new TextComponent("[rtdebug] " + error));
 										return 0;
 									}
 
@@ -94,8 +94,8 @@ public class RTDebugCommand
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
 								.executes(context -> startTests(context, com.mojang.brigadier.arguments.StringArgumentType.getString(context, "filter")))))
 				.then(Commands.literal("gui")
-						.then(Commands.argument("id", ResourceLocationArgument.resourceLocation())
-								.suggests((context, builder) -> ISuggestionProvider.suggestIterable(allIds(), builder))
+						.then(Commands.argument("id", ResourceLocationArgument.id())
+								.suggests((context, builder) -> SharedSuggestionProvider.suggestResource(allIds(), builder))
 								.executes(context -> open(context, false))
 								.then(Commands.literal("sneak").executes(context -> open(context, true))))));
 	}
@@ -123,12 +123,12 @@ public class RTDebugCommand
 		return ids;
 	}
 
-	private static int open(CommandContext<CommandSource> context, boolean sneak) throws CommandSyntaxException
+	private static int open(CommandContext<CommandSourceStack> context, boolean sneak) throws CommandSyntaxException
 	{
-		CommandSource source = context.getSource();
-		ServerPlayerEntity player = source.asPlayer();
+		CommandSourceStack source = context.getSource();
+		ServerPlayer player = source.getPlayerOrException();
 
-		ResourceLocation id = ResourceLocationArgument.getResourceLocation(context, "id");
+		ResourceLocation id = ResourceLocationArgument.getId(context, "id");
 
 		// a bare "igniter" parses as minecraft:igniter - assume this mod
 		if ("minecraft".equals(id.getNamespace()) && !ForgeRegistries.BLOCKS.containsKey(id) && !ForgeRegistries.ITEMS.containsKey(id))
@@ -141,25 +141,25 @@ public class RTDebugCommand
 
 		if (opened)
 		{
-			source.sendFeedback(new StringTextComponent("[rtdebug] " + id + ": GUI opened (" + how[0] + ")"), false);
+			source.sendSuccess(new TextComponent("[rtdebug] " + id + ": GUI opened (" + how[0] + ")"), false);
 			return 1;
 		}
 
-		source.sendErrorMessage(new StringTextComponent("[rtdebug] " + id + ": no GUI opened (" + how[0] + ")"));
+		source.sendFailure(new TextComponent("[rtdebug] " + id + ": no GUI opened (" + how[0] + ")"));
 		return 0;
 	}
 
-	private static BlockPos placePos(ServerPlayerEntity player)
+	private static BlockPos placePos(ServerPlayer player)
 	{
-		return player.getPosition().offset(player.getHorizontalFacing(), 3);
+		return player.blockPosition().relative(player.getDirection(), 3);
 	}
 
 	/** Opens the GUI of the given block/item as a right-click would; {@code how[0]} receives a short description. */
-	private static boolean openGui(ServerPlayerEntity player, ResourceLocation id, boolean sneak, BlockPos blockPos, String[] how)
+	private static boolean openGui(ServerPlayer player, ResourceLocation id, boolean sneak, BlockPos blockPos, String[] how)
 	{
-		ServerWorld world = player.getServerWorld();
-		boolean wasSneaking = player.isSneaking();
-		player.setSneaking(sneak);
+		ServerLevel world = player.getLevel();
+		boolean wasSneaking = player.isShiftKeyDown();
+		player.setShiftKeyDown(sneak);
 
 		try
 		{
@@ -172,43 +172,43 @@ public class RTDebugCommand
 				return false;
 			}
 
-			Container before = player.openContainer;
+			AbstractContainerMenu before = player.containerMenu;
 
 			if (isBlock)
 			{
 				Block block = ForgeRegistries.BLOCKS.getValue(id);
 
-				world.setBlockState(blockPos, block.getDefaultState(), 3);
+				world.setBlock(blockPos, block.defaultBlockState(), 3);
 
 				BlockState state = world.getBlockState(blockPos);
 				// run the placement hooks too (e.g. the Ender Mailbox only opens for its owner, set on placement)
-				state.getBlock().onBlockPlacedBy(world, blockPos, state, player, new ItemStack(block));
-				BlockRayTraceResult hit = new BlockRayTraceResult(new Vector3d(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D), player.getHorizontalFacing().getOpposite(), blockPos, false);
-				boolean handled = state.onBlockActivated(world, player, Hand.MAIN_HAND, hit).isSuccessOrConsume();
+				state.getBlock().setPlacedBy(world, blockPos, state, player, new ItemStack(block));
+				BlockHitResult hit = new BlockHitResult(new Vec3(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D), player.getDirection().getOpposite(), blockPos, false);
+				boolean handled = state.use(world, player, InteractionHand.MAIN_HAND, hit).consumesAction();
 
-				net.minecraft.tileentity.TileEntity te = world.getTileEntity(blockPos);
+				net.minecraft.world.level.block.entity.BlockEntity te = world.getBlockEntity(blockPos);
 
 				how[0] = "placed block at " + blockPos.getX() + "," + blockPos.getY() + "," + blockPos.getZ() + ", state " + state + ", tile entity " + (te == null ? "null" : te.getClass().getSimpleName()) + ", activate " + (handled ? "handled" : "not handled");
 			}
 			else
 			{
 				Item item = ForgeRegistries.ITEMS.getValue(id);
-				ItemStack previous = player.getHeldItemMainhand();
+				ItemStack previous = player.getMainHandItem();
 
 				ItemStack stack = new ItemStack(item);
-				player.setHeldItem(Hand.MAIN_HAND, stack);
+				player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
 				if (!previous.isEmpty() && previous.getItem() != item)
 				{
-					player.inventory.placeItemBackInInventory(world, previous);
+					player.getInventory().placeItemBackInInventory(previous);
 				}
 
-				ActionResult<ItemStack> result = item.onItemRightClick(world, player, Hand.MAIN_HAND);
+				InteractionResultHolder<ItemStack> result = item.use(world, player, InteractionHand.MAIN_HAND);
 
-				how[0] = "used item, result " + result.getType();
+				how[0] = "used item, result " + result.getResult();
 			}
 
-			boolean opened = player.openContainer != before && player.openContainer != player.container;
+			boolean opened = player.containerMenu != before && player.containerMenu != player.inventoryMenu;
 
 			RTDebug.log("rtdebug gui {} (sneak={}): {} -> GUI {}", id, sneak, how[0], opened ? "opened" : "NOT opened");
 
@@ -216,7 +216,7 @@ public class RTDebugCommand
 		}
 		finally
 		{
-			player.setSneaking(wasSneaking);
+			player.setShiftKeyDown(wasSneaking);
 		}
 	}
 
@@ -240,7 +240,7 @@ public class RTDebugCommand
 
 	private static class AllGuisRun
 	{
-		ServerPlayerEntity player;
+		ServerPlayer player;
 		int delay;
 		int index;
 		int wait;
@@ -252,40 +252,40 @@ public class RTDebugCommand
 		final List<String> failed = new ArrayList<>();
 	}
 
-	private static int startTests(CommandContext<CommandSource> context, String filter) throws CommandSyntaxException
+	private static int startTests(CommandContext<CommandSourceStack> context, String filter) throws CommandSyntaxException
 	{
-		String error = lumien.randomthings.debug.test.RTTestRunner.start(context.getSource().asPlayer(), filter == null || filter.trim().isEmpty() ? null : filter.trim());
+		String error = lumien.randomthings.debug.test.RTTestRunner.start(context.getSource().getPlayerOrException(), filter == null || filter.trim().isEmpty() ? null : filter.trim());
 
 		if (error != null)
 		{
-			context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] " + error));
+			context.getSource().sendFailure(new TextComponent("[rtdebug] " + error));
 			return 0;
 		}
 
-		context.getSource().sendFeedback(new StringTextComponent("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
+		context.getSource().sendSuccess(new TextComponent("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
 		return 1;
 	}
 
 	private static AllGuisRun run;
 
-	private static int startAllGuis(CommandContext<CommandSource> context, int delay) throws CommandSyntaxException
+	private static int startAllGuis(CommandContext<CommandSourceStack> context, int delay) throws CommandSyntaxException
 	{
 		if (run != null)
 		{
-			context.getSource().sendErrorMessage(new StringTextComponent("[rtdebug] allguis already running"));
+			context.getSource().sendFailure(new TextComponent("[rtdebug] allguis already running"));
 			return 0;
 		}
 
 		AllGuisRun r = new AllGuisRun();
-		r.player = context.getSource().asPlayer();
+		r.player = context.getSource().getPlayerOrException();
 		r.delay = delay;
 		r.pos = placePos(r.player);
-		r.originalHand = r.player.getHeldItemMainhand().copy();
+		r.originalHand = r.player.getMainHandItem().copy();
 		r.wait = 10;
 		allGuisFinished = false;
 		run = r;
 
-		context.getSource().sendFeedback(new StringTextComponent("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
+		context.getSource().sendSuccess(new TextComponent("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
 		return 1;
 	}
 
@@ -313,11 +313,11 @@ public class RTDebugCommand
 			// the same tick leaves the old tile entity pending removal, and blocks placed right after
 			// a tile-entity block (Analog Emitter, Ender Mailbox) then had no tile entity to open a
 			// GUI with - so wait a few ticks between the two.
-			r.player.closeContainer();
+			r.player.doCloseContainer();
 
 			if (r.placedBlock)
 			{
-				r.player.getServerWorld().setBlockState(r.pos, Blocks.AIR.getDefaultState(), 3);
+				r.player.getLevel().setBlock(r.pos, Blocks.AIR.defaultBlockState(), 3);
 				r.placedBlock = false;
 			}
 
@@ -332,10 +332,10 @@ public class RTDebugCommand
 
 		if (r.index >= ALL_GUIS.length)
 		{
-			r.player.setHeldItem(Hand.MAIN_HAND, r.originalHand);
+			r.player.setItemInHand(InteractionHand.MAIN_HAND, r.originalHand);
 			String summary = "[rtdebug] allguis finished: " + r.opened + "/" + ALL_GUIS.length + " opened" + (r.failed.isEmpty() ? "" : ", NOT opened: " + r.failed);
 			RTDebug.log(summary);
-			r.player.sendMessage(new StringTextComponent(summary), net.minecraft.util.Util.DUMMY_UUID);
+			r.player.sendMessage(new TextComponent(summary), net.minecraft.Util.NIL_UUID);
 			run = null;
 			allGuisFinished = true;
 			return;

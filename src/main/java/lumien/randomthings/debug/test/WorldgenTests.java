@@ -1,5 +1,26 @@
 package lumien.randomthings.debug.test;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
+import java.util.concurrent.Executor;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.StructureFeatureManager;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.LegacyRandomSource;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
+import net.minecraft.world.level.levelgen.blending.Blender;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
+import net.minecraft.world.level.levelgen.structure.pieces.PieceGenerator;
+import net.minecraft.world.level.levelgen.structure.pieces.PieceGeneratorSupplier;
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
+import net.minecraft.world.level.levelgen.structure.pools.JigsawPlacement;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,42 +38,40 @@ import lumien.randomthings.tileentity.PeaceCandleTileEntity;
 import lumien.randomthings.worldgen.GlowingMushroomFeature;
 import lumien.randomthings.worldgen.ModFeatures;
 import lumien.randomthings.worldgen.PeaceCandleChurchPool;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.palette.UpgradeData;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeManager;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.biome.FuzzedBiomeMagnifier;
-import net.minecraft.world.biome.provider.OverworldBiomeProvider;
-import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.NoiseChunkGenerator;
-import net.minecraft.world.gen.WorldGenRegion;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPattern;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPiece;
-import net.minecraft.world.gen.feature.jigsaw.SingleJigsawPiece;
-import net.minecraft.world.gen.feature.structure.AbstractVillagePiece;
-import net.minecraft.world.gen.feature.structure.JigsawStructure;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructurePiece;
-import net.minecraft.world.gen.feature.structure.StructureStart;
-import net.minecraft.world.gen.feature.structure.VillageConfig;
-import net.minecraft.world.gen.feature.template.Template;
-import net.minecraft.world.gen.feature.template.TemplateManager;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.chunk.ProtoChunk;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
+import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
+import net.minecraft.world.level.levelgen.feature.JigsawFeature;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.structure.StructurePiece;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.feature.configurations.JigsawConfiguration;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Deterministic tests for the random-chance world generation (Glowing Mushroom patches and the Peace Candle village church), so
@@ -89,7 +108,7 @@ final class WorldgenTests
 				for (int y = 0; y <= 9; y++)
 				{
 					BlockPos pos = new BlockPos(c.origin.getX() + x, CAVE_Y + y, c.origin.getZ() + z);
-					c.world.setBlockState(pos, y == 0 || y == 8 ? Blocks.STONE.getDefaultState() : Blocks.AIR.getDefaultState(), 18);
+					c.world.setBlock(pos, y == 0 || y == 8 ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), 18);
 				}
 			}
 		}
@@ -103,7 +122,7 @@ final class WorldgenTests
 			{
 				for (int y = 0; y <= 9; y++)
 				{
-					c.world.setBlockState(new BlockPos(c.origin.getX() + x, CAVE_Y + y, c.origin.getZ() + z), Blocks.AIR.getDefaultState(), 18);
+					c.world.setBlock(new BlockPos(c.origin.getX() + x, CAVE_Y + y, c.origin.getZ() + z), Blocks.AIR.defaultBlockState(), 18);
 				}
 			}
 		}
@@ -144,37 +163,43 @@ final class WorldgenTests
 	 */
 	private static int[] generateTerrainAndCount(TestCtx c, int chunkX, int chunkZ)
 	{
-		ServerWorld world = c.world;
-		DynamicRegistries registries = world.func_241828_r();
-		Registry<Biome> biomes = registries.getRegistry(Registry.BIOME_KEY);
+		ServerLevel world = c.world;
+		RegistryAccess registries = world.registryAccess();
+		Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
 		long seed = world.getSeed();
-		OverworldBiomeProvider provider = new OverworldBiomeProvider(seed, false, false, biomes);
-		NoiseChunkGenerator generator = new NoiseChunkGenerator(provider, seed, () -> DimensionSettings.getDefaultDimensionSettings());
-		BiomeManager biomeManager = new BiomeManager(provider, BiomeManager.getHashedSeed(seed), FuzzedBiomeMagnifier.INSTANCE);
-		final int size = 7;
-		ChunkPrimer[][] grid = new ChunkPrimer[size][size];
+		NoiseBasedChunkGenerator generator = WorldGenSettings.makeDefaultOverworld(registries, seed);
+				BiomeManager biomeManager = new BiomeManager(generator, BiomeManager.obfuscateSeed(seed));
+		StructureFeatureManager featureManager = NoStructures.of(world);
+		Executor sameThread = Runnable::run;
+		// 9x9 chunks: the outer ring only exists so every generated chunk has its 3x3 neighbourhood (structure references, carvers)
+		final int size = 9;
+		ProtoChunk[][] grid = new ProtoChunk[size][size];
 
+		// 1.18 runs the generator steps as futures; they are driven synchronously here, in the same order ChunkStatus runs them.
+		// Everything sees the world only through regions over the grid: the world's own structure manager would block on the
+		// server thread's chunk source from the generator's worker threads (this runs on the server thread) and deadlock.
 		for (int z = 0; z < size; z++)
 		{
 			for (int x = 0; x < size; x++)
 			{
-				grid[z][x] = new ChunkPrimer(new ChunkPos(chunkX + x, chunkZ + z), UpgradeData.EMPTY);
+				grid[z][x] = new ProtoChunk(new ChunkPos(chunkX + x, chunkZ + z), UpgradeData.EMPTY, world, biomes, null);
 				grid[z][x].setStatus(ChunkStatus.STRUCTURE_REFERENCES);
-				generator.func_242706_a(biomes, grid[z][x]);
 			}
 		}
 
-		for (ChunkPrimer[] row : grid)
+		// Surface building (blending data up to 7 chunks out) and the carver pass (every chunk within 8) need a much wider region than
+		// the patch itself: the missing chunks are blank placeholders, the patch chunks are the real ones.
+		final int wide = 8;
+		Map<Long, ProtoChunk> placeholders = new HashMap<>();
+
+		for (int z = 1; z < size - 1; z++)
 		{
-			for (ChunkPrimer primer : row)
+			for (int x = 1; x < size - 1; x++)
 			{
-				WorldGenRegion own = new WorldGenRegion(world, Collections.<IChunk>singletonList(primer));
-				generator.func_230352_b_(own, world.getStructureManager().getStructureManager(own), primer);
-				generator.generateSurface(new WorldGenRegion(world, Collections.<IChunk>singletonList(primer)), primer);
-				generator.func_230350_a_(seed, biomeManager, primer, GenerationStage.Carving.AIR);
-				generator.func_230350_a_(seed, biomeManager, primer, GenerationStage.Carving.LIQUID);
-				primer.setStatus(ChunkStatus.LIQUID_CARVERS);
-				Heightmap.updateChunkHeightmaps(primer, EnumSet.of(Heightmap.Type.MOTION_BLOCKING, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, Heightmap.Type.OCEAN_FLOOR, Heightmap.Type.WORLD_SURFACE));
+				WorldGenRegion region = new WorldGenRegion(world, neighbourhood(grid, x, z), ChunkStatus.STRUCTURE_REFERENCES, 0);
+				StructureFeatureManager regionManager = featureManager.forWorldGenRegion(region);
+				generator.createBiomes(biomes, sameThread, Blender.empty(), regionManager, grid[z][x]).join();
+				generator.fillFromNoise(sameThread, Blender.empty(), regionManager, grid[z][x]).join();
 			}
 		}
 
@@ -182,18 +207,37 @@ final class WorldgenTests
 		{
 			for (int x = 1; x < size - 1; x++)
 			{
-				List<IChunk> neighbours = new ArrayList<>();
+				WorldGenRegion surfaceRegion = new WorldGenRegion(world, square(grid, x, z, wide, chunkX, chunkZ, placeholders, world, biomes), ChunkStatus.SURFACE, 0);
+				generator.buildSurface(surfaceRegion, featureManager.forWorldGenRegion(surfaceRegion), grid[z][x]);
+			}
+		}
 
-				for (int dz = -1; dz <= 1; dz++)
-				{
-					for (int dx = -1; dx <= 1; dx++)
-					{
-						neighbours.add(grid[z + dz][x + dx]);
-					}
-				}
+		for (int z = 1; z < size - 1; z++)
+		{
+			for (int x = 1; x < size - 1; x++)
+			{
+				WorldGenRegion carveRegion = new WorldGenRegion(world, square(grid, x, z, wide, chunkX, chunkZ, placeholders, world, biomes), ChunkStatus.CARVERS, 0);
+				StructureFeatureManager regionManager = featureManager.forWorldGenRegion(carveRegion);
+				generator.applyCarvers(carveRegion, seed, biomeManager, regionManager, grid[z][x], GenerationStep.Carving.AIR);
+				generator.applyCarvers(carveRegion, seed, biomeManager, regionManager, grid[z][x], GenerationStep.Carving.LIQUID);
+			}
+		}
 
-				WorldGenRegion region = new WorldGenRegion(world, neighbours);
-				generator.func_230351_a_(region, world.getStructureManager().getStructureManager(region));
+		for (ProtoChunk[] row : grid)
+		{
+			for (ProtoChunk primer : row)
+			{
+				primer.setStatus(ChunkStatus.LIQUID_CARVERS);
+				Heightmap.primeHeightmaps(primer, EnumSet.of(Heightmap.Types.MOTION_BLOCKING, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Heightmap.Types.OCEAN_FLOOR, Heightmap.Types.WORLD_SURFACE));
+			}
+		}
+
+		for (int z = 2; z < size - 2; z++)
+		{
+			for (int x = 2; x < size - 2; x++)
+			{
+				WorldGenRegion region = new WorldGenRegion(world, neighbourhood(grid, x, z), ChunkStatus.FEATURES, 1);
+				generator.applyBiomeDecoration(region, grid[z][x], featureManager.forWorldGenRegion(region));
 			}
 		}
 
@@ -201,20 +245,20 @@ final class WorldgenTests
 		int chunksWithMushrooms = 0;
 		int exposed = 0;
 
-		for (int z = 1; z < size - 1; z++)
+		for (int z = 2; z < size - 2; z++)
 		{
-			for (int x = 1; x < size - 1; x++)
+			for (int x = 2; x < size - 2; x++)
 			{
-				ChunkPrimer primer = grid[z][x];
+				ProtoChunk primer = grid[z][x];
 				int here = 0;
 
 				for (int bx = 0; bx < 16; bx++)
 				{
 					for (int bz = 0; bz < 16; bz++)
 					{
-						int surface = primer.getTopBlockY(Heightmap.Type.WORLD_SURFACE, bx, bz);
+						int surface = primer.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz);
 
-						for (int y = 1; y < 255; y++)
+						for (int y = primer.getMinBuildHeight() + 1; y < primer.getMaxBuildHeight() - 1; y++)
 						{
 							if (primer.getBlockState(new BlockPos(bx, y, bz)).getBlock() == ModBlocks.GLOWING_MUSHROOM)
 							{
@@ -241,17 +285,59 @@ final class WorldgenTests
 		return new int[] { mushrooms, chunksWithMushrooms, exposed };
 	}
 
+	/** The (2r+1)^2 chunks around grid chunk (x, z): patch chunks where the patch has them, blank placeholders elsewhere. */
+	private static List<ChunkAccess> square(ProtoChunk[][] grid, int x, int z, int radius, int originX, int originZ, Map<Long, ProtoChunk> placeholders, ServerLevel world, Registry<Biome> biomes)
+	{
+		List<ChunkAccess> chunks = new ArrayList<>();
+
+		for (int dz = -radius; dz <= radius; dz++)
+		{
+			for (int dx = -radius; dx <= radius; dx++)
+			{
+				int gx = x + dx;
+				int gz = z + dz;
+
+				if (gx >= 0 && gz >= 0 && gx < grid.length && gz < grid.length)
+				{
+					chunks.add(grid[gz][gx]);
+				}
+				else
+				{
+					ChunkPos pos = new ChunkPos(originX + gx, originZ + gz);
+					chunks.add(placeholders.computeIfAbsent(pos.toLong(), key -> new ProtoChunk(pos, UpgradeData.EMPTY, world, biomes, null)));
+				}
+			}
+		}
+
+		return chunks;
+	}
+
+	private static List<ChunkAccess> neighbourhood(ProtoChunk[][] grid, int x, int z)
+	{
+		List<ChunkAccess> neighbours = new ArrayList<>();
+
+		for (int dz = -1; dz <= 1; dz++)
+		{
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				neighbours.add(grid[z + dz][x + dx]);
+			}
+		}
+
+		return neighbours;
+	}
+
 	/**
 	 * The feature rolls its patch height with the first {@code nextInt(pos.getY() - 4)}; this returns seeds whose first roll lands the
 	 * patch centre on {@code wantedY} (so a seeded run is aimed at the prepared cave).
 	 */
-	private static List<Long> seedsWithCentre(int maxY, int wantedY, int count)
+	private static List<Long> seedsWithCentre(int minY, int maxY, int wantedY, int count)
 	{
 		List<Long> seeds = new ArrayList<>();
 
 		for (long seed = 0; seeds.size() < count && seed < 100000; seed++)
 		{
-			if (new Random(seed).nextInt(maxY) == wantedY)
+			if (minY + new Random(seed).nextInt(maxY - minY) == wantedY)
 			{
 				seeds.add(seed);
 			}
@@ -260,23 +346,23 @@ final class WorldgenTests
 		return seeds;
 	}
 
-	private static JigsawPattern housesPool(TestCtx c)
+	private static StructureTemplatePool housesPool(TestCtx c)
 	{
-		return c.world.func_241828_r().getRegistry(Registry.JIGSAW_POOL_KEY).getOrDefault(HOUSES);
+		return c.world.registryAccess().registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).get(HOUSES);
 	}
 
-	private static JigsawPattern vanillaHouses(JigsawPattern wrapper) throws Exception
+	private static StructureTemplatePool vanillaHouses(StructureTemplatePool wrapper) throws Exception
 	{
 		Field field = wrapper.getClass().getDeclaredField("vanilla");
 		field.setAccessible(true);
-		return (JigsawPattern) field.get(wrapper);
+		return (StructureTemplatePool) field.get(wrapper);
 	}
 
-	private static List<String> names(List<JigsawPiece> pieces)
+	private static List<String> names(List<StructurePoolElement> pieces)
 	{
 		List<String> out = new ArrayList<>();
 
-		for (JigsawPiece piece : pieces)
+		for (StructurePoolElement piece : pieces)
 		{
 			out.add(piece.toString());
 		}
@@ -297,23 +383,24 @@ final class WorldgenTests
 	/** Assembles {@code count} plains villages with the real village start (the code a new world runs) and returns {vanilla churches, Peace Candle churches, villages}. */
 	private static int[] assembleVillages(TestCtx c, int count)
 	{
-		DynamicRegistries registries = c.world.func_241828_r();
-		TemplateManager templates = c.world.getStructureTemplateManager();
-		Biome plains = registries.getRegistry(Registry.BIOME_KEY).getOrDefault(Biomes.PLAINS.getLocation());
-		JigsawPattern centers = registries.getRegistry(Registry.JIGSAW_POOL_KEY).getOrDefault(new ResourceLocation("village/plains/town_centers"));
+		RegistryAccess registries = c.world.registryAccess();
+		StructureManager templates = c.world.getStructureManager();
+		Holder<StructureTemplatePool> centers = registries.registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).getHolderOrThrow(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("village/plains/town_centers")));
+		ChunkGenerator generator = c.world.getChunkSource().getGenerator();
 		int vanilla = 0;
 		int peace = 0;
 
 		for (int i = 0; i < count; i++)
 		{
-			StructureStart<VillageConfig> start = new JigsawStructure.Start((JigsawStructure) Structure.VILLAGE, i * 11, i * 17, MutableBoundingBox.getNewBoundingBox(), 0, 1234567L + i * 31L);
-			start.func_230364_a_(registries, c.world.getChunkProvider().getChunkGenerator(), templates, i * 11, i * 17, plains, new VillageConfig(() -> centers, 6));
-
-			for (StructurePiece piece : start.getComponents())
+			ChunkPos chunkPos = new ChunkPos(i * 11, i * 17);
+			ConfiguredStructureFeature<?, ?> village = registries.registryOrThrow(Registry.CONFIGURED_STRUCTURE_FEATURE_REGISTRY).get(new ResourceLocation("village_plains"));
+			// vanilla's own village start (a hand-built JigsawPlacement call in this harness produced streets but never any house)
+			net.minecraft.world.level.levelgen.structure.StructureStart start = village.generate(registries, generator, generator.getBiomeSource(), templates, c.world.getSeed(), chunkPos, 0, c.world, biome -> true);
+			for (StructurePiece piece : start.getPieces())
 			{
-				if (piece instanceof AbstractVillagePiece)
+				if (piece instanceof PoolElementStructurePiece)
 				{
-					String name = ((AbstractVillagePiece) piece).getJigsawPiece().toString();
+					String name = ((PoolElementStructurePiece) piece).getElement().toString();
 
 					if (isVanillaChurch(name))
 					{
@@ -336,29 +423,34 @@ final class WorldgenTests
 
 		// ---- Glowing Mushroom ----------------------------------------------------------------
 		tests.add(RTTest.named("worldgen.glowing_mushroom.is_registered_in_every_overworld_biome_with_the_original_rarity").run(c -> {
-			Registry<Biome> biomes = c.world.func_241828_r().getRegistry(Registry.BIOME_KEY);
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
 			int overworldStyle = 0;
 
 			for (Biome biome : biomes)
 			{
 				boolean found = false;
 				boolean found4 = false;
-				List<List<Supplier<ConfiguredFeature<?, ?>>>> stages = biome.getGenerationSettings().getFeatures();
-				List<Supplier<ConfiguredFeature<?, ?>>> stage = stages.size() > GenerationStage.Decoration.UNDERGROUND_DECORATION.ordinal() ? stages.get(GenerationStage.Decoration.UNDERGROUND_DECORATION.ordinal()) : Collections.<Supplier<ConfiguredFeature<?, ?>>>emptyList();
+				List<HolderSet<PlacedFeature>> stages = biome.getGenerationSettings().features();
+				List<PlacedFeature> stage = new ArrayList<>();
 
-				for (Supplier<ConfiguredFeature<?, ?>> supplier : stage)
+				if (stages.size() > GenerationStep.Decoration.UNDERGROUND_DECORATION.ordinal())
 				{
-					String json = ConfiguredFeature.CODEC.encodeStart(JsonOps.INSTANCE, supplier.get()).result().map(Object::toString).orElse("");
+					stages.get(GenerationStep.Decoration.UNDERGROUND_DECORATION.ordinal()).forEach(holder -> stage.add(holder.value()));
+				}
+
+				for (PlacedFeature placedFeature : stage)
+				{
+					String json = PlacedFeature.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, placedFeature).result().map(Object::toString).orElse("");
 
 					if (json.contains("randomthings:glowing_mushroom"))
 					{
 						found = true;
-						found4 = json.contains("\"chance\":4") && json.contains("minecraft:heightmap") && json.contains("minecraft:square");
+						found4 = json.contains("\"chance\":4") && json.contains("minecraft:heightmap") && json.contains("minecraft:in_square");
 					}
 				}
 
-				Biome.Category category = biome.getCategory();
-				boolean overworld = category != Biome.Category.NETHER && category != Biome.Category.THEEND && category != Biome.Category.NONE;
+				Biome.BiomeCategory category = Biome.getBiomeCategory(biomes.getHolderOrThrow(biomes.getResourceKey(biome).get()));
+				boolean overworld = category != Biome.BiomeCategory.NETHER && category != Biome.BiomeCategory.THEEND && category != Biome.BiomeCategory.NONE;
 				ResourceLocation name = biomes.getKey(biome);
 
 				if (overworld)
@@ -386,10 +478,10 @@ final class WorldgenTests
 		{
 			final int index = run;
 			cave.run(c -> {
-				List<Long> seeds = seedsWithCentre(caveMaxY, CAVE_Y + 3, patchesToRun);
+				List<Long> seeds = seedsWithCentre(Math.max(0, c.world.getMinBuildHeight()), caveMaxY, CAVE_Y + 3, patchesToRun);
 				c.check(seeds.size() == patchesToRun, "could not find seeds aiming the patch at the cave");
 				BlockPos column = new BlockPos(c.origin.getX(), caveMaxY + 4, c.origin.getZ());
-				boolean placed = ModFeatures.GLOWING_MUSHROOM.generate(c.world, c.world.getChunkProvider().getChunkGenerator(), new Random(seeds.get(index)), column, NoFeatureConfig.INSTANCE);
+				boolean placed = ModFeatures.GLOWING_MUSHROOM.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(seeds.get(index)), column);
 				c.check(placed, "the patch feature reports success for seed " + seeds.get(index));
 				List<BlockPos> found = new ArrayList<>();
 				int count = countMushrooms(c, found);
@@ -403,10 +495,10 @@ final class WorldgenTests
 
 				for (BlockPos pos : found)
 				{
-					c.check(!c.world.canBlockSeeSky(pos), "mushroom at " + pos + " must not see the sky");
+					c.check(!c.world.canSeeSkyFromBelowWater(pos), "mushroom at " + pos + " must not see the sky");
 					c.check(Math.abs(pos.getX() - column.getX()) <= 7 && Math.abs(pos.getZ() - column.getZ()) <= 7, "mushroom at " + pos + " outside the +-7 patch radius");
 					c.check(Math.abs(pos.getY() - (CAVE_Y + 3)) <= 3, "mushroom at " + pos + " outside the +-3 patch height");
-					c.world.setBlockState(pos, Blocks.AIR.getDefaultState(), 18);
+					c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
 				}
 			}).waitTicks(12);
 		}
@@ -428,9 +520,9 @@ final class WorldgenTests
 				BlockPos column = new BlockPos(c.origin.getX(), maxY + 4, c.origin.getZ());
 				boolean placed = false;
 
-				for (long seed : seedsWithCentre(maxY, CAVE_Y + 3, 6))
+				for (long seed : seedsWithCentre(Math.max(0, c.world.getMinBuildHeight()), maxY, CAVE_Y + 3, 6))
 				{
-					placed |= ModFeatures.GLOWING_MUSHROOM.generate(c.world, c.world.getChunkProvider().getChunkGenerator(), new Random(seed), column, NoFeatureConfig.INSTANCE);
+					placed |= ModFeatures.GLOWING_MUSHROOM.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(seed), column);
 				}
 
 				c.check(!placed, "the feature must refuse to place with GlowingMushrooms = false");
@@ -473,7 +565,7 @@ final class WorldgenTests
 					}
 
 					StackTraceElement[] trace = root.getStackTrace();
-					throw new TestCtx.Failure("terrain generation failed: " + root + " at " + (trace.length > 0 ? trace[0] : "?") + " / " + (trace.length > 1 ? trace[1] : "?") + " / " + (trace.length > 2 ? trace[2] : "?"));
+					throw new TestCtx.Failure("terrain generation failed: " + root + " at " + java.util.Arrays.stream(trace).filter(t -> !t.getClassName().startsWith("java.")).limit(10).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining(" / ")));
 				}
 
 				mushrooms += result[0];
@@ -492,12 +584,12 @@ final class WorldgenTests
 		final BlockPos[] planted = new BlockPos[1];
 		tests.add(RTTest.named("worldgen.glowing_mushroom.placed_mushroom_survives_updates_in_the_dark").run(c -> buildCave(c)).waitTicks(30).run(c -> {
 			planted[0] = new BlockPos(c.origin.getX(), CAVE_Y + 1, c.origin.getZ());
-			c.world.setBlockState(planted[0], ModBlocks.GLOWING_MUSHROOM.getDefaultState(), 3);
+			c.world.setBlock(planted[0], ModBlocks.GLOWING_MUSHROOM.defaultBlockState(), 3);
 			c.check(c.world.getBlockState(planted[0]).getBlock() == ModBlocks.GLOWING_MUSHROOM, "the mushroom must be placeable in a dark cave");
 		}).waitTicks(40).run(c -> {
 			// nudge the neighbours, which is what a drop check listens for
-			c.world.setBlockState(planted[0].east(), Blocks.STONE.getDefaultState(), 3);
-			c.world.setBlockState(planted[0].east(), Blocks.AIR.getDefaultState(), 3);
+			c.world.setBlock(planted[0].east(), Blocks.STONE.defaultBlockState(), 3);
+			c.world.setBlock(planted[0].east(), Blocks.AIR.defaultBlockState(), 3);
 		}).waitTicks(10).run(c -> {
 			boolean still = c.world.getBlockState(planted[0]).getBlock() == ModBlocks.GLOWING_MUSHROOM;
 			clearCave(c);
@@ -507,7 +599,7 @@ final class WorldgenTests
 		// ...and it must spread to dark neighbouring spots (the neighbours of a lit mushroom are one light level dimmer than it)
 		tests.add(RTTest.named("worldgen.glowing_mushroom.spreads_in_a_dark_cave").run(c -> buildCave(c)).waitTicks(30).run(c -> {
 			planted[0] = new BlockPos(c.origin.getX(), CAVE_Y + 1, c.origin.getZ());
-			c.world.setBlockState(planted[0], ModBlocks.GLOWING_MUSHROOM.getDefaultState(), 3);
+			c.world.setBlock(planted[0], ModBlocks.GLOWING_MUSHROOM.defaultBlockState(), 3);
 		}).waitTicks(40).run(c -> {
 			Random random = new Random(99);
 
@@ -532,12 +624,12 @@ final class WorldgenTests
 
 		// ---- Peace Candle church -------------------------------------------------------------
 		tests.add(RTTest.named("worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper").run(c -> {
-			JigsawPattern pool = housesPool(c);
+			StructureTemplatePool pool = housesPool(c);
 			c.check(pool != null, "village/plains/houses must be in the world's pool registry");
 			c.eq("PeaceCandleChurchPool", pool.getClass().getSimpleName(), "the plains houses pool must be wrapped");
 			c.check(vanillaHouses(pool) != pool, "the wrapper must keep the vanilla pool");
-			Template church = c.world.getStructureTemplateManager().getTemplate(new ResourceLocation("randomthings:peace_candle_church"));
-			Template vanillaChurch = c.world.getStructureTemplateManager().getTemplate(new ResourceLocation("minecraft:village/plains/houses/plains_temple_4"));
+			StructureTemplate church = c.world.getStructureManager().get(new ResourceLocation("randomthings:peace_candle_church")).orElse(null);
+			StructureTemplate vanillaChurch = c.world.getStructureManager().get(new ResourceLocation("minecraft:village/plains/houses/plains_temple_4")).orElse(null);
 			c.check(church != null && vanillaChurch != null, "both church templates must load");
 			c.eq(vanillaChurch.getSize().getX(), church.getSize().getX(), "church width");
 			c.eq(vanillaChurch.getSize().getZ(), church.getSize().getZ(), "church depth");
@@ -545,15 +637,15 @@ final class WorldgenTests
 		}));
 
 		tests.add(RTTest.named("worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches").run(c -> {
-			JigsawPattern wrapper = housesPool(c);
-			JigsawPattern vanilla = vanillaHouses(wrapper);
+			StructureTemplatePool wrapper = housesPool(c);
+			StructureTemplatePool vanilla = vanillaHouses(wrapper);
 			int vanillaWithChurch = 0;
 			int swapped = 0;
 
 			for (int seed = 0; seed < 3000; seed++)
 			{
-				List<String> plain = names(vanilla.getShuffledPieces(new Random(seed)));
-				List<String> wrapped = names(wrapper.getShuffledPieces(new Random(seed)));
+				List<String> plain = names(vanilla.getShuffledTemplates(new Random(seed)));
+				List<String> wrapped = names(wrapper.getShuffledTemplates(new Random(seed)));
 				c.eq(plain.size(), wrapped.size(), "the swap must not change the number of candidates");
 				boolean hasChurch = false;
 
@@ -606,7 +698,7 @@ final class WorldgenTests
 		}));
 
 		tests.add(RTTest.named("worldgen.peace_candle.config_switch_stops_the_swap").run(c -> {
-			JigsawPattern wrapper = housesPool(c);
+			StructureTemplatePool wrapper = housesPool(c);
 			BooleanSupplier before = PeaceCandleChurchPool.enabled;
 			int swapped = 0;
 
@@ -616,7 +708,7 @@ final class WorldgenTests
 
 				for (int seed = 0; seed < 1000; seed++)
 				{
-					for (String name : names(wrapper.getShuffledPieces(new Random(seed))))
+					for (String name : names(wrapper.getShuffledTemplates(new Random(seed))))
 					{
 						if (isPeaceChurch(name))
 						{
@@ -664,34 +756,34 @@ final class WorldgenTests
 		}));
 
 		tests.add(RTTest.named("worldgen.peace_candle.church_piece_places_a_working_peace_candle").run(c -> {
-			SingleJigsawPiece piece = JigsawPiece.func_242859_b("randomthings:peace_candle_church").apply(JigsawPattern.PlacementBehaviour.RIGID);
-			TemplateManager templates = c.world.getStructureTemplateManager();
+			SinglePoolElement piece = StructurePoolElement.single("randomthings:peace_candle_church").apply(StructureTemplatePool.Projection.RIGID);
+			StructureManager templates = c.world.getStructureManager();
 			BlockPos base = new BlockPos(c.origin.getX() - 4, CAVE_Y, c.origin.getZ() - 4);
-			MutableBoundingBox box = piece.getBoundingBox(templates, base, Rotation.NONE);
-			boolean placed = piece.func_230378_a_(templates, c.world, c.world.getStructureManager(), c.world.getChunkProvider().getChunkGenerator(), base, base, Rotation.NONE, box, new Random(1), false);
+			BoundingBox box = piece.getBoundingBox(templates, base, Rotation.NONE);
+			boolean placed = piece.place(templates, c.world, c.world.structureFeatureManager(), c.world.getChunkSource().getGenerator(), base, base, Rotation.NONE, box, new Random(1), false);
 			c.check(placed, "the church piece must place");
 			int candles = 0;
 			PeaceCandleTileEntity found = null;
 
-			for (BlockPos pos : BlockPos.getAllInBoxMutable(new BlockPos(box.minX, box.minY, box.minZ), new BlockPos(box.maxX, box.maxY, box.maxZ)))
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(box.minX(), box.minY(), box.minZ()), new BlockPos(box.maxX(), box.maxY(), box.maxZ())))
 			{
 				if (c.world.getBlockState(pos).getBlock() == ModBlocks.PEACE_CANDLE)
 				{
 					candles++;
 
-					if (c.world.getTileEntity(pos) instanceof PeaceCandleTileEntity)
+					if (c.world.getBlockEntity(pos) instanceof PeaceCandleTileEntity)
 					{
-						found = (PeaceCandleTileEntity) c.world.getTileEntity(pos);
+						found = (PeaceCandleTileEntity) c.world.getBlockEntity(pos);
 					}
 				}
 			}
 
 			boolean registered = found != null && PeaceCandleTileEntity.candles.contains(found);
 
-			for (BlockPos pos : BlockPos.getAllInBoxMutable(new BlockPos(box.minX - 1, box.minY - 1, box.minZ - 1), new BlockPos(box.maxX + 1, box.maxY + 1, box.maxZ + 1)))
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(box.minX() - 1, box.minY() - 1, box.minZ() - 1), new BlockPos(box.maxX() + 1, box.maxY() + 1, box.maxZ() + 1)))
 			{
-				c.world.removeTileEntity(pos);
-				c.world.setBlockState(pos, Blocks.AIR.getDefaultState(), 18);
+				c.world.removeBlockEntity(pos);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
 			}
 
 			c.eq(1, candles, "the church holds exactly one Peace Candle");
@@ -700,5 +792,72 @@ final class WorldgenTests
 		}));
 
 		return tests;
+	}
+
+	/**
+	 * A structure manager that knows no structures. The generator asks it about structure starts in a wide chunk range around
+	 * every chunk it generates; this test only has a small patch of chunks in hand, so the answer is "none" instead of a
+	 * region lookup out of bounds (the real one would also block on the server thread's own chunk source).
+	 */
+	private static class NoStructures extends StructureFeatureManager
+	{
+		private final ServerLevel world;
+
+		private NoStructures(ServerLevel world, net.minecraft.world.level.LevelAccessor level, net.minecraft.world.level.levelgen.WorldGenSettings settings, net.minecraft.world.level.levelgen.structure.StructureCheck check)
+		{
+			super(level, settings, check);
+			this.world = world;
+		}
+
+		static NoStructures of(ServerLevel world)
+		{
+			try
+			{
+				StructureFeatureManager real = world.structureFeatureManager();
+				net.minecraft.world.level.levelgen.WorldGenSettings settings = (net.minecraft.world.level.levelgen.WorldGenSettings) net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(StructureFeatureManager.class, "f_47267_").get(real);
+				net.minecraft.world.level.levelgen.structure.StructureCheck check = (net.minecraft.world.level.levelgen.structure.StructureCheck) net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(StructureFeatureManager.class, "f_196665_").get(real);
+				return new NoStructures(world, world, settings, check);
+			}
+			catch (IllegalAccessException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		public StructureFeatureManager forWorldGenRegion(WorldGenRegion region)
+		{
+			return new NoStructures(world, region, world.getServer().getWorldData().worldGenSettings(), net.minecraftforge.fml.util.ObfuscationReflectionHelper.<net.minecraft.world.level.levelgen.structure.StructureCheck, StructureFeatureManager>getPrivateValue(StructureFeatureManager.class, this, "f_196665_"));
+		}
+
+		@Override
+		public List<net.minecraft.world.level.levelgen.structure.StructureStart> startsForFeature(net.minecraft.core.SectionPos pos, java.util.function.Predicate<ConfiguredStructureFeature<?, ?>> predicate)
+		{
+			return Collections.emptyList();
+		}
+
+		@Override
+		public List<net.minecraft.world.level.levelgen.structure.StructureStart> startsForFeature(net.minecraft.core.SectionPos pos, ConfiguredStructureFeature<?, ?> feature)
+		{
+			return Collections.emptyList();
+		}
+
+		@Override
+		public boolean hasAnyStructureAt(BlockPos pos)
+		{
+			return false;
+		}
+
+		@Override
+		public net.minecraft.world.level.levelgen.structure.StructureStart getStructureAt(BlockPos pos, ConfiguredStructureFeature<?, ?> feature)
+		{
+			return net.minecraft.world.level.levelgen.structure.StructureStart.INVALID_START;
+		}
+
+		@Override
+		public net.minecraft.world.level.levelgen.structure.StructureStart getStructureWithPieceAt(BlockPos pos, ConfiguredStructureFeature<?, ?> feature)
+		{
+			return net.minecraft.world.level.levelgen.structure.StructureStart.INVALID_START;
+		}
 	}
 }

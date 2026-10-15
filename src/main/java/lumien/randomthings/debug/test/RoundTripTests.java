@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lumien.randomthings.lib.ModConstants;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.fluids.FluidStack;
@@ -49,7 +49,7 @@ final class RoundTripTests
 	{
 		List<RTTest> tests = new ArrayList<>();
 
-		for (TileEntityType<?> type : ForgeRegistries.TILE_ENTITIES)
+		for (BlockEntityType<?> type : ForgeRegistries.BLOCK_ENTITIES)
 		{
 			if (type.getRegistryName() != null && ModConstants.MOD_ID.equals(type.getRegistryName().getNamespace()))
 			{
@@ -78,13 +78,13 @@ final class RoundTripTests
 
 	// ---------------------------------------------------------------------------------------------
 
-	private static void tileEntity(TestCtx c, TileEntityType<?> type)
+	private static void tileEntity(TestCtx c, BlockEntityType<?> type)
 	{
 		Block block = null;
 
 		for (Block candidate : ForgeRegistries.BLOCKS)
 		{
-			if (candidate.getRegistryName() != null && ModConstants.MOD_ID.equals(candidate.getRegistryName().getNamespace()) && type.isValidBlock(candidate))
+			if (candidate.getRegistryName() != null && ModConstants.MOD_ID.equals(candidate.getRegistryName().getNamespace()) && type.isValid(candidate.defaultBlockState()))
 			{
 				block = candidate;
 				break;
@@ -98,8 +98,8 @@ final class RoundTripTests
 
 		BlockPos pos = c.at(0, 1, 0);
 		c.floor();
-		c.setQuiet(pos, block.getDefaultState());
-		TileEntity original = c.world.getTileEntity(pos);
+		c.setQuiet(pos, block.defaultBlockState());
+		BlockEntity original = c.world.getBlockEntity(pos);
 
 		if (original == null)
 		{
@@ -108,12 +108,12 @@ final class RoundTripTests
 
 		int populated = populate(original, BLOCK_SIDES);
 
-		CompoundNBT first = original.write(new CompoundNBT());
+		CompoundTag first = original.saveWithoutMetadata();
 
-		TileEntity copy = type.create();
-		copy.setWorldAndPos(c.world, pos);
-		copy.read(copy.getBlockState(), first);
-		CompoundNBT second = copy.write(new CompoundNBT());
+		BlockEntity copy = type.create(pos, block.defaultBlockState());
+		copy.setLevel(c.world);
+		copy.load(first);
+		CompoundTag second = copy.saveWithoutMetadata();
 
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
 		c.eq(snapshot(original, BLOCK_SIDES), snapshot(copy, BLOCK_SIDES), "capability contents after reload");
@@ -128,12 +128,12 @@ final class RoundTripTests
 			throw new TestCtx.Skip("entity type cannot be created without special context");
 		}
 
-		original.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
+		original.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 
-		CompoundNBT first = original.writeWithoutTypeId(new CompoundNBT());
+		CompoundTag first = original.saveWithoutId(new CompoundTag());
 		Entity copy = type.create(c.world);
-		copy.read(first);
-		CompoundNBT second = copy.writeWithoutTypeId(new CompoundNBT());
+		copy.load(first);
+		CompoundTag second = copy.saveWithoutId(new CompoundTag());
 
 		c.eq(first, second, "NBT after write -> read -> write");
 	}
@@ -142,19 +142,19 @@ final class RoundTripTests
 	{
 		ItemStack stack = new ItemStack(item);
 
-		if (stack.isDamageable())
+		if (stack.isDamageableItem())
 		{
-			stack.setDamage(stack.getMaxDamage() / 2);
+			stack.setDamageValue(stack.getMaxDamage() / 2);
 		}
 
 		int populated = populate(stack, STACK_SIDES);
 
-		CompoundNBT first = stack.write(new CompoundNBT());
-		ItemStack copy = ItemStack.read(first);
-		CompoundNBT second = copy.write(new CompoundNBT());
+		CompoundTag first = stack.save(new CompoundTag());
+		ItemStack copy = ItemStack.of(first);
+		CompoundTag second = copy.save(new CompoundTag());
 
-		c.check(ItemStack.areItemStacksEqual(stack, copy), "stack differs after reload: " + stack + " vs " + copy);
-		c.check(ItemStack.areItemStackTagsEqual(stack, copy), "stack tag differs after reload: " + stack.getTag() + " vs " + copy.getTag());
+		c.check(ItemStack.matches(stack, copy), "stack differs after reload: " + stack + " vs " + copy);
+		c.check(ItemStack.tagMatches(stack, copy), "stack tag differs after reload: " + stack.getTag() + " vs " + copy.getTag());
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
 		c.eq(snapshot(stack, STACK_SIDES), snapshot(copy, STACK_SIDES), "capability contents after reload");
 	}
@@ -226,7 +226,7 @@ final class RoundTripTests
 				for (int slot = 0; slot < items.getSlots(); slot++)
 				{
 					ItemStack stack = items.getStackInSlot(slot);
-					sb.append("items[").append(side).append(',').append(slot).append("]=").append(stack.write(new CompoundNBT())).append(';');
+					sb.append("items[").append(side).append(',').append(slot).append("]=").append(stack.save(new CompoundTag())).append(';');
 				}
 			}
 

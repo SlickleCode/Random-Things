@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lumien.randomthings.debug.RTDebug;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent;
 
 /**
@@ -32,7 +32,7 @@ public final class RTTestRunner
 	private static int stepIndex;
 	private static int wait;
 	static TestCtx ctx;
-	private static ServerPlayerEntity player;
+	private static ServerPlayer player;
 
 	private static int passed;
 	private static final List<String> failures = new ArrayList<>();
@@ -43,16 +43,16 @@ public final class RTTestRunner
 	}
 
 	/** @return an error message, or null if the run started */
-	public static String start(ServerPlayerEntity starter, String filter)
+	public static String start(ServerPlayer starter, String filter)
 	{
 		if (running)
 		{
 			return "tests already running";
 		}
 
-		ServerWorld world = starter.getServerWorld();
+		ServerLevel world = starter.getLevel();
 
-		if (!(world.getChunkProvider().getChunkGenerator() instanceof net.minecraft.world.gen.FlatChunkGenerator))
+		if (!(world.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.FlatLevelSource))
 		{
 			return "refusing to run: the test area is wiped between tests, so use a flat world (e.g. the RTAutoTest world)";
 		}
@@ -85,7 +85,7 @@ public final class RTTestRunner
 		}
 
 		player = starter;
-		BlockPos base = starter.getPosition();
+		BlockPos base = starter.blockPosition();
 		ctx = new TestCtx(world, new BlockPos(base.getX() + 14, 100, base.getZ()), starter);
 		ctx.clear();
 
@@ -110,21 +110,21 @@ public final class RTTestRunner
 	 * Same controlled conditions the manual playtest scenarios use (prod-test/desktop/scn.py): always day, no weather cycle, no mob
 	 * spawning, no stray mobs, so a test never depends on the time of day, rain or a wandering mob.
 	 */
-	private static void controlWorld(ServerWorld world)
+	private static void controlWorld(ServerLevel world)
 	{
-		net.minecraft.world.GameRules rules = world.getGameRules();
-		rules.get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false, world.getServer());
-		rules.get(net.minecraft.world.GameRules.DO_WEATHER_CYCLE).set(false, world.getServer());
-		rules.get(net.minecraft.world.GameRules.DO_MOB_SPAWNING).set(false, world.getServer());
+		net.minecraft.world.level.GameRules rules = world.getGameRules();
+		rules.getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT).set(false, world.getServer());
+		rules.getRule(net.minecraft.world.level.GameRules.RULE_WEATHER_CYCLE).set(false, world.getServer());
+		rules.getRule(net.minecraft.world.level.GameRules.RULE_DOMOBSPAWNING).set(false, world.getServer());
 		world.setDayTime(6000);
-		world.getWorldInfo().setRaining(false);
-		((net.minecraft.world.storage.IServerWorldInfo) world.getWorldInfo()).setThundering(false);
+		world.getLevelData().setRaining(false);
+		((net.minecraft.world.level.storage.ServerLevelData) world.getLevelData()).setThundering(false);
 
-		for (net.minecraft.entity.Entity entity : world.getEntities().collect(java.util.stream.Collectors.toList()))
+		for (net.minecraft.world.entity.Entity entity : com.google.common.collect.Lists.newArrayList(world.getAllEntities()))
 		{
-			if (entity instanceof net.minecraft.entity.MobEntity)
+			if (entity instanceof net.minecraft.world.entity.Mob)
 			{
-				entity.remove();
+				entity.discard();
 			}
 		}
 	}
@@ -234,7 +234,7 @@ public final class RTTestRunner
 
 		if (player != null)
 		{
-			player.sendMessage(new StringTextComponent("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"), net.minecraft.util.Util.DUMMY_UUID);
+			player.sendMessage(new TextComponent("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"), net.minecraft.Util.NIL_UUID);
 		}
 
 		finished = true;

@@ -12,25 +12,25 @@ import lumien.randomthings.handler.EnderLetterHandler;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.tileentity.EntityDetectorTileEntity;
 import lumien.randomthings.tileentity.PotionVaporizerTileEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.passive.PigEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Items;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.PacketDirection;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.Effects;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.potion.Potions;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.Items;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.items.IItemHandler;
@@ -57,11 +57,11 @@ final class UtilityBehaviorTests
 		}).waitTicks(4).run(c -> {
 			EntityDetectorTileEntity te = c.tile(c.at(0, 1, 0), EntityDetectorTileEntity.class);
 			c.check(te.isPowered(), "an item within range must power the detector (default filter ALL)");
-			c.eq(15, ModBlocks.ENTITY_DETECTOR.getWeakPower(c.world.getBlockState(c.at(0, 1, 0)), c.world, c.at(0, 1, 0), Direction.UP), "weak power output");
+			c.eq(15, ModBlocks.ENTITY_DETECTOR.getSignal(c.world.getBlockState(c.at(0, 1, 0)), c.world, c.at(0, 1, 0), Direction.UP), "weak power output");
 
 			for (ItemEntity e : c.itemEntities())
 			{
-				e.remove();
+				e.discard();
 			}
 
 			c.spawnItem(9.5, 1.5, 0.5, new ItemStack(Items.COBBLESTONE));
@@ -93,23 +93,23 @@ final class UtilityBehaviorTests
 			c.floor();
 			c.set(c.at(0, 1, 0), ModBlocks.ENDER_MAILBOX);
 			GameProfile profile = c.player.getGameProfile();
-			c.world.getServer().getPlayerProfileCache().addEntry(profile);
+			c.world.getServer().getProfileCache().add(profile);
 
 			ItemStack letter = new ItemStack(ModItems.ENDER_LETTER);
 			letter.getOrCreateTag().putString("receiver", profile.getName());
-			c.player.setHeldItem(Hand.MAIN_HAND, letter);
-			c.player.setSneaking(true);
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, letter);
+			c.player.setShiftKeyDown(true);
 
 			BlockPos pos = c.at(0, 1, 0);
-			ModBlocks.ENDER_MAILBOX.onBlockActivated(c.world.getBlockState(pos), c.world, pos, c.player, Hand.MAIN_HAND,
-					new BlockRayTraceResult(Vector3d.copy(pos), Direction.UP, pos, false));
-			c.player.setSneaking(false);
+			ModBlocks.ENDER_MAILBOX.use(c.world.getBlockState(pos), c.world, pos, c.player, InteractionHand.MAIN_HAND,
+					new BlockHitResult(Vec3.atLowerCornerOf(pos), Direction.UP, pos, false));
+			c.player.setShiftKeyDown(false);
 
 			IItemHandler inbox = EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.getId());
 			c.eq(1, TestCtx.count(inbox, ModItems.ENDER_LETTER), "letters in the receiver's inbox");
 			ItemStack delivered = inbox.getStackInSlot(0);
 			c.check(delivered.getTag() != null && delivered.getTag().getBoolean("received"), "delivered letter is marked received");
-			c.check(c.player.getHeldItemMainhand().isEmpty(), "the sent letter is consumed from the hand");
+			c.check(c.player.getMainHandItem().isEmpty(), "the sent letter is consumed from the hand");
 			EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.getId()).extractItem(0, 1, false);
 		}));
 
@@ -118,7 +118,7 @@ final class UtilityBehaviorTests
 			c.set(c.at(0, 1, 0), ModBlocks.ENDER_MAILBOX);
 			String unknown = "NobodyHasThisName_" + UUID.randomUUID().toString().substring(0, 6);
 
-			if (c.world.getServer().getPlayerProfileCache().getGameProfileForUsername(unknown) != null)
+			if (c.world.getServer().getProfileCache().get(unknown) != null)
 			{
 				// An integrated (offline) server resolves any name to an offline profile, so there is no "unknown" receiver here.
 				throw new TestCtx.Skip("this server resolves arbitrary names to profiles");
@@ -126,16 +126,16 @@ final class UtilityBehaviorTests
 
 			ItemStack letter = new ItemStack(ModItems.ENDER_LETTER);
 			letter.getOrCreateTag().putString("receiver", unknown);
-			c.player.setHeldItem(Hand.MAIN_HAND, letter);
-			c.player.setSneaking(true);
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, letter);
+			c.player.setShiftKeyDown(true);
 
 			BlockPos pos = c.at(0, 1, 0);
-			ModBlocks.ENDER_MAILBOX.onBlockActivated(c.world.getBlockState(pos), c.world, pos, c.player, Hand.MAIN_HAND,
-					new BlockRayTraceResult(Vector3d.copy(pos), Direction.UP, pos, false));
-			c.player.setSneaking(false);
+			ModBlocks.ENDER_MAILBOX.use(c.world.getBlockState(pos), c.world, pos, c.player, InteractionHand.MAIN_HAND,
+					new BlockHitResult(Vec3.atLowerCornerOf(pos), Direction.UP, pos, false));
+			c.player.setShiftKeyDown(false);
 
-			c.check(!c.player.getHeldItemMainhand().isEmpty(), "the letter must stay in the hand when the receiver is unknown");
-			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
+			c.check(!c.player.getMainHandItem().isEmpty(), "the letter must stay in the hand when the receiver is unknown");
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 		}));
 
 		// ---- Neighbour face culling (1.16: BlockState.isSolid decides whether a neighbour's face is culled against a block) -------------
@@ -144,14 +144,14 @@ final class UtilityBehaviorTests
 
 			for (String name : seeThrough)
 			{
-				net.minecraft.block.Block block = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation("randomthings", name));
+				net.minecraft.world.level.block.Block block = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.resources.ResourceLocation("randomthings", name));
 
 				if (block == null || block == Blocks.AIR)
 				{
 					continue;
 				}
 
-				c.check(!block.getDefaultState().isSolid(), name + " must not be solid: a solid neighbour state makes the next block cull its touching face (a hole)");
+				c.check(!block.defaultBlockState().canOcclude(), name + " must not be solid: a solid neighbour state makes the next block cull its touching face (a hole)");
 			}
 		}));
 
@@ -168,7 +168,7 @@ final class UtilityBehaviorTests
 			}
 
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -176,7 +176,7 @@ final class UtilityBehaviorTests
 			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, te.getState(), "a plains crystal in a plains world finishes at once");
 			c.set(c.at(1, 1, 0), Blocks.AIR);
 			ItemStack desert = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation("minecraft:desert")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation("minecraft:desert")));
 			te.setCrystal(desert);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -187,8 +187,8 @@ final class UtilityBehaviorTests
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
-			net.minecraft.item.Item tool = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("randomthings", "redstone_tool"));
-			net.minecraft.item.Item rope = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("randomthings", "escape_rope"));
+			net.minecraft.world.item.Item tool = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.resources.ResourceLocation("randomthings", "redstone_tool"));
+			net.minecraft.world.item.Item rope = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.resources.ResourceLocation("randomthings", "escape_rope"));
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(ItemStack.EMPTY, vanilla), "empty stack keeps vanilla");
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(Items.DIAMOND_SWORD), vanilla), "an ordinary item keeps vanilla");
 			ItemStack tagged = new ItemStack(Items.IRON_HELMET);
@@ -208,46 +208,46 @@ final class UtilityBehaviorTests
 		}));
 
 		// ---- Portkey --------------------------------------------------------------------------
-		Vector3d[] portkeyHome = new Vector3d[1];
+		Vec3[] portkeyHome = new Vec3[1];
 		tests.add(RTTest.named("behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper").run(c -> {
 			c.floor();
 			ItemStack key = new ItemStack(ModItems.PORTKEY);
-			c.player.setHeldItem(Hand.MAIN_HAND, key);
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, key);
 			BlockPos target = c.at(8, 0, 0);
-			ModItems.PORTKEY.onItemUse(new ItemUseContext(c.player, Hand.MAIN_HAND, new BlockRayTraceResult(Vector3d.copy(target), Direction.UP, target, false)));
-			CompoundNBT tag = key.getTag();
+			ModItems.PORTKEY.useOn(new UseOnContext(c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(target), Direction.UP, target, false)));
+			CompoundTag tag = key.getTag();
 			c.check(tag != null && tag.getBoolean("hasTarget"), "right-click must bind a target");
 			c.eq(target.getX(), tag.getInt("targetX"), "bound x");
-			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(key), "a freshly bound Portkey still glows (priming counter 0)");
-			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(new ItemStack(ModItems.PORTKEY)), "an unbound Portkey always glows");
-			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
-			portkeyHome[0] = c.player.getPositionVec();
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(key), "a freshly bound Portkey still glows (priming counter 0)");
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(new ItemStack(ModItems.PORTKEY)), "an unbound Portkey always glows");
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+			portkeyHome[0] = c.player.position();
 			ItemEntity dropped = c.spawnItem(0.5, 2.5, 0.5, key.copy());
-			dropped.setPickupDelay(32767);
+			dropped.setPickUpDelay(32767);
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
 			c.check(drop.getItem().getTag().getInt("dropCounter") < 100, "not primed yet after about 60 ticks");
-			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(drop.getItem()), "still glowing while the counter is below 100");
-			c.player.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
+			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(drop.getItem()), "still glowing while the counter is below 100");
+			c.player.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			MinecraftForge.EVENT_BUS.post(new EntityItemPickupEvent(c.player, drop));
-			c.check(c.player.getPosX() < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.getPosX() + ")");
+			c.check(c.player.getX() < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.getX() + ")");
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
 			c.check(drop.getItem().getTag().getInt("dropCounter") > 100, "primed after more than 100 ticks");
-			c.check(!((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).hasEffect(drop.getItem()), "the glow stops once the counter has passed 100 (primed and bound)");
+			c.check(!((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(drop.getItem()), "the glow stops once the counter has passed 100 (primed and bound)");
 
-			if (c.player.connection == null || c.player.connection.getClass() != ServerPlayNetHandler.class)
+			if (c.player.connection == null || c.player.connection.getClass() != ServerGamePacketListenerImpl.class)
 			{
 				// The teleport goes through the player's network handler; a fake player has none unless we give it a detached one.
-				new ServerPlayNetHandler(c.world.getServer(), new NetworkManager(PacketDirection.SERVERBOUND), c.player);
+				new ServerGamePacketListenerImpl(c.world.getServer(), new Connection(PacketFlow.SERVERBOUND), c.player);
 			}
 
-			c.player.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
+			c.player.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			MinecraftForge.EVENT_BUS.post(new EntityItemPickupEvent(c.player, drop));
-			c.check(Math.abs(c.player.getPosX() - (c.origin.getX() + 8)) <= 3.0, "picker-upper must land near the bound target (x=" + c.player.getPosX() + ")");
-			boolean nearSurface = Math.abs(c.player.getPosY() - (c.origin.getY() + 1)) <= 1.5;
-			double landedY = c.player.getPosY();
-			c.player.setPosition(portkeyHome[0].x, portkeyHome[0].y, portkeyHome[0].z);
+			c.check(Math.abs(c.player.getX() - (c.origin.getX() + 8)) <= 3.0, "picker-upper must land near the bound target (x=" + c.player.getX() + ")");
+			boolean nearSurface = Math.abs(c.player.getY() - (c.origin.getY() + 1)) <= 1.5;
+			double landedY = c.player.getY();
+			c.player.setPos(portkeyHome[0].x, portkeyHome[0].y, portkeyHome[0].z);
 			c.check(nearSurface, "and on the surface (y=" + landedY + ")");
 		}));
 
@@ -266,42 +266,42 @@ final class UtilityBehaviorTests
 
 						if (wall)
 						{
-							c.setQuiet(c.at(x, y, z), Blocks.STONE.getDefaultState());
+							c.setQuiet(c.at(x, y, z), Blocks.STONE.defaultBlockState());
 						}
 					}
 				}
 			}
 
-			c.setQuiet(c.at(-2, 2, 0), ModBlocks.POTION_VAPORIZER.getDefaultState().with(PotionVaporizerBlock.FACING, Direction.EAST));
+			c.setQuiet(c.at(-2, 2, 0), ModBlocks.POTION_VAPORIZER.defaultBlockState().setValue(PotionVaporizerBlock.FACING, Direction.EAST));
 			PotionVaporizerTileEntity te = c.tile(c.at(-2, 2, 0), PotionVaporizerTileEntity.class);
 			te.itemHandler().setStackInSlot(0, new ItemStack(Items.COAL, 4));
-			te.itemHandler().setStackInSlot(1, PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), Potions.SWIFTNESS));
+			te.itemHandler().setStackInSlot(1, PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.SWIFTNESS));
 
-			PigEntity pig = EntityType.PIG.create(c.world);
-			pig.setNoAI(true);
-			pig.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
-			c.world.addEntity(pig);
+			Pig pig = EntityType.PIG.create(c.world);
+			pig.setNoAi(true);
+			pig.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
+			c.world.addFreshEntity(pig);
 		}).waitTicks(160).run(c -> {
 			PotionVaporizerTileEntity te = c.tile(c.at(-2, 2, 0), PotionVaporizerTileEntity.class);
-			PigEntity pig = c.world.getEntitiesWithinAABB(PigEntity.class, c.area()).get(0);
-			c.check(pig.getActivePotionEffect(Effects.SPEED) != null, "a mob in the room must receive the potion effect");
+			Pig pig = c.world.getEntitiesOfClass(Pig.class, c.area()).get(0);
+			c.check(pig.getEffect(MobEffects.MOVEMENT_SPEED) != null, "a mob in the room must receive the potion effect");
 			c.eq(Items.GLASS_BOTTLE, te.itemHandler().getStackInSlot(2).getItem(), "an empty bottle is returned in the output slot");
 			c.check(te.itemHandler().getStackInSlot(1).isEmpty(), "the potion was loaded into the tank");
 		}));
 
 		// ---- Imbue potions --------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.imbue.drinking_applies_a_20_minute_effect_with_icon_and_no_particles_and_replaces_the_previous_one").run(c -> {
-			c.player.clearActivePotions();
-			ModItems.IMBUE_FIRE.onItemUseFinish(new ItemStack(ModItems.IMBUE_FIRE), c.world, c.player);
-			net.minecraft.potion.EffectInstance fire = c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE);
+			c.player.removeAllEffects();
+			ModItems.IMBUE_FIRE.finishUsingItem(new ItemStack(ModItems.IMBUE_FIRE), c.world, c.player);
+			net.minecraft.world.effect.MobEffectInstance fire = c.player.getEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE);
 			c.check(fire != null, "drinking Fire Imbue must give the Fire Imbue effect");
 			c.check(fire.getDuration() >= 24000 - 5, "the effect lasts 20 minutes (24000 ticks), got " + fire.getDuration());
-			c.check(fire.isShowIcon(), "the effect must show its HUD/inventory icon (1.12.2 did; the 5-argument constructor hid it)");
-			c.check(!fire.doesShowParticles(), "the effect must not show particles (like 1.12.2)");
-			ModItems.IMBUE_POISON.onItemUseFinish(new ItemStack(ModItems.IMBUE_POISON), c.world, c.player);
-			c.check(c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE) == null, "drinking a second kind replaces the first");
-			c.check(c.player.getActivePotionEffect(lumien.randomthings.potion.ModEffects.IMBUE_POISON) != null, "the second kind is active");
-			c.player.clearActivePotions();
+			c.check(fire.showIcon(), "the effect must show its HUD/inventory icon (1.12.2 did; the 5-argument constructor hid it)");
+			c.check(!fire.isVisible(), "the effect must not show particles (like 1.12.2)");
+			ModItems.IMBUE_POISON.finishUsingItem(new ItemStack(ModItems.IMBUE_POISON), c.world, c.player);
+			c.check(c.player.getEffect(lumien.randomthings.potion.ModEffects.IMBUE_FIRE) == null, "drinking a second kind replaces the first");
+			c.check(c.player.getEffect(lumien.randomthings.potion.ModEffects.IMBUE_POISON) != null, "the second kind is active");
+			c.player.removeAllEffects();
 		}));
 
 		// ---- Static registries (thread safety) --------------------------------------------------

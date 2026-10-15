@@ -4,9 +4,9 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.FakePlayer;
 
 /**
@@ -16,20 +16,20 @@ import net.minecraftforge.common.util.FakePlayer;
  */
 public class RTTestPlayer extends FakePlayer
 {
-	public RTTestPlayer(ServerWorld world)
+	public RTTestPlayer(ServerLevel world)
 	{
 		super(world, new GameProfile(UUID.nameUUIDFromBytes("RTTestPlayer".getBytes()), "RTTestPlayer"));
 	}
 
 	@Override
-	public Vector3d getPositionVec()
+	public Vec3 position()
 	{
-		return new Vector3d(this.getPosX(), this.getPosY(), this.getPosZ());
+		return new Vec3(this.getX(), this.getY(), this.getZ());
 	}
 
 	@Override
-	public BlockPos getPosition()
+	public BlockPos blockPosition()
 	{
-		return new BlockPos(this.getPosX(), this.getPosY(), this.getPosZ());
+		return new BlockPos(this.getX(), this.getY(), this.getZ());
 	}
 }

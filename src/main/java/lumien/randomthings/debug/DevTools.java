@@ -4,7 +4,7 @@ import lumien.randomthings.debug.test.RTTestRunner;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 
 /** Registers all developer-only hooks. Only ever called when {@link DevMode#ENABLED}. */
 public final class DevTools

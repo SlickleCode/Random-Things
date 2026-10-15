@@ -19,15 +19,15 @@ import com.google.gson.JsonParser;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.model.BlockModel;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.block.Block;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -63,11 +63,11 @@ public class ResourceAudit
 	public final List<String> warnings = new ArrayList<>();
 	public int blocks, items, recipes;
 
-	private final IResourceManager assets;
-	private final IResourceManager data;
+	private final ResourceManager assets;
+	private final ResourceManager data;
 	private final Map<ResourceLocation, JsonObject> modelCache = new HashMap<>();
 
-	private ResourceAudit(IResourceManager assets, IResourceManager data)
+	private ResourceAudit(ResourceManager assets, ResourceManager data)
 	{
 		this.assets = assets;
 		this.data = data;
@@ -76,7 +76,7 @@ public class ResourceAudit
 	public static ResourceAudit run()
 	{
 		Minecraft mc = Minecraft.getInstance();
-		ResourceAudit audit = new ResourceAudit(mc.getResourceManager(), mc.getIntegratedServer() != null ? mc.getIntegratedServer().getDataPackRegistries().getResourceManager() : mc.getResourceManager());
+		ResourceAudit audit = new ResourceAudit(mc.getResourceManager(), mc.getSingleplayerServer() != null ? mc.getSingleplayerServer().getServerResources().resourceManager() : mc.getResourceManager());
 
 		audit.auditBlocks();
 		audit.auditItems();
@@ -351,9 +351,9 @@ public class ResourceAudit
 	/** Runs the game's own model deserializer: catches schema mistakes (e.g. scalar where an array is required) that valid-JSON checks miss. */
 	private void verifyParses(ResourceLocation file)
 	{
-		try (IResource resource = assets.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
+		try (Resource resource = assets.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
 		{
-			BlockModel.deserialize(reader);
+			BlockModel.fromStream(reader);
 		}
 		catch (java.io.FileNotFoundException e)
 		{
@@ -371,20 +371,20 @@ public class ResourceAudit
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		if (mc.getIntegratedServer() == null)
+		if (mc.getSingleplayerServer() == null)
 		{
 			warnings.add("[recipe] no integrated server, recipe audit skipped");
 			return;
 		}
 
-		Collection<IRecipe<?>> all = mc.getIntegratedServer().getRecipeManager().getRecipes();
+		Collection<Recipe<?>> all = mc.getSingleplayerServer().getRecipeManager().getRecipes();
 		Set<ResourceLocation> loaded = new HashSet<>();
 		Set<Item> produced = new HashSet<>();
 
-		for (IRecipe<?> recipe : all)
+		for (Recipe<?> recipe : all)
 		{
 			ResourceLocation id = recipe.getId();
-			ItemStack out = recipe.getRecipeOutput();
+			ItemStack out = recipe.getResultItem();
 
 			if (!out.isEmpty())
 			{
@@ -399,7 +399,7 @@ public class ResourceAudit
 			loaded.add(id);
 			recipes++;
 
-			if (recipe.isDynamic())
+			if (recipe.isSpecial())
 			{
 				continue;
 			}
@@ -411,7 +411,7 @@ public class ResourceAudit
 
 			for (Ingredient ing : recipe.getIngredients())
 			{
-				if (ing.getMatchingStacks().length == 0 && ing != Ingredient.EMPTY)
+				if (ing.getItems().length == 0 && ing != Ingredient.EMPTY)
 				{
 					failures.add("[recipe] " + id + ": ingredient matches no items (bad item/tag?)");
 					break;
@@ -420,7 +420,7 @@ public class ResourceAudit
 		}
 
 		// every recipe file must have been accepted by the RecipeManager (a parse failure silently drops it)
-		for (ResourceLocation file : data.getAllResourceLocations("recipes", s -> s.endsWith(".json")))
+		for (ResourceLocation file : data.listResources("recipes", s -> s.endsWith(".json")))
 		{
 			if (!ModConstants.MOD_ID.equals(file.getNamespace()))
 			{
@@ -452,12 +452,12 @@ public class ResourceAudit
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		if (mc.getIntegratedServer() == null)
+		if (mc.getSingleplayerServer() == null)
 		{
 			return;
 		}
 
-		Set<ResourceLocation> known = mc.getIntegratedServer().getLootTableManager().getLootTableKeys();
+		Set<ResourceLocation> known = mc.getSingleplayerServer().getServerResources().managers().getLootTables().getIds();
 
 		for (ResourceLocation table : new ResourceLocation[] { lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, lumien.randomthings.handler.LootHandler.JUNGLE_TEMPLE })
 		{
@@ -470,9 +470,9 @@ public class ResourceAudit
 
 	// ---------------------------------------------------------------- util
 
-	private static JsonObject readJson(IResourceManager manager, ResourceLocation file)
+	private static JsonObject readJson(ResourceManager manager, ResourceLocation file)
 	{
-		try (IResource resource = manager.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
+		try (Resource resource = manager.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
 		{
 			return new JsonParser().parse(reader).getAsJsonObject();
 		}

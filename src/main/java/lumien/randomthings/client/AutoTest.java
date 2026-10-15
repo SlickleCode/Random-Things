@@ -4,23 +4,23 @@ import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.debug.RTDebugCommand;
 import lumien.randomthings.debug.test.RTTestRunner;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.MainMenuScreen;
-import net.minecraft.world.GameType;
-import net.minecraft.world.WorldSettings;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.LevelSettings;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.FlatChunkGenerator;
-import net.minecraft.world.gen.FlatGenerationSettings;
-import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.FlatLevelSource;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
+import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
-import net.minecraft.util.datafix.codec.DatapackCodec;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.DataPackConfig;
 
 /**
  * Hands-free GUI pass for dev runs: when started with {@code -Drandomthings.autotest=true} (the
@@ -62,26 +62,26 @@ public class AutoTest
 		{
 			case MENU:
 				// an unattended run loses window focus; vanilla would then open the pause menu over every screenshot
-				mc.gameSettings.pauseOnLostFocus = false;
-				if (mc.currentScreen instanceof MainMenuScreen && ticks > 60)
+				mc.options.pauseOnLostFocus = false;
+				if (mc.screen instanceof TitleScreen && ticks > 60)
 				{
 					RTDebug.log("AutoTest: opening world {}", WORLD);
 
-					if (mc.getSaveLoader().canLoadWorld(WORLD))
+					if (mc.getLevelSource().levelExists(WORLD))
 					{
-						mc.loadWorld(WORLD);
+						mc.loadLevel(WORLD);
 					}
 					else
 					{
 						// a flat creative world: the behavior tests wipe and rebuild their test area
-						DynamicRegistries.Impl registries = DynamicRegistries.func_239770_b_();
-						Registry<DimensionType> types = registries.getRegistry(Registry.DIMENSION_TYPE_KEY);
-						Registry<Biome> biomes = registries.getRegistry(Registry.BIOME_KEY);
-						Registry<DimensionSettings> noiseSettings = registries.getRegistry(Registry.NOISE_SETTINGS_KEY);
-						ChunkGenerator flat = new FlatChunkGenerator(FlatGenerationSettings.func_242869_a(biomes));
-						DimensionGeneratorSettings generatorSettings = new DimensionGeneratorSettings(4242L, false, false, DimensionGeneratorSettings.func_242749_a(types, DimensionType.getDefaultSimpleRegistry(types, biomes, noiseSettings, 4242L), flat));
-						WorldSettings settings = new WorldSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DatapackCodec.VANILLA_CODEC);
-						mc.createWorld(WORLD, settings, registries, generatorSettings);
+						RegistryAccess.Writable registries = RegistryAccess.builtinCopy();
+						Registry<DimensionType> types = registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
+						Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
+						Registry<net.minecraft.world.level.levelgen.structure.StructureSet> structureSets = registries.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
+						ChunkGenerator flat = new FlatLevelSource(structureSets, FlatLevelGeneratorSettings.getDefault(biomes, structureSets));
+						WorldGenSettings generatorSettings = new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, DimensionType.defaultDimensions(registries, 4242L), flat));
+						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DataPackConfig.DEFAULT);
+						mc.createLevel(WORLD, settings, registries, generatorSettings);
 					}
 
 					state = State.LOADING;
@@ -89,33 +89,33 @@ public class AutoTest
 				}
 				break;
 			case LOADING:
-				if (mc.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmScreen && ticks % 40 == 20)
+				if (mc.screen instanceof net.minecraft.client.gui.screens.ConfirmScreen && ticks % 40 == 20)
 				{
 					// 1.16 asks before opening some worlds (e.g. experimental settings); the autotest always accepts
-					RTDebug.log("AutoTest: confirming dialog: {}", mc.currentScreen.getNarrationMessage());
+					RTDebug.log("AutoTest: confirming dialog: {}", mc.screen.getNarrationMessage());
 
-					for (net.minecraft.client.gui.IGuiEventListener listener : mc.currentScreen.getEventListeners())
+					for (net.minecraft.client.gui.components.events.GuiEventListener listener : mc.screen.children())
 					{
-						if (listener instanceof net.minecraft.client.gui.widget.button.Button)
+						if (listener instanceof net.minecraft.client.gui.components.Button)
 						{
-							((net.minecraft.client.gui.widget.button.Button) listener).onPress();
+							((net.minecraft.client.gui.components.Button) listener).onPress();
 							break;
 						}
 					}
 				}
 
-				if (mc.currentScreen instanceof net.minecraft.client.gui.screen.ConfirmBackupScreen && ticks % 40 == 20)
+				if (mc.screen instanceof net.minecraft.client.gui.screens.BackupConfirmScreen && ticks % 40 == 20)
 				{
 					// "this world uses experimental settings" on reopening: choose "load without backup" (second button)
 					RTDebug.log("AutoTest: confirming backup dialog");
 
 					int index = 0;
 
-					for (net.minecraft.client.gui.IGuiEventListener listener : mc.currentScreen.getEventListeners())
+					for (net.minecraft.client.gui.components.events.GuiEventListener listener : mc.screen.children())
 					{
-						if (listener instanceof net.minecraft.client.gui.widget.button.Button && index++ == 1)
+						if (listener instanceof net.minecraft.client.gui.components.Button && index++ == 1)
 						{
-							((net.minecraft.client.gui.widget.button.Button) listener).onPress();
+							((net.minecraft.client.gui.components.Button) listener).onPress();
 							break;
 						}
 					}
@@ -123,9 +123,9 @@ public class AutoTest
 
 				if (ticks % 200 == 0)
 				{
-					RTDebug.log("AutoTest: still loading, screen={}, server={}", mc.currentScreen, mc.getIntegratedServer());
+					RTDebug.log("AutoTest: still loading, screen={}, server={}", mc.screen, mc.getSingleplayerServer());
 				}
-				if (mc.player != null && mc.world != null)
+				if (mc.player != null && mc.level != null)
 				{
 					state = State.SETTLING;
 					ticks = 0;
@@ -152,8 +152,8 @@ public class AutoTest
 					RTDebug.log("AutoTest: resource audit done, {} failure(s)", audit.failures.size());
 
 					RTDebug.log("AutoTest: running /rtdebug test");
-					mc.player.sendChatMessage("/gamemode creative");
-					mc.player.sendChatMessage("/rtdebug test " + System.getProperty("randomthings.autotest.filter", "").trim());
+					mc.player.chat("/gamemode creative");
+					mc.player.chat("/rtdebug test " + System.getProperty("randomthings.autotest.filter", "").trim());
 
 					state = State.TESTING;
 					ticks = 0;
@@ -170,13 +170,13 @@ public class AutoTest
 
 						if (Boolean.getBoolean("randomthings.autotest.exit"))
 						{
-							mc.shutdown();
+							mc.stop();
 						}
 						break;
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.sendChatMessage("/rtdebug allguis 40");
+					mc.player.chat("/rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;
@@ -195,7 +195,7 @@ public class AutoTest
 
 					if (Boolean.getBoolean("randomthings.autotest.exit"))
 					{
-						mc.shutdown();
+						mc.stop();
 					}
 				}
 				break;
@@ -207,7 +207,7 @@ public class AutoTest
 
 					if (Boolean.getBoolean("randomthings.autotest.exit"))
 					{
-						mc.shutdown();
+						mc.stop();
 					}
 				}
 				break;
@@ -219,7 +219,7 @@ public class AutoTest
 
 					if (Boolean.getBoolean("randomthings.autotest.exit"))
 					{
-						mc.shutdown();
+						mc.stop();
 					}
 				}
 				else if (ticks > 20 * 60 * 5)

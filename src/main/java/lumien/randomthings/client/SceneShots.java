@@ -7,11 +7,11 @@ import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.debug.RenderScenes;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.CreativeScreen;
-import net.minecraft.client.renderer.texture.NativeImage;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ScreenShotHelper;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.NonNullList;
+import net.minecraft.client.Screenshot;
 
 /**
  * Developer-only client driver for the render screenshot pass ({@code RT_AUTOTEST_SCENES=true}): asks the server to
@@ -53,13 +53,13 @@ public final class SceneShots
 				{
 					ids.retainAll(java.util.Arrays.asList(only.split(",")));
 				}
-				mc.gameSettings.hideGUI = true;
-				mc.player.sendChatMessage("/gamemode creative");
+				mc.options.hideGui = true;
+				mc.player.chat("/gamemode creative");
 				RTDebug.log("SceneShots: {} scenes", ids.size());
 				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_tundra" })
 				{
-					net.minecraft.world.biome.Biome biome = net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation(b));
-					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.getPosition())), biome);
+					net.minecraft.world.level.biome.Biome biome = net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation(b));
+					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.blockPosition())), biome);
 				}
 				phase = Phase.SCENES;
 				wait = 20;
@@ -77,7 +77,7 @@ public final class SceneShots
 
 				if (index >= ids.size())
 				{
-					mc.gameSettings.hideGUI = false;
+					mc.options.hideGui = false;
 
 					if (!System.getProperty("randomthings.autotest.scenes.only", "").trim().isEmpty())
 					{
@@ -93,24 +93,24 @@ public final class SceneShots
 
 				if (!requested)
 				{
-					mc.player.sendChatMessage("/rtdebug scene " + id);
+					mc.player.chat("/rtdebug scene " + id);
 					requested = true;
 					wait = RenderScenes.waitTicks(id);
 					return false;
 				}
 
-				save(mc, new File(mc.gameDir, "screenshots/randomthings_debug/scenes/" + id + ".png"));
+				save(mc, new File(mc.gameDirectory, "screenshots/randomthings_debug/scenes/" + id + ".png"));
 
 				if (hoodPlayersAdded)
 				{
 					for (int entityId : remotePlayers)
 					{
-						mc.world.removeEntityFromWorld(entityId);
+						mc.level.removeEntity(entityId, net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);
 					}
 
 					remotePlayers.clear();
 					hoodPlayersAdded = false;
-					mc.gameSettings.hideGUI = true;
+					mc.options.hideGui = true;
 				}
 
 				requested = false;
@@ -123,18 +123,18 @@ public final class SceneShots
 					return false;
 				}
 
-				if (!(mc.currentScreen instanceof CreativeScreen))
+				if (!(mc.screen instanceof CreativeModeInventoryScreen))
 				{
 					phase = Phase.DONE;
 					return true;
 				}
 
-				save(mc, new File(mc.gameDir, "screenshots/randomthings_debug/scenes/items_" + creativePage + ".png"));
+				save(mc, new File(mc.gameDirectory, "screenshots/randomthings_debug/scenes/items_" + creativePage + ".png"));
 				creativePage++;
 
 				if (creativePage >= creativePages)
 				{
-					mc.displayGuiScreen(null);
+					mc.setScreen(null);
 					phase = Phase.DONE;
 					return true;
 				}
@@ -142,7 +142,7 @@ public final class SceneShots
 				// one page = five rows
 				for (int i = 0; i < 5; i++)
 				{
-					mc.currentScreen.mouseScrolled(mc.currentScreen.width / 2.0, mc.currentScreen.height / 2.0, -1.0);
+					mc.screen.mouseScrolled(mc.screen.width / 2.0, mc.screen.height / 2.0, -1.0);
 				}
 
 				wait = 10;
@@ -158,44 +158,44 @@ public final class SceneShots
 	 */
 	private static void addHoodPlayers(Minecraft mc)
 	{
-		double y = mc.player.getPosY() - 2.0;
+		double y = mc.player.getY() - 2.0;
 		String[] names = { "NoHood", "WithHood" };
 
 		for (int i = 0; i < 2; i++)
 		{
-			net.minecraft.client.entity.player.RemoteClientPlayerEntity other = new net.minecraft.client.entity.player.RemoteClientPlayerEntity(mc.world, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]));
-			other.setPosition(mc.player.getPosX() + (i == 0 ? -1.2 : 1.2), y, mc.player.getPosZ() + 4.0);
-			other.rotationYaw = 180.0F;
-			other.rotationYawHead = 180.0F;
+			net.minecraft.client.player.RemotePlayer other = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]));
+			other.setPos(mc.player.getX() + (i == 0 ? -1.2 : 1.2), y, mc.player.getZ() + 4.0);
+			other.setYRot(180.0F);
+			other.yHeadRot = 180.0F;
 
 			if (i == 1)
 			{
-				other.setItemStackToSlot(net.minecraft.inventory.EquipmentSlotType.HEAD, new ItemStack(ModItems.MAGIC_HOOD));
+				other.setItemSlot(net.minecraft.world.entity.EquipmentSlot.HEAD, new ItemStack(ModItems.MAGIC_HOOD));
 			}
 
 			int entityId = -9000 - i;
-			mc.world.addPlayer(entityId, other);
+			mc.level.addPlayer(entityId, other);
 			remotePlayers.add(entityId);
 		}
 
 		hoodPlayersAdded = true;
-		mc.gameSettings.hideGUI = false;
+		mc.options.hideGui = false;
 	}
 
 	private static void startCreative(Minecraft mc)
 	{
 		NonNullList<ItemStack> stacks = NonNullList.create();
-		ModItems.RT_ITEM_GROUP.fill(stacks);
+		ModItems.RT_ITEM_GROUP.fillItemList(stacks);
 		int rows = (stacks.size() + 8) / 9;
 		creativePages = Math.max(1, (rows - 5 + 4) / 5 + 1);
 		creativePage = 0;
 
-		CreativeScreen screen = new CreativeScreen(mc.player);
-		mc.displayGuiScreen(screen);
-		net.minecraftforge.fml.common.ObfuscationReflectionHelper.setPrivateValue(CreativeScreen.class, null, ModItems.RT_ITEM_GROUP.getIndex(), "field_147058_w");
+		CreativeModeInventoryScreen screen = new CreativeModeInventoryScreen(mc.player);
+		mc.setScreen(screen);
+		net.minecraftforge.fml.util.ObfuscationReflectionHelper.setPrivateValue(CreativeModeInventoryScreen.class, null, ModItems.RT_ITEM_GROUP.getId(), "f_98507_");
 		try
 		{
-			java.lang.reflect.Method select = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findMethod(CreativeScreen.class, "func_147050_b", net.minecraft.item.ItemGroup.class);
+			java.lang.reflect.Method select = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(CreativeModeInventoryScreen.class, "m_98560_", net.minecraft.world.item.CreativeModeTab.class);
 			select.invoke(screen, ModItems.RT_ITEM_GROUP);
 		}
 		catch (ReflectiveOperationException e)
@@ -213,9 +213,9 @@ public final class SceneShots
 		{
 			out.getParentFile().mkdirs();
 
-			try (NativeImage image = ScreenShotHelper.createScreenshot(mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer()))
+			try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget()))
 			{
-				image.write(out);
+				image.writeToFile(out);
 			}
 
 			RTDebug.log("SceneShots: saved {}", out.getName());

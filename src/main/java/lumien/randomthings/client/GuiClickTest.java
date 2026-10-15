@@ -8,24 +8,24 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import lumien.randomthings.client.screen.MultilineTextFieldWidget;
 import lumien.randomthings.client.screen.TooltipButton;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.debug.RTDebugCommand;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
 
 /**
  * Developer-only click-through of every Random Things GUI ({@code RT_AUTOTEST_CLICKS=true}). For each GUI it opens the
@@ -84,9 +84,9 @@ public final class GuiClickTest
 		{
 			case START:
 				guis = RTDebugCommand.guiList();
-				mc.player.sendChatMessage("/gamemode creative");
+				mc.player.chat("/gamemode creative");
 				// something in the player inventory, so every container GUI has a filled slot to hover
-				mc.player.sendChatMessage("/give @s minecraft:stone 16");
+				mc.player.chat("/give @s minecraft:stone 16");
 				net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
@@ -111,17 +111,17 @@ public final class GuiClickTest
 				openGui(mc);
 				return false;
 			case WAIT_OPEN:
-				if (isOurScreen(mc.currentScreen))
+				if (isOurScreen(mc.screen))
 				{
-					statePos = mc.player.getPosition().offset(mc.player.getHorizontalFacing(), 3);
+					statePos = mc.player.blockPosition().relative(mc.player.getDirection(), 3);
 
 					if (!reopening)
 					{
-						plan(mc, mc.currentScreen);
+						plan(mc, mc.screen);
 					}
 					else
 					{
-						checkReopened(mc.currentScreen);
+						checkReopened(mc.screen);
 					}
 
 					phase = Phase.RUN_STEPS;
@@ -148,7 +148,7 @@ public final class GuiClickTest
 
 				if (step == null)
 				{
-					mc.player.closeScreen();
+					mc.player.closeContainer();
 					phase = Phase.NEXT;
 					wait = 30;
 					return false;
@@ -185,8 +185,8 @@ public final class GuiClickTest
 
 	private static void openGui(Minecraft mc)
 	{
-		mc.player.closeScreen();
-		mc.player.sendChatMessage("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+		mc.player.closeContainer();
+		mc.player.chat("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 		phase = Phase.WAIT_OPEN;
 		openTimeout = 80;
 	}
@@ -196,20 +196,20 @@ public final class GuiClickTest
 	private static void plan(Minecraft mc, Screen screen)
 	{
 		steps.clear();
-		List<Widget> widgets = new ArrayList<>();
+		List<AbstractWidget> widgets = new ArrayList<>();
 
-		for (IGuiEventListener listener : screen.getEventListeners())
+		for (GuiEventListener listener : screen.children())
 		{
-			if (listener instanceof Widget)
+			if (listener instanceof AbstractWidget)
 			{
-				widgets.add((Widget) listener);
+				widgets.add((AbstractWidget) listener);
 			}
 		}
 
 		StringBuilder summary = new StringBuilder(currentName + " (" + screen.getClass().getSimpleName() + "): " + widgets.size() + " widget(s)");
 		List<TextFieldRef> fields = new ArrayList<>();
 
-		for (Widget widget : widgets)
+		for (AbstractWidget widget : widgets)
 		{
 			if (widget instanceof Button)
 			{
@@ -225,7 +225,7 @@ public final class GuiClickTest
 				steps.add(new Step(2, () -> {
 					clicks++;
 
-					if (!isOurScreen(mc.currentScreen))
+					if (!isOurScreen(mc.screen))
 					{
 						log("INFO " + currentName + ": clicking '" + label + "' closed the screen");
 						return;
@@ -249,7 +249,7 @@ public final class GuiClickTest
 					}
 				}));
 			}
-			else if (widget instanceof TextFieldWidget || widget instanceof MultilineTextFieldWidget)
+			else if (widget instanceof EditBox || widget instanceof MultilineTextFieldWidget)
 			{
 				fields.add(new TextFieldRef(widget));
 				summary.append(" [text field]");
@@ -258,9 +258,9 @@ public final class GuiClickTest
 
 		log(summary.toString());
 
-		if (screen instanceof ContainerScreen)
+		if (screen instanceof AbstractContainerScreen)
 		{
-			planSlotTooltip((ContainerScreen<?>) screen);
+			planSlotTooltip((AbstractContainerScreen<?>) screen);
 		}
 
 		for (int i = 0; i < fields.size(); i++)
@@ -292,12 +292,12 @@ public final class GuiClickTest
 		{
 			// close and reopen: the text must have been saved on the server
 			steps.add(new Step(10, () -> {
-				mc.player.closeScreen();
+				mc.player.closeContainer();
 				reopening = true;
 				pendingFields = fields.size();
 			}));
 			steps.add(new Step(30, () -> {
-				mc.player.sendChatMessage("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+				mc.player.chat("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 				phase = Phase.WAIT_OPEN;
 				openTimeout = 80;
 			}));
@@ -308,13 +308,13 @@ public final class GuiClickTest
 	 * Hovers a slot that holds an item and expects the screen to ask for its tooltip (Forge posts {@code ItemTooltipEvent}
 	 * whenever a stack's tooltip is built). A container screen that forgets {@code renderHoveredToolTip} fails here.
 	 */
-	private static void planSlotTooltip(ContainerScreen<?> screen)
+	private static void planSlotTooltip(AbstractContainerScreen<?> screen)
 	{
 		Slot filled = null;
 
-		for (Slot slot : screen.getContainer().inventorySlots)
+		for (Slot slot : screen.getMenu().slots)
 		{
-			if (slot.getHasStack())
+			if (slot.hasItem())
 			{
 				filled = slot;
 			}
@@ -328,7 +328,7 @@ public final class GuiClickTest
 
 		final Slot hovered = filled;
 		int[] before = new int[1];
-		double[] at = { screen.getGuiLeft() + hovered.xPos + 8, screen.getGuiTop() + hovered.yPos + 8 };
+		double[] at = { screen.getGuiLeft() + hovered.x + 8, screen.getGuiTop() + hovered.y + 8 };
 		steps.add(new Step(2, () -> {
 			before[0] = tooltipRequests;
 			render(screen, at);
@@ -342,7 +342,7 @@ public final class GuiClickTest
 			else
 			{
 				failures++;
-				log("FAIL " + currentName + ": hovering a filled slot (" + hovered.getStack().getDisplayName().getString() + ") shows no item tooltip - does the screen call renderHoveredToolTip?");
+				log("FAIL " + currentName + ": hovering a filled slot (" + hovered.getItem().getHoverName().getString() + ") shows no item tooltip - does the screen call renderHoveredToolTip?");
 			}
 		}));
 	}
@@ -351,16 +351,16 @@ public final class GuiClickTest
 
 	private static final class TextFieldRef
 	{
-		final Widget widget;
+		final AbstractWidget widget;
 
-		TextFieldRef(Widget widget)
+		TextFieldRef(AbstractWidget widget)
 		{
 			this.widget = widget;
 		}
 
 		String text()
 		{
-			return widget instanceof TextFieldWidget ? ((TextFieldWidget) widget).getText() : ((MultilineTextFieldWidget) widget).getText();
+			return widget instanceof EditBox ? ((EditBox) widget).getValue() : ((MultilineTextFieldWidget) widget).getText();
 		}
 	}
 
@@ -368,9 +368,9 @@ public final class GuiClickTest
 	{
 		int found = 0;
 
-		for (IGuiEventListener listener : screen.getEventListeners())
+		for (GuiEventListener listener : screen.children())
 		{
-			if (listener instanceof TextFieldWidget && ((TextFieldWidget) listener).getText().contains(TYPED))
+			if (listener instanceof EditBox && ((EditBox) listener).getValue().contains(TYPED))
 			{
 				found++;
 			}
@@ -395,7 +395,7 @@ public final class GuiClickTest
 
 	// ---- helpers ----------------------------------------------------------------------------
 
-	private static double[] center(Widget widget)
+	private static double[] center(AbstractWidget widget)
 	{
 		return new double[] { widget.x + widget.getWidth() / 2.0, widget.y + widget.getHeight() / 2.0 };
 	}
@@ -414,7 +414,7 @@ public final class GuiClickTest
 
 	private static void render(Screen screen, double[] at)
 	{
-		screen.render(new MatrixStack(), (int) at[0], (int) at[1], 0.0F);
+		screen.render(new PoseStack(), (int) at[0], (int) at[1], 0.0F);
 	}
 
 	private static void click(Screen screen, double[] at)
@@ -428,15 +428,15 @@ public final class GuiClickTest
 	{
 		StringBuilder sb = new StringBuilder();
 
-		for (IGuiEventListener listener : screen.getEventListeners())
+		for (GuiEventListener listener : screen.children())
 		{
-			if (listener instanceof Widget)
+			if (listener instanceof AbstractWidget)
 			{
-				sb.append(((Widget) listener).getMessage().getString()).append('|');
+				sb.append(((AbstractWidget) listener).getMessage().getString()).append('|');
 			}
 		}
 
-		MinecraftServer server = mc.getIntegratedServer();
+		MinecraftServer server = mc.getSingleplayerServer();
 
 		if (server == null)
 		{
@@ -447,16 +447,16 @@ public final class GuiClickTest
 
 		try
 		{
-			sb.append(server.supplyAsync(() -> {
+			sb.append(server.submit(() -> {
 				StringBuilder inner = new StringBuilder();
-				TileEntity te = server.getWorld(mc.world.getDimensionKey()).getTileEntity(pos);
+				BlockEntity te = server.getLevel(mc.level.dimension()).getBlockEntity(pos);
 
 				if (te != null)
 				{
-					inner.append(te.write(new CompoundNBT()));
+					inner.append(te.saveWithoutMetadata());
 				}
 
-				inner.append(server.getPlayerList().getPlayerByUUID(mc.player.getUniqueID()).getHeldItemMainhand().getTag());
+				inner.append(server.getPlayerList().getPlayer(mc.player.getUUID()).getMainHandItem().getTag());
 				return inner.toString();
 			}).get(5, TimeUnit.SECONDS));
 		}
@@ -479,7 +479,7 @@ public final class GuiClickTest
 		phase = Phase.DONE;
 		report.add(0, "GUI click test: " + guis.length + " GUIs, " + clicks + " button clicks, " + failures + " failure(s), " + silent + " click(s) that changed nothing, " + slotTooltips + " slot tooltip(s) verified");
 
-		try (PrintWriter out = new PrintWriter(new File(Minecraft.getInstance().gameDir, "randomthings_clicks.txt"), "UTF-8"))
+		try (PrintWriter out = new PrintWriter(new File(Minecraft.getInstance().gameDirectory, "randomthings_clicks.txt"), "UTF-8"))
 		{
 			for (String line : report)
 			{

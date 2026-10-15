@@ -13,19 +13,19 @@ import lumien.randomthings.tileentity.PeaceCandleTileEntity;
 import lumien.randomthings.tileentity.RainShieldTileEntity;
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
 import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.RedstoneLampBlock;
-import net.minecraft.entity.EntitySpawnPlacementRegistry;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.ByteNBT;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RedstoneLampBlock;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.ByteTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.Difficulty;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
@@ -44,7 +44,7 @@ final class CoremodTests
 
 	private static boolean canSpawn(TestCtx c, EntityType<?> type, BlockPos pos)
 	{
-		return EntitySpawnPlacementRegistry.canSpawnEntity(type, c.world, SpawnReason.NATURAL, pos, c.world.rand);
+		return SpawnPlacements.checkSpawnRules(type, c.world, MobSpawnType.NATURAL, pos, c.world.random);
 	}
 
 	/** Vanilla's light check is randomised against the sky light, so "can spawn" is true if any of several tries is. */
@@ -71,9 +71,9 @@ final class CoremodTests
 	private static FakePlayer fakePlayer(TestCtx c)
 	{
 		FakePlayer fake = FakePlayerFactory.get(c.world, new GameProfile(UUID.nameUUIDFromBytes("RTCoremodTest".getBytes()), "RTCoremodTest"));
-		fake.inventory.clear();
-		fake.setMotion(Vector3d.ZERO);
-		fake.setSneaking(false);
+		fake.getInventory().clearContent();
+		fake.setDeltaMovement(Vec3.ZERO);
+		fake.setShiftKeyDown(false);
 		return fake;
 	}
 
@@ -111,13 +111,13 @@ final class CoremodTests
 			{
 				for (int z = -2; z <= 2; z++)
 				{
-					c.setQuiet(c.at(x, 4, z), Blocks.STONE.getDefaultState());
+					c.setQuiet(c.at(x, 4, z), Blocks.STONE.defaultBlockState());
 
 					if (Math.abs(x) == 2 || Math.abs(z) == 2)
 					{
 						for (int y = 1; y <= 3; y++)
 						{
-							c.setQuiet(c.at(x, y, z), Blocks.STONE.getDefaultState());
+							c.setQuiet(c.at(x, y, z), Blocks.STONE.defaultBlockState());
 						}
 					}
 				}
@@ -147,14 +147,14 @@ final class CoremodTests
 		tests.add(RTTest.named("coremod.rain_shield.suppresses_rain_within_its_range_only_while_present").run(c -> {
 			resetTrackers();
 			c.floor();
-			c.world.getWorldInfo().setRaining(true);
-			((net.minecraft.world.storage.IServerWorldInfo) c.world.getWorldInfo()).setRainTime(6000);
+			c.world.getLevelData().setRaining(true);
+			((net.minecraft.world.level.storage.ServerLevelData) c.world.getLevelData()).setRainTime(6000);
 		}).waitTicks(40).run(c -> {
 			if (!c.world.isRainingAt(c.at(0, 1, 0)))
 			{
-				c.world.getWorldInfo().setRaining(false);
-				c.world.rainingStrength = 0;
-				c.world.prevRainingStrength = 0;
+				c.world.getLevelData().setRaining(false);
+				c.world.rainLevel = 0;
+				c.world.oRainLevel = 0;
 				throw new TestCtx.Skip("could not make it rain at the test position (biome/sky)");
 			}
 
@@ -165,9 +165,9 @@ final class CoremodTests
 			c.check(shielded, "rain must be suppressed near an active Rain Shield");
 		}).waitTicks(2).run(c -> {
 			boolean raining = c.world.isRainingAt(c.at(3, 1, 3));
-			c.world.getWorldInfo().setRaining(false);
-			c.world.rainingStrength = 0;
-				c.world.prevRainingStrength = 0;
+			c.world.getLevelData().setRaining(false);
+			c.world.rainLevel = 0;
+				c.world.oRainLevel = 0;
 			c.check(raining, "rain must come back once the Rain Shield is removed");
 		}));
 
@@ -182,34 +182,34 @@ final class CoremodTests
 			c.set(c.at(0, 2, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(4).run(c -> {
 			BlockPos t = c.at(4, 1, 0);
-			c.check(c.world.isBlockPowered(t), "target must read as powered (interface stored UP power="
-					+ lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(c.world, t.up(), net.minecraft.util.Direction.UP)
-					+ ", world.getRedstonePower(target.up, UP)=" + c.world.getRedstonePower(t.up(), net.minecraft.util.Direction.UP)
-					+ ", redstone block's own power seen from the interface=" + c.world.getRedstonePower(c.at(0, 2, 0), net.minecraft.util.Direction.UP) + ")");
-			c.check(c.world.getBlockState(c.at(4, 1, 0)).get(RedstoneLampBlock.LIT), "target lamp must light");
-			c.check(!c.world.getBlockState(c.at(4, 1, 3)).get(RedstoneLampBlock.LIT), "an unrelated lamp must stay dark");
+			c.check(c.world.hasNeighborSignal(t), "target must read as powered (interface stored UP power="
+					+ lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(c.world, t.above(), net.minecraft.core.Direction.UP)
+					+ ", world.getRedstonePower(target.up, UP)=" + c.world.getSignal(t.above(), net.minecraft.core.Direction.UP)
+					+ ", redstone block's own power seen from the interface=" + c.world.getSignal(c.at(0, 2, 0), net.minecraft.core.Direction.UP) + ")");
+			c.check(c.world.getBlockState(c.at(4, 1, 0)).getValue(RedstoneLampBlock.LIT), "target lamp must light");
+			c.check(!c.world.getBlockState(c.at(4, 1, 3)).getValue(RedstoneLampBlock.LIT), "an unrelated lamp must stay dark");
 			c.remove(c.at(0, 2, 0));
 		}).waitTicks(8).run(c -> {
-			c.check(!c.world.isBlockPowered(c.at(4, 1, 0)), "target must lose power when the interface input is removed");
-			c.check(!c.world.getBlockState(c.at(4, 1, 0)).get(RedstoneLampBlock.LIT), "target lamp must turn off again");
+			c.check(!c.world.hasNeighborSignal(c.at(4, 1, 0)), "target must lose power when the interface input is removed");
+			c.check(!c.world.getBlockState(c.at(4, 1, 0)).getValue(RedstoneLampBlock.LIT), "target lamp must turn off again");
 		}));
 
 		// ---- Spectre Anchor (PlayerEntityTransformer on the death-drop routine) -----------------
 		tests.add(RTTest.named("coremod.spectre_anchor.anchored_items_survive_the_death_drop_routine").run(c -> {
 			FakePlayer fake = fakePlayer(c);
-			fake.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 2, c.origin.getZ() + 0.5);
+			fake.setPos(c.origin.getX() + 0.5, c.origin.getY() + 2, c.origin.getZ() + 0.5);
 
 			ItemStack anchored = new ItemStack(Items.IRON_SWORD);
-			anchored.getOrCreateTag().put("spectreAnchor", ByteNBT.valueOf((byte) 0));
-			fake.inventory.setInventorySlotContents(0, anchored);
-			fake.inventory.setInventorySlotContents(1, new ItemStack(Items.COBBLESTONE, 5));
+			anchored.getOrCreateTag().put("spectreAnchor", ByteTag.valueOf((byte) 0));
+			fake.getInventory().setItem(0, anchored);
+			fake.getInventory().setItem(1, new ItemStack(Items.COBBLESTONE, 5));
 
 			// func_213337_cE = PlayerEntity.dropInventory (SRG name, resolves in dev and in a production jar)
-			Method drop = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findMethod(PlayerEntity.class, "func_213337_cE");
+			Method drop = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(Player.class, "m_5907_");
 			drop.invoke(fake);
 
-			c.eq(Items.IRON_SWORD, fake.inventory.getStackInSlot(0).getItem(), "anchored item must stay in its slot");
-			c.check(fake.inventory.getStackInSlot(1).isEmpty(), "an ordinary item must be removed from the inventory");
+			c.eq(Items.IRON_SWORD, fake.getInventory().getItem(0).getItem(), "anchored item must stay in its slot");
+			c.check(fake.getInventory().getItem(1).isEmpty(), "an ordinary item must be removed from the inventory");
 
 			int dropped = 0;
 
@@ -226,7 +226,7 @@ final class CoremodTests
 			}
 
 			c.eq(5, dropped, "cobblestone dropped into the world");
-			fake.inventory.clear();
+			fake.getInventory().clearContent();
 		}));
 
 		// ---- Super Lubricent Boots (SuperLubricentBootsTransformer on LivingEntity.travel) -------
@@ -238,8 +238,8 @@ final class CoremodTests
 			double booted = slide(c, fake, true, false);
 			double bootedSneaking = slide(c, fake, true, true);
 
-			fake.inventory.clear();
-			fake.setItemStackToSlot(EquipmentSlotType.FEET, ItemStack.EMPTY);
+			fake.getInventory().clearContent();
+			fake.setItemSlot(EquipmentSlot.FEET, ItemStack.EMPTY);
 
 			c.check(barefoot < 0.7, "barefoot horizontal speed after one tick of friction should be ~0.55, was " + barefoot);
 			c.check(booted > 0.9, "boots must keep nearly all horizontal speed on stone, was " + booted);
@@ -252,12 +252,12 @@ final class CoremodTests
 	/** Horizontal speed left after one tick of ground friction, starting at 1.0 block/tick. */
 	private static double slide(TestCtx c, FakePlayer fake, boolean boots, boolean sneaking)
 	{
-		fake.setItemStackToSlot(EquipmentSlotType.FEET, boots ? new ItemStack(ModItems.SUPER_LUBRICENT_BOOTS) : ItemStack.EMPTY);
-		fake.setSneaking(sneaking);
-		fake.setPosition(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
+		fake.setItemSlot(EquipmentSlot.FEET, boots ? new ItemStack(ModItems.SUPER_LUBRICENT_BOOTS) : ItemStack.EMPTY);
+		fake.setShiftKeyDown(sneaking);
+		fake.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 		fake.setOnGround(true);
-		fake.setMotion(new Vector3d(1.0, 0.0, 0.0));
-		fake.travel(Vector3d.ZERO);
-		return fake.getMotion().x;
+		fake.setDeltaMovement(new Vec3(1.0, 0.0, 0.0));
+		fake.travel(Vec3.ZERO);
+		return fake.getDeltaMovement().x;
 	}
 }

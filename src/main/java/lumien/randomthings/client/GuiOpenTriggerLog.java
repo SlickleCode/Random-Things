@@ -4,8 +4,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import lumien.randomthings.debug.RTDebug;
-import net.minecraft.client.util.InputMappings;
-import net.minecraftforge.client.event.GuiScreenEvent;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -70,7 +70,7 @@ public class GuiOpenTriggerLog
 	{
 		if (event.getAction() == 1)
 		{
-			record("key " + InputMappings.getInputByCode(event.getKey(), event.getScanCode()).getTranslationKey());
+			record("key " + InputConstants.getKey(event.getKey(), event.getScanCode()).getName());
 		}
 	}
 
@@ -84,15 +84,15 @@ public class GuiOpenTriggerLog
 	}
 
 	@SubscribeEvent
-	public static void onGuiClick(GuiScreenEvent.MouseClickedEvent.Pre event)
+	public static void onGuiClick(ScreenEvent.MouseClickedEvent.Pre event)
 	{
-		record(button(event.getButton()) + " in " + event.getGui().getClass().getSimpleName() + " at " + (int) event.getMouseX() + "," + (int) event.getMouseY());
+		record(button(event.getButton()) + " in " + event.getScreen().getClass().getSimpleName() + " at " + (int) event.getMouseX() + "," + (int) event.getMouseY());
 	}
 
 	@SubscribeEvent
 	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
 	{
-		if (event.getWorld().isRemote)
+		if (event.getWorld().isClientSide)
 		{
 			record("interact block " + event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName() + " at " + event.getPos().getX() + "," + event.getPos().getY() + "," + event.getPos().getZ() + " face " + event.getFace() + " with " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
 		}
@@ -101,7 +101,7 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onRightClickItem(PlayerInteractEvent.RightClickItem event)
 	{
-		if (event.getWorld().isRemote)
+		if (event.getWorld().isClientSide)
 		{
 			record("use item " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
 		}
@@ -110,7 +110,7 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onEntityInteract(PlayerInteractEvent.EntityInteract event)
 	{
-		if (event.getWorld().isRemote)
+		if (event.getWorld().isClientSide)
 		{
 			record("interact entity " + event.getTarget().getType().getRegistryName() + " with " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
 		}

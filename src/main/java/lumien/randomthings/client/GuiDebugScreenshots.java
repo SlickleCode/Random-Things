@@ -7,12 +7,12 @@ import java.util.Date;
 
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.renderer.texture.NativeImage;
-import net.minecraft.util.ScreenShotHelper;
-import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraft.client.gui.screens.Screen;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.Screenshot;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Debug feature ({@code debug.DebugGuiScreenshots}): screenshots every Random Things GUI a few
@@ -29,9 +29,9 @@ public class GuiDebugScreenshots
 	private static boolean shot;
 
 	@SubscribeEvent
-	public static void onDrawScreen(GuiScreenEvent.DrawScreenEvent.Post event)
+	public static void onDrawScreen(ScreenEvent.DrawScreenEvent.Post event)
 	{
-		Screen screen = event.getGui();
+		Screen screen = event.getScreen();
 
 		if (!screen.getClass().getName().startsWith("lumien.randomthings."))
 		{
@@ -56,13 +56,13 @@ public class GuiDebugScreenshots
 
 		try
 		{
-			File dir = new File(mc.gameDir, "screenshots/randomthings_debug");
+			File dir = new File(mc.gameDirectory, "screenshots/randomthings_debug");
 			dir.mkdirs();
 			File out = new File(dir, screen.getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date()) + ".png");
 
-			try (NativeImage image = ScreenShotHelper.createScreenshot(mc.getMainWindow().getFramebufferWidth(), mc.getMainWindow().getFramebufferHeight(), mc.getFramebuffer()))
+			try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget()))
 			{
-				image.write(out);
+				image.writeToFile(out);
 			}
 
 			RTDebug.log("Saved GUI screenshot {}", out.getAbsolutePath());

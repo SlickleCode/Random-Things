@@ -8,9 +8,9 @@ import java.util.Queue;
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleManager;
+import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.SpellParticle;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -34,7 +34,7 @@ public final class ParticleProbe
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		if (event.phase != TickEvent.Phase.END || mc.player == null || ++tick % 20 != 0 || !new java.io.File(mc.gameDir, "rt_probe").exists())
+		if (event.phase != TickEvent.Phase.END || mc.player == null || ++tick % 20 != 0 || !new java.io.File(mc.gameDirectory, "rt_probe").exists())
 		{
 			return;
 		}
@@ -44,11 +44,11 @@ public final class ParticleProbe
 			if (byTypeField == null)
 			{
 				// the map of render type -> particle queue; found by its type so the (obfuscated) field name does not matter
-				for (Field f : ParticleManager.class.getDeclaredFields())
+				for (Field f : ParticleEngine.class.getDeclaredFields())
 				{
 					Type t = f.getGenericType();
 
-					if (Map.class.isAssignableFrom(f.getType()) && t.toString().contains("Queue") && t.toString().contains("IParticleRenderType"))
+					if (Map.class.isAssignableFrom(f.getType()) && t.toString().contains("Queue") && t.toString().contains("ParticleRenderType"))
 					{
 						f.setAccessible(true);
 						byTypeField = f;
@@ -58,9 +58,9 @@ public final class ParticleProbe
 			}
 
 			int count = 0;
-			Vector3d p = mc.player.getPositionVec();
+			Vec3 p = mc.player.position();
 
-			for (Queue<Particle> queue : ((Map<?, Queue<Particle>>) byTypeField.get(mc.particles)).values())
+			for (Queue<Particle> queue : ((Map<?, Queue<Particle>>) byTypeField.get(mc.particleEngine)).values())
 			{
 				for (Particle particle : queue)
 				{

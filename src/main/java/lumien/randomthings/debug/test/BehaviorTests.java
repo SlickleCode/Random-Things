@@ -14,19 +14,19 @@ import lumien.randomthings.recipes.SpectreAnchorCombineRecipe;
 import lumien.randomthings.tileentity.AnalogEmitterTileEntity;
 import lumien.randomthings.tileentity.IgniterTileEntity;
 import lumien.randomthings.tileentity.IronDropperTileEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.crafting.ICraftingRecipe;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapedRecipe;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 
 /**
  * Gameplay tests: build a small contraption in the world, let it run, and assert on the result.
@@ -46,7 +46,7 @@ final class BehaviorTests
 		tests.add(RTTest.named("behavior.item_collector.moves_nearby_items_into_inventory").run(c -> {
 			c.floor();
 			c.set(c.at(0, 1, 0), Blocks.CHEST);
-			c.set(c.at(0, 2, 0), ModBlocks.ITEM_COLLECTOR.getDefaultState().with(ItemCollectorBlock.FACING, Direction.UP));
+			c.set(c.at(0, 2, 0), ModBlocks.ITEM_COLLECTOR.defaultBlockState().setValue(ItemCollectorBlock.FACING, Direction.UP));
 			c.spawnItem(0.5, 4.5, 0.5, new ItemStack(Items.COBBLESTONE, 4));
 		}).waitTicks(70).run(c -> {
 			c.eq(4, TestCtx.count(c.inventory(c.at(0, 1, 0)), Items.COBBLESTONE), "cobblestone in chest");
@@ -57,7 +57,7 @@ final class BehaviorTests
 		tests.add(RTTest.named("behavior.iron_dropper.pulse_mode_drops_one_item_per_rising_edge_into_inventory").run(c -> {
 			c.floor();
 			c.set(c.at(0, 1, 0), Blocks.CHEST);
-			c.set(c.at(0, 2, 0), ModBlocks.IRON_DROPPER.getDefaultState().with(IronDropperBlock.FACING, Direction.DOWN));
+			c.set(c.at(0, 2, 0), ModBlocks.IRON_DROPPER.defaultBlockState().setValue(IronDropperBlock.FACING, Direction.DOWN));
 			IronDropperTileEntity dropper = c.tile(c.at(0, 2, 0), IronDropperTileEntity.class);
 			dropper.itemHandler().insertItem(0, new ItemStack(Items.COBBLESTONE, 5), false);
 			dropper.rotateRedstoneMode();
@@ -78,7 +78,7 @@ final class BehaviorTests
 		tests.add(RTTest.named("behavior.iron_dropper.repeat_mode_keeps_dropping_while_powered_and_stops_when_not").run(c -> {
 			c.floor();
 			c.set(c.at(0, 1, 0), Blocks.CHEST);
-			c.set(c.at(0, 2, 0), ModBlocks.IRON_DROPPER.getDefaultState().with(IronDropperBlock.FACING, Direction.DOWN));
+			c.set(c.at(0, 2, 0), ModBlocks.IRON_DROPPER.defaultBlockState().setValue(IronDropperBlock.FACING, Direction.DOWN));
 			c.tile(c.at(0, 2, 0), IronDropperTileEntity.class).itemHandler().insertItem(0, new ItemStack(Items.COBBLESTONE, 16), false);
 			c.set(c.at(1, 2, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(30).run(c -> {
@@ -95,7 +95,7 @@ final class BehaviorTests
 
 		tests.add(RTTest.named("behavior.iron_dropper.drops_item_entity_when_nothing_is_in_front").run(c -> {
 			c.floor();
-			c.set(c.at(0, 1, 0), ModBlocks.IRON_DROPPER.getDefaultState().with(IronDropperBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.IRON_DROPPER.defaultBlockState().setValue(IronDropperBlock.FACING, Direction.EAST));
 			IronDropperTileEntity dropper = c.tile(c.at(0, 1, 0), IronDropperTileEntity.class);
 			dropper.itemHandler().insertItem(0, new ItemStack(Items.COBBLESTONE, 5), false);
 			dropper.rotateRedstoneMode();
@@ -109,18 +109,18 @@ final class BehaviorTests
 		// ---- Igniter --------------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.igniter.toggle_mode_lights_fire_when_powered_and_removes_it_when_unpowered").run(c -> {
 			c.floor();
-			c.set(c.at(0, 1, 0), ModBlocks.IGNITER.getDefaultState().with(IgniterBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.IGNITER.defaultBlockState().setValue(IgniterBlock.FACING, Direction.EAST));
 			c.set(c.at(0, 2, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(2).run(c -> {
 			c.eq(Blocks.FIRE, c.world.getBlockState(c.at(1, 1, 0)).getBlock(), "block in front when powered");
 			c.remove(c.at(0, 2, 0));
 		}).waitTicks(2).run(c -> {
-			c.check(c.world.isAirBlock(c.at(1, 1, 0)), "fire should be removed in TOGGLE mode, found " + c.world.getBlockState(c.at(1, 1, 0)).getBlock());
+			c.check(c.world.isEmptyBlock(c.at(1, 1, 0)), "fire should be removed in TOGGLE mode, found " + c.world.getBlockState(c.at(1, 1, 0)).getBlock());
 		}));
 
 		tests.add(RTTest.named("behavior.igniter.ignite_mode_leaves_fire_when_unpowered").run(c -> {
 			c.floor();
-			c.set(c.at(0, 1, 0), ModBlocks.IGNITER.getDefaultState().with(IgniterBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.IGNITER.defaultBlockState().setValue(IgniterBlock.FACING, Direction.EAST));
 			IgniterTileEntity igniter = c.tile(c.at(0, 1, 0), IgniterTileEntity.class);
 			igniter.rotateMode();
 			c.eq(IgniterTileEntity.MODE.IGNITE, igniter.mode(), "mode after rotate");
@@ -135,15 +135,15 @@ final class BehaviorTests
 		// ---- Analog Emitter -------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.analog_emitter.outputs_configured_level_only_while_input_is_powered").run(c -> {
 			c.floor();
-			c.set(c.at(0, 1, 0), ModBlocks.ANALOG_EMITTER.getDefaultState().with(AnalogEmitterBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.ANALOG_EMITTER.defaultBlockState().setValue(AnalogEmitterBlock.FACING, Direction.EAST));
 			c.tile(c.at(0, 1, 0), AnalogEmitterTileEntity.class).setEmitLevel(9);
 			c.eq(0, c.tile(c.at(0, 1, 0), AnalogEmitterTileEntity.class).getOutput(), "output with no input");
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(2).run(c -> {
 			AnalogEmitterTileEntity te = c.tile(c.at(0, 1, 0), AnalogEmitterTileEntity.class);
 			c.eq(9, te.getOutput(), "output with input");
-			c.eq(9, c.world.getBlockState(c.at(0, 1, 0)).getWeakPower(c.world, c.at(0, 1, 0), Direction.UP), "weak power towards UP");
-			c.eq(0, c.world.getBlockState(c.at(0, 1, 0)).getWeakPower(c.world, c.at(0, 1, 0), Direction.EAST), "weak power towards the input side");
+			c.eq(9, c.world.getBlockState(c.at(0, 1, 0)).getSignal(c.world, c.at(0, 1, 0), Direction.UP), "weak power towards UP");
+			c.eq(0, c.world.getBlockState(c.at(0, 1, 0)).getSignal(c.world, c.at(0, 1, 0), Direction.EAST), "weak power towards the input side");
 			te.setEmitLevel(3);
 			c.eq(3, te.getOutput(), "output after changing the level");
 			c.remove(c.at(1, 1, 0));
@@ -156,9 +156,9 @@ final class BehaviorTests
 			c.floor();
 			c.set(c.at(-1, 1, 0), Blocks.CHEST);
 			c.set(c.at(1, 1, 0), Blocks.DIRT);
-			c.set(c.at(0, 1, 0), ModBlocks.BLOCK_BREAKER.getDefaultState().with(BlockBreakerBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.BLOCK_BREAKER.defaultBlockState().setValue(BlockBreakerBlock.FACING, Direction.EAST));
 		}).waitTicks(80).run(c -> {
-			c.check(c.world.isAirBlock(c.at(1, 1, 0)), "target dirt should be mined, found " + c.world.getBlockState(c.at(1, 1, 0)).getBlock());
+			c.check(c.world.isEmptyBlock(c.at(1, 1, 0)), "target dirt should be mined, found " + c.world.getBlockState(c.at(1, 1, 0)).getBlock());
 			c.eq(1, TestCtx.count(c.inventory(c.at(-1, 1, 0)), Items.DIRT), "dirt delivered to the chest behind the breaker (loose items: " + c.itemEntities() + ")");
 			c.eq(0, c.itemEntities().size(), "loose item entities (drops should be redirected into the chest)");
 		}));
@@ -167,7 +167,7 @@ final class BehaviorTests
 			c.floor();
 			c.set(c.at(1, 1, 0), Blocks.DIRT);
 			c.set(c.at(0, 2, 0), Blocks.REDSTONE_BLOCK);
-			c.set(c.at(0, 1, 0), ModBlocks.BLOCK_BREAKER.getDefaultState().with(BlockBreakerBlock.FACING, Direction.EAST));
+			c.set(c.at(0, 1, 0), ModBlocks.BLOCK_BREAKER.defaultBlockState().setValue(BlockBreakerBlock.FACING, Direction.EAST));
 		}).waitTicks(60).run(c -> {
 			c.eq(Blocks.DIRT, c.world.getBlockState(c.at(1, 1, 0)).getBlock(), "target block while the breaker is powered");
 		}));
@@ -180,13 +180,13 @@ final class BehaviorTests
 			c.set(c.at(4, 1, 0), Blocks.STONE);
 			c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.RedstoneObserverTileEntity.class).setTarget(c.at(4, 1, 0));
 		}).waitTicks(3).run(c -> {
-			c.check(!c.world.getBlockState(c.at(1, 1, 0)).get(net.minecraft.block.RedstoneLampBlock.LIT), "lamp must be dark while the target emits nothing");
+			c.check(!c.world.getBlockState(c.at(1, 1, 0)).getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT), "lamp must be dark while the target emits nothing");
 			c.set(c.at(4, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(4).run(c -> {
-			c.check(c.world.getBlockState(c.at(1, 1, 0)).get(net.minecraft.block.RedstoneLampBlock.LIT), "lamp must light when the target becomes a redstone block");
+			c.check(c.world.getBlockState(c.at(1, 1, 0)).getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT), "lamp must light when the target becomes a redstone block");
 			c.set(c.at(4, 1, 0), Blocks.STONE);
 		}).waitTicks(10).run(c -> {
-			c.check(!c.world.getBlockState(c.at(1, 1, 0)).get(net.minecraft.block.RedstoneLampBlock.LIT), "lamp must go dark when the target stops emitting");
+			c.check(!c.world.getBlockState(c.at(1, 1, 0)).getValue(net.minecraft.world.level.block.RedstoneLampBlock.LIT), "lamp must go dark when the target stops emitting");
 		}));
 
 		// ---- Special crafting recipes ---------------------------------------------------------
@@ -194,9 +194,9 @@ final class BehaviorTests
 			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(new ResourceLocation("randomthings", "test"));
 			ItemStack anchor = new ItemStack(ModItems.SPECTRE_ANCHOR);
 
-			CraftingInventory good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
+			CraftingContainer good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
 			c.check(recipe.matches(good, c.world), "anchor + sword should match");
-			ItemStack result = recipe.getCraftingResult(good);
+			ItemStack result = recipe.assemble(good);
 			c.eq(Items.IRON_SWORD, result.getItem(), "result item");
 			c.check(result.hasTag() && result.getTag().contains("spectreAnchor"), "result must carry the spectreAnchor tag");
 			recipe.getRemainingItems(good).forEach(s -> c.check(s.isEmpty(), "anchor and target are both consumed"));
@@ -211,22 +211,22 @@ final class BehaviorTests
 			List<String> problems = new ArrayList<>();
 			int checked = 0;
 
-			for (IRecipe<?> recipe : c.world.getServer().getRecipeManager().getRecipes())
+			for (Recipe<?> recipe : c.world.getServer().getRecipeManager().getRecipes())
 			{
-				if (!"randomthings".equals(recipe.getId().getNamespace()) || recipe.getType() != IRecipeType.CRAFTING || recipe.isDynamic() || !(recipe instanceof ICraftingRecipe))
+				if (!"randomthings".equals(recipe.getId().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
 				{
 					continue;
 				}
 
 				checked++;
-				ICraftingRecipe crafting = (ICraftingRecipe) recipe;
-				CraftingInventory inv = new CraftingInventory(new NoopContainer(), 3, 3);
+				CraftingRecipe crafting = (CraftingRecipe) recipe;
+				CraftingContainer inv = new CraftingContainer(new NoopContainer(), 3, 3);
 				List<Ingredient> ingredients = recipe.getIngredients();
 				int width = recipe instanceof ShapedRecipe ? ((ShapedRecipe) recipe).getRecipeWidth() : 3;
 
 				for (int i = 0; i < ingredients.size(); i++)
 				{
-					ItemStack[] options = ingredients.get(i).getMatchingStacks();
+					ItemStack[] options = ingredients.get(i).getItems();
 
 					if (options.length == 0)
 					{
@@ -236,7 +236,7 @@ final class BehaviorTests
 					int slot = recipe instanceof ShapedRecipe ? (i / width) * 3 + (i % width) : i;
 					ItemStack stack = options[0].copy();
 					stack.setCount(1);
-					inv.setInventorySlotContents(slot, stack);
+					inv.setItem(slot, stack);
 				}
 
 				if (!crafting.matches(inv, c.world))
@@ -245,8 +245,8 @@ final class BehaviorTests
 					continue;
 				}
 
-				ItemStack out = crafting.getCraftingResult(inv);
-				ItemStack expected = recipe.getRecipeOutput();
+				ItemStack out = crafting.assemble(inv);
+				ItemStack expected = recipe.getResultItem();
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
 				{
@@ -261,19 +261,19 @@ final class BehaviorTests
 		return tests;
 	}
 
-	private static CraftingInventory grid(int w, int h, ItemStack... stacks)
+	private static CraftingContainer grid(int w, int h, ItemStack... stacks)
 	{
-		CraftingInventory inv = new CraftingInventory(new NoopContainer(), w, h);
+		CraftingContainer inv = new CraftingContainer(new NoopContainer(), w, h);
 
 		for (int i = 0; i < stacks.length; i++)
 		{
-			inv.setInventorySlotContents(i, stacks[i].copy());
+			inv.setItem(i, stacks[i].copy());
 		}
 
 		return inv;
 	}
 
-	private static final class NoopContainer extends Container
+	private static final class NoopContainer extends AbstractContainerMenu
 	{
 		NoopContainer()
 		{
@@ -281,7 +281,7 @@ final class BehaviorTests
 		}
 
 		@Override
-		public boolean canInteractWith(PlayerEntity player)
+		public boolean stillValid(Player player)
 		{
 			return true;
 		}

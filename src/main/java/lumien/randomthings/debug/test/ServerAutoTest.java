@@ -1,17 +1,17 @@
 package lumien.randomthings.debug.test;
 
 import lumien.randomthings.debug.RTDebug;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import net.minecraft.world.World;
+import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraft.world.level.Level;
 
 /**
  * Hands-free test run on a dedicated server ({@code RT_AUTOTEST=true ./gradlew runServer}): once the world is up,
@@ -54,21 +54,21 @@ public final class ServerAutoTest
 				return;
 			}
 
-			ServerWorld world = server.getWorld(World.OVERWORLD);
-			ServerPlayerEntity fake = new RTTestPlayer(world);
-			BlockPos spawn = world.getSpawnPoint();
-			fake.setPosition(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5);
+			ServerLevel world = server.getLevel(Level.OVERWORLD);
+			ServerPlayer fake = new RTTestPlayer(world);
+			BlockPos spawn = world.getSharedSpawnPos();
+			fake.setPos(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5);
 
 			// A world with no real player and no forced chunk stops ticking entities and tile entities after 300 ticks
 			// (vanilla idle timeout), which silently starves long tests; force the chunks around the test area.
-			int cx = (fake.getPosition().getX() + 14) >> 4;
-			int cz = fake.getPosition().getZ() >> 4;
+			int cx = (fake.blockPosition().getX() + 14) >> 4;
+			int cz = fake.blockPosition().getZ() >> 4;
 
 			for (int dx = -2; dx <= 2; dx++)
 			{
 				for (int dz = -2; dz <= 2; dz++)
 				{
-					world.forceChunk(cx + dx, cz + dz, true);
+					world.setChunkForced(cx + dx, cz + dz, true);
 				}
 			}
 
@@ -96,7 +96,7 @@ public final class ServerAutoTest
 
 		if (Boolean.getBoolean("randomthings.autotest.exit"))
 		{
-			server.initiateShutdown(false);
+			server.halt(false);
 		}
 	}
 }
