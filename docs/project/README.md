@@ -1,4 +1,4 @@
-# Project knowledge (written on 1.14.4, extended on 1.16.5)
+# Project knowledge (written on 1.14.4, extended on 1.16.5 and 1.18.2)
 
 Reference material moved out of the old root `PORTING_PLAN.md` / `WIKI_FEATURE_STATUS.md` in the 2026-10-11 documentation refactor. Nothing was removed; the root files are now short.
 Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
@@ -11,6 +11,7 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [coremods.md](coremods.md) | the JS transformers, what each patches and why (Mixin is dead) |
 | [api-gotchas-1.14.4.md](api-gotchas-1.14.4.md) | Forge 28.2.26 / 1.14.4 API surprises |
 | [api-gotchas-1.16.5.md](api-gotchas-1.16.5.md) | Forge 36.2.39 / 1.16.5 behaviour changes that cost debugging time (culling/`notSolid`, glint render types, data-pack biomes, string dimensions, coremod names) |
+| [api-gotchas-1.18.2.md](api-gotchas-1.18.2.md) | Forge 40.3.12 / 1.18.2: Mojang names, block-entity tickers, shaders, Holder biomes, placed features, datapack dimension type, frozen registries, jigsaw/generation test traps |
 | [pitfalls.md](pitfalls.md) | generalized lessons that cost real time |
 | [state-history-2026-10.md](state-history-2026-10.md) | detailed state and change-set history up to 2026-10-11 |
 | [slice-history.md](slice-history.md) | one line per porting slice |

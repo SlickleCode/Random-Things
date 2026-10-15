@@ -2,7 +2,7 @@
 
 A scenario is a Python function using a Game object. Everything that can be a command is a command, so runs are repeatable:
   * placement / aim:   /fill, /setblock, /tp @s x y z yaw pitch  (no mouse-look, no aiming by eye)
-  * items:             /replaceitem entity @s hotbar.N <item>     (items land in exact slots, so GUI click coordinates are constant)
+  * items:             /replaceitem (1.18: /item replace entity @s hotbar.N with <item>)     (items land in exact slots, so GUI click coordinates are constant)
   * assertions:        run a command and read its [CHAT] output from run/logs/latest.log (e.g. /data get ..., /execute if ...)
   * evidence:          screenshots at named checkpoints only
 GUI clicks use the fixed 854x480 client layout of the vanilla container GUIs (coordinates documented where used).
@@ -93,7 +93,7 @@ class Game:
 
     def slot(self, n, item):
         """Put an item into hotbar slot n (0-8) exactly."""
-        self.cmd('replaceitem entity @s hotbar.%d %s' % (n, item), 0.25)
+        self.cmd(item_cmd('hotbar.%d' % n, item), 0.25)
 
     def select(self, n):
         self.key(str(n + 1))
@@ -120,10 +120,20 @@ class Game:
         return passed == len(self.results)
 
 
+def item_cmd(slot, item):
+    """Put an item into a slot of the player: /replaceitem up to 1.16, /item replace (1.17+) - /replaceitem no longer exists on 1.18.2."""
+    if MC18:
+        return 'item replace entity @s %s with %s' % (slot, item)
+    return 'replaceitem entity @s %s %s' % (slot, item)
+
+
 SCENARIOS = {}
 WORLD_KIND = {}
-DIM = '"minecraft:overworld"' if (os.environ.get('SCN_MC') or '1.14').startswith('1.16') else '0'      # the dimension tag: a registry key string on 1.16, an int id on 1.14
-MC16 = (os.environ.get('SCN_MC') or '1.14').startswith('1.16')       # SCN_MC=1.16 drives the 1.16.5 menus
+_MCV = os.environ.get('SCN_MC') or '1.14'
+MC18 = _MCV.startswith('1.18')                    # SCN_MC=1.18 drives the 1.18.2 menus
+MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT conventions: registry-string dimensions, generic.max_health, /locatebiome
+DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
+SNOWY_BIOME = 'minecraft:snowy_plains' if MC18 else 'minecraft:snowy_tundra'     # renamed in 1.18
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
 
@@ -793,8 +803,8 @@ def worn_armor(g):
     g.tp(0.5, 4, 0.5, 0, 0)
 
     def wear(chest, helmet='minecraft:iron_helmet'):
-        g.cmd('replaceitem entity @s armor.chest %s' % chest, 0.4)
-        g.cmd('replaceitem entity @s armor.head %s' % helmet, 0.4)
+        g.cmd(item_cmd('armor.chest', chest), 0.4)
+        g.cmd(item_cmd('armor.head', helmet), 0.4)
         g.wait(0.8)
 
     def scan(pred, frames=1):
@@ -859,8 +869,8 @@ def worn_armor(g):
     g.check(0 < tinted < vanilla - 0.1, 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
     g.key('f5'); g.wait(0.5)                                   # back to first person
     g.cmd('clear @s')
-    g.cmd('replaceitem entity @s armor.chest minecraft:air', 0.3)
-    g.cmd('replaceitem entity @s armor.head minecraft:air', 0.3)
+    g.cmd(item_cmd('armor.chest', 'minecraft:air'), 0.3)
+    g.cmd(item_cmd('armor.head', 'minecraft:air'), 0.3)
 
 
 PROBE = os.path.join(RUN_DIR, 'rt_probe')
@@ -884,11 +894,11 @@ def magic_hood(g):
         g.wait(3)
         without = swirl_counts(g, 6)
         g.check(len(without) >= 4 and max(without) >= 2, 'control: with the speed effect and no hood the swirl particles exist', 'counts %s' % without)
-        g.cmd('replaceitem entity @s armor.head randomthings:magic_hood', 0.4)
+        g.cmd(item_cmd('armor.head', 'randomthings:magic_hood'), 0.4)
         g.wait(3)                                                  # let the existing particles live out their 8-40 ticks
         hooded = swirl_counts(g, 6)
         g.check(len(hooded) >= 4 and max(hooded) == 0, '#254: wearing the Magic Hood: no swirl particles at all', 'counts %s' % hooded)
-        g.cmd('replaceitem entity @s armor.head minecraft:air', 0.4)
+        g.cmd(item_cmd('armor.head', 'minecraft:air'), 0.4)
         g.wait(2)
         again = swirl_counts(g, 6)
         g.check(len(again) >= 4 and max(again) >= 2, 'control: taking the hood off brings the swirl back', 'counts %s' % again)
@@ -1338,14 +1348,14 @@ def ancient_furnace(g):
     The 5-minute heating time is skipped by setting the block entity's counter to 10 ticks before the end."""
     arena_default(g)
     before = g.mark()
-    g.cmd('locatebiome minecraft:snowy_tundra' if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
+    g.cmd('locatebiome %s' % SNOWY_BIOME if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
     text = ''
     for _ in range(40):                       # the search generates chunks: can take a while
         g.wait(3)
         text = g.new_log(before)
-        if re.search(r'nearest (igloo|minecraft:snowy_tundra)', text, re.I) or 'Could not find' in text or 'Incorrect argument' in text or 'Unknown' in text:
+        if re.search(r'nearest (igloo|minecraft:snowy_(?:tundra|plains))', text, re.I) or 'Could not find' in text or 'Incorrect argument' in text or 'Unknown' in text:
             break
-    m = re.search(r'(?i)nearest (?:igloo|minecraft:snowy_tundra) is at \[(-?\d+), (?:~|-?\d+), (-?\d+)\]', text)
+    m = re.search(r'(?i)nearest (?:igloo|minecraft:snowy_(?:tundra|plains)) is at \[(-?\d+), (?:~|-?\d+), (-?\d+)\]', text)
     out = [text[-300:]]
     if not m:
         g.check(False, 'locate Igloo found nothing', ' '.join(out)[:200])
@@ -1446,6 +1456,8 @@ def require_screen(g, what, x, y):
 
 
 def new_world(g, world, kind='flat'):
+    global WORLD_KIND_NOW
+    WORLD_KIND_NOW = kind
     g.note('creating %s world %s with seed %s' % (kind, world, SEED))
     g.do('focus')
     g.click(426, 236)                          # main menu: Singleplayer
@@ -1484,12 +1496,19 @@ def new_world(g, world, kind='flat'):
     controlled_setup(g)
 
 
+WORLD_KIND_NOW = 'flat'     # set by new_world: the flat-world floor is only laid in flat worlds
+
+
 def controlled_setup(g):
     """Same controlled conditions as the automated suite's world: creative, always day, no weather, no mob spawning, no stray mobs."""
     for c in ('gamemode creative', 'time set day', 'gamerule doDaylightCycle false', 'gamerule doWeatherCycle false',
               'gamerule doMobSpawning false', 'gamerule doFireTick false', 'gamerule announceAdvancements false', 'weather clear',
               'kill @e[type=!player]', 'effect clear @s', 'clear @s'):
         g.cmd(c, 0.3)
+    if MC18 and WORLD_KIND_NOW == 'flat':
+        # 1.18's superflat ground is at y -61 (world bottom -64); every scenario was written for ground at y 3 (blocks at y 4), so a
+        # grass floor is laid there (a single /fill is limited to 32768 blocks: 180x180)
+        g.cmd('fill -90 3 -90 89 3 89 minecraft:grass_block', 1.5)
     g.tp(0.5, 4, 0.5, 0, 0)
 
 

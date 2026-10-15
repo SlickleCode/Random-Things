@@ -1,6 +1,14 @@
 # Repo and toolchain
 
-_Moved verbatim from `PORTING_PLAN.md` (2026-10-11 doc refactor). Index: [README.md](README.md)._
+_Moved from `PORTING_PLAN.md` (2026-10-11 doc refactor); the 1.18.2 section below is current for this branch. Index: [README.md](README.md)._
+
+## 1.18.2 (this branch)
+
+- Forge **1.18.2-40.3.12**, ForgeGradle 5.1.x, Gradle 7.4.2, **JDK 17** (`source env/activate.sh` finds `~/.jdks/temurin-17*`, `RT_JDK17_HOME` overrides; any other default JDK, e.g. 21, fails inside Gradle 7.4). Official Mojang mappings (`channel: 'official'`); mod jar `RandomThings-MC1.18.2`; `pack_format` 8; `loaderVersion [40,)`.
+- Mapped jar for `javap`: `~/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.18.2-40.3.12_mapped_official_1.18.2/forge-1.18.2-40.3.12_mapped_official_1.18.2.jar` (no vanilla source jar exists). Helper scripts: `docs/migration/tools/` (`lookup.py`, `jpm.py`; the rename tools used for the port).
+- Dev tooling and the autotest switches are unchanged (see below); additionally `RT_AUTOTEST_CLICKS=true` (GUI click-through) and `RT_AUTOTEST_SCENES=true` (render screenshots) on the client, `runServer` with `RT_AUTOTEST=true` for the dedicated-server suite. Latest results: `PORTING_PLAN.md`.
+
+## Older versions (history)
 
 - Fork: `SlickleCode/Random-Things`. Branches: `1.14.4` = all port work (default); `master` = untouched
   1.12.2-era source (`git show origin/1.12.2:<path>` for any original file); `main` = README only.

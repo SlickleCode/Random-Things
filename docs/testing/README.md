@@ -54,7 +54,7 @@ needs human eyes.
 
 ## Running it
 
-Hands-free, from the repo root (JDK 8 pinned by `env/activate.sh`):
+Hands-free, from the repo root (JDK 17 pinned by `env/activate.sh` on this branch):
 
 ```bash
 source env/activate.sh
@@ -110,12 +110,12 @@ in-test cave and terrain checks first looked fine; use it after touching natural
 ### Scripted playtest scenarios (Minecraft window driven by a helper)
 
 `docs/testing/desktop-helper/` (`desk.py` + `scn.py`, copy to `prod-test/desktop/`) drives the real game window through deterministic scenarios in a fresh seed-424242 world.
-It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` run it with `SCN_MC=1.16` (1.16 menu clicks, registry-string dimensions)
+It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` run it with `SCN_MC=1.16`; on `1.18.2` run it with `SCN_MC=1.18` (adapted 2026-10-15: `/item replace`, a y=3 floor in the flat world, `snowy_plains`; all 26 scenarios pass - see the `scripted-playtest` skill) (1.16 menu clicks, registry-string dimensions)
 (different create-world screen). Pixel reads must use `desk.grab()` (one frame) rather than many `desk.pixel()` calls.
 
 ### Switching branches
 
-Each version branch has its own worktree folder (`1.14.4/`, `1.16.5/` under the parent), and each folder has its own gitignored `run/`, so nothing is shared
+Each version branch has its own worktree folder (`1.14.4/`, `1.16.5/`, `1.18.2/` under the parent), and each folder has its own gitignored `run/`, so nothing is shared
 and nothing needs cleaning between versions: open the folder of the version you want to test. Only if you change the branch checked out inside a single
 folder, delete the old test world and reports first (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt
 run/screenshots/randomthings_debug run/saves/Scn_*`); a world saved by a newer version hangs an older client at load, and stale reports/screenshots can be
@@ -198,6 +198,14 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 - The dedicated-server suite uses `RTTestPlayer` (a `FakePlayer` that reports its real position and gets a real detached network handler); plain `FakePlayer` cannot be teleported or located.
 - The client autotest answers the "experimental settings" / backup dialogs itself and logs them (`AutoTest: confirming ... dialog`).
 - The world is created with the 1.16 `createWorld` flow (flat generator); an existing `run/saves/RTAutoTest` is simply reopened.
+
+## Notes for 1.18.2 (added on the 1.18.2 branch)
+
+- Extra client switches: `RT_AUTOTEST_CLICKS=true` runs only the GUI click-through (`run/randomthings_clicks.txt`), `RT_AUTOTEST_SCENES=true` only the render screenshots (`run/screenshots/randomthings_debug/scenes`, 26 scenes; compare against another version by rendering the same scenes there). Gradle exits non-zero after the forced exit; trust the report files.
+- World creation in `AutoTest` uses `Minecraft.createLevel` with `RegistryAccess.builtinCopy()`; the flat world's ground is at y -61 (world bottom -64).
+- `WorldgenTests` drives the 1.18 generator by hand (9x9 chunk patch, wide placeholder regions for surface/carvers, a structure manager that knows no structures) and uses vanilla's own `village_plains` start for the Peace Candle church tests. See `docs/project/api-gotchas-1.18.2.md`.
+- A stale `java` process from an aborted run keeps the test world locked: the next server run hangs right after command registration. Kill it first.
+- Results on 2026-10-15: server 349 passed / 0 failed / 2 skipped, client audit 0 failures, GUI click test 0 failures (28 GUIs, 17 tooltips).
 
 ## Known limits
 

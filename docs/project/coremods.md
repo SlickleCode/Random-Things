@@ -8,22 +8,23 @@ Both former Mixins (Blazing Fire, Super Lubricent Boots) were converted to corem
 infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremods.json` →
 `transformer/*.js`, hooks in `asm/AsmHandler` (common) / `ClientAsmHandler` (client).
 
-| Transformer | Target | Purpose |
+| Transformer | Target (1.18.2) | Purpose |
 | --- | --- | --- |
-| `VertexLighterFlat` | `VertexLighterFlat.processQuad` | Light-tint hook (placeholder tintIndex 12340) |
-| `FireBlockTransformer` | `FireBlock.tryCatchFire` | Blazing Fire 4x catch chance / die-out / age growth |
-| `SuperLubricentBootsTransformer` | `LivingEntity.travel` | Boots → max slipperiness unless sneaking |
-| `SpawnPlacementTransformer` | `EntitySpawnPlacementRegistry` shared predicate dispatch | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
-| `MagicHoodTransformer` | `LivingRenderer.canRenderName` (6 returns) | Hide nametag |
-| `RainShieldTransformer` | `World.isRainingAt` (4 returns) | Mechanical rain/snow suppression |
-| `GameRendererTransformer` | biome lookup in rain render loop | Visual rain suppression |
-| `IBlockReaderTransformer` | `IBlockReader.getLightValue(BlockPos)` | Spectre Illuminator light |
-| `PlayerEntityTransformer` | `PlayerInventory.dropAllItems` in `dropInventory` | Spectre Anchor keeps items |
-| `WorldRedstonePowerTransformer` / `WorldReaderStrongPowerTransformer` | `World.getRedstonePower` / `IWorldReader.getStrongPower` | Wireless Redstone Interface signals |
-| `TeleporterTransformer` | `Teleporter.makePortal` | Skip portal carving for the Spectre dimension |
-| `BlockRendererDispatcherTransformer` | block render dispatch | Light Redirector "periscope" |
-| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer; (1.16.5) also capture the stack being drawn in `renderItem` / `BipedArmorLayer.func_241739_a_` | Dyeing Machine recolor; enchant-glint colour |
-| `RenderTypeTransformer` (1.16.5 only) | the seven glint `RenderType` getters return `ClientAsmHandler.tintGlint(type)` (tinted wrapper type for stacks with a custom glint colour) | Dyeing Machine glint result, Redstone Tool, Spectre Key/Sword, Portkey, Escape Rope |
+| `VertexLighterFlat` | Forge `VertexLighterFlat.processQuad` (after `updateColor`; colour array is local 4) | Light-tint hook (placeholder tintIndex 12340) |
+| `FireBlockTransformer` | `FireBlock.tryCatchFire` + `getFireTickDelay` call | Blazing Fire 4x catch chance / die-out / age growth |
+| `SuperLubricentBootsTransformer` | `LivingEntity.travel`, the `BlockState.getFriction` call | Boots -> max slipperiness unless sneaking |
+| `SpawnPlacementTransformer` | `SpawnPlacements.checkSpawnRules` (`m_21759_`) | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
+| `MagicHoodTransformer` | `LivingEntityRenderer.shouldShowName` (all returns) | Hide nametag |
+| `RainShieldTransformer` | `Level.isRainingAt` (`m_46758_`, all returns) | Mechanical rain/snow suppression |
+| `WorldRendererTransformer` | `LevelRenderer.renderSnowAndRain` / `tickRain`, the `getBiome` call (now returns `Holder<Biome>`) | Visual rain suppression |
+| `IBlockReaderTransformer` | `BlockGetter.getLightEmission(BlockPos)` | Spectre Illuminator light |
+| `PlayerEntityTransformer` | `Inventory.dropAll` call in `Player.dropEquipment` | Spectre Anchor keeps items |
+| `WorldRedstonePowerTransformer` / `WorldReaderStrongPowerTransformer` | `Level.getSignal` / `LevelReader.getDirectSignal` | Wireless Redstone Interface signals |
+| `BlockRendererDispatcherTransformer` | `BlockRenderDispatcher.renderBatched` (IModelData overload) | Light Redirector "periscope" |
+| `ItemRendererTransformer` / `ArmorLayerTransformer` | `ItemRenderer.renderQuadList` item colour + capture the stack in `ItemRenderer.render`; `HumanoidArmorLayer.renderArmorPiece` (`DyeableLeatherItem.getColor`, `renderModel` channels) | Dyeing Machine recolor; enchant-glint colour |
+| `RenderTypeTransformer` | the seven glint `RenderType` getters (`glint()`, `entityGlint()`, ...) return `ClientAsmHandler.tintGlint(type)` | Dyeing Machine glint result, Redstone Tool, Spectre Key/Sword, Portkey, Escape Rope |
+
+Names are matched as Mojang name **or** SRG id (`m_...`); all anchors were re-read in the 1.18.2 bytecode on 2026-10-15. Verified so far: dev client/server only. **Not yet verified: production (SRG) jar, and the visual result of the glint/armor/render-dispatch transformers.** (`GameRendererTransformer` and `TeleporterTransformer` from the 1.14.4 table no longer exist.)
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a

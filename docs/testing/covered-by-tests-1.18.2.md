@@ -1,4 +1,6 @@
-# Rows covered by automated tests (1.16.5)
+# Rows covered by automated tests (1.18.2)
+
+**Status on 1.18.2 (2026-10-15):** the evidence below was collected on 1.16.5 and is re-verified here: suite tests (server 349 / client 348 passing, audit and GUI click test clean) and all 26 scripted playtest scenarios (re-run with `SCN_MC=1.18`, all passing).
 
 These rows of the original sheet were removed from the root `TESTING_CHECKLIST.md` because a suite test or scripted scenario asserts the behaviour they describe (visual/audio aspects that remain are in the checklist's "Visual / audio spot-checks" table). Evidence names refer to `docs/testing/test-inventory.md` and the scenario list in `docs/testing/README.md`. Removed-feature rows (marked DONE "removed per request" or REMOVED in the old sheet) are not listed: 44 rows, e.g. the Plate blocks, Special Chests, Lava/Water gear, Inventory Rerouter.
 

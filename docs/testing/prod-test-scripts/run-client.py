@@ -67,10 +67,20 @@ opts = os.path.join(game_dir, 'options.txt')
 if not os.path.exists(opts):
     open(opts, 'w').write('pauseOnLostFocus:false\n')
 
-jvm = [a for a in forge.get('arguments', {}).get('jvm', []) if isinstance(a, str)]
+subst = {'${library_directory}': os.path.join(client, 'libraries'), '${classpath_separator}': os.pathsep, '${version_name}': mc}
+
+
+def fill(a):
+    for k, v in subst.items():
+        a = a.replace(k, v)
+    return a
+
+
+# 1.17+ Forge launches through the module path: the version json's own jvm arguments carry it (placeholders filled here)
+jvm = [fill(a) for a in forge.get('arguments', {}).get('jvm', []) if isinstance(a, str)]
 game = [a for a in forge.get('arguments', {}).get('game', []) if isinstance(a, str)]
 args = ['java', '-Xmx2G', '-XX:+IgnoreUnrecognizedVMOptions'] + jvm + [
-    '-Drandomthings.debug=true', '-Djava.library.path=' + natives, '-DlibraryDirectory=' + os.path.join(client, 'libraries'),
+    '-Drandomthings.debug=true', '-Djava.library.path=' + natives,
     '-Dminecraft.launcher.brand=prod-test', '-Dminecraft.launcher.version=1'] + sys.argv[1:]
 args += ['-cp', os.pathsep.join(cp), forge['mainClass']] + game + [
     '--username', 'Dev', '--version', forge_id, '--gameDir', game_dir, '--assetsDir', assets,
