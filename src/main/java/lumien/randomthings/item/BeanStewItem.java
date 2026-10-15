@@ -1,13 +1,13 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 public class BeanStewItem extends Item
 {
@@ -17,9 +17,9 @@ public class BeanStewItem extends Item
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity livingEntity)
+	public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity)
 	{
-		super.onItemUseFinish(stack, worldIn, livingEntity);
+		super.finishUsingItem(stack, worldIn, livingEntity);
 
 		if (stack.getCount() == 0)
 		{
@@ -27,13 +27,13 @@ public class BeanStewItem extends Item
 		}
 		else
 		{
-			if (livingEntity instanceof PlayerEntity)
+			if (livingEntity instanceof Player)
 			{
-				boolean added = ((PlayerEntity) livingEntity).inventory.addItemStackToInventory(new ItemStack(Items.BOWL));
+				boolean added = ((Player) livingEntity).getInventory().add(new ItemStack(Items.BOWL));
 
-				if (!added && !worldIn.isRemote)
+				if (!added && !worldIn.isClientSide)
 				{
-					((ServerWorld) worldIn).addEntity(new ItemEntity(worldIn, livingEntity.getPosX(), livingEntity.getPosY(), livingEntity.getPosZ(), new ItemStack(Items.BOWL)));
+					((ServerLevel) worldIn).addFreshEntity(new ItemEntity(worldIn, livingEntity.getX(), livingEntity.getY(), livingEntity.getZ(), new ItemStack(Items.BOWL)));
 				}
 			}
 			return stack;

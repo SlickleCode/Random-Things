@@ -1,20 +1,20 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.entity.ThrownGoldenEggEntity;
-import net.minecraft.block.DispenserBlock;
-import net.minecraft.dispenser.IPosition;
-import net.minecraft.dispenser.ProjectileDispenseBehavior;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.core.Position;
+import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.Level;
 
 /**
  * Throw it to hatch a {@link lumien.randomthings.entity.GoldenChickenEntity}
@@ -28,32 +28,32 @@ public class GoldenEggItem extends Item {
     public GoldenEggItem(Item.Properties properties) {
         super(properties);
 
-        DispenserBlock.registerDispenseBehavior(this, new ProjectileDispenseBehavior() {
+        DispenserBlock.registerBehavior(this, new AbstractProjectileDispenseBehavior() {
             @Override
-            protected ProjectileEntity getProjectileEntity(World world, IPosition position, ItemStack stack) {
-                return new ThrownGoldenEggEntity(world, position.getX(), position.getY(), position.getZ());
+            protected Projectile getProjectile(Level world, Position position, ItemStack stack) {
+                return new ThrownGoldenEggEntity(world, position.x(), position.y(), position.z());
             }
         });
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-        ItemStack itemstack = playerIn.getHeldItem(handIn);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+        ItemStack itemstack = playerIn.getItemInHand(handIn);
 
-        if (!playerIn.abilities.isCreativeMode) {
+        if (!playerIn.getAbilities().instabuild) {
             itemstack.shrink(1);
         }
 
-        worldIn.playSound(null, playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(), SoundEvents.ENTITY_EGG_THROW, SoundCategory.PLAYERS, 0.5F, 0.4F / (random.nextFloat() * 0.4F + 1F));
+        worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (worldIn.random.nextFloat() * 0.4F + 1F));
 
-        if (!worldIn.isRemote) {
+        if (!worldIn.isClientSide) {
             ThrownGoldenEggEntity entityegg = new ThrownGoldenEggEntity(worldIn, playerIn);
-            entityegg.setDirectionAndMovement(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
-            worldIn.addEntity(entityegg);
+            entityegg.shootFromRotation(playerIn, playerIn.getXRot(), playerIn.getYRot(), 0.0F, 1.5F, 1.0F);
+            worldIn.addFreshEntity(entityegg);
         }
 
-        playerIn.addStat(Stats.ITEM_USED.get(this));
+        playerIn.awardStat(Stats.ITEM_USED.get(this));
 
-        return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
     }
 }

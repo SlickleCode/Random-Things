@@ -1,33 +1,37 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.client.screen.ScreenWidgets;
+
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AnalogEmitterContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * AnalogEmitterScreen
  */
-public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
+public class AnalogEmitterScreen extends AbstractContainerScreen<AnalogEmitterContainer>
 {
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/analog_emitter.png");
 
-	public AnalogEmitterScreen(AnalogEmitterContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
+	public AnalogEmitterScreen(AnalogEmitterContainer screenContainer, Inventory inv, Component titleIn)
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 78;
-		this.ySize = 50;
+		this.imageWidth = 78;
+		this.imageHeight = 50;
 	}
 
 	@Override
@@ -35,28 +39,28 @@ public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
 	{
 		super.init();
 
-		this.addButton(new Button(this.guiLeft + 5, this.guiTop + 20, 20, 20, new StringTextComponent("<"), (button) -> {
-			this.container.send(0, (pb) -> pb.writeInt(0));
+		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 20, 20, 20, new TextComponent("<"), (button) -> {
+			this.menu.send(0, (pb) -> pb.writeInt(0));
 		}));
-		this.addButton(new Button(this.guiLeft + 55, this.guiTop + 20, 20, 20, new StringTextComponent(">"), (button) -> {
-			this.container.send(0, (pb) -> pb.writeInt(1));
+		this.addRenderableWidget(new Button(this.leftPos + 55, this.topPos + 20, 20, 20, new TextComponent(">"), (button) -> {
+			this.menu.send(0, (pb) -> pb.writeInt(1));
 		}));
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
 	{
 
-		this.font.drawString(matrixStack, I18n.format("block.randomthings.analog_emitter"), 4, 6, 4210752);
+		this.font.draw(matrixStack, I18n.get("block.randomthings.analog_emitter"), 4, 6, 4210752);
 
-		String levelString = this.container.emitLevel.get() + "";
-		this.font.drawString(matrixStack, levelString, xSize / 2 - this.font.getStringWidth(levelString) / 2 + 3, 26, 0xFF0000);
+		String levelString = this.menu.emitLevel.get() + "";
+		this.font.draw(matrixStack, levelString, imageWidth / 2 - this.font.width(levelString) / 2 + 3, 26, 0xFF0000);
 
-		for (Widget widget : this.buttons)
+		for (AbstractWidget widget : ScreenWidgets.buttons(this))
 		{
-			if (widget.isHovered())
+			if (widget.isHoveredOrFocused())
 			{
-				widget.renderToolTip(matrixStack, mouseX - this.guiLeft, mouseY - this.guiTop);
+				widget.renderToolTip(matrixStack, mouseX - this.leftPos, mouseY - this.topPos);
 				break;
 			}
 		}
@@ -64,20 +68,21 @@ public class AnalogEmitterScreen extends ContainerScreen<AnalogEmitterContainer>
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-		int i = (this.width - this.xSize) / 2;
-		int j = (this.height - this.ySize) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+		int i = (this.width - this.imageWidth) / 2;
+		int j = (this.height - this.imageHeight) / 2;
+		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
 		this.renderBackground(matrixStack);
 		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

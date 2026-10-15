@@ -1,70 +1,79 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.AdvancedItemCollectorTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A longer-range, filterable, configurable-radius version of
  * {@link ItemCollectorBlock}; same six-way mountable-nub shape, larger.
  */
-public class AdvancedItemCollectorBlock extends Block
-{
+public class AdvancedItemCollectorBlock extends Block implements EntityBlock {
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
-	private static final VoxelShape SHAPE_UP = Block.makeCuboidShape(6, 0, 6, 10, 5, 10);
-	private static final VoxelShape SHAPE_DOWN = Block.makeCuboidShape(6, 11, 6, 10, 16, 10);
-	private static final VoxelShape SHAPE_NORTH = Block.makeCuboidShape(6, 6, 11, 10, 10, 16);
-	private static final VoxelShape SHAPE_SOUTH = Block.makeCuboidShape(6, 6, 0, 10, 10, 5);
-	private static final VoxelShape SHAPE_WEST = Block.makeCuboidShape(11, 6, 6, 16, 10, 10);
-	private static final VoxelShape SHAPE_EAST = Block.makeCuboidShape(0, 6, 6, 5, 10, 10);
+	private static final VoxelShape SHAPE_UP = Block.box(6, 0, 6, 10, 5, 10);
+	private static final VoxelShape SHAPE_DOWN = Block.box(6, 11, 6, 10, 16, 10);
+	private static final VoxelShape SHAPE_NORTH = Block.box(6, 6, 11, 10, 10, 16);
+	private static final VoxelShape SHAPE_SOUTH = Block.box(6, 6, 0, 10, 10, 5);
+	private static final VoxelShape SHAPE_WEST = Block.box(11, 6, 6, 16, 10, 10);
+	private static final VoxelShape SHAPE_EAST = Block.box(0, 6, 6, 5, 10, 10);
 
 	public AdvancedItemCollectorBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).notSolid().hardnessAndResistance(0.3F).doesNotBlockMovement());
+		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).noOcclusion().strength(0.3F).noCollission());
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(FACING);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state)
+	public RenderShape getRenderShape(BlockState state)
 	{
-		return BlockRenderType.MODEL;
+		return RenderShape.MODEL;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		switch (state.get(FACING))
+		switch (state.getValue(FACING))
 		{
 			case DOWN:
 				return SHAPE_DOWN;
@@ -84,60 +93,60 @@ public class AdvancedItemCollectorBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return VoxelShapes.empty();
+		return Shapes.empty();
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new AdvancedItemCollectorTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
 	{
-		return new AdvancedItemCollectorTileEntity();
+	    return Tickers.of(type, ModTileEntityTypes.ADVANCED_ITEM_COLLECTOR, (l, p, s2, be) -> be.tick());
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context)
+	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
-		return this.getDefaultState().with(FACING, context.getFace());
+		return this.defaultBlockState().setValue(FACING, context.getClickedFace());
 	}
 
 	@Override
-	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof AdvancedItemCollectorTileEntity)
 			{
 				NonNullList<ItemStack> drops = NonNullList.create();
 				drops.add(((AdvancedItemCollectorTileEntity) te).filterInventory().getStackInSlot(0));
-				InventoryHelper.dropItems(worldIn, pos, drops);
+				Containers.dropContents(worldIn, pos, drops);
 			}
 		}
 
-		super.onReplaced(state, worldIn, pos, newState, isMoving);
+		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof AdvancedItemCollectorTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (AdvancedItemCollectorTileEntity) te);
+				NetworkHooks.openGui((ServerPlayer) player, (AdvancedItemCollectorTileEntity) te);
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

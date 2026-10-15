@@ -1,46 +1,44 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.SoundDampenerTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A 9-slot filter of {@link lumien.randomthings.item.SoundPatternItem}s -
  * every sound stamped into one mutes for anyone within 20 blocks. Direct
  * port of 1.12.2's {@code BlockSoundDampener}.
  */
-public class SoundDampenerBlock extends Block {
+public class SoundDampenerBlock extends Block implements EntityBlock {
     public SoundDampenerBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+        super(Block.Properties.of(Material.STONE).strength(2.0F));
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new SoundDampenerTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new SoundDampenerTileEntity();
-    }
-
-    @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof SoundDampenerTileEntity) {
                 ItemStackHandler handler = ((SoundDampenerTileEntity) te).getItemHandler();
@@ -49,25 +47,25 @@ public class SoundDampenerBlock extends Block {
                     ItemStack stack = handler.getStackInSlot(i);
 
                     if (!stack.isEmpty()) {
-                        Block.spawnAsEntity(worldIn, pos, stack);
+                        Block.popResource(worldIn, pos, stack);
                     }
                 }
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if (!worldIn.isRemote) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (!worldIn.isClientSide) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof SoundDampenerTileEntity) {
-                NetworkHooks.openGui((ServerPlayerEntity) player, (SoundDampenerTileEntity) te);
+                NetworkHooks.openGui((ServerPlayer) player, (SoundDampenerTileEntity) te);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

@@ -1,19 +1,21 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.ChunkAnalyzerContainer;
 import lumien.randomthings.util.ChunkAnalyzerResult;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Port of 1.12.2's {@code GuiChunkAnalyzer}: a "Scan" button that asks the
@@ -24,7 +26,7 @@ import net.minecraft.util.text.StringTextComponent;
  * special wiring needed) so previously-saved results still show up if you
  * reopen the GUI without rescanning.
  */
-public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer> {
+public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/chunk_analyzer.png");
 
     private ChunkAnalyzerScanResultList scanResultList;
@@ -37,31 +39,31 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     // without needing to port a shared counter just for this.
     private int ticksElapsed;
 
-    public ChunkAnalyzerScreen(ChunkAnalyzerContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public ChunkAnalyzerScreen(ChunkAnalyzerContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 190;
-        this.ySize = 124;
+        this.imageWidth = 190;
+        this.imageHeight = 124;
     }
 
     @Override
     protected void init() {
         super.init();
 
-        this.scanButton = this.addButton(new Button(this.guiLeft + 136, this.guiTop + 5, 50, 14, new StringTextComponent("Scan"), (button) -> {
-            this.container.send(0, (pb) -> {
+        this.scanButton = this.addRenderableWidget(new Button(this.leftPos + 136, this.topPos + 5, 50, 14, new TextComponent("Scan"), (button) -> {
+            this.menu.send(0, (pb) -> {
             });
         }));
 
-        this.scanResultList = new ChunkAnalyzerScanResultList(this.minecraft, 182, 100, this.guiTop + 20, this.guiTop + 120, this.guiLeft + 4);
-        this.children.add(this.scanResultList);
+        this.scanResultList = new ChunkAnalyzerScanResultList(this.minecraft, 182, 100, this.topPos + 20, this.topPos + 120, this.leftPos + 4);
+        this.addWidget(this.scanResultList);
 
         refreshResultsFromHeldStack();
     }
 
     private void refreshResultsFromHeldStack() {
-        ItemStack held = this.playerInventory.player.getHeldItemMainhand();
-        CompoundNBT resultTag = held.getChildTag("result");
+        ItemStack held = this.minecraft.player.getMainHandItem();
+        CompoundTag resultTag = held.getTagElement("result");
 
         if (resultTag != null) {
             ChunkAnalyzerResult results = new ChunkAnalyzerResult();
@@ -73,17 +75,18 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int x = (this.width - this.xSize) / 2;
-        int y = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
@@ -101,19 +104,19 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         this.scanResultList.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        boolean scanning = this.container.scanning.get() != 0;
+        boolean scanning = this.menu.scanning.get() != 0;
 
         this.scanButton.active = !scanning;
 
         if (scanning) {
             String text = "Scanning Chunk" + dots();
-            this.font.drawString(matrixStack, text, this.guiLeft + (int) (95 - this.font.getStringWidth(text) / 2F), this.guiTop + 65, 16777215);
+            this.font.draw(matrixStack, text, this.leftPos + (int) (95 - this.font.width(text) / 2F), this.topPos + 65, 16777215);
         }
 
         if (this.wasScanning && !scanning) {
@@ -126,7 +129,7 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
 
         this.wasScanning = scanning;
 
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 
     private String dots() {
@@ -140,8 +143,8 @@ public class ChunkAnalyzerScreen extends ContainerScreen<ChunkAnalyzerContainer>
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
+        super.containerTick();
         ticksElapsed++;
     }
 }

@@ -3,14 +3,14 @@ package lumien.randomthings.item;
 import lumien.randomthings.block.ColoredGrassBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.lib.IRTItemColor;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click a plain Dirt block to turn it into (colored) grass, consuming one seed. A {@code null}
@@ -32,27 +32,27 @@ public class GrassSeedsItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
 
         if (world.getBlockState(pos).getBlock() != Blocks.DIRT) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        if (!world.isRemote) {
+        if (!world.isClientSide) {
             if (color == null) {
-                world.setBlockState(pos, Blocks.GRASS_BLOCK.getDefaultState());
+                world.setBlockAndUpdate(pos, Blocks.GRASS_BLOCK.defaultBlockState());
             } else {
-                world.setBlockState(pos, ModBlocks.COLORED_GRASS.getDefaultState().with(ColoredGrassBlock.COLOR, color));
+                world.setBlockAndUpdate(pos, ModBlocks.COLORED_GRASS.defaultBlockState().setValue(ColoredGrassBlock.COLOR, color));
             }
 
-            if (context.getPlayer() == null || !context.getPlayer().abilities.isCreativeMode) {
-                context.getItem().shrink(1);
+            if (context.getPlayer() == null || !context.getPlayer().getAbilities().instabuild) {
+                context.getItemInHand().shrink(1);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

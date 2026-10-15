@@ -2,42 +2,42 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.BlockDestabilizerTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 
-public class BlockDestabilizerContainer extends Container implements ISignalContainer {
-    IWorldPosCallable pos;
+public class BlockDestabilizerContainer extends AbstractContainerMenu implements ISignalContainer {
+    ContainerLevelAccess pos;
 
-    public IntReferenceHolder lazy = IntReferenceHolder.single();
-    public IntReferenceHolder fuzzy = IntReferenceHolder.single();
+    public DataSlot lazy = DataSlot.standalone();
+    public DataSlot fuzzy = DataSlot.standalone();
 
-    public BlockDestabilizerContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, IWorldPosCallable.DUMMY);
+    public BlockDestabilizerContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, ContainerLevelAccess.NULL);
     }
 
-    public BlockDestabilizerContainer(int windowId, IWorldPosCallable pos) {
+    public BlockDestabilizerContainer(int windowId, ContainerLevelAccess pos) {
         super(ModContainerTypes.BLOCK_DESTABILIZER, windowId);
 
         this.pos = pos;
 
-        this.trackInt(lazy);
-        this.trackInt(fuzzy);
+        this.addDataSlot(lazy);
+        this.addDataSlot(fuzzy);
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.BLOCK_DESTABILIZER);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.BLOCK_DESTABILIZER);
     }
 
     @Override
-    public void detectAndSendChanges() {
-        this.pos.consume((world, pos) -> {
-            TileEntity te = world.getTileEntity(pos);
+    public void broadcastChanges() {
+        this.pos.execute((world, pos) -> {
+            BlockEntity te = world.getBlockEntity(pos);
 
             if (te instanceof BlockDestabilizerTileEntity) {
                 BlockDestabilizerTileEntity bd = (BlockDestabilizerTileEntity) te;
@@ -47,13 +47,13 @@ public class BlockDestabilizerContainer extends Container implements ISignalCont
             }
         });
 
-        super.detectAndSendChanges();
+        super.broadcastChanges();
     }
 
     @Override
-    public void handle(int id, PacketBuffer data) {
-        this.pos.consume((world, pos) -> {
-            TileEntity te = world.getTileEntity(pos);
+    public void handle(int id, FriendlyByteBuf data) {
+        this.pos.execute((world, pos) -> {
+            BlockEntity te = world.getBlockEntity(pos);
 
             if (!(te instanceof BlockDestabilizerTileEntity)) {
                 return;

@@ -1,16 +1,20 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.client.screen.ScreenWidgets;
+
+import net.minecraft.client.renderer.GameRenderer;
+
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.container.BlockDestabilizerContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.Button;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -19,14 +23,14 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * (matching {@code IgniterScreen}'s own proven pattern) instead of porting a
  * bespoke image-button widget for two on/off toggles.
  */
-public class BlockDestabilizerScreen extends ContainerScreen<BlockDestabilizerContainer> {
+public class BlockDestabilizerScreen extends AbstractContainerScreen<BlockDestabilizerContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/block_destabilizer.png");
 
-    public BlockDestabilizerScreen(BlockDestabilizerContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public BlockDestabilizerScreen(BlockDestabilizerContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 85;
-        this.ySize = 35;
+        this.imageWidth = 85;
+        this.imageHeight = 35;
     }
 
     @Override
@@ -34,47 +38,49 @@ public class BlockDestabilizerScreen extends ContainerScreen<BlockDestabilizerCo
         super.init();
 
         // Sprite buttons at the original GuiBlockDestabilizer's positions (7/33/58, y7)
-        this.addButton(new SpriteStateButton(this.guiLeft + 7, this.guiTop + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/lazy.png"), () -> this.container.lazy.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"), (button) -> {
-            this.container.send(0, (pb) -> {
+        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 7, this.topPos + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/lazy.png"), () -> this.menu.lazy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"), (button) -> {
+            this.menu.send(0, (pb) -> {
             });
         }));
 
-        this.addButton(new SpriteStateButton(this.guiLeft + 33, this.guiTop + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/fuzzy.png"), () -> this.container.fuzzy.get() != 0 ? 1 : 0, state -> I18n.format(state != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"), (button) -> {
-            this.container.send(1, (pb) -> {
+        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 33, this.topPos + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/fuzzy.png"), () -> this.menu.fuzzy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"), (button) -> {
+            this.menu.send(1, (pb) -> {
             });
         }));
 
         // Reset: the 20x20 sprite at (85,0) of the GUI texture, hover variant 20px lower
-        this.addButton(new SpriteStateButton(this.guiLeft + 58, this.guiTop + 7, 20, 20, GUI_TEXTURES, () -> 0, state -> I18n.format("gui.block_destabilizer.reset"), (button) -> {
-            this.container.send(2, (pb) -> {
+        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 58, this.topPos + 7, 20, 20, GUI_TEXTURES, () -> 0, state -> I18n.get("gui.block_destabilizer.reset"), (button) -> {
+            this.menu.send(2, (pb) -> {
             });
         }) {
             @Override
-            public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-                Minecraft.getInstance().getTextureManager().bindTexture(GUI_TEXTURES);
-                RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-                this.blit(matrixStack, this.x, this.y, 85, this.isHovered() ? 20 : 0, 20, 20);
+            public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+                RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                this.blit(matrixStack, this.x, this.y, 85, this.isHovered ? 20 : 0, 20, 20);
             }
         });
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        SpriteStateButton.renderTooltips(matrixStack, this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        SpriteStateButton.renderTooltips(matrixStack, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int i = (this.width - this.imageWidth) / 2;
+        int j = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 }

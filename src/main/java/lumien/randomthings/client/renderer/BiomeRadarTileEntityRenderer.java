@@ -4,14 +4,15 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.math.Vector3f;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 
 /**
  * Renders the inserted {@link lumien.randomthings.item.BiomeCrystalItem}
@@ -21,29 +22,28 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
  * dropped-item renderer - simpler to just do the bob/spin transform directly
  * here and render the stack with {@code ItemRenderer}, same visual result.
  */
-public class BiomeRadarTileEntityRenderer extends TileEntityRenderer<BiomeRadarTileEntity> {
-    public BiomeRadarTileEntityRenderer(TileEntityRendererDispatcher dispatcher) {
-        super(dispatcher);
+public class BiomeRadarTileEntityRenderer implements BlockEntityRenderer<BiomeRadarTileEntity> {
+    public BiomeRadarTileEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(BiomeRadarTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
+    public void render(BiomeRadarTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
         ItemStack currentCrystal = te.getCurrentCrystal();
 
         if (currentCrystal.isEmpty()) {
             return;
         }
 
-        float age = (te.getWorld().getGameTime() % 360000L) + partialTicks;
+        float age = (te.getLevel().getGameTime() % 360000L) + partialTicks;
 
-        matrixStack.push();
+        matrixStack.pushPose();
         // 1.12.2 pinned the item's bob phase (hoverStart) so it spun in place INSIDE the block, about a third of the way up - no bobbing, no hovering above it
         matrixStack.translate(0.5D, 0.4D, 0.5D);
-        matrixStack.rotate(Vector3f.YN.rotationDegrees((age * 2.9F) % 360.0F));
+        matrixStack.mulPose(Vector3f.YN.rotationDegrees((age * 2.9F) % 360.0F));
         matrixStack.scale(0.75F, 0.75F, 0.75F);
 
-        Minecraft.getInstance().getItemRenderer().renderItem(currentCrystal, TransformType.GROUND, net.minecraft.client.renderer.WorldRenderer.getCombinedLight(te.getWorld(), te.getPos().up()), combinedOverlay, matrixStack, buffer);
+        Minecraft.getInstance().getItemRenderer().renderStatic(currentCrystal, TransformType.GROUND, net.minecraft.client.renderer.LevelRenderer.getLightColor(te.getLevel(), te.getBlockPos().above()), combinedOverlay, matrixStack, buffer, 0);
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 }

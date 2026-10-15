@@ -1,11 +1,11 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.BoatEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 import java.lang.reflect.Field;
 
@@ -103,7 +103,7 @@ import java.lang.reflect.Field;
  * 0.91 baked into *that* formula specifically - so slipperiness has to be
  * {@code 1F / 0.91F} to cancel it out to a net {@code 1.0F}. {@code
  * BoatEntity#updateMotion} has no such extra constant at all - it uses
- * {@code momentum = boatGlide} (straight from {@code getSlipperiness()})
+ * {@code momentum = boatGlide} (straight from {@code getFriction()})
  * *directly* as the multiplier. So a boat on these blocks was seeing a real
  * momentum of {@code ~1.0989}, not {@code 1.0} - genuine (if slower than
  * before) exponential growth from literally any nonzero residual velocity,
@@ -164,26 +164,26 @@ public final class SuperLubricentPhysics
 
 	/**
 	 * Shared implementation for each Super Lubricent block's override of
-	 * {@code Block#getSlipperiness(BlockState, IWorldReader, BlockPos,
+	 * {@code Block#getFriction(BlockState, IWorldReader, BlockPos,
 	 * Entity)} - {@code defaultValue} is that block's own normal (living-
 	 * entity) zero-friction value, passed through unchanged for anything
 	 * that isn't a {@code BoatEntity}.
 	 */
 	public static float slipperinessFor(Entity entity, float defaultValue)
 	{
-		return entity instanceof BoatEntity ? BOAT_CRUISE_SLIPPERINESS : defaultValue;
+		return entity instanceof Boat ? BOAT_CRUISE_SLIPPERINESS : defaultValue;
 	}
 
 	public static void capHorizontalSpeed(Entity entity)
 	{
-		Vector3d motion = entity.getMotion();
+		Vec3 motion = entity.getDeltaMovement();
 		double horizontalSpeedSq = motion.x * motion.x + motion.z * motion.z;
 		double maxSpeedSq = MAX_HORIZONTAL_SPEED * MAX_HORIZONTAL_SPEED;
 
 		if (horizontalSpeedSq > maxSpeedSq)
 		{
 			double scale = MAX_HORIZONTAL_SPEED / Math.sqrt(horizontalSpeedSq);
-			entity.setMotion(motion.x * scale, motion.y, motion.z * scale);
+			entity.setDeltaMovement(motion.x * scale, motion.y, motion.z * scale);
 		}
 	}
 
@@ -193,7 +193,7 @@ public final class SuperLubricentPhysics
 	 * javadoc) - the two independent things {@code BoatEntity#updateMotion}
 	 * multiplies by the underfoot block's slipperiness every tick.
 	 */
-	public static void capBoatMotion(BoatEntity boat)
+	public static void capBoatMotion(Boat boat)
 	{
 		capHorizontalSpeed(boat);
 
@@ -207,7 +207,7 @@ public final class SuperLubricentPhysics
 		try
 		{
 			float deltaRotation = field.getFloat(boat);
-			float clamped = MathHelper.clamp(deltaRotation, -MAX_TURN_RATE, MAX_TURN_RATE);
+			float clamped = Mth.clamp(deltaRotation, -MAX_TURN_RATE, MAX_TURN_RATE);
 
 			if (clamped != deltaRotation)
 			{
@@ -229,9 +229,9 @@ public final class SuperLubricentPhysics
 		try
 		{
 			// field_184475_as = deltaRotation (SRG name so it also resolves in a production jar)
-			deltaRotationField = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BoatEntity.class, "field_184475_as");
+			deltaRotationField = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(Boat.class, "f_38266_");
 		}
-		catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e)
+		catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e)
 		{
 			deltaRotationLookupFailed = true;
 		}
@@ -251,8 +251,8 @@ public final class SuperLubricentPhysics
 	 */
 	public static boolean isOnLubricentBlock(Entity entity)
 	{
-		BlockPos underfoot = new BlockPos(entity.getPosX(), entity.getBoundingBox().minY - 1.0D, entity.getPosZ());
-		Block block = entity.world.getBlockState(underfoot).getBlock();
+		BlockPos underfoot = new BlockPos(entity.getX(), entity.getBoundingBox().minY - 1.0D, entity.getZ());
+		Block block = entity.level.getBlockState(underfoot).getBlock();
 
 		return block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock;
 	}

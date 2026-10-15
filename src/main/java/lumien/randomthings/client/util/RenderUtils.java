@@ -7,68 +7,70 @@ import java.util.Random;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.Camera;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.client.renderer.GameRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 
 public class RenderUtils
 {
-	public static void drawCube(MatrixStack matrixStack, float posX, float posY, float posZ, float width, float length, float height, int red, int green, int blue, int alpha)
+	public static void drawCube(PoseStack matrixStack, float posX, float posY, float posZ, float width, float length, float height, int red, int green, int blue, int alpha)
 	{
-		Tessellator t = Tessellator.getInstance();
-		BufferBuilder wr = t.getBuffer();
+		Tesselator t = Tesselator.getInstance();
+		BufferBuilder wr = t.getBuilder();
 
 		RenderSystem.disableTexture();
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-		matrixStack.push();
+		matrixStack.pushPose();
 		matrixStack.translate(posX, posY, posZ);
-		Matrix4f m = matrixStack.getLast().getMatrix();
+		Matrix4f m = matrixStack.last().pose();
 
-		wr.begin(7, DefaultVertexFormats.POSITION_COLOR);
+		wr.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
-		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.vertex(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P2
+		wr.vertex(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P3
+		wr.vertex(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
-		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.vertex(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P2
+		wr.vertex(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P3
+		wr.vertex(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
-		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, width, 0F, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, width, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, 0F, length).color(red, green, blue, alpha).endVertex(); // P1
 
-		wr.pos(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
-		wr.pos(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P2
-		wr.pos(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P3
-		wr.pos(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P4
+		wr.vertex(m, 0F, height, 0F).color(red, green, blue, alpha).endVertex(); // P1
+		wr.vertex(m, 0F, height, length).color(red, green, blue, alpha).endVertex(); // P2
+		wr.vertex(m, width, height, length).color(red, green, blue, alpha).endVertex(); // P3
+		wr.vertex(m, width, height, 0F).color(red, green, blue, alpha).endVertex(); // P4
 
-		t.draw();
+		t.end();
 
-		matrixStack.pop();
+		matrixStack.popPose();
 		RenderSystem.enableTexture();
 	}
 
-	public static void drawCube(MatrixStack matrixStack, float posX, float posY, float posZ, float size, int red, int green, int blue, int alpha)
+	public static void drawCube(PoseStack matrixStack, float posX, float posY, float posZ, float size, int red, int green, int blue, int alpha)
 	{
 		drawCube(matrixStack, posX, posY, posZ, size, size, size, red, green, blue, alpha);
 	}
@@ -77,12 +79,13 @@ public class RenderUtils
 	{
 		RenderSystem.disableTexture();
 
-		Tessellator t = Tessellator.getInstance();
-		BufferBuilder wr = t.getBuffer();
-		ActiveRenderInfo ari = Minecraft.getInstance().gameRenderer.getActiveRenderInfo();
+		Tesselator t = Tesselator.getInstance();
+		BufferBuilder wr = t.getBuilder();
+		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
 
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		GL11.glPointSize(1.0f);
-		wr.begin(GL11.GL_POINTS, DefaultVertexFormats.POSITION_COLOR);
+		wr.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 
 		float radius = 2;
 
@@ -101,10 +104,10 @@ public class RenderUtils
 			float y = (float) (radius * Math.cos(beta) * Math.cos(alpha)) + oY;
 			float z = (float) (radius * Math.sin(beta) * Math.cos(alpha)) + oZ;
 
-			wr.pos(x1 + x, y1 + y, z1 + z).color(255, 0, 0, 255).endVertex();
+			wr.vertex(x1 + x, y1 + y, z1 + z).color(255, 0, 0, 255).endVertex();
 		}
 
-		t.draw();
+		t.end();
 
 
 

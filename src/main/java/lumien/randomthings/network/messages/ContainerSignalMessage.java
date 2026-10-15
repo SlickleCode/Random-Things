@@ -3,10 +3,10 @@ package lumien.randomthings.network.messages;
 import io.netty.buffer.Unpooled;
 import lumien.randomthings.container.ISignalContainer;
 import lumien.randomthings.network.IRTMessage;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * ContainerSignalMessage
@@ -14,9 +14,9 @@ import net.minecraftforge.fml.network.NetworkEvent.Context;
 public class ContainerSignalMessage implements IRTMessage
 {
 	int id;
-	PacketBuffer data;
+	FriendlyByteBuf data;
 
-	public ContainerSignalMessage(int id, PacketBuffer data)
+	public ContainerSignalMessage(int id, FriendlyByteBuf data)
 	{
 		this.id = id;
 		this.data = data;
@@ -28,16 +28,16 @@ public class ContainerSignalMessage implements IRTMessage
 	}
 
 	@Override
-	public void read(PacketBuffer pb)
+	public void read(FriendlyByteBuf pb)
 	{
 		this.id = pb.readInt();
 
 		byte[] byteArray = pb.readByteArray();
-		this.data = new PacketBuffer(Unpooled.copiedBuffer(byteArray));
+		this.data = new FriendlyByteBuf(Unpooled.copiedBuffer(byteArray));
 	}
 
 	@Override
-	public void write(PacketBuffer pb)
+	public void write(FriendlyByteBuf pb)
 	{
 		pb.writeInt(id);
 		pb.writeByteArray(data.array());
@@ -46,9 +46,9 @@ public class ContainerSignalMessage implements IRTMessage
 	@Override
 	public void handle(Context context)
 	{
-		ServerPlayerEntity player = context.getSender();
+		ServerPlayer player = context.getSender();
 
-		Container container = player.openContainer;
+		AbstractContainerMenu container = player.containerMenu;
 
 		if (container instanceof ISignalContainer)
 		{

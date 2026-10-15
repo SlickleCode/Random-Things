@@ -6,16 +6,16 @@ import lumien.randomthings.network.messages.ContainerSignalMessage;
 import lumien.randomthings.network.messages.NotificationMessage;
 import lumien.randomthings.network.messages.PlayedSoundMessage;
 import lumien.randomthings.network.messages.RedstoneRemoteActivateMessage;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.PacketDistributor;
-import net.minecraftforge.fml.network.PacketDistributor.PacketTarget;
-import net.minecraftforge.fml.network.PacketDistributor.TargetPoint;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor.PacketTarget;
+import net.minecraftforge.network.PacketDistributor.TargetPoint;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 /**
  * RTPacketHandler
@@ -36,7 +36,7 @@ public class RTPacketHandler
 		register(disc++, RedstoneRemoteActivateMessage.class);
 	}
 
-	public static void sendTo(IRTMessage message, ServerPlayerEntity player)
+	public static void sendTo(IRTMessage message, ServerPlayer player)
 	{
 		HANDLER.send(PacketDistributor.PLAYER.with(() -> player), message);
 	}
@@ -46,9 +46,9 @@ public class RTPacketHandler
 		HANDLER.sendToServer(message);
 	}
 
-	public static void sendToAllNear(IRTMessage message, World world, BlockPos pos, float radius)
+	public static void sendToAllNear(IRTMessage message, Level world, BlockPos pos, float radius)
 	{
-		PacketTarget target = PacketDistributor.NEAR.with(() -> new TargetPoint(pos.getX(), pos.getY(), pos.getZ(), radius, world.getDimensionKey()));
+		PacketTarget target = PacketDistributor.NEAR.with(() -> new TargetPoint(pos.getX(), pos.getY(), pos.getZ(), radius, world.dimension()));
 		HANDLER.send(target, message);
 	}
 

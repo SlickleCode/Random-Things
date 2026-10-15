@@ -3,15 +3,15 @@ package lumien.randomthings.item;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.util.BiomeColorUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -32,21 +32,21 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public ITextComponent getDisplayName(ItemStack stack) {
-        ITextComponent name = super.getDisplayName(stack);
+    public Component getName(ItemStack stack) {
+        Component name = super.getName(stack);
 
         Biome biome = getBiome(stack);
 
         if (biome != null) {
-            name = new StringTextComponent(name.getString() + " (" + BiomeUtil.displayName(biome).getString() + ")");
+            name = new TextComponent(name.getString() + " (" + BiomeUtil.displayName(biome).getString() + ")");
         }
 
         return name;
     }
 
     @Override
-    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
-        super.addInformation(stack, world, tooltip, flag);
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, world, tooltip, flag);
 
         Biome biome = getBiome(stack);
 
@@ -56,7 +56,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
+    public boolean isFoil(ItemStack stack) {
         Biome biome = getBiome(stack);
 
         return biome != null && BiomeUtil.hasType(biome, Type.MAGICAL);
@@ -67,14 +67,14 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         Biome biome = getBiome(stack);
 
         if (biome != null && Minecraft.getInstance().player != null) {
-            return BiomeColorUtil.getBiomeColor(null, biome, Minecraft.getInstance().player.getPosition());
+            return BiomeColorUtil.getBiomeColor(null, biome, Minecraft.getInstance().player.blockPosition());
         }
 
         return 0xFFFFFF;
     }
 
     public static Biome getBiome(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         if (compound != null && compound.contains("biomeName")) {
             return ForgeRegistries.BIOMES.getValue(new ResourceLocation(compound.getString("biomeName")));
@@ -84,7 +84,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     public static void setBiome(ItemStack stack, Biome biome) {
-        CompoundNBT compound = stack.getOrCreateTag();
+        CompoundTag compound = stack.getOrCreateTag();
 
         compound.putString("biomeName", biome.getRegistryName().toString());
     }

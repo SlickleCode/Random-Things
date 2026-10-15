@@ -4,8 +4,8 @@ import lumien.randomthings.block.spectretree.SpectreLeafBlock;
 import lumien.randomthings.block.spectretree.SpectreLogBlock;
 import lumien.randomthings.block.spectretree.SpectrePlankBlock;
 import lumien.randomthings.block.spectretree.SpectreSaplingBlock;
-import net.minecraft.block.Block;
-import net.minecraft.item.DyeColor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.DyeColor;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
@@ -282,12 +282,12 @@ public class ModBlocks
 	 */
 	public static String stainedBrickRegistryName(DyeColor color, boolean luminous)
 	{
-		return (luminous ? "luminous_stained_brick_" : "stained_brick_") + color.getTranslationKey();
+		return (luminous ? "luminous_stained_brick_" : "stained_brick_") + color.getName();
 	}
 
 	public static String luminousBlockRegistryName(DyeColor color, boolean translucent)
 	{
-		return (translucent ? "luminous_block_translucent_" : "luminous_block_") + color.getTranslationKey();
+		return (translucent ? "luminous_block_translucent_" : "luminous_block_") + color.getName();
 	}
 
 	public static void registerBlocks(RegistryEvent.Register<Block> blockRegistryEvent)

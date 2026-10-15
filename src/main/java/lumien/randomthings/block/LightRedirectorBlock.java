@@ -1,22 +1,24 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.LightRedirectorTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A full-cube "periscope": whichever faces are left open (right-click a face
@@ -50,17 +52,17 @@ import net.minecraft.util.ActionResultType;
  * neighbors applies (strictly a performance win, no visual difference for a
  * full cube).
  */
-public class LightRedirectorBlock extends Block {
+public class LightRedirectorBlock extends Block implements EntityBlock {
     public LightRedirectorBlock() {
-        super(Block.Properties.create(Material.WOOD).sound(SoundType.WOOD).hardnessAndResistance(2.0F));
+        super(Block.Properties.of(Material.WOOD).sound(SoundType.WOOD).strength(2.0F));
 
-        this.setDefaultState(this.getStateContainer().getBaseState()
-                .with(BlockStateProperties.NORTH, true)
-                .with(BlockStateProperties.EAST, true)
-                .with(BlockStateProperties.SOUTH, true)
-                .with(BlockStateProperties.WEST, true)
-                .with(BlockStateProperties.UP, true)
-                .with(BlockStateProperties.DOWN, true));
+        this.registerDefaultState(this.getStateDefinition().any()
+                .setValue(BlockStateProperties.NORTH, true)
+                .setValue(BlockStateProperties.EAST, true)
+                .setValue(BlockStateProperties.SOUTH, true)
+                .setValue(BlockStateProperties.WEST, true)
+                .setValue(BlockStateProperties.UP, true)
+                .setValue(BlockStateProperties.DOWN, true));
     }
 
     public static BooleanProperty propertyFor(Direction facing) {
@@ -82,38 +84,34 @@ public class LightRedirectorBlock extends Block {
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.NORTH, BlockStateProperties.EAST, BlockStateProperties.SOUTH, BlockStateProperties.WEST, BlockStateProperties.UP, BlockStateProperties.DOWN);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) {
-            return ActionResultType.SUCCESS;
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (worldIn.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (!(te instanceof LightRedirectorTileEntity)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        Direction facing = hit.getFace();
+        Direction facing = hit.getDirection();
         LightRedirectorTileEntity redirector = (LightRedirectorTileEntity) te;
         redirector.toggleSide(facing);
 
-        worldIn.setBlockState(pos, state.with(propertyFor(facing), redirector.isEnabled(facing)), 3);
+        worldIn.setBlock(pos, state.setValue(propertyFor(facing), redirector.isEnabled(facing)), 3);
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new LightRedirectorTileEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new LightRedirectorTileEntity(pos, state);
     }
 }

@@ -1,17 +1,17 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
 
 /**
  * The horizontal-friction math this depends on: {@code LivingEntity.travel}
@@ -44,11 +44,11 @@ import net.minecraft.world.IWorldReader;
  */
 public class SuperLubricentPlatformBlock extends Block
 {
-	protected static final VoxelShape SHAPE = Block.makeCuboidShape(0, 14, 0, 16, 16, 16);
+	protected static final VoxelShape SHAPE = Block.box(0, 14, 0, 16, 16, 16);
 
 	public SuperLubricentPlatformBlock()
 	{
-		super(Block.Properties.create(Material.ICE, MaterialColor.ICE).notSolid().hardnessAndResistance(0.5F).slipperiness(1F / 0.91F));
+		super(Block.Properties.of(Material.ICE, MaterialColor.ICE).noOcclusion().strength(0.5F).friction(1F / 0.91F));
 	}
 
 	/**
@@ -57,36 +57,36 @@ public class SuperLubricentPlatformBlock extends Block
 	 * value.
 	 */
 	@Override
-	public float getSlipperiness(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
+	public float getFriction(BlockState state, LevelReader world, BlockPos pos, Entity entity)
 	{
-		return SuperLubricentPhysics.slipperinessFor(entity, super.getSlipperiness(state, world, pos, entity));
+		return SuperLubricentPhysics.slipperinessFor(entity, super.getFriction(state, world, pos, entity));
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		Entity entity = context.getEntity();
+		Entity entity = context instanceof net.minecraft.world.phys.shapes.EntityCollisionContext ecc ? ecc.getEntity() : null;
 
 		if (entity == null)
 		{
-			return VoxelShapes.empty();
+			return Shapes.empty();
 		}
 
-		if (entity.getPosY() < pos.getY() + 14F / 16F)
+		if (entity.getY() < pos.getY() + 14F / 16F)
 		{
-			return VoxelShapes.empty();
+			return Shapes.empty();
 		}
 
-		if (entity instanceof PlayerEntity && ((PlayerEntity) entity).isSneaking() && entity.getMotion().y <= 0)
+		if (entity instanceof Player && ((Player) entity).isShiftKeyDown() && entity.getDeltaMovement().y <= 0)
 		{
-			return VoxelShapes.empty();
+			return Shapes.empty();
 		}
 
 		return super.getCollisionShape(state, worldIn, pos, context);

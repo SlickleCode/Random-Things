@@ -1,24 +1,27 @@
 package lumien.randomthings.client.renderer;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import java.util.Random;
 
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.lib.ModConstants;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.item.DyeColor;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.math.Matrix4f;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -39,27 +42,27 @@ import net.minecraft.client.Minecraft;
  * frame to frame. The {@code FlatRunes} config option swaps the noisy
  * {@code rune_base.png} for the plain {@code rune_base_flat.png}, as in 1.12.2.
  */
-public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileEntity> {
+public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseTileEntity> {
     private static final float UNIT = 1F / 16F;
     private static final ResourceLocation NOISY = new ResourceLocation(ModConstants.MOD_ID, "textures/block/rune_base.png");
     private static final ResourceLocation FLAT = new ResourceLocation(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
     private static final Direction[] SIDE_ORDER = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
 
-    public RuneBaseTileEntityRenderer(TileEntityRendererDispatcher dispatcher) {
-        super(dispatcher);
+    public RuneBaseTileEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(RuneBaseTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer renderBuffer, int combinedLight, int combinedOverlay) {
+    public void render(RuneBaseTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource renderBuffer, int combinedLight, int combinedOverlay) {
         DyeColor[][] runeData = te.getRuneData();
 
         if (te.isEmpty()) {
             return;
         }
 
-        Minecraft.getInstance().gameRenderer.getLightTexture().disableLightmap();
-        Minecraft.getInstance().getTextureManager().bindTexture(RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
-        Matrix4f matrix = matrixStack.getLast().getMatrix();
+        Minecraft.getInstance().gameRenderer.lightTexture().turnOffLightLayer();
+        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShaderTexture(0, RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
+        Matrix4f matrix = matrixStack.last().pose();
         double x = 0, y = 0, z = 0;
         RenderSystem.enableTexture();
         // Real bug #2, found 2026-09-27 (the color4f reset below wasn't enough on its
@@ -85,14 +88,14 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         // despite the tile entity/data placing correctly. Every other custom TESR in
         // this project that draws its own colors already does this - missed here
         // specifically because this is the only one using per-vertex BufferBuilder.color(...) instead of a single
-        // RenderSystem.color4f(...) call per shape.
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        // RenderSystem.setShaderColor(...) call per shape.
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuffer();
-        buffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+        Tesselator tessellator = Tesselator.getInstance();
+        BufferBuilder buffer = tessellator.getBuilder();
+        buffer.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
-        Random rng = new Random(te.getPos().toLong());
+        Random rng = new Random(te.getBlockPos().asLong());
 
         for (int cx = 0; cx < 4; cx++) {
             for (int cy = 0; cy < 4; cy++) {
@@ -111,7 +114,7 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
                     continue;
                 }
 
-                float[] rgb = color.getColorComponentValues();
+                float[] rgb = color.getTextureDiffuseColors();
 
                 // The pixel itself: 2 units wide, centered in its 4-unit cell.
                 addQuad(matrix, buffer, x, y, z, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
@@ -127,22 +130,22 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
             }
         }
 
-        tessellator.draw();
+        tessellator.end();
 
         RenderSystem.enableCull();
         RenderSystem.enableTexture();
-        Minecraft.getInstance().gameRenderer.getLightTexture().enableLightmap();
+        Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
     }
 
     private boolean isConnected(RuneBaseTileEntity te, DyeColor[][] runeData, int cx, int cy, DyeColor color, Direction dir) {
-        int nx = cx + dir.getXOffset();
-        int ny = cy + dir.getZOffset();
+        int nx = cx + dir.getStepX();
+        int ny = cy + dir.getStepZ();
 
         if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4) {
             return runeData[nx][ny] == color;
         }
 
-        TileEntity neighborTe = te.getWorld().getTileEntity(te.getPos().offset(dir));
+        BlockEntity neighborTe = te.getLevel().getBlockEntity(te.getBlockPos().relative(dir));
 
         if (!(neighborTe instanceof RuneBaseTileEntity)) {
             return false;
@@ -204,9 +207,9 @@ public class RuneBaseTileEntityRenderer extends TileEntityRenderer<RuneBaseTileE
         float v1 = v / 16F;
         float v2 = (v + (float) (y2 - y1)) / 16F;
 
-        buffer.pos(matrix, (float) lx1, (float) ly, (float) lz1).tex(u1, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(matrix, (float) lx1, (float) ly, (float) lz2).tex(u1, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(matrix, (float) lx2, (float) ly, (float) lz2).tex(u2, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.pos(matrix, (float) lx2, (float) ly, (float) lz1).tex(u2, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.vertex(matrix, (float) lx1, (float) ly, (float) lz1).uv(u1, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.vertex(matrix, (float) lx1, (float) ly, (float) lz2).uv(u1, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.vertex(matrix, (float) lx2, (float) ly, (float) lz2).uv(u2, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.vertex(matrix, (float) lx2, (float) ly, (float) lz1).uv(u2, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
     }
 }

@@ -3,9 +3,9 @@ package lumien.randomthings.item.spectretools;
 import java.util.UUID;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.item.IItemTier;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.LazyValue;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.util.LazyLoadedValue;
 
 /**
  * Ported from 1.12.2's {@code EnumHelper.addToolMaterial("spectre", 3, 2000, 8, 3, 22)} (repair item
@@ -15,7 +15,7 @@ import net.minecraft.util.LazyValue;
  * {@code ModItems#SPECTRE_INGOT} isn't populated by its {@code ObjectHolder} until after the item
  * registry event this tier is constructed during has finished.
  */
-public class SpectreItemTier implements IItemTier {
+public class SpectreItemTier implements Tier {
     public static final SpectreItemTier INSTANCE = new SpectreItemTier();
 
     /**
@@ -25,41 +25,41 @@ public class SpectreItemTier implements IItemTier {
      * {@code attribute.name.generic.reachDistance} entry - ground-truthed that this exact build's own
      * {@code forge/lang/en_us.json} ships a mismatched key for it ({@code generic.reachDistance} with no
      * {@code attribute.name.} prefix, plus an unrelated {@code attribute.name.generic.reach_distance}
-     * snake_case key that doesn't match {@link net.minecraft.entity.player.PlayerEntity#REACH_DISTANCE}'s
+     * snake_case key that doesn't match {@link net.minecraft.world.entity.player.Player#REACH_DISTANCE}'s
      * real camelCase name either), so without our own entry the tooltip showed the raw untranslated key
      * instead of "Reach Distance".
      */
     public static final UUID REACH_MODIFIER_UUID = UUID.nameUUIDFromBytes("SpectreRangeModifier".getBytes());
 
-    private final LazyValue<Ingredient> repairMaterial = new LazyValue<>(() -> Ingredient.fromItems(ModItems.SPECTRE_INGOT));
+    private final LazyLoadedValue<Ingredient> repairMaterial = new LazyLoadedValue<>(() -> Ingredient.of(ModItems.SPECTRE_INGOT));
 
     @Override
-    public int getMaxUses() {
+    public int getUses() {
         return 2000;
     }
 
     @Override
-    public float getEfficiency() {
+    public float getSpeed() {
         return 8.0F;
     }
 
     @Override
-    public float getAttackDamage() {
+    public float getAttackDamageBonus() {
         return 3.0F;
     }
 
     @Override
-    public int getHarvestLevel() {
+    public int getLevel() {
         return 3;
     }
 
     @Override
-    public int getEnchantability() {
+    public int getEnchantmentValue() {
         return 22;
     }
 
     @Override
-    public Ingredient getRepairMaterial() {
-        return repairMaterial.getValue();
+    public Ingredient getRepairIngredient() {
+        return repairMaterial.get();
     }
 }

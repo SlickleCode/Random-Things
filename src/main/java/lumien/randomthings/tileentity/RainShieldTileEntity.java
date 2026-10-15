@@ -1,13 +1,13 @@
 package lumien.randomthings.tileentity;
 
 import lumien.randomthings.util.WeakSets;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.Set;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityRainShield} - a plain marker with
@@ -23,7 +23,7 @@ import net.minecraft.block.BlockState;
  * effect immediately instead of waiting out a stale cache entry, which is
  * strictly more correct than what it replaces.
  */
-public class RainShieldTileEntity extends TileEntity {
+public class RainShieldTileEntity extends BlockEntity {
     /** Read from the render thread (rain drawing) and the server thread, so every access goes through the lock. */
     public static final Set<RainShieldTileEntity> shields = WeakSets.create();
 
@@ -34,8 +34,8 @@ public class RainShieldTileEntity extends TileEntity {
 
     private boolean active = true;
 
-    public RainShieldTileEntity() {
-        super(ModTileEntityTypes.RAIN_SHIELD);
+    public RainShieldTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.RAIN_SHIELD, pos, state);
 
         shields.add(this);
     }
@@ -49,13 +49,13 @@ public class RainShieldTileEntity extends TileEntity {
      * own Y is ignored entirely, so it shields straight up/down without
      * limit but only {@code range} blocks outward).
      */
-    public boolean isInRange(World world, BlockPos pos, double range) {
-        if (!active || this.world != world) {
+    public boolean isInRange(Level world, BlockPos pos, double range) {
+        if (!active || this.level != world) {
             return false;
         }
 
-        double dx = this.pos.getX() - pos.getX();
-        double dz = this.pos.getZ() - pos.getZ();
+        double dx = this.worldPosition.getX() - pos.getX();
+        double dz = this.worldPosition.getZ() - pos.getZ();
 
         return dx * dx + dz * dz < range * range;
     }
@@ -65,30 +65,29 @@ public class RainShieldTileEntity extends TileEntity {
 
         if (desired != this.active) {
             this.active = desired;
-            this.markDirty();
+            this.setChanged();
 
-            if (this.world != null) {
-                this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+            if (this.level != null) {
+                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
         compound.putBoolean("active", active);
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
         this.active = !compound.contains("active") || compound.getBoolean("active");
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
         shields.remove(this);
     }
 }

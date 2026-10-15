@@ -2,17 +2,17 @@ package lumien.randomthings.item;
 
 import lumien.randomthings.util.EscapeRopeHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.UseAction;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 
 /**
  * Hold right-click under open sky (or where you could see it if the block
@@ -40,35 +40,35 @@ public class EscapeRopeItem extends Item {
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.BOW;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.BOW;
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack stack = playerIn.getHeldItem(hand);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.getDimensionType().hasSkyLight() || worldIn.canBlockSeeSky(playerIn.getPosition()) || !worldIn.isAirBlock(playerIn.getPosition())) {
-            return new ActionResult<>(ActionResultType.FAIL, stack);
+        if (!worldIn.dimensionType().hasSkyLight() || worldIn.canSeeSkyFromBelowWater(playerIn.blockPosition()) || !worldIn.isEmptyBlock(playerIn.blockPosition())) {
+            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
         }
 
-        playerIn.setActiveHand(hand);
+        playerIn.startUsingItem(hand);
 
-        if (!worldIn.isRemote) {
-            EscapeRopeHandler.getInstance().addTask((ServerPlayerEntity) playerIn);
+        if (!worldIn.isClientSide) {
+            EscapeRopeHandler.getInstance().addTask((ServerPlayer) playerIn);
         }
 
-        return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
-        return Minecraft.getInstance().player != null && Minecraft.getInstance().player.getActiveItemStack() == stack;
+    public boolean isFoil(ItemStack stack) {
+        return Minecraft.getInstance().player != null && Minecraft.getInstance().player.getUseItem() == stack;
     }
 
     @Override
     public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
-        if (!entity.world.isRemote) {
+        if (!entity.level.isClientSide) {
             return;
         }
 
@@ -80,7 +80,7 @@ public class EscapeRopeItem extends Item {
                 double z = Math.cos((count + i * 20) / (10F + c));
                 double y = Math.sin((count + i * 20) / (15F + c));
 
-                entity.world.addParticle(ParticleTypes.PORTAL, entity.getPosX() + x, entity.getPosY() + 1 + y, entity.getPosZ() + z, 0, alpha * 0.1D, 0);
+                entity.level.addParticle(ParticleTypes.PORTAL, entity.getX() + x, entity.getY() + 1 + y, entity.getZ() + z, 0, alpha * 0.1D, 0);
             }
         }
     }

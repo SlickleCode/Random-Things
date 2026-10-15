@@ -1,11 +1,10 @@
 package lumien.randomthings.item;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.Tag;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.awt.*;
 
@@ -17,7 +16,7 @@ public class DiviningRodItem extends Item {
     Color[] colors;
 
     public DiviningRodItem(Properties properties, Color[] colors, String[] detectingTags) {
-        super(properties.maxStackSize(1));
+        super(properties.stacksTo(1));
 
         this.detectingTags = detectingTags;
         this.colors = colors;
@@ -33,9 +32,9 @@ public class DiviningRodItem extends Item {
 
     public int matches(BlockState blockState) {
         for (int i = 0; i < detectingTags.length; i++) {
-            net.minecraft.tags.ITag<Block> t = BlockTags.getCollection().get(new ResourceLocation(detectingTags[i]));
+            net.minecraft.tags.TagKey<Block> t = net.minecraft.tags.TagKey.create(net.minecraft.core.Registry.BLOCK_REGISTRY, new ResourceLocation(detectingTags[i]));
 
-            if (t != null && t.contains(blockState.getBlock())) {
+            if (blockState.is(t)) {
                 return i;
             }
         }

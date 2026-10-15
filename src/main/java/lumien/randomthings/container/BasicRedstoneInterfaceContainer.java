@@ -2,52 +2,52 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.core.BlockPos;
 
 /**
  * Read-only status display - the actual target is set by right-clicking
  * with a Redstone Tool, not through this GUI. Same pattern as {@link
  * RedstoneObserverContainer}.
  */
-public class BasicRedstoneInterfaceContainer extends Container {
-    IWorldPosCallable pos;
+public class BasicRedstoneInterfaceContainer extends AbstractContainerMenu {
+    ContainerLevelAccess pos;
 
-    public IntReferenceHolder hasTarget = IntReferenceHolder.single();
-    public IntReferenceHolder targetX = IntReferenceHolder.single();
-    public IntReferenceHolder targetY = IntReferenceHolder.single();
-    public IntReferenceHolder targetZ = IntReferenceHolder.single();
+    public DataSlot hasTarget = DataSlot.standalone();
+    public DataSlot targetX = DataSlot.standalone();
+    public DataSlot targetY = DataSlot.standalone();
+    public DataSlot targetZ = DataSlot.standalone();
 
-    public BasicRedstoneInterfaceContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, IWorldPosCallable.DUMMY);
+    public BasicRedstoneInterfaceContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, ContainerLevelAccess.NULL);
     }
 
-    public BasicRedstoneInterfaceContainer(int windowId, IWorldPosCallable pos) {
+    public BasicRedstoneInterfaceContainer(int windowId, ContainerLevelAccess pos) {
         super(ModContainerTypes.BASIC_REDSTONE_INTERFACE, windowId);
 
         this.pos = pos;
 
-        this.trackInt(hasTarget);
-        this.trackInt(targetX);
-        this.trackInt(targetY);
-        this.trackInt(targetZ);
+        this.addDataSlot(hasTarget);
+        this.addDataSlot(targetX);
+        this.addDataSlot(targetY);
+        this.addDataSlot(targetZ);
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.BASIC_REDSTONE_INTERFACE);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.BASIC_REDSTONE_INTERFACE);
     }
 
     @Override
-    public void detectAndSendChanges() {
-        this.pos.consume((world, pos) -> {
-            TileEntity te = world.getTileEntity(pos);
+    public void broadcastChanges() {
+        this.pos.execute((world, pos) -> {
+            BlockEntity te = world.getBlockEntity(pos);
 
             if (te instanceof BasicRedstoneInterfaceTileEntity) {
                 BlockPos target = ((BasicRedstoneInterfaceTileEntity) te).getTarget();
@@ -59,6 +59,6 @@ public class BasicRedstoneInterfaceContainer extends Container {
             }
         });
 
-        super.detectAndSendChanges();
+        super.broadcastChanges();
     }
 }

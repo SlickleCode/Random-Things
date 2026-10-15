@@ -1,42 +1,42 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.block.AnalogEmitterBlock;
 import lumien.randomthings.container.AnalogEmitterContainer;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
-public class AnalogEmitterTileEntity extends TileEntity implements INamedContainerProvider
+public class AnalogEmitterTileEntity extends BlockEntity implements MenuProvider
 {
 	private int emitLevel = 1;
 	private boolean powering = false;
 
-	public AnalogEmitterTileEntity()
-	{
-		super(ModTileEntityTypes.ANALOG_EMITTER);
-	}
+	public AnalogEmitterTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ANALOG_EMITTER, pos, state);
+    }
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("emitLevel", emitLevel);
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.emitLevel = compound.getInt("emitLevel");
 	}
 
@@ -53,7 +53,7 @@ public class AnalogEmitterTileEntity extends TileEntity implements INamedContain
 	public void setEmitLevel(int level)
 	{
 		this.emitLevel = level;
-		this.markDirty();
+		this.setChanged();
 		notifyNeighbors();
 	}
 
@@ -61,9 +61,9 @@ public class AnalogEmitterTileEntity extends TileEntity implements INamedContain
 	 * Re-derives the powering flag from the redstone signal coming in on the
 	 * facing side, matching 1.12.2's amplifier behavior.
 	 */
-	public void updateInput(World world, Direction facing)
+	public void updateInput(Level world, Direction facing)
 	{
-		boolean input = world.getRedstonePower(pos.offset(facing), facing) > 0;
+		boolean input = world.getSignal(worldPosition.relative(facing), facing) > 0;
 
 		if (input != powering)
 		{
@@ -74,27 +74,27 @@ public class AnalogEmitterTileEntity extends TileEntity implements INamedContain
 
 	private void notifyNeighbors()
 	{
-		if (this.world != null)
+		if (this.level != null)
 		{
-			BlockState state = this.world.getBlockState(pos);
-			this.world.notifyNeighborsOfStateChange(pos, state.getBlock());
+			BlockState state = this.level.getBlockState(worldPosition);
+			this.level.updateNeighborsAt(worldPosition, state.getBlock());
 
 			for (Direction facing : Direction.values())
 			{
-				this.world.notifyNeighborsOfStateChange(pos.offset(facing), state.getBlock());
+				this.level.updateNeighborsAt(worldPosition.relative(facing), state.getBlock());
 			}
 		}
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new AnalogEmitterContainer(windowId, IWorldPosCallable.of(this.world, pos));
+		return new AnalogEmitterContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.analog_emitter");
+		return new TranslatableComponent("block.randomthings.analog_emitter");
 	}
 }

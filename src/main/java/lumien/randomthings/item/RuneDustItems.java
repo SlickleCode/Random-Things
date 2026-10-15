@@ -3,8 +3,8 @@ package lumien.randomthings.item;
 import java.util.EnumMap;
 import java.util.Map;
 
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 
 /**
  * The 16 registered {@link RuneDustItem} instances, one per {@link DyeColor},

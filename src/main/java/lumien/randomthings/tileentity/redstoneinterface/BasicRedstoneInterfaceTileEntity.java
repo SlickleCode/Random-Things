@@ -2,16 +2,16 @@ package lumien.randomthings.tileentity.redstoneinterface;
 
 import lumien.randomthings.container.BasicRedstoneInterfaceContainer;
 import lumien.randomthings.tileentity.ModTileEntityTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Single-target half of the Redstone Interface family: bind a target with
@@ -20,11 +20,11 @@ import net.minecraft.block.BlockState;
  * (see {@link RedstoneInterfaceTileEntity} for how). Direct port of
  * 1.12.2's {@code TileEntityBasicRedstoneInterface}.
  */
-public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntity implements INamedContainerProvider {
+public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntity implements MenuProvider {
     private BlockPos target;
 
-    public BasicRedstoneInterfaceTileEntity() {
-        super(ModTileEntityTypes.BASIC_REDSTONE_INTERFACE);
+    public BasicRedstoneInterfaceTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.BASIC_REDSTONE_INTERFACE, pos, state);
     }
 
     public BlockPos getTarget() {
@@ -39,12 +39,12 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
         BlockPos oldTarget = this.target;
         this.target = newTarget;
 
-        this.markDirty();
+        this.setChanged();
 
-        if (this.world != null) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
 
-            if (!this.world.isRemote) {
+            if (!this.level.isClientSide) {
                 if (oldTarget != null) {
                     notifyOne(oldTarget);
                 }
@@ -56,13 +56,13 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
         }
     }
 
-    private void notifyOne(BlockPos targetPos, net.minecraft.block.Block neighborBlock) {
-        this.world.getBlockState(targetPos).neighborChanged(this.world, targetPos, neighborBlock, this.pos, false);
-        this.world.notifyNeighborsOfStateChange(targetPos, neighborBlock);
+    private void notifyOne(BlockPos targetPos, net.minecraft.world.level.block.Block neighborBlock) {
+        this.level.getBlockState(targetPos).neighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
+        this.level.updateNeighborsAt(targetPos, neighborBlock);
     }
 
     private void notifyOne(BlockPos targetPos) {
-        notifyOne(targetPos, net.minecraft.block.Blocks.REDSTONE_BLOCK);
+        notifyOne(targetPos, net.minecraft.world.level.block.Blocks.REDSTONE_BLOCK);
     }
 
     @Override
@@ -71,15 +71,15 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     @Override
-    protected void notifyTargets(net.minecraft.block.Block neighborBlock) {
+    protected void notifyTargets(net.minecraft.world.level.block.Block neighborBlock) {
         if (this.target != null) {
             notifyOne(this.target, neighborBlock);
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (target != null) {
             compound.putInt("targetX", target.getX());
@@ -87,12 +87,11 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
             compound.putInt("targetZ", target.getZ());
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("targetX")) {
             target = new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ"));
@@ -100,12 +99,12 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new BasicRedstoneInterfaceContainer(windowId, IWorldPosCallable.of(this.world, pos));
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity) {
+        return new BasicRedstoneInterfaceContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.basic_redstone_interface");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.basic_redstone_interface");
     }
 }

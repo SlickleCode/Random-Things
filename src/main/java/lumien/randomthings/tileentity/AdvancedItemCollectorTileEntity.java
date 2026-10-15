@@ -1,30 +1,31 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import java.util.List;
 
 import lumien.randomthings.block.AdvancedItemCollectorBlock;
 import lumien.randomthings.container.AdvancedItemCollectorContainer;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.EntityPredicates;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A long-range item vacuum: pulls dropped items within a configurable
@@ -41,7 +42,7 @@ import net.minecraft.block.BlockState;
  * still real, useful filtering, just not the original's full configurable
  * matching system.
  */
-public class AdvancedItemCollectorTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class AdvancedItemCollectorTileEntity extends BlockEntity implements MenuProvider
 {
 	public static final int MAX_RANGE = 16;
 
@@ -57,14 +58,13 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
-	public AdvancedItemCollectorTileEntity()
-	{
-		super(ModTileEntityTypes.ADVANCED_ITEM_COLLECTOR);
-	}
+	public AdvancedItemCollectorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ADVANCED_ITEM_COLLECTOR, pos, state);
+    }
 
 	public ItemStackHandler filterInventory()
 	{
@@ -89,19 +89,19 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 	public void adjustRangeX(int amount)
 	{
 		rangeX = clampRange(rangeX + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void adjustRangeY(int amount)
 	{
 		rangeY = clampRange(rangeY + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void adjustRangeZ(int amount)
 	{
 		rangeZ = clampRange(rangeZ + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private static int clampRange(int value)
@@ -109,10 +109,9 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 		return Math.max(0, Math.min(MAX_RANGE, value));
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote)
+		if (this.level.isClientSide)
 		{
 			return;
 		}
@@ -126,8 +125,8 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 
 		counter = 0;
 
-		Direction facing = this.getBlockState().get(AdvancedItemCollectorBlock.FACING);
-		TileEntity target = this.world.getTileEntity(this.pos.offset(facing.getOpposite()));
+		Direction facing = this.getBlockState().getValue(AdvancedItemCollectorBlock.FACING);
+		BlockEntity target = this.level.getBlockEntity(this.worldPosition.relative(facing.getOpposite()));
 
 		boolean didSomething = false;
 
@@ -140,7 +139,7 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 			{
 				ItemStack filterStack = filterInventory.getStackInSlot(0);
 
-				List<ItemEntity> nearbyItems = this.world.getEntitiesWithinAABB(ItemEntity.class, new AxisAlignedBB(this.pos.add(-rangeX, -rangeY, -rangeZ), this.pos.add(rangeX + 1, rangeY + 1, rangeZ + 1)), EntityPredicates.IS_ALIVE);
+				List<ItemEntity> nearbyItems = this.level.getEntitiesOfClass(ItemEntity.class, new AABB(this.worldPosition.offset(-rangeX, -rangeY, -rangeZ), this.worldPosition.offset(rangeX + 1, rangeY + 1, rangeZ + 1)), EntitySelector.ENTITY_STILL_ALIVE);
 
 				for (ItemEntity itemEntity : nearbyItems)
 				{
@@ -149,7 +148,7 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 						continue;
 					}
 
-					if (!filterStack.isEmpty() && !ItemStack.areItemsEqual(filterStack, itemEntity.getItem()))
+					if (!filterStack.isEmpty() && !ItemStack.isSame(filterStack, itemEntity.getItem()))
 					{
 						continue;
 					}
@@ -164,7 +163,7 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 
 					if (left.isEmpty())
 					{
-						itemEntity.remove();
+						itemEntity.discard();
 					}
 					else
 					{
@@ -185,20 +184,19 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("rangeX", rangeX);
 		compound.putInt("rangeY", rangeY);
 		compound.putInt("rangeZ", rangeZ);
 		compound.put("inventory", filterInventory.serializeNBT());
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		rangeX = compound.getInt("rangeX");
 		rangeY = compound.getInt("rangeY");
 		rangeZ = compound.getInt("rangeZ");
@@ -206,14 +204,14 @@ public class AdvancedItemCollectorTileEntity extends TileEntity implements ITick
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new AdvancedItemCollectorContainer(windowId, playerInventory, filterInventory, IWorldPosCallable.of(this.world, pos));
+		return new AdvancedItemCollectorContainer(windowId, playerInventory, filterInventory, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.advanced_item_collector");
+		return new TranslatableComponent("block.randomthings.advanced_item_collector");
 	}
 }

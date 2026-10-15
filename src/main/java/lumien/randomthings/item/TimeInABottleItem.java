@@ -1,22 +1,22 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.entity.TimeAcceleratorEntity;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -63,45 +63,45 @@ public class TimeInABottleItem extends Item {
     }
 
     @Override
-    public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, worldIn, tooltip, flagIn);
 
         int storedSeconds = getStoredTime(stack) / 20;
         int hours = storedSeconds / 3600;
         int minutes = (storedSeconds % 3600) / 60;
         int seconds = storedSeconds % 60;
 
-        tooltip.add(new TranslationTextComponent("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
+        tooltip.add(new TranslatableComponent("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
     }
 
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-        return !ItemStack.areItemsEqual(oldStack, newStack);
+        return !ItemStack.isSame(oldStack, newStack);
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (worldIn.isRemote) {
+    public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+        if (worldIn.isClientSide) {
             return;
         }
 
         if (worldIn.getGameTime() % SECOND_WORTH == 0) {
-            CompoundNBT timeData = stack.getOrCreateChildTag("timeData");
+            CompoundTag timeData = stack.getOrCreateTagElement("timeData");
 
             if (timeData.getInt("storedTime") < MAX_STORED) {
                 timeData.putInt("storedTime", timeData.getInt("storedTime") + 20);
             }
         }
 
-        if (worldIn.getGameTime() % 60 == 0 && entityIn instanceof PlayerEntity) {
-            PlayerEntity player = (PlayerEntity) entityIn;
+        if (worldIn.getGameTime() % 60 == 0 && entityIn instanceof Player) {
+            Player player = (Player) entityIn;
 
-            for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
-                ItemStack invStack = player.inventory.getStackInSlot(i);
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                ItemStack invStack = player.getInventory().getItem(i);
 
                 if (invStack.getItem() == this && invStack != stack) {
-                    CompoundNBT otherTimeData = invStack.getOrCreateChildTag("timeData");
-                    CompoundNBT myTimeData = stack.getOrCreateChildTag("timeData");
+                    CompoundTag otherTimeData = invStack.getOrCreateTagElement("timeData");
+                    CompoundTag myTimeData = stack.getOrCreateTagElement("timeData");
 
                     if (myTimeData.getInt("storedTime") < otherTimeData.getInt("storedTime")) {
                         myTimeData.putInt("storedTime", 0);
@@ -112,17 +112,17 @@ public class TimeInABottleItem extends Item {
     }
 
     @Override
-    public ActionResultType onItemUseFirst(ItemStack me, ItemUseContext context) {
-        World world = context.getWorld();
+    public InteractionResult onItemUseFirst(ItemStack me, UseOnContext context) {
+        Level world = context.getLevel();
 
-        if (world.isRemote) {
-            return ActionResultType.SUCCESS;
+        if (world.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        BlockPos pos = context.getPos();
-        PlayerEntity player = context.getPlayer();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
 
-        java.util.Optional<TimeAcceleratorEntity> existing = world.getEntitiesWithinAABB(TimeAcceleratorEntity.class, new AxisAlignedBB(pos).grow(1.0)).stream().filter(e -> pos.equals(e.getTarget())).findFirst();
+        java.util.Optional<TimeAcceleratorEntity> existing = world.getEntitiesOfClass(TimeAcceleratorEntity.class, new AABB(pos).inflate(1.0)).stream().filter(e -> pos.equals(e.getTarget())).findFirst();
 
         if (existing.isPresent()) {
             TimeAcceleratorEntity eta = existing.get();
@@ -133,13 +133,13 @@ public class TimeInABottleItem extends Item {
                 int nextRate = currentRate * 2;
                 int timeRequired = nextRate / 2 * 20 * 30;
 
-                CompoundNBT timeData = me.getChildTag("timeData");
+                CompoundTag timeData = me.getTagElement("timeData");
                 int timeAvailable = timeData != null ? timeData.getInt("storedTime") : 0;
 
-                if (timeAvailable >= timeRequired || (player != null && player.abilities.isCreativeMode)) {
+                if (timeAvailable >= timeRequired || (player != null && player.getAbilities().instabuild)) {
                     int timeAdded = (nextRate * usedUpTime - currentRate * usedUpTime) / nextRate;
 
-                    if (player == null || !player.abilities.isCreativeMode) {
+                    if (player == null || !player.getAbilities().instabuild) {
                         timeData.putInt("storedTime", timeAvailable - timeRequired);
                     }
 
@@ -167,17 +167,17 @@ public class TimeInABottleItem extends Item {
                             break;
                     }
 
-                    world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, pitch);
+                    world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, pitch);
                 } else if (player != null) {
-                    player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").mergeStyle(TextFormatting.RED), false);
+                    player.displayClientMessage(new TranslatableComponent("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
                 }
             }
         } else {
-            CompoundNBT timeData = me.getOrCreateChildTag("timeData");
+            CompoundTag timeData = me.getOrCreateTagElement("timeData");
             int timeAvailable = timeData.getInt("storedTime");
 
-            if (timeAvailable >= 20 * 30 || (player != null && player.abilities.isCreativeMode)) {
-                if (player == null || !player.abilities.isCreativeMode) {
+            if (timeAvailable >= 20 * 30 || (player != null && player.getAbilities().instabuild)) {
+                if (player == null || !player.getAbilities().instabuild) {
                     timeData.putInt("storedTime", timeAvailable - 20 * 30);
                 }
 
@@ -185,22 +185,22 @@ public class TimeInABottleItem extends Item {
                 n.setTimeRate(1);
                 n.setRemainingTime(20 * 30);
 
-                world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_HARP, SoundCategory.BLOCKS, 0.5F, 0.749154F);
-                world.addEntity(n);
+                world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, 0.749154F);
+                world.addFreshEntity(n);
             } else if (player != null) {
-                player.sendStatusMessage(new TranslationTextComponent("item.randomthings.time_in_a_bottle.not_enough_time").mergeStyle(TextFormatting.RED), false);
+                player.displayClientMessage(new TranslatableComponent("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static int getStoredTime(ItemStack stack) {
-        CompoundNBT timeData = stack.getChildTag("timeData");
+        CompoundTag timeData = stack.getTagElement("timeData");
         return timeData != null ? timeData.getInt("storedTime") : 0;
     }
 
     public static void setStoredTime(ItemStack stack, int time) {
-        stack.getOrCreateChildTag("timeData").putInt("storedTime", time);
+        stack.getOrCreateTagElement("timeData").putInt("storedTime", time);
     }
 }

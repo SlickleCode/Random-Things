@@ -1,10 +1,12 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.world.level.block.state.BlockState;
+
 import lumien.randomthings.util.WeakSets;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 import java.util.Set;
 
@@ -15,11 +17,11 @@ import java.util.Set;
  * "cubes"/"shields"-style pattern already used by {@code SlimeCubeTileEntity}
  * /{@code RainShieldTileEntity}.
  */
-public class PeaceCandleTileEntity extends TileEntity {
+public class PeaceCandleTileEntity extends BlockEntity {
     public static final Set<PeaceCandleTileEntity> candles = WeakSets.create();
 
-    public PeaceCandleTileEntity() {
-        super(ModTileEntityTypes.PEACE_CANDLE);
+    public PeaceCandleTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.PEACE_CANDLE, pos, state);
 
         candles.add(this);
     }
@@ -28,20 +30,20 @@ public class PeaceCandleTileEntity extends TileEntity {
      * Chebyshev distance in chunk coordinates, matching the wiki's "3 Chunk
      * Radius" (a square of chunks, not a circle of blocks).
      */
-    public boolean isInRange(World world, BlockPos pos, int chunkRadius) {
-        if (this.world != world || this.pos == null) {
+    public boolean isInRange(Level world, BlockPos pos, int chunkRadius) {
+        if (this.level != world || this.worldPosition == null) {
             return false;
         }
 
-        ChunkPos ours = new ChunkPos(this.pos);
+        ChunkPos ours = new ChunkPos(this.worldPosition);
         ChunkPos theirs = new ChunkPos(pos);
 
         return Math.max(Math.abs(ours.x - theirs.x), Math.abs(ours.z - theirs.z)) <= chunkRadius;
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
         candles.remove(this);
     }
 }

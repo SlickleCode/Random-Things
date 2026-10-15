@@ -1,21 +1,23 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.entity.MobEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -23,7 +25,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.RangedWrapper;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Exposes the linked player's inventory as an {@code IItemHandler} capability
@@ -32,24 +34,22 @@ import net.minecraft.block.BlockState;
  * from / push into a specific online player. No GUI - it links to whoever
  * placed it and works purely through the capability.
  */
-public class PlayerInterfaceTileEntity extends TileEntity
+public class PlayerInterfaceTileEntity extends BlockEntity
 {
 	private UUID playerUUID;
 
-	public PlayerInterfaceTileEntity()
-	{
-		this(ModTileEntityTypes.PLAYER_INTERFACE);
-	}
+	public PlayerInterfaceTileEntity(BlockPos pos, BlockState state) {
+        this(ModTileEntityTypes.PLAYER_INTERFACE, pos, state);
+    }
 
-	protected PlayerInterfaceTileEntity(TileEntityType<?> type)
-	{
-		super(type);
-	}
+	protected PlayerInterfaceTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
 
 	public void setPlayerUUID(UUID uuid)
 	{
 		this.playerUUID = uuid;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public UUID getPlayerUUID()
@@ -57,15 +57,15 @@ public class PlayerInterfaceTileEntity extends TileEntity
 		return playerUUID;
 	}
 
-	private PlayerEntity getLinkedPlayer()
+	private Player getLinkedPlayer()
 	{
-		if (playerUUID == null || this.world == null)
+		if (playerUUID == null || this.level == null)
 		{
 			return null;
 		}
 
-		MinecraftServer server = this.world.getServer();
-		return server != null ? server.getPlayerList().getPlayerByUUID(playerUUID) : null;
+		MinecraftServer server = this.level.getServer();
+		return server != null ? server.getPlayerList().getPlayer(playerUUID) : null;
 	}
 
 	@Override
@@ -73,14 +73,14 @@ public class PlayerInterfaceTileEntity extends TileEntity
 	{
 		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
 		{
-			PlayerEntity player = getLinkedPlayer();
+			Player player = getLinkedPlayer();
 
 			if (player == null)
 			{
 				return LazyOptional.of(() -> (IItemHandler) EmptyHandler.INSTANCE).cast();
 			}
 
-			InvWrapper full = new InvWrapper(new SlotValidatingInventory(player.inventory));
+			InvWrapper full = new InvWrapper(new SlotValidatingInventory(player.getInventory()));
 
 			IItemHandler ranged;
 			if (side == Direction.UP)
@@ -107,22 +107,21 @@ public class PlayerInterfaceTileEntity extends TileEntity
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 
 		if (playerUUID != null)
 		{
 			compound.putString("playerUUID", playerUUID.toString());
 		}
 
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 
 		if (compound.contains("playerUUID"))
 		{
@@ -133,7 +132,7 @@ public class PlayerInterfaceTileEntity extends TileEntity
 	/**
 	 * Real bug, found 2026-09-28 (reported by user): a chestplate inserted
 	 * from the UP side landed in the legs slot instead of the chest slot.
-	 * Root cause: {@code InvWrapper(player.inventory)} wraps the raw {@code
+	 * Root cause: {@code InvWrapper(player.getInventory())} wraps the raw {@code
 	 * PlayerInventory} directly, whose {@code isItemValidForSlot} is never
 	 * overridden - so it falls back to {@code IInventory}'s own default,
 	 * which unconditionally returns {@code true} for every slot (confirmed
@@ -147,32 +146,32 @@ public class PlayerInterfaceTileEntity extends TileEntity
 	 * {@code MobEntity.getSlotForItemStack} instead of needing a Container at
 	 * all.
 	 */
-	private static class SlotValidatingInventory implements IInventory
+	private static class SlotValidatingInventory implements Container
 	{
-		private final PlayerInventory inventory;
+		private final Inventory inventory;
 
-		SlotValidatingInventory(PlayerInventory inventory)
+		SlotValidatingInventory(Inventory inventory)
 		{
 			this.inventory = inventory;
 		}
 
 		@Override
-		public boolean isItemValidForSlot(int index, ItemStack stack)
+		public boolean canPlaceItem(int index, ItemStack stack)
 		{
 			if (index < 36 || index >= 40)
 			{
 				return true;
 			}
 
-			EquipmentSlotType wanted = MobEntity.getSlotForItemStack(stack);
+			EquipmentSlot wanted = Mob.getEquipmentSlotForItem(stack);
 
-			return wanted.getSlotType() == EquipmentSlotType.Group.ARMOR && wanted.getIndex() == index - 36;
+			return wanted.getType() == EquipmentSlot.Type.ARMOR && wanted.getIndex() == index - 36;
 		}
 
 		@Override
-		public int getSizeInventory()
+		public int getContainerSize()
 		{
-			return inventory.getSizeInventory();
+			return inventory.getContainerSize();
 		}
 
 		@Override
@@ -182,45 +181,45 @@ public class PlayerInterfaceTileEntity extends TileEntity
 		}
 
 		@Override
-		public ItemStack getStackInSlot(int index)
+		public ItemStack getItem(int index)
 		{
-			return inventory.getStackInSlot(index);
+			return inventory.getItem(index);
 		}
 
 		@Override
-		public ItemStack decrStackSize(int index, int count)
+		public ItemStack removeItem(int index, int count)
 		{
-			return inventory.decrStackSize(index, count);
+			return inventory.removeItem(index, count);
 		}
 
 		@Override
-		public ItemStack removeStackFromSlot(int index)
+		public ItemStack removeItemNoUpdate(int index)
 		{
-			return inventory.removeStackFromSlot(index);
+			return inventory.removeItemNoUpdate(index);
 		}
 
 		@Override
-		public void setInventorySlotContents(int index, ItemStack stack)
+		public void setItem(int index, ItemStack stack)
 		{
-			inventory.setInventorySlotContents(index, stack);
+			inventory.setItem(index, stack);
 		}
 
 		@Override
-		public void markDirty()
+		public void setChanged()
 		{
-			inventory.markDirty();
+			inventory.setChanged();
 		}
 
 		@Override
-		public boolean isUsableByPlayer(PlayerEntity player)
+		public boolean stillValid(Player player)
 		{
-			return inventory.isUsableByPlayer(player);
+			return inventory.stillValid(player);
 		}
 
 		@Override
-		public void clear()
+		public void clearContent()
 		{
-			inventory.clear();
+			inventory.clearContent();
 		}
 	}
 }

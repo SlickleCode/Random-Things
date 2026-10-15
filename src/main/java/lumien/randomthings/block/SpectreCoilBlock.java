@@ -1,25 +1,35 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
 import lumien.randomthings.tileentity.SpectreCoilTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.energy.CapabilityEnergy;
 
 /**
@@ -36,7 +46,7 @@ import net.minecraftforge.energy.CapabilityEnergy;
  * a functional change. The real mechanic (must attach to a face that exposes an Energy capability,
  * auto-drops otherwise) is preserved.
  */
-public class SpectreCoilBlock extends Block {
+public class SpectreCoilBlock extends Block implements EntityBlock {
     public enum CoilType {
         NORMAL("normal", 1024, 0x00FFFF),
         REDSTONE("redstone", 4096, 0xFF0000),
@@ -59,10 +69,10 @@ public class SpectreCoilBlock extends Block {
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(0.3F).doesNotBlockMovement());
+        super(Block.Properties.of(Material.STONE).strength(0.3F).noCollission());
 
         this.coilType = coilType;
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
     }
 
     public CoilType getCoilType() {
@@ -70,50 +80,52 @@ public class SpectreCoilBlock extends Block {
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new SpectreCoilTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new SpectreCoilTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.SPECTRE_COIL, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(FACING, context.getFace());
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getClickedFace());
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return hasEnergyCapableSupport(worldIn, pos, state.get(FACING));
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        return hasEnergyCapableSupport(worldIn, pos, state.getValue(FACING));
     }
 
-    private static boolean hasEnergyCapableSupport(IWorldReader world, BlockPos pos, Direction facing) {
-        TileEntity supportTe = world.getTileEntity(pos.offset(facing.getOpposite()));
+    private static boolean hasEnergyCapableSupport(LevelReader world, BlockPos pos, Direction facing) {
+        BlockEntity supportTe = world.getBlockEntity(pos.relative(facing.getOpposite()));
         return supportTe != null && supportTe.getCapability(CapabilityEnergy.ENERGY, facing).isPresent();
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!worldIn.isRemote && !hasEnergyCapableSupport(worldIn, pos, state.get(FACING))) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!worldIn.isClientSide && !hasEnergyCapableSupport(worldIn, pos, state.getValue(FACING))) {
             worldIn.destroyBlock(pos, true);
         }
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isRemote && placer instanceof PlayerEntity) {
-            GameProfile profile = ((PlayerEntity) placer).getGameProfile();
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (!worldIn.isClientSide && placer instanceof Player) {
+            GameProfile profile = ((Player) placer).getGameProfile();
 
             if (profile != null) {
                 UUID id = profile.getId();
-                TileEntity te = worldIn.getTileEntity(pos);
+                BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof SpectreCoilTileEntity) {
                     ((SpectreCoilTileEntity) te).setOwner(id);

@@ -1,23 +1,23 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.container.SoundRecorderContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.util.ArrayList;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,18 +31,18 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * recorded sounds onto a blank {@link SoundPatternItem}. Direct port of
  * 1.12.2's {@code ItemSoundRecorder}.
  */
-public class SoundRecorderItem extends Item implements INamedContainerProvider, IClientItemProperties{
+public class SoundRecorderItem extends Item implements MenuProvider, IClientItemProperties{
     public SoundRecorderItem(Item.Properties properties) {
         super(properties);
 
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack stack = playerIn.getHeldItem(hand);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isRemote) {
-            if (playerIn.isSneaking()) {
+        if (!worldIn.isClientSide) {
+            if (playerIn.isShiftKeyDown()) {
                 boolean nowRecording = !isRecording(stack);
 
                 stack.getOrCreateTag().putBoolean("recording", nowRecording);
@@ -51,27 +51,27 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider, 
                     stack.getTag().remove("recordList");
                 }
             } else if (!isRecording(stack)) {
-                NetworkHooks.openGui((ServerPlayerEntity) playerIn, this);
+                NetworkHooks.openGui((ServerPlayer) playerIn, this);
             }
         }
 
-        return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
     }
 
     public static boolean isRecording(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         return compound != null && compound.getBoolean("recording");
     }
 
     public static void recordSound(ItemStack stack, String soundName) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         if (compound == null || !compound.getBoolean("recording")) {
             return;
         }
 
-        ListNBT recordList = compound.getList("recordList", 8);
+        ListTag recordList = compound.getList("recordList", 8);
 
         for (int i = 0; i < recordList.size(); i++) {
             if (recordList.getString(i).equals(soundName)) {
@@ -79,7 +79,7 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider, 
             }
         }
 
-        recordList.add(StringNBT.valueOf(soundName));
+        recordList.add(StringTag.valueOf(soundName));
 
         if (recordList.size() >= 10) {
             compound.putBoolean("recording", false);
@@ -91,10 +91,10 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider, 
     public static ArrayList<String> getRecordedSounds(ItemStack stack) {
         ArrayList<String> list = new ArrayList<>();
 
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         if (compound != null) {
-            ListNBT recordList = compound.getList("recordList", 8);
+            ListTag recordList = compound.getList("recordList", 8);
 
             for (int i = 0; i < recordList.size(); i++) {
                 list.add(recordList.getString(i));
@@ -105,22 +105,22 @@ public class SoundRecorderItem extends Item implements INamedContainerProvider, 
     }
 
     @Override
-    public net.minecraft.inventory.container.Container createMenu(int windowId, net.minecraft.entity.player.PlayerInventory playerInventory, PlayerEntity player) {
+    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int windowId, net.minecraft.world.entity.player.Inventory playerInventory, Player player) {
         return new SoundRecorderContainer(windowId, playerInventory);
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("item.randomthings.sound_recorder");
+    public Component getDisplayName() {
+        return new TranslatableComponent("item.randomthings.sound_recorder");
     }
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("recording"), new IItemPropertyGetter() {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("recording"), new ItemPropertyFunction() {
             @Override
-            public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, net.minecraft.entity.LivingEntity entityIn) {
+            public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, net.minecraft.world.entity.LivingEntity entityIn, int seed) {
                 return isRecording(stack) ? 1.0F : 0.0F;
             }
         });

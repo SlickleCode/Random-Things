@@ -1,8 +1,8 @@
 package lumien.randomthings.enchantment;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentType;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.world.entity.EquipmentSlot;
 
 /**
  * Ported from 1.12.2's {@code EnchantmentMagnetic}. The original intercepted
@@ -16,22 +16,22 @@ import net.minecraft.inventory.EquipmentSlotType;
  * needed, unlike the wiki's own "ASM?" note for this feature.
  */
 public class MagneticEnchantment extends Enchantment {
-    protected MagneticEnchantment(Rarity rarityIn, EquipmentSlotType... slots) {
-        super(rarityIn, EnchantmentType.DIGGER, slots);
+    protected MagneticEnchantment(Rarity rarityIn, EquipmentSlot... slots) {
+        super(rarityIn, EnchantmentCategory.DIGGER, slots);
     }
 
     @Override
-    public int getMinEnchantability(int enchantmentLevel) {
+    public int getMinCost(int enchantmentLevel) {
         return 15;
     }
 
     @Override
-    public int getMaxEnchantability(int enchantmentLevel) {
-        return getMinEnchantability(enchantmentLevel) + 50;
+    public int getMaxCost(int enchantmentLevel) {
+        return getMinCost(enchantmentLevel) + 50;
     }
 
     @Override
-    public boolean canApplyAtEnchantingTable(net.minecraft.item.ItemStack stack) {
+    public boolean canApplyAtEnchantingTable(net.minecraft.world.item.ItemStack stack) {
         return lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get() && super.canApplyAtEnchantingTable(stack);
     }
 

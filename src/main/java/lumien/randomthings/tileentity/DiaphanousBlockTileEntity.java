@@ -1,12 +1,14 @@
 package lumien.randomthings.tileentity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.core.BlockPos;
+
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -26,12 +28,12 @@ import net.minecraftforge.registries.ForgeRegistries;
  * parameter instead, recomputed live every frame against this TE's *real*
  * position rather than needing to be tracked and synced by hand).
  */
-public class DiaphanousBlockTileEntity extends TileEntity {
-    private BlockState displayState = Blocks.STONE.getDefaultState();
+public class DiaphanousBlockTileEntity extends BlockEntity {
+    private BlockState displayState = Blocks.STONE.defaultBlockState();
     private boolean inverted = false;
 
-    public DiaphanousBlockTileEntity() {
-        super(ModTileEntityTypes.DIAPHANOUS_BLOCK);
+    public DiaphanousBlockTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.DIAPHANOUS_BLOCK, pos, state);
     }
 
     public BlockState getDisplayState() {
@@ -49,46 +51,46 @@ public class DiaphanousBlockTileEntity extends TileEntity {
     }
 
     public void syncTE() {
-        this.markDirty();
+        this.setChanged();
 
-        if (this.world != null) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.putString("block", displayState.getBlock().getRegistryName().toString());
         compound.putBoolean("inverted", inverted);
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("block")) {
-            this.displayState = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(compound.getString("block"))).getDefaultState();
+            this.displayState = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(compound.getString("block"))).defaultBlockState();
         } else {
-            this.displayState = Blocks.STONE.getDefaultState();
+            this.displayState = Blocks.STONE.defaultBlockState();
         }
 
         this.inverted = compound.getBoolean("inverted");

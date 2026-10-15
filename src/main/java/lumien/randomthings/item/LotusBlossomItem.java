@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.UseAction;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 
 /**
  * Eat it (10-tick eat animation) for 3-12 experience, split across orbs the
@@ -25,9 +25,9 @@ public class LotusBlossomItem extends Item {
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        playerIn.setActiveHand(hand);
-        return new ActionResult<>(ActionResultType.SUCCESS, playerIn.getHeldItem(hand));
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        playerIn.startUsingItem(hand);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, playerIn.getItemInHand(hand));
     }
 
     @Override
@@ -36,19 +36,19 @@ public class LotusBlossomItem extends Item {
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.EAT;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.EAT;
     }
 
     @Override
-    public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity entityLiving) {
-        if (entityLiving instanceof PlayerEntity && !worldIn.isRemote) {
-            int remaining = 3 + worldIn.rand.nextInt(5) + worldIn.rand.nextInt(5);
+    public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity entityLiving) {
+        if (entityLiving instanceof Player && !worldIn.isClientSide) {
+            int remaining = 3 + worldIn.random.nextInt(5) + worldIn.random.nextInt(5);
 
             while (remaining > 0) {
-                int split = ExperienceOrbEntity.getXPSplit(remaining);
+                int split = ExperienceOrb.getExperienceValue(remaining);
                 remaining -= split;
-                worldIn.addEntity(new ExperienceOrbEntity(worldIn, entityLiving.getPosX(), entityLiving.getPosY(), entityLiving.getPosZ(), split));
+                worldIn.addFreshEntity(new ExperienceOrb(worldIn, entityLiving.getX(), entityLiving.getY(), entityLiving.getZ(), split));
             }
         }
 

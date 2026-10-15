@@ -1,6 +1,6 @@
 package lumien.randomthings.tileentity;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
 /**

@@ -1,25 +1,26 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import javax.annotation.Nullable;
 
 import lumien.randomthings.block.IronDropperBlock;
 import lumien.randomthings.container.IronDropperContainer;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -33,7 +34,7 @@ import net.minecraftforge.items.ItemStackHandler;
  * there), driven by a configurable redstone mode/pickup delay/motion/effects
  * set instead of vanilla dispenser's single fixed behavior.
  */
-public class IronDropperTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 {
 	public enum REDSTONE_MODE
 	{
@@ -63,16 +64,15 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
 	private final LazyOptional<IItemHandler> itemHandlerCap = LazyOptional.of(() -> itemHandler);
 
-	public IronDropperTileEntity()
-	{
-		super(ModTileEntityTypes.IRON_DROPPER);
-	}
+	public IronDropperTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.IRON_DROPPER, pos, state);
+    }
 
 	public IItemHandler itemHandler()
 	{
@@ -91,29 +91,28 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 	}
 
 	@Override
-	protected void invalidateCaps()
+	public void invalidateCaps()
 	{
 		super.invalidateCaps();
 		itemHandlerCap.invalidate();
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("redstoneMode", redstoneMode.ordinal());
 		compound.putInt("pickupDelay", pickupDelay.ordinal());
 		compound.putInt("effects", effects.ordinal());
 		compound.putBoolean("randomMotion", randomMotion);
 		compound.putInt("dropCounter", dropCounter);
 		compound.put("inventory", itemHandler.serializeNBT());
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.redstoneMode = REDSTONE_MODE.values()[compound.getInt("redstoneMode")];
 		this.pickupDelay = PICKUP_DELAY.values()[compound.getInt("pickupDelay")];
 		this.effects = EFFECTS.values()[compound.getInt("effects")];
@@ -146,27 +145,27 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 	{
 		int next = (redstoneMode.ordinal() + 1) % REDSTONE_MODE.values().length;
 		redstoneMode = REDSTONE_MODE.values()[next];
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void rotatePickupDelay()
 	{
 		int next = (pickupDelay.ordinal() + 1) % PICKUP_DELAY.values().length;
 		pickupDelay = PICKUP_DELAY.values()[next];
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void rotateRandomMotion()
 	{
 		randomMotion = !randomMotion;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void rotateEffects()
 	{
 		int next = (effects.ordinal() + 1) % EFFECTS.values().length;
 		effects = EFFECTS.values()[next];
-		this.markDirty();
+		this.setChanged();
 	}
 
 	/**
@@ -185,10 +184,9 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 		}
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote)
+		if (this.level.isClientSide)
 		{
 			return;
 		}
@@ -222,8 +220,8 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 			return;
 		}
 
-		Direction facing = this.getBlockState().get(IronDropperBlock.FACING);
-		TileEntity target = world.getTileEntity(pos.offset(facing));
+		Direction facing = this.getBlockState().getValue(IronDropperBlock.FACING);
+		BlockEntity target = level.getBlockEntity(worldPosition.relative(facing));
 
 		ItemStack toDrop = stack.copy();
 		toDrop.setCount(1);
@@ -248,7 +246,7 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 
 		if (effects == EFFECTS.SOUND || effects == EFFECTS.SOUND_PARTICLE)
 		{
-			world.playEvent(1000, this.pos, 0);
+			level.levelEvent(1000, this.worldPosition, 0);
 		}
 
 		if (effects == EFFECTS.PARTICLE || effects == EFFECTS.SOUND_PARTICLE)
@@ -259,19 +257,19 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 			// coincidence for horizontal facings) - confirmed via `javap -c` on
 			// WorldRenderer, since the particle-direction encoding isn't documented
 			// anywhere else.
-			world.playEvent(2000, this.pos, facing.getIndex());
+			level.levelEvent(2000, this.worldPosition, facing.get3DDataValue());
 		}
 	}
 
 	private void spawnDroppedItem(ItemStack toDrop, Direction facing)
 	{
-		double posX = pos.getX() + 0.5 + 0.7D * facing.getXOffset();
-		double posY = pos.getY() + 0.5 + 0.7D * facing.getYOffset();
-		double posZ = pos.getZ() + 0.5 + 0.7D * facing.getZOffset();
+		double posX = worldPosition.getX() + 0.5 + 0.7D * facing.getStepX();
+		double posY = worldPosition.getY() + 0.5 + 0.7D * facing.getStepY();
+		double posZ = worldPosition.getZ() + 0.5 + 0.7D * facing.getStepZ();
 
 		posY -= facing.getAxis() == Direction.Axis.Y ? 0.125D : 0.15625D;
 
-		ItemEntity itemEntity = new ItemEntity(world, posX, posY, posZ, toDrop);
+		ItemEntity itemEntity = new ItemEntity(level, posX, posY, posZ, toDrop);
 
 		int pickupDelayTicks;
 		switch (pickupDelay)
@@ -287,42 +285,42 @@ public class IronDropperTileEntity extends TileEntity implements ITickableTileEn
 				pickupDelayTicks = 5;
 				break;
 		}
-		itemEntity.setPickupDelay(pickupDelayTicks);
+		itemEntity.setPickUpDelay(pickupDelayTicks);
 
 		double speed = 6;
-		double d3 = randomMotion ? world.rand.nextDouble() * 0.1D + 0.2D : 0.25D;
+		double d3 = randomMotion ? level.random.nextDouble() * 0.1D + 0.2D : 0.25D;
 
-		double motionX = facing.getXOffset() * d3;
+		double motionX = facing.getStepX() * d3;
 		double motionY = 0.2D;
-		double motionZ = facing.getZOffset() * d3;
+		double motionZ = facing.getStepZ() * d3;
 
 		if (randomMotion)
 		{
-			motionX += world.rand.nextGaussian() * 0.0075D * speed;
-			motionY += world.rand.nextGaussian() * 0.0075D * speed;
-			motionZ += world.rand.nextGaussian() * 0.0075D * speed;
+			motionX += level.random.nextGaussian() * 0.0075D * speed;
+			motionY += level.random.nextGaussian() * 0.0075D * speed;
+			motionZ += level.random.nextGaussian() * 0.0075D * speed;
 		}
 		else
 		{
-			motionX += facing.getXOffset() * 0.5 * 0.0075D * speed;
-			motionY += facing.getYOffset() * 0.5 * 0.0075D * speed;
-			motionZ += facing.getZOffset() * 0.5 * 0.0075D * speed;
+			motionX += facing.getStepX() * 0.5 * 0.0075D * speed;
+			motionY += facing.getStepY() * 0.5 * 0.0075D * speed;
+			motionZ += facing.getStepZ() * 0.5 * 0.0075D * speed;
 		}
 
-		itemEntity.setMotion(new Vector3d(motionX, motionY, motionZ));
+		itemEntity.setDeltaMovement(new Vec3(motionX, motionY, motionZ));
 
-		((ServerWorld) world).addEntity(itemEntity);
+		((ServerLevel) level).addFreshEntity(itemEntity);
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new IronDropperContainer(windowId, playerInventory, itemHandler, IWorldPosCallable.of(this.world, pos));
+		return new IronDropperContainer(windowId, playerInventory, itemHandler, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.iron_dropper");
+		return new TranslatableComponent("block.randomthings.iron_dropper");
 	}
 }

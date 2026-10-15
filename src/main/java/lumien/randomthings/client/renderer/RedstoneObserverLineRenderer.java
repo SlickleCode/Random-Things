@@ -8,17 +8,18 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.item.RedstoneToolItem;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.Camera;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.GameRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 
 /**
  * New feature, not a 1.12.2 port: draws a red line from every loaded, linked
@@ -37,60 +38,70 @@ public class RedstoneObserverLineRenderer
 	private static final double MAX_DISTANCE = 20;
 	private static final double MAX_DISTANCE_SQ = MAX_DISTANCE * MAX_DISTANCE;
 
-	public static void render(MatrixStack matrixStack)
+	public static void render(PoseStack matrixStack)
 	{
-		PlayerEntity player = Minecraft.getInstance().player;
+		Player player = Minecraft.getInstance().player;
 
 		if (player == null)
 		{
 			return;
 		}
 
-		ItemStack main = player.getHeldItemMainhand();
-		ItemStack off = player.getHeldItemOffhand();
+		ItemStack main = player.getMainHandItem();
+		ItemStack off = player.getOffhandItem();
 
 		if (!(main.getItem() instanceof RedstoneToolItem) && !(off.getItem() instanceof RedstoneToolItem))
 		{
 			return;
 		}
 
-		ActiveRenderInfo ari = Minecraft.getInstance().gameRenderer.getActiveRenderInfo();
-		Vector3d camera = ari.getProjectedView();
-		BlockPos playerPos = player.getPosition();
+		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
+		Vec3 camera = ari.getPosition();
+		BlockPos playerPos = player.blockPosition();
 
 		RenderSystem.disableTexture();
+		RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
 		RenderSystem.lineWidth(4F);
 
-		matrixStack.push();
+		matrixStack.pushPose();
 		matrixStack.translate(-camera.x, -camera.y, -camera.z);
-		Matrix4f matrix = matrixStack.getLast().getMatrix();
+		Matrix4f matrix = matrixStack.last().pose();
 
-		Tessellator tessellator = Tessellator.getInstance();
-		BufferBuilder buffer = tessellator.getBuffer();
-		buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+		Tesselator tessellator = Tesselator.getInstance();
+		BufferBuilder buffer = tessellator.getBuilder();
+		buffer.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(RedstoneObserverTileEntity.loadedObservers))
 		{
-			if (observer.isRemoved() || observer.getWorld() != player.world || observer.getTarget() == null)
+			if (observer.isRemoved() || observer.getLevel() != player.level || observer.getTarget() == null)
 			{
 				continue;
 			}
 
-			BlockPos pos = observer.getPos();
+			BlockPos pos = observer.getBlockPos();
 			BlockPos target = observer.getTarget();
 
-			if (pos.distanceSq(playerPos) > MAX_DISTANCE_SQ && target.distanceSq(playerPos) > MAX_DISTANCE_SQ)
+			if (pos.distSqr(playerPos) > MAX_DISTANCE_SQ && target.distSqr(playerPos) > MAX_DISTANCE_SQ)
 			{
 				continue;
 			}
 
-			buffer.pos(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).endVertex();
-			buffer.pos(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).endVertex();
+			float dx = target.getX() - pos.getX();
+			float dy = target.getY() - pos.getY();
+			float dz = target.getZ() - pos.getZ();
+			float length = Math.max(1.0E-4F, (float) Math.sqrt(dx * dx + dy * dy + dz * dz));
+			dx /= length;
+			dy /= length;
+			dz /= length;
+
+			// the 1.17+ line shader widens each line along its normal, so the normal is the line direction
+			buffer.vertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last().normal(), dx, dy, dz).endVertex();
+			buffer.vertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last().normal(), dx, dy, dz).endVertex();
 		}
 
-		tessellator.draw();
+		tessellator.end();
 
-		matrixStack.pop();
+		matrixStack.popPose();
 		RenderSystem.enableTexture();
 	}
 }

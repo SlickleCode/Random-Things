@@ -2,19 +2,18 @@ package lumien.randomthings.tileentity;
 
 import lumien.randomthings.block.EnderBridgeBlockBase;
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.item.minecart.AbstractMinecartEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.vehicle.AbstractMinecart;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.HashSet;
 import java.util.List;
@@ -43,13 +42,13 @@ import java.util.Set;
  * (its {@code onCollideWithPlayer} built a list and never used it), isn't
  * ported either - it did nothing to port.
  */
-public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEntity {
+public class EnderBridgeTileEntity extends BlockEntity {
     private static final Set<Class<? extends Entity>> ENTITY_WHITELIST = new HashSet<>();
 
     static {
-        ENTITY_WHITELIST.add(ServerPlayerEntity.class);
+        ENTITY_WHITELIST.add(ServerPlayer.class);
         ENTITY_WHITELIST.add(ItemEntity.class);
-        ENTITY_WHITELIST.add(AbstractMinecartEntity.class);
+        ENTITY_WHITELIST.add(AbstractMinecart.class);
     }
 
     private enum BridgeState {
@@ -60,38 +59,37 @@ public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEn
     private boolean redstonePowered = false;
     private int scanningCounter = 2;
 
-    public EnderBridgeTileEntity() {
-        this(ModTileEntityTypes.ENDER_BRIDGE);
+    public EnderBridgeTileEntity(BlockPos pos, BlockState state) {
+        this(ModTileEntityTypes.ENDER_BRIDGE, pos, state);
     }
 
-    protected EnderBridgeTileEntity(TileEntityType<?> type) {
-        super(type);
+    protected EnderBridgeTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     protected int getScansPerTick() {
         return 1;
     }
 
-    @Override
     public void tick() {
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             return;
         }
 
         for (int i = 0; i < getScansPerTick() && state == BridgeState.SCANNING; i++) {
-            BlockState blockState = this.world.getBlockState(this.pos);
-            Direction facing = blockState.get(EnderBridgeBlockBase.FACING);
+            BlockState blockState = this.level.getBlockState(this.worldPosition);
+            Direction facing = blockState.getValue(EnderBridgeBlockBase.FACING);
 
-            BlockPos nextPos = this.pos.offset(facing, scanningCounter);
+            BlockPos nextPos = this.worldPosition.relative(facing, scanningCounter);
 
-            if (this.world.isBlockLoaded(nextPos)) {
-                BlockState nextState = this.world.getBlockState(nextPos);
+            if (this.level.hasChunkAt(nextPos)) {
+                BlockState nextState = this.level.getBlockState(nextPos);
 
                 if (nextState.getBlock() == ModBlocks.ENDER_ANCHOR) {
-                    List<Entity> entityList = this.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(this.pos.getX() - 2, this.pos.getY() - 2, this.pos.getZ() - 2, this.pos.getX() + 2, this.pos.getY() + 2, this.pos.getZ() + 2));
+                    List<Entity> entityList = this.level.getEntitiesOfClass(Entity.class, new AABB(this.worldPosition.getX() - 2, this.worldPosition.getY() - 2, this.worldPosition.getZ() - 2, this.worldPosition.getX() + 2, this.worldPosition.getY() + 2, this.worldPosition.getZ() + 2));
 
                     if (!entityList.isEmpty()) {
-                        BlockPos target = nextPos.up();
+                        BlockPos target = nextPos.above();
 
                         for (Entity e : entityList) {
                             if (ENTITY_WHITELIST.stream().anyMatch(c -> c.isAssignableFrom(e.getClass()))) {
@@ -101,10 +99,10 @@ public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEn
                     }
 
                     state = BridgeState.WAITING;
-                    this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).with(EnderBridgeBlockBase.ACTIVE, false));
+                    this.level.setBlockAndUpdate(this.worldPosition, this.level.getBlockState(this.worldPosition).setValue(EnderBridgeBlockBase.ACTIVE, false));
                 } else if (!nextState.isAir()) {
                     state = BridgeState.WAITING;
-                    this.world.setBlockState(this.pos, this.world.getBlockState(this.pos).with(EnderBridgeBlockBase.ACTIVE, false));
+                    this.level.setBlockAndUpdate(this.worldPosition, this.level.getBlockState(this.worldPosition).setValue(EnderBridgeBlockBase.ACTIVE, false));
                 }
             }
 
@@ -113,25 +111,25 @@ public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEn
     }
 
     private static void teleportEntity(Entity e, double x, double y, double z) {
-        if (e instanceof ServerPlayerEntity) {
-            ServerPlayerEntity player = (ServerPlayerEntity) e;
-            player.connection.setPlayerLocation(x, y, z, player.rotationYaw, player.rotationPitch);
+        if (e instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) e;
+            player.connection.teleport(x, y, z, player.getYRot(), player.getXRot());
         } else {
-            e.setPositionAndUpdate(x, y, z);
+            e.teleportTo(x, y, z);
         }
     }
 
-    public void neighborChanged(World worldIn, BlockPos pos) {
-        boolean powered = worldIn.isBlockPowered(pos);
+    public void neighborChanged(Level worldIn, BlockPos pos) {
+        boolean powered = worldIn.hasNeighborSignal(pos);
 
         if (powered != redstonePowered) {
             if (state == BridgeState.IDLE && powered) {
                 scanningCounter = 2;
                 state = BridgeState.SCANNING;
-                worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(EnderBridgeBlockBase.ACTIVE, true));
+                worldIn.setBlockAndUpdate(pos, worldIn.getBlockState(pos).setValue(EnderBridgeBlockBase.ACTIVE, true));
             } else if (state == BridgeState.SCANNING && !powered) {
                 state = BridgeState.IDLE;
-                worldIn.setBlockState(pos, worldIn.getBlockState(pos).with(EnderBridgeBlockBase.ACTIVE, false));
+                worldIn.setBlockAndUpdate(pos, worldIn.getBlockState(pos).setValue(EnderBridgeBlockBase.ACTIVE, false));
             } else if (state == BridgeState.WAITING && !powered) {
                 state = BridgeState.IDLE;
             }
@@ -140,19 +138,18 @@ public class EnderBridgeTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("redstonePowered", redstonePowered);
         compound.putInt("scanningCounter", scanningCounter);
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         state = BridgeState.values()[compound.getInt("state")];
         redstonePowered = compound.getBoolean("redstonePowered");

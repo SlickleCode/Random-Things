@@ -2,16 +2,16 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.EntityDetectorTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -19,23 +19,23 @@ import net.minecraftforge.items.SlotItemHandler;
 /**
  * EntityDetectorContainer
  */
-public class EntityDetectorContainer extends Container implements ISignalContainer
+public class EntityDetectorContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public IntReferenceHolder rangeX = IntReferenceHolder.single();
-	public IntReferenceHolder rangeY = IntReferenceHolder.single();
-	public IntReferenceHolder rangeZ = IntReferenceHolder.single();
-	public IntReferenceHolder filter = IntReferenceHolder.single();
-	public IntReferenceHolder invert = IntReferenceHolder.single();
-	public IntReferenceHolder strongOutput = IntReferenceHolder.single();
+	public DataSlot rangeX = DataSlot.standalone();
+	public DataSlot rangeY = DataSlot.standalone();
+	public DataSlot rangeZ = DataSlot.standalone();
+	public DataSlot filter = DataSlot.standalone();
+	public DataSlot invert = DataSlot.standalone();
+	public DataSlot strongOutput = DataSlot.standalone();
 
-	public EntityDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public EntityDetectorContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), IWorldPosCallable.DUMMY);
+		this(windowId, (Inventory) playerInventory, new ItemStackHandler(1), ContainerLevelAccess.NULL);
 	}
 
-	public EntityDetectorContainer(int windowId, PlayerInventory playerInventory, IItemHandler filterInventory, IWorldPosCallable pos)
+	public EntityDetectorContainer(int windowId, Inventory playerInventory, IItemHandler filterInventory, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.ENTITY_DETECTOR, windowId);
 
@@ -56,25 +56,25 @@ public class EntityDetectorContainer extends Container implements ISignalContain
 			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 180));
 		}
 
-		this.trackInt(rangeX);
-		this.trackInt(rangeY);
-		this.trackInt(rangeZ);
-		this.trackInt(filter);
-		this.trackInt(invert);
-		this.trackInt(strongOutput);
+		this.addDataSlot(rangeX);
+		this.addDataSlot(rangeY);
+		this.addDataSlot(rangeZ);
+		this.addDataSlot(filter);
+		this.addDataSlot(invert);
+		this.addDataSlot(strongOutput);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.ENTITY_DETECTOR);
+		return stillValid(this.pos, playerIn, ModBlocks.ENTITY_DETECTOR);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof EntityDetectorTileEntity)
 			{
@@ -89,39 +89,39 @@ public class EntityDetectorContainer extends Container implements ISignalContain
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index)
+	public ItemStack quickMoveStack(Player playerIn, int index)
 	{
 		ItemStack result = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
+		Slot slot = this.slots.get(index);
 
-		if (slot != null && slot.getHasStack())
+		if (slot != null && slot.hasItem())
 		{
-			ItemStack stackInSlot = slot.getStack();
+			ItemStack stackInSlot = slot.getItem();
 			result = stackInSlot.copy();
 
 			if (index < 1)
 			{
-				if (!this.mergeItemStack(stackInSlot, 1, 37, true))
+				if (!this.moveItemStackTo(stackInSlot, 1, 37, true))
 				{
 					return ItemStack.EMPTY;
 				}
 			}
-			else if (!this.mergeItemStack(stackInSlot, 0, 1, false))
+			else if (!this.moveItemStackTo(stackInSlot, 0, 1, false))
 			{
 				return ItemStack.EMPTY;
 			}
 
 			if (stackInSlot.isEmpty())
 			{
-				slot.putStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			}
 			else
 			{
-				slot.onSlotChanged();
+				slot.setChanged();
 			}
 
 			if (stackInSlot.getCount() == result.getCount())
@@ -136,10 +136,10 @@ public class EntityDetectorContainer extends Container implements ISignalContain
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (!(te instanceof EntityDetectorTileEntity))
 			{

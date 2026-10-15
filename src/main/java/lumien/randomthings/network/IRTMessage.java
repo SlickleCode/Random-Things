@@ -2,17 +2,17 @@ package lumien.randomthings.network;
 
 import java.util.function.Supplier;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * IRTMessage
  */
 public interface IRTMessage
 {
-	public void read(PacketBuffer pb);
+	public void read(FriendlyByteBuf pb);
 
-	public void write(PacketBuffer pb);
+	public void write(FriendlyByteBuf pb);
 
 	public default void enqueue(Supplier<Context> sup)
 	{

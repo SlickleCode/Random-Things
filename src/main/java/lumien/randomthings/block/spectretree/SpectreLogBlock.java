@@ -1,10 +1,10 @@
 package lumien.randomthings.block.spectretree;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.RotatedPillarBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 
 /**
  * Vanilla's RotatedPillarBlock already handles the axis property and
@@ -15,6 +15,6 @@ public class SpectreLogBlock extends RotatedPillarBlock
 {
 	public SpectreLogBlock()
 	{
-		super(Block.Properties.create(Material.WOOD, MaterialColor.PURPLE).notSolid().hardnessAndResistance(2.0F).sound(SoundType.WOOD));
+		super(Block.Properties.of(Material.WOOD, MaterialColor.COLOR_PURPLE).noOcclusion().strength(2.0F).sound(SoundType.WOOD));
 	}
 }

@@ -1,20 +1,19 @@
 package lumien.randomthings.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.IRendersAsItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.ItemSupplier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 /**
  * An immobile marker placed by {@link
@@ -56,30 +55,30 @@ import net.minecraftforge.fml.network.NetworkHooks;
  * problem for {@link EclipsedClockEntity}'s {@code HANGING_POS}: a real
  * synced {@code DataParameter<BlockPos>} instead of a plain field.
  */
-@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = IRendersAsItem.class)
-public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
-    private static final DataParameter<Integer> TIME_RATE = EntityDataManager.createKey(TimeAcceleratorEntity.class, DataSerializers.VARINT);
-    private static final DataParameter<BlockPos> TARGET = EntityDataManager.createKey(TimeAcceleratorEntity.class, DataSerializers.BLOCK_POS);
+@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
+public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
+    private static final EntityDataAccessor<Integer> TIME_RATE = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<BlockPos> TARGET = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.BLOCK_POS);
 
     private int remainingTime;
 
-    public TimeAcceleratorEntity(EntityType<TimeAcceleratorEntity> type, World world) {
+    public TimeAcceleratorEntity(EntityType<TimeAcceleratorEntity> type, Level world) {
         super(type, world);
 
-        this.noClip = true;
+        this.noPhysics = true;
     }
 
-    public TimeAcceleratorEntity(World world, BlockPos target, double x, double y, double z) {
+    public TimeAcceleratorEntity(Level world, BlockPos target, double x, double y, double z) {
         this(ModEntityTypes.TIME_ACCELERATOR, world);
 
-        this.dataManager.set(TARGET, target);
-        this.setPosition(x, y, z);
+        this.entityData.set(TARGET, target);
+        this.setPos(x, y, z);
     }
 
     @Override
-    protected void registerData() {
-        this.dataManager.register(TIME_RATE, 1);
-        this.dataManager.register(TARGET, BlockPos.ZERO);
+    protected void defineSynchedData() {
+        this.entityData.define(TIME_RATE, 1);
+        this.entityData.define(TARGET, BlockPos.ZERO);
     }
 
     public int getRemainingTime() {
@@ -91,15 +90,15 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
     }
 
     public int getTimeRate() {
-        return this.dataManager.get(TIME_RATE);
+        return this.entityData.get(TIME_RATE);
     }
 
     public void setTimeRate(int timeRate) {
-        this.dataManager.set(TIME_RATE, timeRate);
+        this.entityData.set(TIME_RATE, timeRate);
     }
 
     public BlockPos getTarget() {
-        return this.dataManager.get(TARGET);
+        return this.entityData.get(TARGET);
     }
 
     @Override
@@ -114,28 +113,36 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
         BlockPos target = getTarget();
 
         for (int i = 0; i < getTimeRate(); i++) {
-            TileEntity targetTE = this.world.getTileEntity(target);
+            BlockEntity targetTE = this.level.getBlockEntity(target);
 
-            if (targetTE instanceof ITickableTileEntity) {
-                ((ITickableTileEntity) targetTE).tick();
+            BlockState targetState = this.level.getBlockState(target);
+
+            if (targetTE != null && targetState.getBlock() instanceof net.minecraft.world.level.block.EntityBlock) {
+                @SuppressWarnings("unchecked")
+                net.minecraft.world.level.block.entity.BlockEntityTicker<BlockEntity> ticker = ((net.minecraft.world.level.block.EntityBlock) targetState.getBlock())
+                        .getTicker(this.level, targetState, (net.minecraft.world.level.block.entity.BlockEntityType<BlockEntity>) targetTE.getType());
+
+                if (ticker != null) {
+                    ticker.tick(this.level, target, targetState, targetTE);
+                }
             }
 
-            if (this.world.rand.nextInt(1365) == 0) {
-                BlockState targetBlock = world.getBlockState(target);
+            if (this.level.random.nextInt(1365) == 0) {
+                BlockState targetBlock = level.getBlockState(target);
 
-                if (targetBlock.ticksRandomly()) {
-                    targetBlock.randomTick((net.minecraft.world.server.ServerWorld) world, target, world.rand);
+                if (targetBlock.isRandomlyTicking()) {
+                    targetBlock.randomTick((net.minecraft.server.level.ServerLevel) level, target, level.random);
                 }
             }
         }
 
         this.remainingTime -= 1;
 
-        if (this.remainingTime <= 0 && !this.world.isRemote) {
-            this.remove();
+        if (this.remainingTime <= 0 && !this.level.isClientSide) {
+            this.discard();
         }
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             spawnParticles();
         }
     }
@@ -145,23 +152,23 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
         int count = Math.max(1, rate / 2);
 
         for (int i = 0; i < count; i++) {
-            double dx = (this.rand.nextDouble() - 0.5) * 1.05;
-            double dy = (this.rand.nextDouble() - 0.5) * 1.05;
-            double dz = (this.rand.nextDouble() - 0.5) * 1.05;
+            double dx = (this.random.nextDouble() - 0.5) * 1.05;
+            double dy = (this.random.nextDouble() - 0.5) * 1.05;
+            double dz = (this.random.nextDouble() - 0.5) * 1.05;
 
-            this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.getPosX() + dx, this.getPosY() + dy, this.getPosZ() + dz, 0, 0, 0);
+            this.level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, this.getX() + dx, this.getY() + dy, this.getZ() + dz, 0, 0, 0);
         }
     }
 
     @Override
-    protected void readAdditional(CompoundNBT compound) {
-        this.dataManager.set(TARGET, new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ")));
+    protected void readAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(TARGET, new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ")));
         this.remainingTime = compound.getInt("remainingTime");
         setTimeRate(compound.getInt("timeRate"));
     }
 
     @Override
-    protected void writeAdditional(CompoundNBT compound) {
+    protected void addAdditionalSaveData(CompoundTag compound) {
         BlockPos target = getTarget();
 
         compound.putInt("targetX", target.getX());
@@ -172,7 +179,7 @@ public class TimeAcceleratorEntity extends Entity implements IRendersAsItem {
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

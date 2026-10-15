@@ -1,35 +1,37 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.OnlineDetectorContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.EditBox;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * OnlineDetectorScreen
  */
-public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContainer>
+public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetectorContainer>
 {
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/online_detector.png");
 
-	private TextFieldWidget usernameField;
+	private EditBox usernameField;
 	private String lastSent;
 
-	public OnlineDetectorScreen(OnlineDetectorContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
+	public OnlineDetectorScreen(OnlineDetectorContainer screenContainer, Inventory inv, Component titleIn)
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 136;
-		this.ySize = 52;
+		this.imageWidth = 136;
+		this.imageHeight = 52;
 	}
 
 	@Override
@@ -37,12 +39,12 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	{
 		super.init();
 
-		this.usernameField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 26, 127, 20, new StringTextComponent(""));
-		this.usernameField.setMaxStringLength(16);
-		this.usernameField.setText(this.container.getUsername());
-		this.lastSent = this.usernameField.getText();
-		this.addButton(this.usernameField);
-		this.setFocusedDefault(this.usernameField);
+		this.usernameField = new EditBox(this.font, this.leftPos + 5, this.topPos + 26, 127, 20, new TextComponent(""));
+		this.usernameField.setMaxLength(16);
+		this.usernameField.setValue(this.menu.getUsername());
+		this.lastSent = this.usernameField.getValue();
+		this.addRenderableWidget(this.usernameField);
+		this.setInitialFocus(this.usernameField);
 		// Real bug, found 2026-09-28: setFocusedDefault only tells the Screen which
 		// widget should receive routed input - it does NOT set the widget's own
 		// internal isFocused() flag (a separate boolean on Widget, normally only set
@@ -53,21 +55,21 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 		// close on inventory keybind" check - explaining both "hitting the inventory
 		// button still closes the GUI" and "doesn't save unless you hit Enter" (the
 		// field never actually received any of the typed text to begin with).
-		this.usernameField.setFocused2(true);
+		this.usernameField.setFocus(true);
 	}
 
 	// setFocusedDefault(IGuiEventListener) is inherited from INestedGuiEventHandler
 
 	@Override
-	public void tick()
+	public void containerTick()
 	{
-		super.tick();
+		super.containerTick();
 		this.usernameField.tick();
 
 		// Sync on every change rather than only from removed(): sending only on close
 		// raced the vanilla close-window packet, so Escape after clicking out of the
 		// field could drop the text (same fix as EnderLetterScreen).
-		if (!this.usernameField.getText().equals(this.lastSent))
+		if (!this.usernameField.getValue().equals(this.lastSent))
 		{
 			submitUsername();
 		}
@@ -99,42 +101,43 @@ public class OnlineDetectorScreen extends ContainerScreen<OnlineDetectorContaine
 	}
 
 	@Override
-	public void onClose()
+	public void removed()
 	{
 		submitUsername();
-		super.onClose();
+		super.removed();
 	}
 
 	private void submitUsername()
 	{
-		String text = this.usernameField.getText();
+		String text = this.usernameField.getValue();
 		this.lastSent = text;
-		this.container.send(0, (pb) -> pb.writeString(text));
+		this.menu.send(0, (pb) -> pb.writeUtf(text));
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
 	{
 
-		this.font.drawString(matrixStack, I18n.format("gui.randomthings.online_detector.username"), 8, 6, 4210752);
+		this.font.draw(matrixStack, I18n.get("gui.randomthings.online_detector.username"), 8, 6, 4210752);
 
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-		int i = (this.width - this.xSize) / 2;
-		int j = (this.height - this.ySize) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+		int i = (this.width - this.imageWidth) / 2;
+		int j = (this.height - this.imageHeight) / 2;
+		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
 		this.renderBackground(matrixStack);
 		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

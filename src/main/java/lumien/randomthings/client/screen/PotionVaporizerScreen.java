@@ -1,18 +1,20 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import java.awt.Color;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.PotionVaporizerContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Port of 1.12.2's {@code GuiPotionVaporizer}: a shrinking flame (fuel burn)
@@ -23,63 +25,64 @@ import net.minecraft.util.text.StringTextComponent;
  * found confusing and noted didn't show fuel burning the way a furnace does
  * - with the real sprites the original always had.
  */
-public class PotionVaporizerScreen extends ContainerScreen<PotionVaporizerContainer>
+public class PotionVaporizerScreen extends AbstractContainerScreen<PotionVaporizerContainer>
 {
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/potion_vaporizer.png");
 
-	public PotionVaporizerScreen(PotionVaporizerContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
+	public PotionVaporizerScreen(PotionVaporizerContainer screenContainer, Inventory inv, Component titleIn)
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 176;
-		this.ySize = 166;
+		this.imageWidth = 176;
+		this.imageHeight = 166;
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
 	{
-		this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
+		this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-		int x = (this.width - this.xSize) / 2;
-		int y = (this.height - this.ySize) / 2;
-		this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+		int x = (this.width - this.imageWidth) / 2;
+		int y = (this.height - this.imageHeight) / 2;
+		this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
-		int duration = this.container.duration.get();
+		int duration = this.menu.duration.get();
 
 		if (duration != 0)
 		{
-			int durationLeft = this.container.durationLeft.get();
+			int durationLeft = this.menu.durationLeft.get();
 			int tankProgress = (int) Math.floor(14F - (14F / duration * durationLeft));
 
-			Color c = new Color(this.container.color.get());
-			RenderSystem.color4f(c.getRed() / 255F, c.getGreen() / 255F, c.getBlue() / 255F, 1.0F);
+			Color c = new Color(this.menu.color.get());
+			RenderSystem.setShaderColor(c.getRed() / 255F, c.getGreen() / 255F, c.getBlue() / 255F, 1.0F);
 			this.blit(matrixStack, x + 81, y + 18 + tankProgress, 176, 30, 14, 14 - tankProgress);
-			RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		}
 
 		this.blit(matrixStack, x + 80, y + 17, 176, 14, 16, 16);
 
-		int fuelBurnTime = this.container.fuelBurnTime.get();
+		int fuelBurnTime = this.menu.fuelBurnTime.get();
 
 		if (fuelBurnTime > 0)
 		{
-			int fuelBurn = this.container.fuelBurn.get();
+			int fuelBurn = this.menu.fuelBurn.get();
 			int fuelProgress = 15 - (int) Math.floor(14F - (14F / fuelBurn * fuelBurnTime));
 			this.blit(matrixStack, x + 81, y + 50 - fuelProgress, 176, 14 - fuelProgress, 14, fuelProgress);
 		}
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
 		this.renderBackground(matrixStack);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+		this.renderTooltip(matrixStack, mouseX, mouseY);
 	}
 }

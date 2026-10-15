@@ -1,41 +1,41 @@
 package lumien.randomthings.tileentity;
 
-import lumien.randomthings.container.AdvancedRedstoneTorchContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.block.BlockState;
+import net.minecraft.core.BlockPos;
 
-public class AdvancedRedstoneTorchTileEntity extends TileEntity implements INamedContainerProvider
+import lumien.randomthings.container.AdvancedRedstoneTorchContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.block.state.BlockState;
+
+public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements MenuProvider
 {
 	int signalStrengthRed = 15;
 	int signalStrengthGreen = 0;
 
-	public AdvancedRedstoneTorchTileEntity()
-	{
-		super(ModTileEntityTypes.ADVANCED_REDSTONE_TORCH);
-	}
+	public AdvancedRedstoneTorchTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ADVANCED_REDSTONE_TORCH, pos, state);
+    }
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("signalStrengthRed", signalStrengthRed);
 		compound.putInt("signalStrengthGreen", signalStrengthGreen);
 
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.signalStrengthRed = compound.getInt("signalStrengthRed");
 		this.signalStrengthGreen = compound.getInt("signalStrengthGreen");
 	}
@@ -51,15 +51,15 @@ public class AdvancedRedstoneTorchTileEntity extends TileEntity implements IName
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new AdvancedRedstoneTorchContainer(windowId, IWorldPosCallable.of(this.world, pos));
+		return new AdvancedRedstoneTorchContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.advanced_redstone_torch");
+		return new TranslatableComponent("block.randomthings.advanced_redstone_torch");
 	}
 
 	public void setSignalStrengthGreen(int newValue)

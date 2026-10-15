@@ -1,14 +1,14 @@
 package lumien.randomthings.item;
 
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Plants {@link #plantedBlock} in the air space above the clicked block, like
@@ -29,36 +29,36 @@ public class BeanItem extends Item {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        if (context.getFace() != Direction.UP) {
-            return ActionResultType.FAIL;
+    public InteractionResult useOn(UseOnContext context) {
+        if (context.getClickedFace() != Direction.UP) {
+            return InteractionResult.FAIL;
         }
 
-        World world = context.getWorld();
-        BlockPos pos = context.getPos().up();
-        ItemStack stack = context.getItem();
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos().above();
+        ItemStack stack = context.getItemInHand();
 
-        if (context.getPlayer() != null && !context.getPlayer().canPlayerEdit(pos, Direction.UP, stack)) {
-            return ActionResultType.FAIL;
+        if (context.getPlayer() != null && !context.getPlayer().mayUseItemAt(pos, Direction.UP, stack)) {
+            return InteractionResult.FAIL;
         }
 
-        if (!world.isAirBlock(pos)) {
-            return ActionResultType.FAIL;
+        if (!world.isEmptyBlock(pos)) {
+            return InteractionResult.FAIL;
         }
 
-        if (!plantedBlock.getDefaultState().isValidPosition(world, pos)) {
-            return ActionResultType.FAIL;
+        if (!plantedBlock.defaultBlockState().canSurvive(world, pos)) {
+            return InteractionResult.FAIL;
         }
 
-        world.setBlockState(pos, plantedBlock.getDefaultState());
+        world.setBlockAndUpdate(pos, plantedBlock.defaultBlockState());
 
         if (scheduleGrowth) {
-            world.getPendingBlockTicks().scheduleTick(pos, plantedBlock, 20);
+            world.scheduleTick(pos, plantedBlock, 20);
         }
 
-        world.playSound(null, pos, plantedBlock.getSoundType(plantedBlock.getDefaultState()).getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
+        world.playSound(null, pos, plantedBlock.getSoundType(plantedBlock.defaultBlockState()).getPlaceSound(), SoundSource.BLOCKS, 1, 1);
 
         stack.shrink(1);
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

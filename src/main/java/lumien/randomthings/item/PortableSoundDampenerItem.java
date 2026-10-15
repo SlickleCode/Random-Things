@@ -2,20 +2,20 @@ package lumien.randomthings.item;
 
 import lumien.randomthings.container.PortableSoundDampenerContainer;
 import lumien.randomthings.util.ItemInventoryHandler;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A carried 9-slot filter of {@link SoundPatternItem}s, muting every sound
@@ -33,26 +33,26 @@ public class PortableSoundDampenerItem extends Item {
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack stack = playerIn.getHeldItem(hand);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isRemote && hand == Hand.MAIN_HAND) {
-            NetworkHooks.openGui((ServerPlayerEntity) playerIn, new INamedContainerProvider() {
+        if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
+            NetworkHooks.openGui((ServerPlayer) playerIn, new MenuProvider() {
                 @Override
-                public ITextComponent getDisplayName() {
-                    return new TranslationTextComponent("item.randomthings.portable_sound_dampener");
+                public Component getDisplayName() {
+                    return new TranslatableComponent("item.randomthings.portable_sound_dampener");
                 }
 
                 @Override
-                public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+                public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
                     return new PortableSoundDampenerContainer(windowId, playerInventory, stack);
                 }
             });
 
-            return new ActionResult<>(ActionResultType.SUCCESS, stack);
+            return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
         }
 
-        return new ActionResult<>(ActionResultType.FAIL, stack);
+        return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
     }
 
     public static ItemInventoryHandler getInventory(ItemStack dampener) {

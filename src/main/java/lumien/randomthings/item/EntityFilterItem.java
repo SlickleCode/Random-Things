@@ -1,22 +1,22 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.lib.IEntityFilterItem;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Right-click (attack) any living entity to "capture" its exact type as this
@@ -37,38 +37,38 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
     }
 
     private static Optional<EntityType<?>> getFilterType(ItemStack filter) {
-        CompoundNBT tag = filter.getTag();
+        CompoundTag tag = filter.getTag();
 
         if (tag == null || !tag.contains("entityType")) {
             return Optional.empty();
         }
 
-        return EntityType.byKey(tag.getString("entityType"));
+        return EntityType.byString(tag.getString("entityType"));
     }
 
     @Override
-    public ActionResultType itemInteractionForEntity(ItemStack stack, PlayerEntity playerIn, LivingEntity target, Hand hand) {
-        if (!playerIn.world.isRemote) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
+        if (!playerIn.level.isClientSide) {
             if (!stack.hasTag()) {
-                stack.setTag(new CompoundNBT());
+                stack.setTag(new CompoundTag());
             }
 
             stack.getTag().putString("entityType", EntityType.getKey(target.getType()).toString());
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag advanced) {
-        super.addInformation(stack, world, tooltip, advanced);
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
+        super.appendHoverText(stack, world, tooltip, advanced);
 
         Optional<EntityType<?>> filterType = getFilterType(stack);
 
         if (filterType.isPresent()) {
-            tooltip.add(filterType.get().getName());
+            tooltip.add(filterType.get().getDescription());
         } else {
-            tooltip.add(new TranslationTextComponent("tooltip.randomthings.entity_filter.invalid_entity"));
+            tooltip.add(new TranslatableComponent("tooltip.randomthings.entity_filter.invalid_entity"));
         }
     }
 

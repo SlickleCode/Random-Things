@@ -1,21 +1,21 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import net.minecraftforge.api.distmarker.Dist;
@@ -38,18 +38,18 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
     }
 
     @Override
-    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
-        tooltip.add(new TranslationTextComponent("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(new TranslatableComponent("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack stack = playerIn.getHeldItem(hand);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack stack = playerIn.getItemInHand(hand);
 
         int current = getDurationIndex(stack);
         int next;
 
-        if (playerIn.isSneaking()) {
+        if (playerIn.isShiftKeyDown()) {
             next = current - 1;
             next = next < 0 ? DURATIONS.length - 1 : next;
         } else {
@@ -59,23 +59,23 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
 
         setDurationIndex(stack, next);
 
-        return new ActionResult<>(ActionResultType.SUCCESS, stack);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World world = context.getWorld();
+    public InteractionResult useOn(UseOnContext context) {
+        Level world = context.getLevel();
 
-        if (!world.isRemote) {
-            ItemStack stack = context.getItem();
-            RedstoneSignalHandler.get(world).addSignal(world, context.getPos(), DURATIONS[getDurationIndex(stack)], 15);
+        if (!world.isClientSide) {
+            ItemStack stack = context.getItemInHand();
+            RedstoneSignalHandler.get(world).addSignal(world, context.getClickedPos(), DURATIONS[getDurationIndex(stack)], 15);
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static int getDurationIndex(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
         return compound != null && compound.contains("durationIndex") ? compound.getInt("durationIndex") : 1;
     }
 
@@ -87,9 +87,9 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("duration_index"), new IItemPropertyGetter() {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("duration_index"), new ItemPropertyFunction() {
             @Override
-            public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, LivingEntity entityIn) {
+            public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, LivingEntity entityIn, int seed) {
                 return getDurationIndex(stack);
             }
         });

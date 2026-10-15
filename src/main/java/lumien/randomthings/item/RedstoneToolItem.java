@@ -3,15 +3,15 @@ package lumien.randomthings.item;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click a Redstone Observer or a Basic Redstone Interface to start
@@ -27,27 +27,27 @@ public class RedstoneToolItem extends Item {
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
-        CompoundNBT tag = stack.getTag();
+    public boolean isFoil(ItemStack stack) {
+        CompoundTag tag = stack.getTag();
         return tag != null && tag.getBoolean("linking");
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
-        ItemStack stack = context.getItem();
+    public InteractionResult useOn(UseOnContext context) {
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        ItemStack stack = context.getItemInHand();
         BlockState state = world.getBlockState(pos);
 
         if (!stack.hasTag()) {
             if (!isLinkStart(state.getBlock())) {
-                return ActionResultType.FAIL;
+                return InteractionResult.FAIL;
             }
 
-            stack.setTag(new CompoundNBT());
+            stack.setTag(new CompoundTag());
         }
 
-        CompoundNBT tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
         boolean linking = tag.getBoolean("linking");
 
         if (linking) {
@@ -55,7 +55,7 @@ public class RedstoneToolItem extends Item {
 
             if (!linkingFrom.equals(pos)) {
                 BlockState linkingState = world.getBlockState(linkingFrom);
-                TileEntity te = world.getTileEntity(linkingFrom);
+                BlockEntity te = world.getBlockEntity(linkingFrom);
 
                 if (linkingState.getBlock() == ModBlocks.REDSTONE_OBSERVER && te instanceof RedstoneObserverTileEntity) {
                     ((RedstoneObserverTileEntity) te).setTarget(pos);
@@ -65,19 +65,19 @@ public class RedstoneToolItem extends Item {
             }
 
             tag.putBoolean("linking", false);
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         } else if (isLinkStart(state.getBlock())) {
             tag.putBoolean("linking", true);
             tag.putInt("oX", pos.getX());
             tag.putInt("oY", pos.getY());
             tag.putInt("oZ", pos.getZ());
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResultType.FAIL;
+        return InteractionResult.FAIL;
     }
 
-    private static boolean isLinkStart(net.minecraft.block.Block block) {
+    private static boolean isLinkStart(net.minecraft.world.level.block.Block block) {
         return block == ModBlocks.REDSTONE_OBSERVER || block == ModBlocks.BASIC_REDSTONE_INTERFACE;
     }
 }

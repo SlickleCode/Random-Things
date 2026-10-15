@@ -1,18 +1,18 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.potion.ModEffects;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.UseAction;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 
 import java.util.function.Supplier;
 
@@ -36,9 +36,9 @@ import java.util.function.Supplier;
 public class ImbueItem extends Item {
     private static final int DURATION = 60 * 20 * 20;
 
-    private final Supplier<Effect> effect;
+    private final Supplier<MobEffect> effect;
 
-    public ImbueItem(Item.Properties properties, Supplier<Effect> effect) {
+    public ImbueItem(Item.Properties properties, Supplier<MobEffect> effect) {
         super(properties);
 
         this.effect = effect;
@@ -50,37 +50,37 @@ public class ImbueItem extends Item {
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.DRINK;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.DRINK;
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack itemStackIn = playerIn.getHeldItem(hand);
-        playerIn.setActiveHand(hand);
-        return new ActionResult<>(ActionResultType.SUCCESS, itemStackIn);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack itemStackIn = playerIn.getItemInHand(hand);
+        playerIn.startUsingItem(hand);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStackIn);
     }
 
     @Override
-    public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity livingEntity) {
-        if (livingEntity instanceof PlayerEntity) {
-            PlayerEntity playerIn = (PlayerEntity) livingEntity;
+    public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity) {
+        if (livingEntity instanceof Player) {
+            Player playerIn = (Player) livingEntity;
 
-            if (!playerIn.abilities.isCreativeMode) {
+            if (!playerIn.getAbilities().instabuild) {
                 stack.shrink(1);
             }
 
-            if (!worldIn.isRemote) {
+            if (!worldIn.isClientSide) {
                 clearImbues(playerIn);
                 // particles off like 1.12.2, but the HUD/inventory icon on: the 5-argument constructor ties showIcon to showParticles and hid it
-                playerIn.addPotionEffect(new EffectInstance(effect.get(), DURATION, 0, false, false, true));
+                playerIn.addEffect(new MobEffectInstance(effect.get(), DURATION, 0, false, false, true));
             }
 
-            if (!playerIn.abilities.isCreativeMode) {
+            if (!playerIn.getAbilities().instabuild) {
                 if (stack.getCount() <= 0) {
                     return new ItemStack(Items.GLASS_BOTTLE);
                 } else {
-                    playerIn.inventory.addItemStackToInventory(new ItemStack(Items.GLASS_BOTTLE));
+                    playerIn.getInventory().add(new ItemStack(Items.GLASS_BOTTLE));
                 }
             }
         }
@@ -88,10 +88,10 @@ public class ImbueItem extends Item {
         return stack;
     }
 
-    private void clearImbues(PlayerEntity player) {
-        for (Effect imbue : new Effect[]{ModEffects.IMBUE_FIRE, ModEffects.IMBUE_POISON, ModEffects.IMBUE_EXPERIENCE, ModEffects.IMBUE_WITHER}) {
-            if (player.isPotionActive(imbue)) {
-                player.removePotionEffect(imbue);
+    private void clearImbues(Player player) {
+        for (MobEffect imbue : new MobEffect[]{ModEffects.IMBUE_FIRE, ModEffects.IMBUE_POISON, ModEffects.IMBUE_EXPERIENCE, ModEffects.IMBUE_WITHER}) {
+            if (player.hasEffect(imbue)) {
+                player.removeEffect(imbue);
             }
         }
     }

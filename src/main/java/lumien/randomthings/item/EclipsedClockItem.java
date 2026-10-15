@@ -1,14 +1,14 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.entity.EclipsedClockEntity;
-import net.minecraft.entity.item.HangingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -27,34 +27,34 @@ public class EclipsedClockItem extends Item implements IClientItemProperties{
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        Direction facing = context.getFace();
-        ItemStack stack = context.getItem();
-        BlockPos placedPos = context.getPos().offset(facing);
+    public InteractionResult useOn(UseOnContext context) {
+        Direction facing = context.getClickedFace();
+        ItemStack stack = context.getItemInHand();
+        BlockPos placedPos = context.getClickedPos().relative(facing);
 
-        if (facing == Direction.DOWN || facing == Direction.UP || context.getPlayer() == null || !context.getPlayer().canPlayerEdit(placedPos, facing, stack)) {
-            return ActionResultType.FAIL;
+        if (facing == Direction.DOWN || facing == Direction.UP || context.getPlayer() == null || !context.getPlayer().mayUseItemAt(placedPos, facing, stack)) {
+            return InteractionResult.FAIL;
         }
 
-        HangingEntity hanging = new EclipsedClockEntity(context.getWorld(), placedPos, facing);
+        HangingEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
 
-        if (hanging.onValidSurface()) {
-            if (!context.getWorld().isRemote) {
-                hanging.playPlaceSound();
-                context.getWorld().addEntity(hanging);
+        if (hanging.survives()) {
+            if (!context.getLevel().isClientSide) {
+                hanging.playPlacementSound();
+                context.getLevel().addFreshEntity(hanging);
             }
 
             stack.shrink(1);
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("time"), (stack, world, entity) -> {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("time"), (stack, world, entity, seed) -> {
             int time = 6000;
 
             if (stack.hasTag() && stack.getTag().contains("targetTime")) {

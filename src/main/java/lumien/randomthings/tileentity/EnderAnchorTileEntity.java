@@ -1,10 +1,13 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.world.level.block.state.BlockState;
+
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.handler.AnchorChunkLoader;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * The teleport destination {@link lumien.randomthings.block.EnderBridgeBlock}
@@ -16,14 +19,13 @@ import net.minecraft.world.server.ServerWorld;
  * Done on the first tick, not in {@code onLoad}, since forcing a chunk while
  * that same chunk is still loading would recurse into the chunk loader.
  */
-public class EnderAnchorTileEntity extends TileEntity implements ITickableTileEntity {
+public class EnderAnchorTileEntity extends BlockEntity {
     private boolean firstTick = true;
 
-    public EnderAnchorTileEntity() {
-        super(ModTileEntityTypes.ENDER_ANCHOR);
+    public EnderAnchorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ENDER_ANCHOR, pos, state);
     }
 
-    @Override
     public void tick() {
         if (!firstTick) {
             return;
@@ -31,11 +33,11 @@ public class EnderAnchorTileEntity extends TileEntity implements ITickableTileEn
 
         firstTick = false;
 
-        if (this.world instanceof ServerWorld) {
+        if (this.level instanceof ServerLevel) {
             if (RTConfig.ENDER_ANCHOR_CHUNKLOADING.get()) {
-                AnchorChunkLoader.register((ServerWorld) this.world, this.pos);
+                AnchorChunkLoader.register((ServerLevel) this.level, this.worldPosition);
             } else {
-                AnchorChunkLoader.unregister((ServerWorld) this.world, this.pos);
+                AnchorChunkLoader.unregister((ServerLevel) this.level, this.worldPosition);
             }
         }
     }

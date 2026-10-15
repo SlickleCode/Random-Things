@@ -1,44 +1,43 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.block.OnlineDetectorBlock;
 import lumien.randomthings.container.OnlineDetectorContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class OnlineDetectorTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvider
 {
 	private String username = "";
 	private boolean playerOnline = false;
 
-	public OnlineDetectorTileEntity()
-	{
-		super(ModTileEntityTypes.ONLINE_DETECTOR);
-	}
+	public OnlineDetectorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ONLINE_DETECTOR, pos, state);
+    }
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putString("username", username);
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.username = compound.getString("username");
 	}
 
@@ -50,35 +49,34 @@ public class OnlineDetectorTileEntity extends TileEntity implements ITickableTil
 	public void setUsername(String username)
 	{
 		this.username = username;
-		this.markDirty();
+		this.setChanged();
 	}
 
-	@Override
 	public void tick()
 	{
-		if (!this.world.isRemote && this.world.getGameTime() % 20 == 0)
+		if (!this.level.isClientSide && this.level.getGameTime() % 20 == 0)
 		{
-			MinecraftServer server = this.world.getServer();
+			MinecraftServer server = this.level.getServer();
 
-			boolean playerCheck = server != null && !username.isEmpty() && server.getPlayerList().getPlayerByUsername(username) != null;
+			boolean playerCheck = server != null && !username.isEmpty() && server.getPlayerList().getPlayerByName(username) != null;
 
 			if (playerCheck != playerOnline)
 			{
 				this.playerOnline = playerCheck;
-				this.world.setBlockState(pos, this.getBlockState().with(OnlineDetectorBlock.POWERED, playerCheck), 3);
+				this.level.setBlock(worldPosition, this.getBlockState().setValue(OnlineDetectorBlock.POWERED, playerCheck), 3);
 			}
 		}
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new OnlineDetectorContainer(windowId, IWorldPosCallable.of(this.world, pos), this.username);
+		return new OnlineDetectorContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition), this.username);
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.online_detector");
+		return new TranslatableComponent("block.randomthings.online_detector");
 	}
 }

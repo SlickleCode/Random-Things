@@ -1,19 +1,20 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.container.ImbuingStationContainer;
 import lumien.randomthings.recipes.imbuing.ImbuingRecipeHandler;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityImbuingStation}: once the 3
@@ -22,7 +23,7 @@ import net.minecraft.block.BlockState;
  * ticks accumulating progress before consuming one of each input and
  * producing the result in the output slot.
  */
-public class ImbuingStationTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
+public class ImbuingStationTileEntity extends BlockEntity implements MenuProvider {
     public static final int IMBUING_LENGTH = 200;
 
     private int imbuingProgress;
@@ -31,12 +32,12 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
     private final ImbuingStationItemHandler itemHandler = new ImbuingStationItemHandler() {
         @Override
         protected void onContentsChanged(int slot) {
-            markDirty();
+            setChanged();
         }
     };
 
-    public ImbuingStationTileEntity() {
-        super(ModTileEntityTypes.IMBUING_STATION);
+    public ImbuingStationTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.IMBUING_STATION, pos, state);
     }
 
     public ImbuingStationItemHandler itemHandler() {
@@ -47,15 +48,14 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
         return imbuingProgress;
     }
 
-    @Override
     public void tick() {
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             return;
         }
 
         ItemStack validOutput = ImbuingRecipeHandler.getRecipeOutput(itemHandler);
 
-        if (!ItemStack.areItemStacksEqual(validOutput, currentOutput) && canHandleOutput(validOutput)) {
+        if (!ItemStack.matches(validOutput, currentOutput) && canHandleOutput(validOutput)) {
             this.imbuingProgress = 0;
             currentOutput = validOutput;
         }
@@ -79,7 +79,7 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
             return true;
         }
 
-        if (!ItemStack.areItemsEqual(currentInOutput, validOutput) || !ItemStack.areItemStackTagsEqual(currentInOutput, validOutput)) {
+        if (!ItemStack.isSame(currentInOutput, validOutput) || !ItemStack.tagMatches(currentInOutput, validOutput)) {
             return false;
         }
 
@@ -105,38 +105,37 @@ public class ImbuingStationTileEntity extends TileEntity implements ITickableTil
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.putInt("imbuingProgress", imbuingProgress);
 
         if (!currentOutput.isEmpty()) {
-            compound.put("output", currentOutput.write(new CompoundNBT()));
+            compound.put("output", currentOutput.save(new CompoundTag()));
         }
 
         compound.put("inventory", itemHandler.serializeNBT());
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         imbuingProgress = compound.getInt("imbuingProgress");
 
-        currentOutput = compound.contains("output") ? ItemStack.read(compound.getCompound("output")) : ItemStack.EMPTY;
+        currentOutput = compound.contains("output") ? ItemStack.of(compound.getCompound("output")) : ItemStack.EMPTY;
 
         itemHandler.deserializeNBT(compound.getCompound("inventory"));
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new ImbuingStationContainer(windowId, playerInventory, itemHandler, IWorldPosCallable.of(this.world, pos));
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity) {
+        return new ImbuingStationContainer(windowId, playerInventory, itemHandler, ContainerLevelAccess.create(this.level, worldPosition));
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.imbuing_station");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.imbuing_station");
     }
 }

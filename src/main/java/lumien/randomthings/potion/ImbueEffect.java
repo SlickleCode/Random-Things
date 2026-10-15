@@ -1,7 +1,7 @@
 package lumien.randomthings.potion;
 
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectType;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 
 /**
  * A passive marker effect applied by drinking an {@link lumien.randomthings.item.ImbueItem}
@@ -18,8 +18,8 @@ import net.minecraft.potion.EffectType;
  * {@code IForgeEffect}'s render hooks are empty no-ops by default), so supplying
  * that texture is enough on its own.
  */
-public class ImbueEffect extends Effect {
+public class ImbueEffect extends MobEffect {
     public ImbueEffect(int liquidColor) {
-        super(EffectType.NEUTRAL, liquidColor);
+        super(MobEffectCategory.NEUTRAL, liquidColor);
     }
 }

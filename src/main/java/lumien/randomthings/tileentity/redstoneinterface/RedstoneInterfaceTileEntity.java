@@ -1,20 +1,20 @@
 package lumien.randomthings.tileentity.redstoneinterface;
 
 import lumien.randomthings.util.WeakSets;
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Shared base for {@link BasicRedstoneInterfaceTileEntity}/{@link AdvancedRedstoneInterfaceTileEntity}:
@@ -28,14 +28,14 @@ import net.minecraft.block.BlockState;
  * {@code AsmHandler#overrideRedstonePower}/{@code overrideStrongPower}).
  * Direct port of 1.12.2's {@code TileEntityRedstoneInterface}.
  */
-public abstract class RedstoneInterfaceTileEntity extends TileEntity {
+public abstract class RedstoneInterfaceTileEntity extends BlockEntity {
     private static final Set<RedstoneInterfaceTileEntity> INTERFACES = WeakSets.create();
 
     private final Map<Direction, Integer> weakPower = new EnumMap<>(Direction.class);
     private final Map<Direction, Integer> strongPower = new EnumMap<>(Direction.class);
 
-    protected RedstoneInterfaceTileEntity(TileEntityType<?> type) {
-        super(type);
+    protected RedstoneInterfaceTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
 
         INTERFACES.add(this);
 
@@ -47,14 +47,14 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
 
     protected abstract boolean isTargeting(BlockPos pos);
 
-    protected abstract void notifyTargets(net.minecraft.block.Block neighborBlock);
+    protected abstract void notifyTargets(net.minecraft.world.level.block.Block neighborBlock);
 
-    public static int getWeakPower(World world, BlockPos pos, Direction facing) {
-        BlockPos checking = pos.offset(facing.getOpposite());
+    public static int getWeakPower(Level world, BlockPos pos, Direction facing) {
+        BlockPos checking = pos.relative(facing.getOpposite());
         int strongest = 0;
 
         for (RedstoneInterfaceTileEntity ri : WeakSets.snapshot(INTERFACES)) {
-            if (!ri.isRemoved() && ri.world == world && ri.isTargeting(checking)) {
+            if (!ri.isRemoved() && ri.level == world && ri.isTargeting(checking)) {
                 strongest = Math.max(strongest, ri.weakPower.getOrDefault(facing, 0));
             }
         }
@@ -62,12 +62,12 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         return strongest;
     }
 
-    public static int getStrongPower(World world, BlockPos pos, Direction facing) {
-        BlockPos checking = pos.offset(facing.getOpposite());
+    public static int getStrongPower(Level world, BlockPos pos, Direction facing) {
+        BlockPos checking = pos.relative(facing.getOpposite());
         int strongest = 0;
 
         for (RedstoneInterfaceTileEntity ri : WeakSets.snapshot(INTERFACES)) {
-            if (!ri.isRemoved() && ri.world == world && ri.isTargeting(checking)) {
+            if (!ri.isRemoved() && ri.level == world && ri.isTargeting(checking)) {
                 strongest = Math.max(strongest, ri.strongPower.getOrDefault(facing, 0));
             }
         }
@@ -85,7 +85,7 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
      * the interface only refreshed when its own block changed.)
      */
     public void updateRedstoneState() {
-        if (updating || this.world == null) {
+        if (updating || this.level == null) {
             return;
         }
 
@@ -93,15 +93,15 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         boolean changed = false;
 
         for (Direction facing : Direction.values()) {
-            BlockPos neighborPos = this.pos.offset(facing);
+            BlockPos neighborPos = this.worldPosition.relative(facing);
 
-            int newWeak = this.world.getRedstonePower(neighborPos, facing);
+            int newWeak = this.level.getSignal(neighborPos, facing);
             if (!weakPower.get(facing).equals(newWeak)) {
                 weakPower.put(facing, newWeak);
                 changed = true;
             }
 
-            int newStrong = this.world.getStrongPower(neighborPos, facing);
+            int newStrong = this.level.getDirectSignal(neighborPos, facing);
             if (!strongPower.get(facing).equals(newStrong)) {
                 strongPower.put(facing, newStrong);
                 changed = true;
@@ -111,10 +111,10 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         if (changed) {
             notifyTargets(Blocks.REDSTONE_BLOCK);
 
-            this.markDirty();
+            this.setChanged();
 
-            if (this.world != null) {
-                this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+            if (this.level != null) {
+                this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
         }
 
@@ -122,33 +122,34 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         notifyTargets(Blocks.REDSTONE_BLOCK);
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
-        CompoundNBT weakCompound = new CompoundNBT();
-        CompoundNBT strongCompound = new CompoundNBT();
+        CompoundTag weakCompound = new CompoundTag();
+        CompoundTag strongCompound = new CompoundTag();
 
         for (Direction facing : Direction.values()) {
             weakCompound.putInt(facing.ordinal() + "", weakPower.get(facing));
@@ -158,15 +159,14 @@ public abstract class RedstoneInterfaceTileEntity extends TileEntity {
         compound.put("weakPower", weakCompound);
         compound.put("strongPower", strongCompound);
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
-        CompoundNBT weakCompound = compound.getCompound("weakPower");
-        CompoundNBT strongCompound = compound.getCompound("strongPower");
+        CompoundTag weakCompound = compound.getCompound("weakPower");
+        CompoundTag strongCompound = compound.getCompound("strongPower");
 
         for (Direction facing : Direction.values()) {
             weakPower.put(facing, weakCompound.getInt(facing.ordinal() + ""));

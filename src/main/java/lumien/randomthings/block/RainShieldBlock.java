@@ -1,17 +1,19 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.RainShieldTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
 import java.util.Random;
 
@@ -40,59 +42,55 @@ import java.util.Random;
  * #animateTick}) still visibly signals "this is warding off the rain" to a
  * player standing near it.
  */
-public class RainShieldBlock extends Block {
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(6, 0, 6, 10, 16, 10);
+public class RainShieldBlock extends Block implements EntityBlock {
+    private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 16, 10);
 
     public RainShieldBlock() {
-        super(Block.Properties.create(Material.ROCK).notSolid().hardnessAndResistance(2.0F));
+        super(Block.Properties.of(Material.STONE).noOcclusion().strength(2.0F));
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return worldIn.getBlockState(pos.down()).isSolid();
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        return worldIn.getBlockState(pos.below()).canOcclude();
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new RainShieldTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new RainShieldTileEntity();
-    }
-
-    @Override
-    public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof RainShieldTileEntity) {
-            ((RainShieldTileEntity) te).updatePowerState(worldIn.isBlockPowered(pos));
+            ((RainShieldTileEntity) te).updatePowerState(worldIn.hasNeighborSignal(pos));
         }
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!isValidPosition(state, worldIn, pos)) {
-            spawnDrops(state, worldIn, pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!canSurvive(state, worldIn, pos)) {
+            dropResources(state, worldIn, pos);
             worldIn.removeBlock(pos, isMoving);
             return;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof RainShieldTileEntity) {
-            ((RainShieldTileEntity) te).updatePowerState(worldIn.isBlockPowered(pos));
+            ((RainShieldTileEntity) te).updatePowerState(worldIn.hasNeighborSignal(pos));
         }
     }
 
     @Override
-    public void animateTick(BlockState state, World worldIn, BlockPos pos, Random rand) {
+    public void animateTick(BlockState state, Level worldIn, BlockPos pos, Random rand) {
         if (!worldIn.isRaining()) {
             return;
         }

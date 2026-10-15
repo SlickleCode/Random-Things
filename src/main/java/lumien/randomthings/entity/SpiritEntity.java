@@ -3,23 +3,23 @@ package lumien.randomthings.entity;
 import java.util.Random;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.FlyingEntity;
-import net.minecraft.entity.ai.controller.MovementController;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
-import net.minecraft.entity.ai.attributes.Attributes;
-import net.minecraft.entity.ai.attributes.AttributeModifierMap;
-import net.minecraft.entity.MobEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.FlyingMob;
+import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.Mob;
 
 /**
  * A tiny, near-invulnerable flying wisp with a small chance to appear at the
@@ -30,99 +30,99 @@ import net.minecraft.entity.MobEntity;
  * only weapon that can actually hurt it). Direct port of 1.12.2's {@code
  * EntitySpirit}.
  */
-public class SpiritEntity extends FlyingEntity {
+public class SpiritEntity extends FlyingMob {
     private final Random rng = new Random();
 
     private BlockPos spawnPosition;
     private int changePositionCounter;
     private int spiritAge;
 
-    public SpiritEntity(EntityType<? extends SpiritEntity> type, World world) {
+    public SpiritEntity(EntityType<? extends SpiritEntity> type, Level world) {
         super(type, world);
 
-        this.moveController = new SpiritMovementController(this);
+        this.moveControl = new SpiritMovementController(this);
     }
 
-    public SpiritEntity(World world, double x, double y, double z) {
+    public SpiritEntity(Level world, double x, double y, double z) {
         this(ModEntityTypes.SPIRIT, world);
 
-        this.setPosition(x, y, z);
+        this.setPos(x, y, z);
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
 
         this.spiritAge = compound.getInt("spiritAge");
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
 
         compound.putInt("spiritAge", spiritAge);
     }
 
     @Override
-    public void livingTick() {
-        super.livingTick();
+    public void aiStep() {
+        super.aiStep();
 
         spiritAge++;
 
-        if (!this.world.isRemote && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
-            this.onKillCommand();
+        if (!this.level.isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
+            this.kill();
         }
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource source, float amount) {
+    public boolean hurt(DamageSource source, float amount) {
         if (source instanceof EntityDamageSource) {
             EntityDamageSource eds = (EntityDamageSource) source;
 
-            if (eds.getDamageType().equals("player") && eds.getTrueSource() instanceof PlayerEntity) {
-                PlayerEntity player = (PlayerEntity) eds.getTrueSource();
-                ItemStack equipped = player.getHeldItemMainhand();
+            if (eds.getMsgId().equals("player") && eds.getEntity() instanceof Player) {
+                Player player = (Player) eds.getEntity();
+                ItemStack equipped = player.getMainHandItem();
 
                 if (!equipped.isEmpty() && equipped.getItem() == ModItems.SPECTRE_SWORD) {
-                    return super.attackEntityFrom(source, amount);
+                    return super.hurt(source, amount);
                 }
             }
         }
 
-        if (!source.isMagicDamage() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) {
+        if (!source.isMagic() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) {
             return false;
         }
 
-        return super.attackEntityFrom(source, amount);
+        return super.hurt(source, amount);
     }
 
-    public static AttributeModifierMap.MutableAttribute registerAttributes() {
-        return MobEntity.func_233666_p_().createMutableAttribute(Attributes.MAX_HEALTH, 1.0);
-    }
-
-    @Override
-    public void applyKnockback(float strength, double xRatio, double zRatio) {
+    public static AttributeSupplier.Builder registerAttributes() {
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 1.0);
     }
 
     @Override
-    protected void collideWithEntity(Entity entityIn) {
+    public void knockback(double strength, double xRatio, double zRatio) {
     }
 
     @Override
-    protected void collideWithNearbyEntities() {
+    protected void doPush(Entity entityIn) {
     }
 
     @Override
-    public boolean canBePushed() {
+    protected void pushEntities() {
+    }
+
+    @Override
+    public boolean isPushable() {
         return false;
     }
 
     @Override
-    protected void updateAITasks() {
-        super.updateAITasks();
+    protected void customServerAiStep() {
+        super.customServerAiStep();
 
         if (spawnPosition == null) {
-            this.spawnPosition = this.getPosition();
+            this.spawnPosition = this.blockPosition();
         }
 
         changePositionCounter++;
@@ -140,33 +140,33 @@ public class SpiritEntity extends FlyingEntity {
                 int modY = rng.nextInt(3);
                 int modZ = rng.nextInt(5) - 2;
 
-                BlockPos modPos = spawnPosition.add(modX, modY, modZ);
+                BlockPos modPos = spawnPosition.offset(modX, modY, modZ);
 
-                if (world.isAirBlock(modPos)) {
+                if (level.isEmptyBlock(modPos)) {
                     newTarget = modPos;
                 }
             }
 
             if (newTarget != null) {
-                this.moveController.setMoveTo(newTarget.getX(), newTarget.getY(), newTarget.getZ(), 0.02);
+                this.moveControl.setWantedPosition(newTarget.getX(), newTarget.getY(), newTarget.getZ(), 0.02);
             }
         }
     }
 
     @Override
-    protected void dropSpecialItems(DamageSource source, int lootingModifier, boolean wasRecentlyHit) {
+    protected void dropCustomDeathLoot(DamageSource source, int lootingModifier, boolean wasRecentlyHit) {
         if (!wasRecentlyHit) {
             return;
         }
 
         int count = 1;
 
-        if (rand.nextInt(5) == 0) {
+        if (random.nextInt(5) == 0) {
             count++;
         }
 
         for (int i = 0; i < count; i++) {
-            this.entityDropItem(ModItems.ECTOPLASM);
+            this.spawnAtLocation(ModItems.ECTOPLASM);
         }
     }
 
@@ -174,14 +174,14 @@ public class SpiritEntity extends FlyingEntity {
     public void tick() {
         super.tick();
 
-        if (this.world.isRemote && (this.lastTickPosX != this.getPosX() || this.lastTickPosY != this.getPosY() || this.lastTickPosZ != this.getPosZ())) {
+        if (this.level.isClientSide && (this.xOld != this.getX() || this.yOld != this.getY() || this.zOld != this.getZ())) {
             if (Math.random() < 0.5) {
-                this.world.addParticle(ParticleTypes.ENCHANT, this.getPosX(), this.getPosY(), this.getPosZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
+                this.level.addParticle(ParticleTypes.ENCHANT, this.getX(), this.getY(), this.getZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
             }
         }
     }
 
-    private static class SpiritMovementController extends MovementController {
+    private static class SpiritMovementController extends MoveControl {
         private final SpiritEntity parentEntity;
 
         SpiritMovementController(SpiritEntity parentEntity) {
@@ -192,30 +192,30 @@ public class SpiritEntity extends FlyingEntity {
 
         @Override
         public void tick() {
-            if (this.action == Action.MOVE_TO) {
-                double d0 = this.posX - this.parentEntity.getPosX();
-                double d1 = this.posY - this.parentEntity.getPosY();
-                double d2 = this.posZ - this.parentEntity.getPosZ();
-                double d3 = MathHelper.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+            if (this.operation == Operation.MOVE_TO) {
+                double d0 = this.wantedX - this.parentEntity.getX();
+                double d1 = this.wantedY - this.parentEntity.getY();
+                double d2 = this.wantedZ - this.parentEntity.getZ();
+                double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
 
-                if (this.isNotColliding(this.posX, this.posY, this.posZ, d3) && d3 > 0.2) {
-                    this.parentEntity.setMotion(this.parentEntity.getMotion().add(d0 / d3 * 0.01D, d1 / d3 * 0.01D, d2 / d3 * 0.01D));
+                if (this.isNotColliding(this.wantedX, this.wantedY, this.wantedZ, d3) && d3 > 0.2) {
+                    this.parentEntity.setDeltaMovement(this.parentEntity.getDeltaMovement().add(d0 / d3 * 0.01D, d1 / d3 * 0.01D, d2 / d3 * 0.01D));
                 } else {
-                    this.action = Action.WAIT;
+                    this.operation = Operation.WAIT;
                 }
             }
         }
 
         private boolean isNotColliding(double targetX, double targetY, double targetZ, double distance) {
-            double stepX = (targetX - this.parentEntity.getPosX()) / distance;
-            double stepY = (targetY - this.parentEntity.getPosY()) / distance;
-            double stepZ = (targetZ - this.parentEntity.getPosZ()) / distance;
-            AxisAlignedBB aabb = this.parentEntity.getBoundingBox();
+            double stepX = (targetX - this.parentEntity.getX()) / distance;
+            double stepY = (targetY - this.parentEntity.getY()) / distance;
+            double stepZ = (targetZ - this.parentEntity.getZ()) / distance;
+            AABB aabb = this.parentEntity.getBoundingBox();
 
             for (int i = 1; i < distance; ++i) {
-                aabb = aabb.offset(stepX, stepY, stepZ);
+                aabb = aabb.move(stepX, stepY, stepZ);
 
-                if (!this.parentEntity.world.hasNoCollisions(this.parentEntity, aabb)) {
+                if (!this.parentEntity.level.noCollision(this.parentEntity, aabb)) {
                     return false;
                 }
             }

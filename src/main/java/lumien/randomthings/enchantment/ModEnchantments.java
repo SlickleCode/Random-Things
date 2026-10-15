@@ -1,7 +1,7 @@
 package lumien.randomthings.enchantment;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
@@ -14,6 +14,6 @@ public class ModEnchantments {
     public static void registerEnchantments(Register<Enchantment> enchantmentRegistryEvent) {
         IForgeRegistry<Enchantment> registry = enchantmentRegistryEvent.getRegistry();
 
-        registry.register(new MagneticEnchantment(Enchantment.Rarity.RARE, EquipmentSlotType.MAINHAND).setRegistryName("magnetic"));
+        registry.register(new MagneticEnchantment(Enchantment.Rarity.RARE, EquipmentSlot.MAINHAND).setRegistryName("magnetic"));
     }
 }

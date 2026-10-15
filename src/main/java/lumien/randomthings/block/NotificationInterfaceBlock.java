@@ -1,109 +1,104 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.NotificationInterfaceTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Links to whoever placed it and pops a toast on their screen whenever it
  * sees a rising redstone edge.
  */
-public class NotificationInterfaceBlock extends Block
-{
+public class NotificationInterfaceBlock extends Block implements EntityBlock {
 	public NotificationInterfaceBlock()
 	{
-		super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+		super(Block.Properties.of(Material.STONE).strength(2.0F));
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new NotificationInterfaceTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
 	{
-		return new NotificationInterfaceTileEntity();
-	}
-
-	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
-	{
-		if (!worldIn.isRemote && placer instanceof ServerPlayerEntity)
+		if (!worldIn.isClientSide && placer instanceof ServerPlayer)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof NotificationInterfaceTileEntity)
 			{
-				((NotificationInterfaceTileEntity) te).setPlayerUUID(placer.getUniqueID());
+				((NotificationInterfaceTileEntity) te).setPlayerUUID(placer.getUUID());
 			}
 		}
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
-		TileEntity te = worldIn.getTileEntity(pos);
+		BlockEntity te = worldIn.getBlockEntity(pos);
 
 		if (te instanceof NotificationInterfaceTileEntity)
 		{
-			((NotificationInterfaceTileEntity) te).updatePowerState(worldIn.isBlockPowered(pos));
+			((NotificationInterfaceTileEntity) te).updatePowerState(worldIn.hasNeighborSignal(pos));
 		}
 	}
 
 	@Override
-	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof NotificationInterfaceTileEntity)
 			{
 				NonNullList<ItemStack> drops = NonNullList.create();
 				drops.add(((NotificationInterfaceTileEntity) te).iconInventory().getStackInSlot(0));
-				InventoryHelper.dropItems(worldIn, pos, drops);
+				Containers.dropContents(worldIn, pos, drops);
 			}
 		}
 
-		super.onReplaced(state, worldIn, pos, newState, isMoving);
+		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof NotificationInterfaceTileEntity)
 			{
 				NotificationInterfaceTileEntity nite = (NotificationInterfaceTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayerEntity) player, nite, buf -> {
+				NetworkHooks.openGui((ServerPlayer) player, nite, buf -> {
 					buf.writeBlockPos(pos);
-					buf.writeString(nite.getTitle());
-					buf.writeString(nite.getDescription());
+					buf.writeUtf(nite.getTitle());
+					buf.writeUtf(nite.getDescription());
 				});
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

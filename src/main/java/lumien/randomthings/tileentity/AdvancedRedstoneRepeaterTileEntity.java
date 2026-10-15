@@ -1,45 +1,45 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.container.AdvancedRedstoneRepeaterContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Holds the configurable on/off delay (in game ticks, 2-10000) for
  * {@link lumien.randomthings.block.AdvancedRedstoneRepeaterBlock}, standing
  * in for vanilla's fixed 1-4 tick / 0-3 DELAY property.
  */
-public class AdvancedRedstoneRepeaterTileEntity extends TileEntity implements INamedContainerProvider
+public class AdvancedRedstoneRepeaterTileEntity extends BlockEntity implements MenuProvider
 {
 	private int turnOnDelay = 20;
 	private int turnOffDelay = 20;
 
-	public AdvancedRedstoneRepeaterTileEntity()
-	{
-		super(ModTileEntityTypes.ADVANCED_REDSTONE_REPEATER);
-	}
+	public AdvancedRedstoneRepeaterTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ADVANCED_REDSTONE_REPEATER, pos, state);
+    }
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("turnOnDelay", turnOnDelay);
 		compound.putInt("turnOffDelay", turnOffDelay);
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.turnOnDelay = compound.getInt("turnOnDelay");
 		this.turnOffDelay = compound.getInt("turnOffDelay");
 	}
@@ -57,24 +57,24 @@ public class AdvancedRedstoneRepeaterTileEntity extends TileEntity implements IN
 	public void adjustTurnOnDelay(int amount)
 	{
 		turnOnDelay = Math.max(0, Math.min(120, turnOnDelay + amount));
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void adjustTurnOffDelay(int amount)
 	{
 		turnOffDelay = Math.max(0, Math.min(120, turnOffDelay + amount));
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new AdvancedRedstoneRepeaterContainer(windowId, IWorldPosCallable.of(this.world, pos));
+		return new AdvancedRedstoneRepeaterContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.advanced_redstone_repeater");
+		return new TranslatableComponent("block.randomthings.advanced_redstone_repeater");
 	}
 }

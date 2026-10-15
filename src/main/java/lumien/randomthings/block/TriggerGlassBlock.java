@@ -6,23 +6,23 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.pathfinding.PathType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 
 /**
  * A block of glass that becomes fully walk-through (no collision, no
@@ -64,36 +64,36 @@ public class TriggerGlassBlock extends Block
 
 	public TriggerGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).notSolid().hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> !state.get(TRIGGERED)));
+		super(Block.Properties.of(Material.GLASS, MaterialColor.QUARTZ).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> !state.getValue(TRIGGERED)));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(TRIGGERED, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(TRIGGERED, false));
 	}
 
 	/** 1.14.4 switched this block to Material.PLANTS while triggered (so mobs path through it); 1.16 has no per-state material, so pathing is allowed explicitly. */
 	@Override
 	@SuppressWarnings("deprecation")
-	public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type)
+	public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type)
 	{
-		return state.get(TRIGGERED) ? true : super.allowsMovement(state, worldIn, pos, type);
+		return state.getValue(TRIGGERED) ? true : super.isPathfindable(state, worldIn, pos, type);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return state.get(TRIGGERED) ? VoxelShapes.empty() : super.getCollisionShape(state, worldIn, pos, context);
+		return state.getValue(TRIGGERED) ? Shapes.empty() : super.getCollisionShape(state, worldIn, pos, context);
 	}
 
 	@Override
-	public boolean isReplaceable(BlockState state, BlockItemUseContext useContext)
+	public boolean canBeReplaced(BlockState state, BlockPlaceContext useContext)
 	{
 		return false;
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
-		if (!worldIn.isRemote && !state.get(TRIGGERED) && worldIn.isBlockPowered(pos))
+		if (!worldIn.isClientSide && !state.getValue(TRIGGERED) && worldIn.hasNeighborSignal(pos))
 		{
 			triggerConnected(worldIn, pos);
 		}
@@ -105,7 +105,7 @@ public class TriggerGlassBlock extends Block
 	 * TriggerGlass blocks, stopping once the configured {@code TriggerGlassChainLimit} blocks total have
 	 * been triggered.
 	 */
-	private void triggerConnected(World world, BlockPos origin)
+	private void triggerConnected(Level world, BlockPos origin)
 	{
 		Queue<BlockPos> queue = new ArrayDeque<>();
 		Set<BlockPos> seen = new HashSet<>();
@@ -120,18 +120,18 @@ public class TriggerGlassBlock extends Block
 			BlockPos pos = queue.poll();
 			BlockState state = world.getBlockState(pos);
 
-			if (state.getBlock() != this || state.get(TRIGGERED))
+			if (state.getBlock() != this || state.getValue(TRIGGERED))
 			{
 				continue;
 			}
 
-			world.setBlockState(pos, state.with(TRIGGERED, true), 3);
-			world.getPendingBlockTicks().scheduleTick(pos, this, 60);
+			world.setBlock(pos, state.setValue(TRIGGERED, true), 3);
+			world.scheduleTick(pos, this, 60);
 			triggeredCount++;
 
 			for (Direction direction : Direction.values())
 			{
-				BlockPos neighborPos = pos.offset(direction);
+				BlockPos neighborPos = pos.relative(direction);
 
 				if (seen.add(neighborPos) && world.getBlockState(neighborPos).getBlock() == this)
 				{
@@ -142,16 +142,16 @@ public class TriggerGlassBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
 	{
-		if (!worldIn.isRemote && state.get(TRIGGERED))
+		if (!worldIn.isClientSide && state.getValue(TRIGGERED))
 		{
-			worldIn.setBlockState(pos, state.with(TRIGGERED, false));
+			worldIn.setBlockAndUpdate(pos, state.setValue(TRIGGERED, false));
 		}
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(TRIGGERED);
 	}

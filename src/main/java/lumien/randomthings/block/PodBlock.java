@@ -5,12 +5,12 @@ import java.util.List;
 
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameters;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 /**
  * Caps a fully-grown magic bean stalk. Drops come from the
@@ -26,7 +26,7 @@ public class PodBlock extends Block
 {
 	public PodBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(1.5F).doesNotBlockMovement());
+		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(1.5F).noCollission());
 	}
 
 	@Override
@@ -36,9 +36,9 @@ public class PodBlock extends Block
 
 		if (RTConfig.GOLDEN_EGG.get())
 		{
-			Float radius = builder.get(LootParameters.EXPLOSION_RADIUS);
+			Float radius = builder.getOptionalParameter(LootContextParams.EXPLOSION_RADIUS);
 
-			if (radius == null || builder.getWorld().rand.nextFloat() <= 1.0F / radius)
+			if (radius == null || builder.getLevel().random.nextFloat() <= 1.0F / radius)
 			{
 				drops.add(new ItemStack(ModItems.GOLDEN_EGG));
 			}

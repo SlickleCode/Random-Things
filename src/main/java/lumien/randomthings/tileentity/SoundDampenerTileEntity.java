@@ -1,26 +1,28 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.container.SoundDampenerContainer;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundPatternItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A 9-slot inventory of {@link lumien.randomthings.item.SoundPatternItem}s;
@@ -31,7 +33,7 @@ import net.minecraft.block.BlockState;
  * {@link RedstoneObserverTileEntity#loadedObservers}). Direct port of
  * 1.12.2's {@code TileEntitySoundDampener}.
  */
-public class SoundDampenerTileEntity extends TileEntity implements INamedContainerProvider {
+public class SoundDampenerTileEntity extends BlockEntity implements MenuProvider {
     public static final Set<SoundDampenerTileEntity> loadedDampeners = WeakSets.create();
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(9) {
@@ -49,8 +51,8 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
 
     private HashSet<ResourceLocation> mutedSounds = new HashSet<>();
 
-    public SoundDampenerTileEntity() {
-        super(ModTileEntityTypes.SOUND_DAMPENER);
+    public SoundDampenerTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.SOUND_DAMPENER, pos, state);
 
         loadedDampeners.add(this);
     }
@@ -77,8 +79,8 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     /**
@@ -92,8 +94,9 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
      * arrival until the next relog/rejoin.
      */
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
     }
 
     /**
@@ -105,42 +108,41 @@ public class SoundDampenerTileEntity extends TileEntity implements INamedContain
      * `BiomeRadarTileEntity` for the full story on where this was found.
      */
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     private void syncTE() {
-        this.markDirty();
+        this.setChanged();
 
-        if (this.world != null) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.put("inventory", itemHandler.serializeNBT());
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         itemHandler.deserializeNBT(compound.getCompound("inventory"));
         recomputeMutedSounds();
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
         return new SoundDampenerContainer(windowId, playerInventory, this);
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.sound_dampener");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.sound_dampener");
     }
 }

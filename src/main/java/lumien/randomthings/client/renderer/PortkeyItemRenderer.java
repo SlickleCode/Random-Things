@@ -4,15 +4,15 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.item.PortkeyItem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.client.renderer.tileentity.ItemStackTileEntityRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 /**
  * Draws whatever item a {@link PortkeyItem} is disguised as ("camo" NBT) in
@@ -67,26 +67,30 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
  * no way to skip the inner call's own offset directly; instead this cancels the *outer* one
  * first (+0.5 on all three axes) so the inner call's own -0.5 is the only one that survives.
  */
-public class PortkeyItemRenderer extends ItemStackTileEntityRenderer {
+public class PortkeyItemRenderer extends BlockEntityWithoutLevelRenderer {
     private static final ResourceLocation BASE_MODEL = new ResourceLocation("randomthings", "item/portkey_base");
 
+    public PortkeyItemRenderer() {
+        super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
+    }
+
     @Override
-    public void func_239207_a_(ItemStack stack, ItemCameraTransforms.TransformType transformType, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
+    public void renderByItem(ItemStack stack, ItemTransforms.TransformType transformType, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
         ItemStack camo = PortkeyItem.getCamoStack(stack);
 
-        matrixStack.push();
+        matrixStack.pushPose();
         // ItemRenderer.renderItem has already applied this item's display transform and its own -0.5 centering
         // before calling us; the nested renderItem below applies the -0.5 centering a second time, so cancel it.
         matrixStack.translate(0.5D, 0.5D, 0.5D);
 
         if (!camo.isEmpty()) {
-            Minecraft.getInstance().getItemRenderer().renderItem(camo, ItemCameraTransforms.TransformType.NONE, combinedLight, combinedOverlay, matrixStack, buffer);
+            Minecraft.getInstance().getItemRenderer().renderStatic(camo, ItemTransforms.TransformType.NONE, combinedLight, combinedOverlay, matrixStack, buffer, 0);
         } else {
-            IBakedModel baseModel = Minecraft.getInstance().getModelManager().getModel(BASE_MODEL);
+            BakedModel baseModel = Minecraft.getInstance().getModelManager().getModel(BASE_MODEL);
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.NONE, false, matrixStack, buffer, combinedLight, combinedOverlay, baseModel);
+            Minecraft.getInstance().getItemRenderer().render(stack, ItemTransforms.TransformType.NONE, false, matrixStack, buffer, combinedLight, combinedOverlay, baseModel);
         }
 
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 }

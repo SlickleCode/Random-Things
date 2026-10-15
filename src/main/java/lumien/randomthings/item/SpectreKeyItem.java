@@ -3,17 +3,17 @@ package lumien.randomthings.item;
 import lumien.randomthings.handler.ModDimensions;
 import lumien.randomthings.handler.spectre.SpectreHandler;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.UseAction;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 
 /**
  * Direct port of 1.12.2's {@code ItemSpectreKey}: hold right-click for 5
@@ -37,25 +37,25 @@ public class SpectreKeyItem extends Item {
     }
 
     @Override
-    public UseAction getUseAction(ItemStack stack) {
-        return UseAction.BOW;
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return UseAnim.BOW;
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        ItemStack stack = playerIn.getHeldItem(hand);
-        playerIn.setActiveHand(hand);
-        return new ActionResult<>(ActionResultType.SUCCESS, stack);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        ItemStack stack = playerIn.getItemInHand(hand);
+        playerIn.startUsingItem(hand);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
     }
 
     @Override
-    public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity livingEntity) {
-        if (!worldIn.isRemote && livingEntity instanceof ServerPlayerEntity) {
-            ServerPlayerEntity player = (ServerPlayerEntity) livingEntity;
+    public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity) {
+        if (!worldIn.isClientSide && livingEntity instanceof ServerPlayer) {
+            ServerPlayer player = (ServerPlayer) livingEntity;
             SpectreHandler spectreHandler = SpectreHandler.getInstance(player.getServer());
 
             if (spectreHandler != null) {
-                if (!ModDimensions.isSpectre(player.world)) {
+                if (!ModDimensions.isSpectre(player.level)) {
                     spectreHandler.teleportPlayerToSpectreCube(player);
                 } else {
                     spectreHandler.teleportPlayerBack(player);
@@ -67,22 +67,22 @@ public class SpectreKeyItem extends Item {
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
-        return Minecraft.getInstance().player != null && ModDimensions.isSpectre(Minecraft.getInstance().player.world);
+    public boolean isFoil(ItemStack stack) {
+        return Minecraft.getInstance().player != null && ModDimensions.isSpectre(Minecraft.getInstance().player.level);
     }
 
     @Override
     public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
-        if (!entity.world.isRemote) {
+        if (!entity.level.isClientSide) {
             return;
         }
 
         for (int i = 0; i < (100 - count) / 5; i++) {
-            double x = entity.getPosX() + Math.random() * 1.8 - 0.9;
-            double y = entity.getPosY() + Math.random() * 1.8;
-            double z = entity.getPosZ() + Math.random() * 1.8 - 0.9;
+            double x = entity.getX() + Math.random() * 1.8 - 0.9;
+            double y = entity.getY() + Math.random() * 1.8;
+            double z = entity.getZ() + Math.random() * 1.8 - 0.9;
 
-            entity.world.addParticle(ParticleTypes.PORTAL, x, y, z, 0, 0, 0);
+            entity.level.addParticle(ParticleTypes.PORTAL, x, y, z, 0, 0, 0);
         }
     }
 }

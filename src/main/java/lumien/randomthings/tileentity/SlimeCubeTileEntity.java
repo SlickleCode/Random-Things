@@ -1,12 +1,14 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.world.level.block.state.BlockState;
+
 import lumien.randomthings.util.WeakSets;
 import java.util.Set;
 
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 /**
  * A small glowing block that forces its own chunk to always (when unpowered)
@@ -26,22 +28,21 @@ import net.minecraft.world.World;
  * (the cube's chunk always/never gets slimes) but not a byte-for-byte
  * re-creation of the original injection point.
  */
-public class SlimeCubeTileEntity extends TileEntity
+public class SlimeCubeTileEntity extends BlockEntity
 {
 	public static final Set<SlimeCubeTileEntity> cubes = WeakSets.create();
 
 	private boolean powered;
 
-	public SlimeCubeTileEntity()
-	{
-		super(ModTileEntityTypes.SLIME_CUBE);
+	public SlimeCubeTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.SLIME_CUBE, pos, state);
 		cubes.add(this);
-	}
+    }
 
 	@Override
-	public void remove()
+	public void setRemoved()
 	{
-		super.remove();
+		super.setRemoved();
 		cubes.remove(this);
 	}
 
@@ -55,14 +56,14 @@ public class SlimeCubeTileEntity extends TileEntity
 		this.powered = newPowered;
 	}
 
-	public boolean isInChunk(World world, ChunkPos chunkPos)
+	public boolean isInChunk(Level world, ChunkPos chunkPos)
 	{
-		if (this.world != world || this.pos == null)
+		if (this.level != world || this.worldPosition == null)
 		{
 			return false;
 		}
 
-		BlockPos p = this.pos;
+		BlockPos p = this.worldPosition;
 		return (p.getX() >> 4) == chunkPos.x && (p.getZ() >> 4) == chunkPos.z;
 	}
 }

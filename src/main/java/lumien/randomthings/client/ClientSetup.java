@@ -1,5 +1,12 @@
 package lumien.randomthings.client;
 
+import net.minecraft.sounds.SoundSource;
+
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.*;
@@ -22,43 +29,39 @@ import lumien.randomthings.tileentity.*;
 import lumien.randomthings.util.EscapeRopeHandler;
 import lumien.randomthings.util.InventoryUtil;
 import lumien.randomthings.worldgen.ModFeatures;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.material.Material;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MoverType;
-import net.minecraft.entity.item.BoatEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.item.*;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.*;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.util.*;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.placement.ChanceConfig;
-import net.minecraft.world.gen.placement.Placement;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.client.event.ColorHandlerEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
@@ -71,8 +74,6 @@ import net.minecraftforge.event.entity.player.UseHoeEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -96,6 +97,7 @@ public class ClientSetup {
     public static void init() {
         net.minecraftforge.eventbus.api.IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(ClientSetup::setupClient);
+        modBus.addListener(ClientSetup::registerRenderers);
         modBus.addListener(ClientSetup::registerModels);
         modBus.addListener(ClientSetup::onBlockColorHandler);
         modBus.addListener(ClientSetup::onItemColorHandler);
@@ -109,18 +111,18 @@ public class ClientSetup {
             ItemStack stack = event.getItemStack();
 
             if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
-                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").mergeStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
+                event.getToolTip().add(1, new TranslatableComponent("tooltip.randomthings.spectre_anchor.item").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
             }
         });
 
         MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
+            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().level == null) {
                 return;
             }
 
-            for (Entity entity : Minecraft.getInstance().world.getAllEntities()) {
-                if (entity instanceof BoatEntity && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((BoatEntity) entity);
+            for (Entity entity : Minecraft.getInstance().level.entitiesForRendering()) {
+                if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
             }
         });
@@ -146,13 +148,39 @@ public class ClientSetup {
         // the client every tick" need (see DiviningRodRenderer.get().tick() right
         // above).
         MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().world == null) {
+            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().level == null) {
                 return;
             }
 
-            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(Minecraft.getInstance().world);
+            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(Minecraft.getInstance().level);
         });
 
+    }
+
+    private static void registerRenderers(final net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.BIOME_RADAR, BiomeRadarTileEntityRenderer::new);
+        event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.RUNE_BASE, RuneBaseTileEntityRenderer::new);
+        event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.FLUID_DISPLAY, lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer::new);
+        event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.DIAPHANOUS_BLOCK, lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer::new);
+
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.FLOO_FIREPLACE, FlooFireplaceEntityRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.ECLIPSED_CLOCK, EclipsedClockEntityRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.THROWN_WEATHER_EGG, net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.WEATHER_CLOUD, WeatherCloudEntityRenderer::new);
+        // Custom renderer draws the bottle icon on all 6 faces of the target
+        // block - per user request, 2026-09-27, replacing a brief SpriteRenderer
+        // first pass (which can only billboard at one fixed spot) - see
+        // TimeAcceleratorEntityRenderer's own javadoc.
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.TIME_ACCELERATOR, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.THROWN_GOLDEN_EGG, net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.ARTIFICIAL_END_PORTAL, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
+        // Item-icon billboard via vanilla's SpriteRenderer, same mechanism already
+        // used for ThrownGoldenEggEntity/ThrownWeatherEggEntity above - per user
+        // request, 2026-09-27, replacing the earlier no-visible-model design (see
+        // SpectreIlluminatorEntity's own javadoc).
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.SPECTRE_ILLUMINATOR, net.minecraft.client.renderer.entity.ThrownItemRenderer::new);
+        event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.SPIRIT, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
     }
 
     private static void setupClient(final FMLClientSetupEvent event) {
@@ -160,12 +188,12 @@ public class ClientSetup {
 
         event.enqueueWork(() -> {
             // the Spectre dimension type names this id as its sky/fog "effects"
-            it.unimi.dsi.fastutil.objects.Object2ObjectMap<ResourceLocation, net.minecraft.client.world.DimensionRenderInfo> renderInfos = net.minecraftforge.fml.common.ObfuscationReflectionHelper.getPrivateValue(net.minecraft.client.world.DimensionRenderInfo.class, null, "field_239208_a_");
+            it.unimi.dsi.fastutil.objects.Object2ObjectMap<ResourceLocation, net.minecraft.client.renderer.DimensionSpecialEffects> renderInfos = net.minecraftforge.fml.util.ObfuscationReflectionHelper.getPrivateValue(net.minecraft.client.renderer.DimensionSpecialEffects.class, null, "f_108857_");
             renderInfos.put(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
         });
 
         event.enqueueWork(() -> {
-            for (net.minecraft.item.Item item : net.minecraftforge.registries.ForgeRegistries.ITEMS.getValues()) {
+            for (net.minecraft.world.item.Item item : net.minecraftforge.registries.ForgeRegistries.ITEMS.getValues()) {
                 if (item instanceof lumien.randomthings.item.IClientItemProperties) {
                     ((lumien.randomthings.item.IClientItemProperties) item).registerClientProperties();
                 }
@@ -173,33 +201,9 @@ public class ClientSetup {
         });
         ModScreens.register();
 
-        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.BIOME_RADAR, BiomeRadarTileEntityRenderer::new);
-        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.RUNE_BASE, RuneBaseTileEntityRenderer::new);
-        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.FLUID_DISPLAY, lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer::new);
-        ClientRegistry.bindTileEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.DIAPHANOUS_BLOCK, lumien.randomthings.client.renderer.DiaphanousBlockTileEntityRenderer::new);
-
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.FLOO_FIREPLACE, FlooFireplaceEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.ECLIPSED_CLOCK, EclipsedClockEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.THROWN_WEATHER_EGG, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.WEATHER_CLOUD, WeatherCloudEntityRenderer::new);
-        // Custom renderer draws the bottle icon on all 6 faces of the target
-        // block - per user request, 2026-09-27, replacing a brief SpriteRenderer
-        // first pass (which can only billboard at one fixed spot) - see
-        // TimeAcceleratorEntityRenderer's own javadoc.
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.TIME_ACCELERATOR, lumien.randomthings.client.renderer.TimeAcceleratorEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.THROWN_GOLDEN_EGG, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.client.renderer.GoldenChickenEntityRenderer::new);
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.ARTIFICIAL_END_PORTAL, lumien.randomthings.client.renderer.ArtificialEndPortalEntityRenderer::new);
-        // Item-icon billboard via vanilla's SpriteRenderer, same mechanism already
-        // used for ThrownGoldenEggEntity/ThrownWeatherEggEntity above - per user
-        // request, 2026-09-27, replacing the earlier no-visible-model design (see
-        // SpectreIlluminatorEntity's own javadoc).
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.SPECTRE_ILLUMINATOR, manager -> new net.minecraft.client.renderer.entity.SpriteRenderer<>(manager, Minecraft.getInstance().getItemRenderer()));
-        RenderingRegistry.registerEntityRenderingHandler(lumien.randomthings.entity.ModEntityTypes.SPIRIT, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
-
-        MinecraftForge.EVENT_BUS.addListener((RenderWorldLastEvent rwl) -> {
-            DiviningRodRenderer.get().render(rwl.getMatrixStack());
-            RedstoneObserverLineRenderer.render(rwl.getMatrixStack());
+        MinecraftForge.EVENT_BUS.addListener((RenderLevelLastEvent rwl) -> {
+            DiviningRodRenderer.get().render(rwl.getPoseStack());
+            RedstoneObserverLineRenderer.render(rwl.getPoseStack());
         });
 
         MinecraftForge.EVENT_BUS.addListener(ClientSetup::onPlaySound);
@@ -215,7 +219,7 @@ public class ClientSetup {
      * ItemStackTileEntityRenderer} without recursing back into itself).
      */
     private static void registerModels(final net.minecraftforge.client.event.ModelRegistryEvent event) {
-        net.minecraftforge.client.model.ModelLoader.addSpecialModel(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
+        net.minecraftforge.client.model.ForgeModelBakery.addSpecialModel(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
     }
 
     /**
@@ -230,31 +234,31 @@ public class ClientSetup {
      * {@code RTEventHandler.playSoundEvent}.
      */
     private static void onPlaySound(PlaySoundEvent event) {
-        ClientPlayerEntity thePlayer = Minecraft.getInstance().player;
+        LocalPlayer thePlayer = Minecraft.getInstance().player;
 
         if (thePlayer == null || event.isCanceled() || event.getSound() == null) {
             return;
         }
 
-        ISound sound = event.getSound();
+        SoundInstance sound = event.getSound();
 
-        if (sound.getCategory() == SoundCategory.MUSIC || sound.getCategory() == SoundCategory.RECORDS || Minecraft.getInstance().gameSettings.getSoundLevel(sound.getCategory()) <= 0) {
+        if (sound.getSource() == SoundSource.MUSIC || sound.getSource() == SoundSource.RECORDS || Minecraft.getInstance().options.getSoundSourceVolume(sound.getSource()) <= 0) {
             return;
         }
 
-        ResourceLocation soundLocation = sound.getSoundLocation();
+        ResourceLocation soundLocation = sound.getLocation();
         BlockPos soundPosition = new BlockPos(sound.getX(), sound.getY(), sound.getZ());
 
         for (SoundDampenerTileEntity dampener : WeakSets.snapshot(SoundDampenerTileEntity.loadedDampeners)) {
-            if (dampener.getWorld() == thePlayer.world && !dampener.isRemoved() && dampener.getPos().distanceSq(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
+            if (dampener.getLevel() == thePlayer.level && !dampener.isRemoved() && dampener.getBlockPos().distSqr(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
                 lumien.randomthings.debug.RTDebug.log("muted sound {} (placed dampener)", soundLocation);
-                event.setResultSound(null);
+                event.setSound(null);
                 return;
             }
         }
 
-        for (int slot = 0; slot < thePlayer.inventory.mainInventory.size(); slot++) {
-            ItemStack stack = thePlayer.inventory.getStackInSlot(slot);
+        for (int slot = 0; slot < thePlayer.getInventory().items.size(); slot++) {
+            ItemStack stack = thePlayer.getInventory().getItem(slot);
 
             if (stack.isEmpty()) {
                 continue;
@@ -265,7 +269,7 @@ public class ClientSetup {
             } else if (stack.getItem() == ModItems.PORTABLE_SOUND_DAMPENER) {
                 if (mutesSound(PortableSoundDampenerItem.getInventory(stack), soundLocation)) {
                     lumien.randomthings.debug.RTDebug.log("muted sound {} (portable dampener)", soundLocation);
-                    event.setResultSound(null);
+                    event.setSound(null);
                     return;
                 }
             }
@@ -323,11 +327,11 @@ public class ClientSetup {
 
                         Minecraft mc = Minecraft.getInstance();
 
-                        if (mc.world == null || mc.player == null) {
+                        if (mc.level == null || mc.player == null) {
                             return 0xFFFFFF;
                         }
 
-                        return ((IRTBlockColor) block).colorMultiplier(block.getDefaultState(), mc.world, mc.player.getPosition(), tintIndex);
+                        return ((IRTBlockColor) block).colorMultiplier(block.defaultBlockState(), mc.level, mc.player.blockPosition(), tintIndex);
                     }, item);
                 }
             }

@@ -1,78 +1,73 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.SlimeCubeTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 /**
  * A small glowing block that always/never allows slime spawns in its own
  * chunk depending on whether it's redstone-powered - see
  * {@link SlimeCubeTileEntity}.
  */
-public class SlimeCubeBlock extends Block
-{
+public class SlimeCubeBlock extends Block implements EntityBlock {
 	public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
-	private static final VoxelShape SHAPE = Block.makeCuboidShape(6, 6, 6, 10, 10, 10);
+	private static final VoxelShape SHAPE = Block.box(6, 6, 6, 10, 10, 10);
 
 	public SlimeCubeBlock()
 	{
-		super(Block.Properties.create(Material.CLAY).notSolid().doesNotBlockMovement().hardnessAndResistance(0.5F));
+		super(Block.Properties.of(Material.CLAY).noOcclusion().noCollission().strength(0.5F));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(POWERED);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state)
+	public RenderShape getRenderShape(BlockState state)
 	{
-		return BlockRenderType.MODEL;
+		return RenderShape.MODEL;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new SlimeCubeTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
-		return new SlimeCubeTileEntity();
-	}
+		boolean powered = worldIn.hasNeighborSignal(pos);
 
-	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
-	{
-		boolean powered = worldIn.isBlockPowered(pos);
-
-		if (state.get(POWERED) != powered)
+		if (state.getValue(POWERED) != powered)
 		{
-			worldIn.setBlockState(pos, state.with(POWERED, powered), 3);
+			worldIn.setBlock(pos, state.setValue(POWERED, powered), 3);
 		}
 
-		TileEntity te = worldIn.getTileEntity(pos);
+		BlockEntity te = worldIn.getBlockEntity(pos);
 
 		if (te instanceof SlimeCubeTileEntity)
 		{

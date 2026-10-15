@@ -1,10 +1,10 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FireBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.FireBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.LevelReader;
 
 /**
  * A faster-spreading fire variant. The 1.12.2 version was a near-total
@@ -26,7 +26,7 @@ public class BlazingFireBlock extends FireBlock
 {
 	public BlazingFireBlock()
 	{
-		super(Block.Properties.from(Blocks.FIRE).sound(SoundType.CLOTH));
+		super(Block.Properties.copy(Blocks.FIRE).sound(SoundType.WOOL));
 	}
 
 }

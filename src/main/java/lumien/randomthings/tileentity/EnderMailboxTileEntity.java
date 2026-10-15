@@ -1,18 +1,19 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.block.EnderMailboxBlock;
 import lumien.randomthings.container.EnderMailboxContainer;
 import lumien.randomthings.handler.EnderLetterHandler;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.UUID;
 
@@ -23,12 +24,12 @@ import java.util.UUID;
  * checks whether that player currently has unread mail, toggling the
  * block's {@code ACTIVE} state (glow + portal particles) to match.
  */
-public class EnderMailboxTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
+public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider {
     private UUID owner;
     private int tickCounter;
 
-    public EnderMailboxTileEntity() {
-        super(ModTileEntityTypes.ENDER_MAILBOX);
+    public EnderMailboxTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ENDER_MAILBOX, pos, state);
     }
 
     public void setOwner(UUID owner) {
@@ -39,9 +40,8 @@ public class EnderMailboxTileEntity extends TileEntity implements ITickableTileE
         return owner;
     }
 
-    @Override
     public void tick() {
-        if (this.world.isRemote || this.owner == null) {
+        if (this.level.isClientSide || this.owner == null) {
             return;
         }
 
@@ -50,32 +50,31 @@ public class EnderMailboxTileEntity extends TileEntity implements ITickableTileE
         if (tickCounter >= 20 * 10) {
             tickCounter = 0;
 
-            BlockState state = this.world.getBlockState(this.pos);
-            boolean active = state.get(EnderMailboxBlock.ACTIVE);
+            BlockState state = this.level.getBlockState(this.worldPosition);
+            boolean active = state.getValue(EnderMailboxBlock.ACTIVE);
 
-            EnderLetterHandler handler = EnderLetterHandler.get(this.world);
+            EnderLetterHandler handler = EnderLetterHandler.get(this.level);
             boolean shouldBeActive = handler.hasInventoryFor(this.owner) && !handler.isInventoryEmpty(this.owner);
 
             if (shouldBeActive != active) {
-                this.world.setBlockState(this.pos, state.with(EnderMailboxBlock.ACTIVE, shouldBeActive));
+                this.level.setBlockAndUpdate(this.worldPosition, state.setValue(EnderMailboxBlock.ACTIVE, shouldBeActive));
             }
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (this.owner != null) {
             compound.putString("owner", owner.toString());
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("owner")) {
             this.owner = UUID.fromString(compound.getString("owner"));
@@ -83,12 +82,12 @@ public class EnderMailboxTileEntity extends TileEntity implements ITickableTileE
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity player) {
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player player) {
         return new EnderMailboxContainer(windowId, playerInventory, this.owner);
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.ender_mailbox");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.ender_mailbox");
     }
 }

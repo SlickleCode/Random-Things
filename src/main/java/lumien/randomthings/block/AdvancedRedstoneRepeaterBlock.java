@@ -1,23 +1,25 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import java.util.Random;
 
 import lumien.randomthings.tileentity.AdvancedRedstoneRepeaterTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RepeaterBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.TickPriority;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.RepeaterBlock;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.ticks.TickPriority;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * A repeater whose on/off delay is a TileEntity-backed 2-10000 tick value
@@ -31,44 +33,37 @@ import net.minecraft.world.server.ServerWorld;
  * RedstoneDiodeBlock since both methods are otherwise unavailable to inspect
  * any other way.
  */
-public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
-{
+public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements EntityBlock {
 	public AdvancedRedstoneRepeaterBlock()
 	{
-		super(Block.Properties.create(net.minecraft.block.material.Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0.0F));
+		super(Block.Properties.of(net.minecraft.world.level.material.Material.DECORATION).noCollission().strength(0.0F));
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new AdvancedRedstoneRepeaterTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		return new AdvancedRedstoneRepeaterTileEntity();
-	}
-
-	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
-	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof AdvancedRedstoneRepeaterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (AdvancedRedstoneRepeaterTileEntity) te);
+				NetworkHooks.openGui((ServerPlayer) player, (AdvancedRedstoneRepeaterTileEntity) te);
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 
-	private static AdvancedRedstoneRepeaterTileEntity getTE(World world, BlockPos pos)
+	private static AdvancedRedstoneRepeaterTileEntity getTE(Level world, BlockPos pos)
 	{
-		TileEntity te = world.getTileEntity(pos);
+		BlockEntity te = world.getBlockEntity(pos);
 		return te instanceof AdvancedRedstoneRepeaterTileEntity ? (AdvancedRedstoneRepeaterTileEntity) te : null;
 	}
 
@@ -79,7 +74,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 	 * edge case - see below).
 	 */
 	@Override
-	protected void updateState(World world, BlockPos pos, BlockState state)
+	protected void checkTickOnNeighbor(Level world, BlockPos pos, BlockState state)
 	{
 		if (this.isLocked(world, pos, state))
 		{
@@ -93,14 +88,14 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 			return;
 		}
 
-		boolean wasPowered = state.get(POWERED);
-		boolean shouldPower = this.shouldBePowered(world, pos, state);
+		boolean wasPowered = state.getValue(POWERED);
+		boolean shouldPower = this.shouldTurnOn(world, pos, state);
 
-		if (wasPowered != shouldPower && !world.getPendingBlockTicks().isTickPending(pos, this))
+		if (wasPowered != shouldPower && !world.getBlockTicks().willTickThisTick(pos, this))
 		{
 			TickPriority priority = TickPriority.HIGH;
 
-			if (this.isFacingTowardsRepeater(world, pos, state))
+			if (this.shouldPrioritize(world, pos, state))
 			{
 				priority = TickPriority.EXTREMELY_HIGH;
 			}
@@ -111,12 +106,12 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 
 			int delay = shouldPower ? arr.turnOnDelay() : arr.turnOffDelay();
 
-			world.getPendingBlockTicks().scheduleTick(pos, this, delay, priority);
+			world.scheduleTick(pos, this, delay, priority);
 		}
 	}
 
 	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
 	{
 		if (this.isLocked(worldIn, pos, state))
 		{
@@ -130,20 +125,20 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock
 			return;
 		}
 
-		boolean wasPowered = state.get(POWERED);
-		boolean shouldPower = this.shouldBePowered(worldIn, pos, state);
+		boolean wasPowered = state.getValue(POWERED);
+		boolean shouldPower = this.shouldTurnOn(worldIn, pos, state);
 
 		if (wasPowered && !shouldPower)
 		{
-			worldIn.setBlockState(pos, state.with(POWERED, false), 2);
+			worldIn.setBlock(pos, state.setValue(POWERED, false), 2);
 		}
 		else if (!wasPowered)
 		{
-			worldIn.setBlockState(pos, state.with(POWERED, true), 2);
+			worldIn.setBlock(pos, state.setValue(POWERED, true), 2);
 
 			if (!shouldPower)
 			{
-				worldIn.getPendingBlockTicks().scheduleTick(pos, this, arr.turnOffDelay(), TickPriority.HIGH);
+				worldIn.scheduleTick(pos, this, arr.turnOffDelay(), TickPriority.HIGH);
 			}
 		}
 	}

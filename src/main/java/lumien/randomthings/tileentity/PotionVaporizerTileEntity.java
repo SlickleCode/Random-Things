@@ -6,30 +6,29 @@ import java.util.List;
 
 import lumien.randomthings.block.PotionVaporizerBlock;
 import lumien.randomthings.container.PotionVaporizerContainer;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.tileentity.AbstractFurnaceTileEntity;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.items.ItemStackHandler;
 
 /**
@@ -45,13 +44,13 @@ import net.minecraftforge.items.ItemStackHandler;
  * the active potion's color) stand in for the original's bespoke potion-
  * vapor particle.
  */
-public class PotionVaporizerTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvider
 {
 	private static final int MAX_BLOCKS = 100;
 
 	private final HashSet<BlockPos> affectedBlocks = new HashSet<>();
 
-	private EffectInstance currentPotionEffect;
+	private MobEffectInstance currentPotionEffect;
 	private int durationLeft = 0;
 
 	private int fuelBurn;
@@ -68,14 +67,13 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
-	public PotionVaporizerTileEntity()
-	{
-		super(ModTileEntityTypes.POTION_VAPORIZER);
-	}
+	public PotionVaporizerTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.POTION_VAPORIZER, pos, state);
+    }
 
 	public ItemStackHandler itemHandler()
 	{
@@ -94,7 +92,7 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 	public int getColor()
 	{
-		return currentPotionEffect != null ? currentPotionEffect.getPotion().getLiquidColor() : 0;
+		return currentPotionEffect != null ? currentPotionEffect.getEffect().getColor() : 0;
 	}
 
 	public int getFuelBurnTime()
@@ -107,10 +105,9 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 		return fuelBurn;
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote)
+		if (this.level.isClientSide)
 		{
 			return;
 		}
@@ -143,7 +140,7 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 			if (!fuelStack.isEmpty() && durationLeft > 0)
 			{
-				Integer burnTime = AbstractFurnaceTileEntity.getBurnTimes().get(fuelStack.getItem());
+				Integer burnTime = AbstractFurnaceBlockEntity.getFuel().get(fuelStack.getItem());
 				fuelBurnTime = fuelBurn = burnTime != null ? burnTime : 0;
 
 				itemHandler.extractItem(0, 1, false);
@@ -172,14 +169,14 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 			return;
 		}
 
-		List<EffectInstance> effects = PotionUtils.getEffectsFromStack(newPotion);
+		List<MobEffectInstance> effects = PotionUtils.getMobEffects(newPotion);
 
-		if (effects.isEmpty() || effects.get(0).getPotion().isInstant())
+		if (effects.isEmpty() || effects.get(0).getEffect().isInstantenous())
 		{
 			return;
 		}
 
-		currentPotionEffect = new EffectInstance(effects.get(0));
+		currentPotionEffect = new MobEffectInstance(effects.get(0));
 		durationLeft = currentPotionEffect.getDuration();
 
 		itemHandler.extractItem(1, 1, false);
@@ -204,25 +201,25 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 		durationLeft--;
 
-		AxisAlignedBB[] boxes = new AxisAlignedBB[affectedBlocks.size()];
+		AABB[] boxes = new AABB[affectedBlocks.size()];
 		int i = 0;
 		for (BlockPos pos : affectedBlocks)
 		{
-			boxes[i++] = new AxisAlignedBB(pos, pos.add(1, 1, 1));
+			boxes[i++] = new AABB(pos, pos.offset(1, 1, 1));
 		}
 
-		AxisAlignedBB bounds = null;
-		for (AxisAlignedBB box : boxes)
+		AABB bounds = null;
+		for (AABB box : boxes)
 		{
-			bounds = bounds == null ? box : bounds.union(box);
+			bounds = bounds == null ? box : bounds.minmax(box);
 		}
 
 		if (bounds != null)
 		{
-			for (LivingEntity entity : this.world.getEntitiesWithinAABB(LivingEntity.class, bounds))
+			for (LivingEntity entity : this.level.getEntitiesOfClass(LivingEntity.class, bounds))
 			{
 				boolean inside = false;
-				for (AxisAlignedBB box : boxes)
+				for (AABB box : boxes)
 				{
 					if (box.intersects(entity.getBoundingBox()))
 					{
@@ -236,12 +233,12 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 					continue;
 				}
 
-				EffectInstance activeEffect = entity.getActivePotionEffect(currentPotionEffect.getPotion());
-				boolean isNightVision = currentPotionEffect.getPotion() == Effects.NIGHT_VISION;
+				MobEffectInstance activeEffect = entity.getEffect(currentPotionEffect.getEffect());
+				boolean isNightVision = currentPotionEffect.getEffect() == MobEffects.NIGHT_VISION;
 
 				if (activeEffect == null || activeEffect.getDuration() < (isNightVision ? 205 : 3))
 				{
-					entity.addPotionEffect(new EffectInstance(currentPotionEffect.getPotion(), isNightVision ? 205 : 80, currentPotionEffect.getAmplifier(), currentPotionEffect.isAmbient(), currentPotionEffect.doesShowParticles()));
+					entity.addEffect(new MobEffectInstance(currentPotionEffect.getEffect(), isNightVision ? 205 : 80, currentPotionEffect.getAmplifier(), currentPotionEffect.isAmbient(), currentPotionEffect.isVisible()));
 				}
 			}
 		}
@@ -254,21 +251,21 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 	private void spawnParticles()
 	{
-		if (currentPotionEffect == null || this.world.getGameTime() % 5 != 0)
+		if (currentPotionEffect == null || this.level.getGameTime() % 5 != 0)
 		{
 			return;
 		}
 
-		int color = currentPotionEffect.getPotion().getLiquidColor();
+		int color = currentPotionEffect.getEffect().getColor();
 		float r = ((color >> 16) & 0xFF) / 255F;
 		float g = ((color >> 8) & 0xFF) / 255F;
 		float b = (color & 0xFF) / 255F;
 
-		RedstoneParticleData data = new RedstoneParticleData(r, g, b, 1.0F);
+		DustParticleOptions data = new DustParticleOptions(new com.mojang.math.Vector3f(r, g, b), 1.0F);
 
 		for (BlockPos p : affectedBlocks)
 		{
-			((ServerWorld) this.world).spawnParticle(data, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 1, 0.4, 0.4, 0.4, 0.0);
+			((ServerLevel) this.level).sendParticles(data, p.getX() + 0.5, p.getY() + 0.5, p.getZ() + 0.5, 1, 0.4, 0.4, 0.4, 0.0);
 		}
 	}
 
@@ -276,8 +273,8 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 	{
 		if (firstCheck)
 		{
-			Direction facing = this.getBlockState().get(PotionVaporizerBlock.FACING);
-			toBeChecked.add(this.pos.offset(facing));
+			Direction facing = this.getBlockState().getValue(PotionVaporizerBlock.FACING);
+			toBeChecked.add(this.worldPosition.relative(facing));
 			firstCheck = false;
 		}
 
@@ -297,14 +294,14 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 			{
 				checkedBlocks.add(toCheck);
 
-				if (this.world.isBlockLoaded(toCheck) && isRoomSpace(toCheck))
+				if (this.level.hasChunkAt(toCheck) && isRoomSpace(toCheck))
 				{
 					validBlocks.add(toCheck);
 					checkCounter++;
 
 					for (Direction facing : Direction.values())
 					{
-						BlockPos next = toCheck.offset(facing);
+						BlockPos next = toCheck.relative(facing);
 
 						if (!checkedBlocks.contains(next))
 						{
@@ -337,9 +334,9 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 	 */
 	private boolean isRoomSpace(BlockPos pos)
 	{
-		BlockState state = this.world.getBlockState(pos);
+		BlockState state = this.level.getBlockState(pos);
 
-		return state.isAir() || state.getCollisionShape(this.world, pos).isEmpty();
+		return state.isAir() || state.getCollisionShape(this.level, pos).isEmpty();
 	}
 
 	private void resetSearch()
@@ -352,14 +349,14 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 		validBlocks.clear();
 		checkedBlocks.clear();
 
-		Direction facing = this.getBlockState().get(PotionVaporizerBlock.FACING);
-		toBeChecked.add(this.pos.offset(facing));
+		Direction facing = this.getBlockState().getValue(PotionVaporizerBlock.FACING);
+		toBeChecked.add(this.worldPosition.relative(facing));
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 
 		compound.putInt("durationLeft", durationLeft);
 		compound.putInt("fuelBurn", fuelBurn);
@@ -367,13 +364,13 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 		if (currentPotionEffect != null)
 		{
-			compound.put("currentPotionEffect", currentPotionEffect.write(new CompoundNBT()));
+			compound.put("currentPotionEffect", currentPotionEffect.save(new CompoundTag()));
 		}
 
-		ListNBT affectedList = new ListNBT();
+		ListTag affectedList = new ListTag();
 		for (BlockPos p : affectedBlocks)
 		{
-			CompoundNBT posCompound = new CompoundNBT();
+			CompoundTag posCompound = new CompoundTag();
 			posCompound.putInt("posX", p.getX());
 			posCompound.putInt("posY", p.getY());
 			posCompound.putInt("posZ", p.getZ());
@@ -383,13 +380,12 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 		compound.put("inventory", itemHandler.serializeNBT());
 
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 
 		durationLeft = compound.getInt("durationLeft");
 		fuelBurn = compound.getInt("fuelBurn");
@@ -397,14 +393,14 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 
 		if (compound.contains("currentPotionEffect"))
 		{
-			currentPotionEffect = EffectInstance.read(compound.getCompound("currentPotionEffect"));
+			currentPotionEffect = MobEffectInstance.load(compound.getCompound("currentPotionEffect"));
 		}
 
 		affectedBlocks.clear();
-		ListNBT affectedList = compound.getList("affectedBlocks", 10);
+		ListTag affectedList = compound.getList("affectedBlocks", 10);
 		for (int i = 0; i < affectedList.size(); i++)
 		{
-			CompoundNBT posCompound = affectedList.getCompound(i);
+			CompoundTag posCompound = affectedList.getCompound(i);
 			affectedBlocks.add(new BlockPos(posCompound.getInt("posX"), posCompound.getInt("posY"), posCompound.getInt("posZ")));
 		}
 
@@ -412,14 +408,14 @@ public class PotionVaporizerTileEntity extends TileEntity implements ITickableTi
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new PotionVaporizerContainer(windowId, playerInventory, itemHandler, IWorldPosCallable.of(this.world, pos));
+		return new PotionVaporizerContainer(windowId, playerInventory, itemHandler, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.potion_vaporizer");
+		return new TranslatableComponent("block.randomthings.potion_vaporizer");
 	}
 }

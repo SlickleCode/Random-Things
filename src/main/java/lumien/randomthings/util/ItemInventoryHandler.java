@@ -1,6 +1,6 @@
 package lumien.randomthings.util;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
 /**
@@ -22,8 +22,8 @@ public class ItemInventoryHandler extends ItemStackHandler {
         this.stack = stack;
         this.childTagName = childTagName;
 
-        if (stack.getChildTag(childTagName) != null) {
-            deserializeNBT(stack.getChildTag(childTagName));
+        if (stack.getTagElement(childTagName) != null) {
+            deserializeNBT(stack.getTagElement(childTagName));
         }
     }
 

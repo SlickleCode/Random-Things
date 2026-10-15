@@ -1,6 +1,6 @@
 package lumien.randomthings.item;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 
 /**
  * Points at a fixed world position instead of spawn/a lodestone - the target

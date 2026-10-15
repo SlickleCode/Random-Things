@@ -4,23 +4,23 @@ import lumien.randomthings.container.AdvancedRedstoneInterfaceContainer;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.PositionFilterItem;
 import lumien.randomthings.tileentity.ModTileEntityTypes;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Multi-target half of the Redstone Interface family: a 9-slot Position
@@ -30,7 +30,7 @@ import net.minecraft.block.BlockState;
  * weak/strong power onto every filter slot's stored position at once. Direct
  * port of 1.12.2's {@code TileEntityAdvancedRedstoneInterface}.
  */
-public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntity implements INamedContainerProvider {
+public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntity implements MenuProvider {
     private final ItemStackHandler positionInventory = new ItemStackHandler(9) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
@@ -39,15 +39,15 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
 
         @Override
         protected void onContentsChanged(int slot) {
-            markDirty();
+            setChanged();
             refreshTargets();
         }
     };
 
     private Set<BlockPos> targets = new HashSet<>();
 
-    public AdvancedRedstoneInterfaceTileEntity() {
-        super(ModTileEntityTypes.ADVANCED_REDSTONE_INTERFACE);
+    public AdvancedRedstoneInterfaceTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ADVANCED_REDSTONE_INTERFACE, pos, state);
     }
 
     public ItemStackHandler getPositionInventory() {
@@ -59,7 +59,7 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     private void refreshTargets() {
-        if (this.world == null) {
+        if (this.level == null) {
             return;
         }
 
@@ -74,7 +74,7 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
             }
         }
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             this.targets = newTargets;
             return;
         }
@@ -95,7 +95,7 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
 
         this.targets = newTargets;
 
-        this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
 
         for (BlockPos changedPos : changedPositions) {
             notifyOne(changedPos, Blocks.REDSTONE_BLOCK);
@@ -103,8 +103,8 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     private void notifyOne(BlockPos targetPos, Block neighborBlock) {
-        this.world.getBlockState(targetPos).neighborChanged(this.world, targetPos, neighborBlock, this.pos, false);
-        this.world.notifyNeighborsOfStateChange(targetPos, neighborBlock);
+        this.level.getBlockState(targetPos).neighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
+        this.level.updateNeighborsAt(targetPos, neighborBlock);
     }
 
     @Override
@@ -120,29 +120,28 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.put("inventory", positionInventory.serializeNBT());
-
-        return compound;
+
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         positionInventory.deserializeNBT(compound.getCompound("inventory"));
         refreshTargets();
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new AdvancedRedstoneInterfaceContainer(windowId, playerInventory, positionInventory, IWorldPosCallable.of(this.world, pos));
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity) {
+        return new AdvancedRedstoneInterfaceContainer(windowId, playerInventory, positionInventory, ContainerLevelAccess.create(this.level, worldPosition));
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.advanced_redstone_interface");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.advanced_redstone_interface");
     }
 }

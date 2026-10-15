@@ -1,14 +1,14 @@
 package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -21,14 +21,14 @@ import net.minecraftforge.items.SlotItemHandler;
  * item-type enforcement, which now lives on the {@code ItemStackHandler}
  * itself - see {@code AdvancedRedstoneInterfaceTileEntity}).
  */
-public class AdvancedRedstoneInterfaceContainer extends Container {
-    IWorldPosCallable pos;
+public class AdvancedRedstoneInterfaceContainer extends AbstractContainerMenu {
+    ContainerLevelAccess pos;
 
-    public AdvancedRedstoneInterfaceContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(9), IWorldPosCallable.DUMMY);
+    public AdvancedRedstoneInterfaceContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, (Inventory) playerInventory, new ItemStackHandler(9), ContainerLevelAccess.NULL);
     }
 
-    public AdvancedRedstoneInterfaceContainer(int windowId, PlayerInventory playerInventory, IItemHandler positionInventory, IWorldPosCallable pos) {
+    public AdvancedRedstoneInterfaceContainer(int windowId, Inventory playerInventory, IItemHandler positionInventory, ContainerLevelAccess pos) {
         super(ModContainerTypes.ADVANCED_REDSTONE_INTERFACE, windowId);
 
         this.pos = pos;
@@ -49,31 +49,31 @@ public class AdvancedRedstoneInterfaceContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.ADVANCED_REDSTONE_INTERFACE);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.ADVANCED_REDSTONE_INTERFACE);
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 9) {
-                if (!this.mergeItemStack(stackInSlot, 9, 45, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 9, 45, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 9, false)) {
+            } else if (!this.moveItemStackTo(stackInSlot, 0, 9, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (stackInSlot.getCount() == result.getCount()) {

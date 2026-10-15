@@ -2,23 +2,23 @@ package lumien.randomthings.block;
 
 import java.util.Random;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Grows upward one segment per scheduled tick (faster for the "magic" bean
@@ -35,57 +35,57 @@ import net.minecraft.world.server.ServerWorld;
  */
 public class BeanStalkBlock extends Block
 {
-	protected static final VoxelShape SHAPE = Block.makeCuboidShape(6.4, 0, 6.4, 9.6, 16, 9.6);
+	protected static final VoxelShape SHAPE = Block.box(6.4, 0, 6.4, 9.6, 16, 9.6);
 
 	private final boolean strongMagic;
 
 	public BeanStalkBlock(boolean strongMagic)
 	{
-		super(Block.Properties.create(Material.PLANTS).notSolid().doesNotBlockMovement().sound(SoundType.PLANT));
+		super(Block.Properties.of(Material.PLANT).noOcclusion().noCollission().sound(SoundType.GRASS));
 
 		this.strongMagic = strongMagic;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
 	}
 
 	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
+	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn)
 	{
-		if (entityIn.isOnGround() || entityIn.collidedVertically)
+		if (entityIn.isOnGround() || entityIn.verticalCollision)
 		{
 			return;
 		}
 
 		double speed = strongMagic ? 0.5 : 0.2;
 
-		if (entityIn.getMotion().y >= 0.1)
+		if (entityIn.getDeltaMovement().y >= 0.1)
 		{
-			entityIn.setPosition(entityIn.getPosX(), entityIn.getPosY() + speed, entityIn.getPosZ());
+			entityIn.setPos(entityIn.getX(), entityIn.getY() + speed, entityIn.getZ());
 		}
 	}
 
 	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
 	{
-		if (worldIn.isRemote)
+		if (worldIn.isClientSide)
 		{
 			return;
 		}
 
-		BlockPos up = pos.up();
+		BlockPos up = pos.above();
 
-		if (up.getY() >= 255)
+		if (up.getY() >= worldIn.getMaxBuildHeight() - 1)
 		{
 			return;
 		}
 
-		if (strongMagic && up.getY() >= 253)
+		if (strongMagic && up.getY() >= worldIn.getMaxBuildHeight() - 3)
 		{
-			worldIn.setBlockState(up, ModBlocks.BEAN_POD.getDefaultState(), 3);
+			worldIn.setBlock(up, ModBlocks.BEAN_POD.defaultBlockState(), 3);
 			return;
 		}
 
@@ -93,17 +93,17 @@ public class BeanStalkBlock extends Block
 
 		if (upState.isAir() || upState.getMaterial().isReplaceable())
 		{
-			worldIn.setBlockState(up, this.getDefaultState(), 3);
-			worldIn.getPendingBlockTicks().scheduleTick(up, this, strongMagic ? 1 : 5);
+			worldIn.setBlock(up, this.defaultBlockState(), 3);
+			worldIn.scheduleTick(up, this, strongMagic ? 1 : 5);
 
 			// New feature, not a 1.12.2 port: a small sound cue every time the
 			// stalk grows a segment taller, per explicit user request.
-			worldIn.playSound(null, up, this.getSoundType(state).getPlaceSound(), SoundCategory.BLOCKS, 1.0F, 1.0F);
+			worldIn.playSound(null, up, this.getSoundType(state).getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
 		}
 	}
 
 	@Override
-	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
+	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
 		// 1.12.2 checked "instanceof BlockGrass || instanceof BlockDirt" - in that
 		// version BlockDirt was one class backing dirt/coarse dirt/podzol as
@@ -112,18 +112,18 @@ public class BeanStalkBlock extends Block
 		// Farmland is a deliberate addition beyond the original (which never
 		// supported it either), per explicit user request - it's a natural
 		// planting surface players expect this to work on.
-		Block below = worldIn.getBlockState(pos.down()).getBlock();
+		Block below = worldIn.getBlockState(pos.below()).getBlock();
 		return below == this || below == Blocks.GRASS_BLOCK || below == Blocks.DIRT || below == Blocks.COARSE_DIRT || below == Blocks.PODZOL || below == Blocks.FARMLAND;
 	}
 
 	@Override
-	public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos)
+	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos)
 	{
-		return !stateIn.isValidPosition(worldIn, currentPos) ? Blocks.AIR.getDefaultState() : super.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+		return !stateIn.canSurvive(worldIn, currentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
 	}
 
 	@Override
-	public boolean isLadder(BlockState state, IWorldReader world, BlockPos pos, LivingEntity entity)
+	public boolean isLadder(BlockState state, LevelReader world, BlockPos pos, LivingEntity entity)
 	{
 		return true;
 	}

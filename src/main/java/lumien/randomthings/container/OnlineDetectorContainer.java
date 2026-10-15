@@ -2,28 +2,28 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.OnlineDetectorTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
 
 /**
  * OnlineDetectorContainer
  */
-public class OnlineDetectorContainer extends Container implements ISignalContainer
+public class OnlineDetectorContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 	String username;
 
-	public OnlineDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public OnlineDetectorContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
+		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readUtf(32767));
 	}
 
-	public OnlineDetectorContainer(int windowId, IWorldPosCallable pos, String username)
+	public OnlineDetectorContainer(int windowId, ContainerLevelAccess pos, String username)
 	{
 		super(ModContainerTypes.ONLINE_DETECTOR, windowId);
 
@@ -31,10 +31,10 @@ public class OnlineDetectorContainer extends Container implements ISignalContain
 		this.username = username;
 	}
 
-	private static IWorldPosCallable resolvePos(IInventory playerInventory, BlockPos blockPos)
+	private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos)
 	{
-		net.minecraft.entity.player.PlayerInventory inv = (net.minecraft.entity.player.PlayerInventory) playerInventory;
-		return IWorldPosCallable.of(inv.player.world, blockPos);
+		net.minecraft.world.entity.player.Inventory inv = (net.minecraft.world.entity.player.Inventory) playerInventory;
+		return ContainerLevelAccess.create(inv.player.level, blockPos);
 	}
 
 	public String getUsername()
@@ -43,21 +43,21 @@ public class OnlineDetectorContainer extends Container implements ISignalContain
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.ONLINE_DETECTOR);
+		return stillValid(this.pos, playerIn, ModBlocks.ONLINE_DETECTOR);
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
-			String newUsername = data.readString(32767);
+			String newUsername = data.readUtf(32767);
 			this.username = newUsername;
 
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof OnlineDetectorTileEntity)
 				{

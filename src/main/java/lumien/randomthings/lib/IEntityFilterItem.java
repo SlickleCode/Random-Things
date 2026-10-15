@@ -1,7 +1,7 @@
 package lumien.randomthings.lib;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Implemented by items that can be used as a per-block "which entities does

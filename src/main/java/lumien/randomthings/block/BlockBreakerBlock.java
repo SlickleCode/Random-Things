@@ -1,16 +1,28 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import net.minecraft.core.BlockPos;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.BlockBreakerTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 /**
  * Ported from 1.12.2's {@code BlockBlockBreaker}. A machine that continuously
@@ -21,38 +33,40 @@ import net.minecraft.world.World;
  * this feature's own listed prerequisite) is what makes drops land in an
  * inventory instead of spawning on the ground.
  */
-public class BlockBreakerBlock extends Block {
+public class BlockBreakerBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
     public BlockBreakerBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(3.5F));
+        super(Block.Properties.of(Material.STONE).strength(3.5F));
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new BlockBreakerTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new BlockBreakerTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.BLOCK_BREAKER, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(FACING, context.getNearestLookingDirection());
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection());
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, net.minecraft.util.math.BlockPos pos, Block blockIn, net.minecraft.util.math.BlockPos fromPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Block blockIn, net.minecraft.core.BlockPos fromPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof BlockBreakerTileEntity) {
             ((BlockBreakerTileEntity) te).neighborChanged();
@@ -60,15 +74,15 @@ public class BlockBreakerBlock extends Block {
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, net.minecraft.util.math.BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof BlockBreakerTileEntity) {
                 ((BlockBreakerTileEntity) te).onBreakerBroken();
             }
         }
 
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 }

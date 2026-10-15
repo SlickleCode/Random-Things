@@ -1,24 +1,34 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.BlockDestabilizerTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Ported from 1.12.2's {@code BlockBlockDestabilizer}. On a redstone pulse,
@@ -28,59 +38,61 @@ import net.minecraft.util.ActionResultType;
  * entities, top row first. See {@code BlockDestabilizerTileEntity} for the
  * search/drop state machine.
  */
-public class BlockDestabilizerBlock extends Block {
+public class BlockDestabilizerBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
     public BlockDestabilizerBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(5.0F));
+        super(Block.Properties.of(Material.STONE).strength(5.0F));
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new BlockDestabilizerTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new BlockDestabilizerTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.BLOCK_DESTABILIZER, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(FACING, context.getNearestLookingDirection());
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection());
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (!worldIn.isRemote) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        if (!worldIn.isClientSide) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof BlockDestabilizerTileEntity) {
-                NetworkHooks.openGui((ServerPlayerEntity) player, (BlockDestabilizerTileEntity) te);
+                NetworkHooks.openGui((ServerPlayer) player, (BlockDestabilizerTileEntity) te);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof BlockDestabilizerTileEntity) {
-            ((BlockDestabilizerTileEntity) te).neighborChanged(worldIn.isBlockPowered(pos));
+            ((BlockDestabilizerTileEntity) te).neighborChanged(worldIn.hasNeighborSignal(pos));
         }
     }
 }

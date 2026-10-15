@@ -1,5 +1,7 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.util.WeakSets;
 import java.util.Set;
 import java.util.UUID;
@@ -7,20 +9,19 @@ import java.util.UUID;
 import lumien.randomthings.block.GlobalChatDetectorBlock;
 import lumien.randomthings.container.GlobalChatDetectorContainer;
 import lumien.randomthings.item.IdCardItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Like {@link ChatDetectorTileEntity}, but matches any player's chat instead
@@ -28,7 +29,7 @@ import net.minecraft.block.BlockState;
  * requires that player to hold a matching {@link IdCardItem} in this
  * block's 9-slot whitelist, or be a server operator.
  */
-public class GlobalChatDetectorTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuProvider
 {
 	public static final Set<GlobalChatDetectorTileEntity> detectors = WeakSets.create();
 
@@ -43,7 +44,7 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 
 		@Override
@@ -53,21 +54,19 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 		}
 	};
 
-	public GlobalChatDetectorTileEntity()
-	{
-		super(ModTileEntityTypes.GLOBAL_CHAT_DETECTOR);
+	public GlobalChatDetectorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.GLOBAL_CHAT_DETECTOR, pos, state);
 		detectors.add(this);
-	}
+    }
 
 	public ItemStackHandler idCardInventory()
 	{
 		return idCardInventory;
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote || !pulsing)
+		if (this.level.isClientSide || !pulsing)
 		{
 			return;
 		}
@@ -77,7 +76,7 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 		if (pulsingCounter <= 0)
 		{
 			pulsing = false;
-			this.world.setBlockState(pos, this.getBlockState().with(GlobalChatDetectorBlock.POWERED, false), 3);
+			this.level.setBlock(worldPosition, this.getBlockState().setValue(GlobalChatDetectorBlock.POWERED, false), 3);
 		}
 	}
 
@@ -94,13 +93,13 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 	public void setChatMessage(String chatMessage)
 	{
 		this.chatMessage = chatMessage;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void setConsume(boolean consume)
 	{
 		this.consume = consume;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public boolean consume()
@@ -113,15 +112,15 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 		pulsing = true;
 		pulsingCounter = 20;
 
-		this.world.setBlockState(pos, this.getBlockState().with(GlobalChatDetectorBlock.POWERED, true), 3);
+		this.level.setBlock(worldPosition, this.getBlockState().setValue(GlobalChatDetectorBlock.POWERED, true), 3);
 	}
 
 	/**
 	 * @return true if this detector consumed (should hide) the message.
 	 */
-	public boolean checkMessage(ServerPlayerEntity player, String message)
+	public boolean checkMessage(ServerPlayer player, String message)
 	{
-		if (this.world.isRemote || !this.chatMessage.equals(message))
+		if (this.level.isClientSide || !this.chatMessage.equals(message))
 		{
 			return false;
 		}
@@ -152,9 +151,9 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 
 		compound.putBoolean("consume", consume);
 		compound.putString("chatMessage", chatMessage);
@@ -162,13 +161,12 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 		compound.putInt("pulsingCounter", pulsingCounter);
 		compound.put("inventory", idCardInventory.serializeNBT());
 
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 
 		consume = compound.getBoolean("consume");
 		chatMessage = compound.getString("chatMessage");
@@ -178,14 +176,14 @@ public class GlobalChatDetectorTileEntity extends TileEntity implements ITickabl
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new GlobalChatDetectorContainer(windowId, playerInventory, idCardInventory, IWorldPosCallable.of(this.world, pos), this.chatMessage);
+		return new GlobalChatDetectorContainer(windowId, playerInventory, idCardInventory, ContainerLevelAccess.create(this.level, worldPosition), this.chatMessage);
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.global_chat_detector");
+		return new TranslatableComponent("block.randomthings.global_chat_detector");
 	}
 }

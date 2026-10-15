@@ -1,66 +1,75 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.GlobalChatDetectorTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Like {@link ChatDetectorBlock}, but listens for any player's chat instead
  * of only whoever placed it - see {@link GlobalChatDetectorTileEntity}.
  */
-public class GlobalChatDetectorBlock extends Block
-{
+public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 	public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
 	public GlobalChatDetectorBlock()
 	{
-		super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+		super(Block.Properties.of(Material.STONE).strength(2.0F));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(POWERED, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(POWERED);
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new GlobalChatDetectorTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
 	{
-		return new GlobalChatDetectorTileEntity();
+	    return Tickers.of(type, ModTileEntityTypes.GLOBAL_CHAT_DETECTOR, (l, p, s2, be) -> be.tick());
 	}
 
 	@Override
-	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof GlobalChatDetectorTileEntity)
 			{
@@ -72,51 +81,51 @@ public class GlobalChatDetectorBlock extends Block
 					drops.add(idCards.getStackInSlot(i));
 				}
 
-				InventoryHelper.dropItems(worldIn, pos, drops);
+				Containers.dropContents(worldIn, pos, drops);
 			}
 		}
 
-		super.onReplaced(state, worldIn, pos, newState, isMoving);
+		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof GlobalChatDetectorTileEntity)
 			{
 				GlobalChatDetectorTileEntity gcte = (GlobalChatDetectorTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayerEntity) player, gcte, buf -> {
+				NetworkHooks.openGui((ServerPlayer) player, gcte, buf -> {
 					buf.writeBlockPos(pos);
-					buf.writeString(gcte.getChatMessage());
+					buf.writeUtf(gcte.getChatMessage());
 				});
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
-	public boolean canProvidePower(BlockState state)
+	public boolean isSignalSource(BlockState state)
 	{
 		return true;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getDirectSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		return blockState.get(POWERED) ? 15 : 0;
+		return blockState.getValue(POWERED) ? 15 : 0;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		return blockState.get(POWERED) ? 15 : 0;
+		return blockState.getValue(POWERED) ? 15 : 0;
 	}
 }

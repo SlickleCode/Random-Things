@@ -1,14 +1,14 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.IArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterials;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.sounds.SoundEvent;
 
 /**
  * Worn as a helmet: hides your nametag from other players and hides your
@@ -45,54 +45,54 @@ import net.minecraft.util.SoundEvent;
  * overrides only {@link IArmorMaterial#getDurability} with Leather's value.
  */
 public class MagicHoodItem extends ArmorItem {
-    private static final IArmorMaterial DURABILITY_MATERIAL = new IArmorMaterial() {
+    private static final ArmorMaterial DURABILITY_MATERIAL = new ArmorMaterial() {
         @Override
-        public int getDurability(EquipmentSlotType slot) {
-            return ArmorMaterial.LEATHER.getDurability(slot);
+        public int getDurabilityForSlot(EquipmentSlot slot) {
+            return ArmorMaterials.LEATHER.getDurabilityForSlot(slot);
         }
 
         @Override
-        public int getDamageReductionAmount(EquipmentSlotType slot) {
-            return ArmorMaterial.CHAIN.getDamageReductionAmount(slot);
+        public int getDefenseForSlot(EquipmentSlot slot) {
+            return ArmorMaterials.CHAIN.getDefenseForSlot(slot);
         }
 
         @Override
-        public int getEnchantability() {
-            return ArmorMaterial.CHAIN.getEnchantability();
+        public int getEnchantmentValue() {
+            return ArmorMaterials.CHAIN.getEnchantmentValue();
         }
 
         @Override
-        public SoundEvent getSoundEvent() {
-            return ArmorMaterial.CHAIN.getSoundEvent();
+        public SoundEvent getEquipSound() {
+            return ArmorMaterials.CHAIN.getEquipSound();
         }
 
         @Override
-        public Ingredient getRepairMaterial() {
-            return ArmorMaterial.CHAIN.getRepairMaterial();
+        public Ingredient getRepairIngredient() {
+            return ArmorMaterials.CHAIN.getRepairIngredient();
         }
 
         @Override
         public float getKnockbackResistance() {
-            return ArmorMaterial.CHAIN.getKnockbackResistance();
+            return ArmorMaterials.CHAIN.getKnockbackResistance();
         }
 
         @Override
         public String getName() {
-            return ArmorMaterial.CHAIN.getName();
+            return ArmorMaterials.CHAIN.getName();
         }
 
         @Override
         public float getToughness() {
-            return ArmorMaterial.CHAIN.getToughness();
+            return ArmorMaterials.CHAIN.getToughness();
         }
     };
 
     public MagicHoodItem(Item.Properties properties) {
-        super(DURABILITY_MATERIAL, EquipmentSlotType.HEAD, properties);
+        super(DURABILITY_MATERIAL, EquipmentSlot.HEAD, properties);
     }
 
     @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlotType slot, String type) {
+    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
         return "randomthings:textures/models/armor/magic_hood.png";
     }
 }

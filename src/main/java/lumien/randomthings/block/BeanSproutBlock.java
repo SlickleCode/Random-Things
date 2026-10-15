@@ -1,19 +1,19 @@
 package lumien.randomthings.block;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CropsBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.World;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Extends vanilla's CropsBlock, which already implements the age/growth/
@@ -22,39 +22,39 @@ import net.minecraft.util.ActionResultType;
  * a fully grown sprout resets it to age 0 and drops beans, instead of
  * breaking it like a normal crop.
  */
-public class BeanSproutBlock extends CropsBlock
+public class BeanSproutBlock extends CropBlock
 {
 	public BeanSproutBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).doesNotBlockMovement().tickRandomly().hardnessAndResistance(0.0F).sound(SoundType.PLANT));
+		super(Block.Properties.of(Material.PLANT).noCollission().randomTicks().strength(0.0F).sound(SoundType.GRASS));
 	}
 
 	@Override
-	protected IItemProvider getSeedsItem()
+	protected ItemLike getBaseSeedId()
 	{
 		return ModItems.BEANS;
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
 		if (this.isMaxAge(state))
 		{
-			if (!worldIn.isRemote)
+			if (!worldIn.isClientSide)
 			{
-				worldIn.setBlockState(pos, this.withAge(0));
+				worldIn.setBlockAndUpdate(pos, this.getStateForAge(0));
 
-				ItemStack stack = new ItemStack(ModItems.BEANS, worldIn.rand.nextInt(2) + 1);
+				ItemStack stack = new ItemStack(ModItems.BEANS, worldIn.random.nextInt(2) + 1);
 
-				if (!player.addItemStackToInventory(stack))
+				if (!player.addItem(stack))
 				{
-					spawnAsEntity(worldIn, pos, stack);
+					popResource(worldIn, pos, stack);
 				}
 			}
 
-			return ActionResultType.SUCCESS;
+			return InteractionResult.SUCCESS;
 		}
 
-		return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
+		return super.use(state, worldIn, pos, player, handIn, hit);
 	}
 }

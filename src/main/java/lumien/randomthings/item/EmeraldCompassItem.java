@@ -2,14 +2,14 @@ package lumien.randomthings.item;
 
 import java.util.UUID;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Points at a bound player as long as they're online, going back to a random
@@ -29,26 +29,26 @@ public class EmeraldCompassItem extends CompassItemBase
 	@Override
 	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged)
 	{
-		return !ItemStack.areItemsEqual(oldStack, newStack);
+		return !ItemStack.isSame(oldStack, newStack);
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected)
+	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected)
 	{
 		super.inventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
 
-		if (!worldIn.isRemote && worldIn.getGameTime() % 20 == 0)
+		if (!worldIn.isClientSide && worldIn.getGameTime() % 20 == 0)
 		{
-			CompoundNBT compound = stack.getTag();
+			CompoundTag compound = stack.getTag();
 
 			if (compound != null && compound.contains("uuid"))
 			{
 				UUID uuid = UUID.fromString(compound.getString("uuid"));
-				ServerPlayerEntity targetPlayer = ((ServerWorld) worldIn).getServer().getPlayerList().getPlayerByUUID(uuid);
+				ServerPlayer targetPlayer = ((ServerLevel) worldIn).getServer().getPlayerList().getPlayer(uuid);
 
 				if (targetPlayer != null)
 				{
-					BlockPos targetPos = targetPlayer.getPosition();
+					BlockPos targetPos = targetPlayer.blockPosition();
 
 					compound.putInt("targetX", targetPos.getX());
 					compound.putInt("targetZ", targetPos.getZ());

@@ -1,28 +1,30 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.item.RuneDustItem;
 import lumien.randomthings.item.RuneDustItems;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 /**
  * A paper-thin decal placed on top of a solid block, holding a 4x4 grid of
@@ -40,15 +42,15 @@ import net.minecraft.world.World;
  * matching this port's established custom-TESR precedent for anything that
  * used to need per-instance dynamic render data.
  */
-public class RuneBaseBlock extends Block {
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(0, 0, 0, 16, 0.1, 16);
+public class RuneBaseBlock extends Block implements EntityBlock {
+    private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 0.1, 16);
 
     public RuneBaseBlock() {
-        super(Block.Properties.create(Material.SAND).hardnessAndResistance(0.2F).doesNotBlockMovement());
+        super(Block.Properties.of(Material.SAND).strength(0.2F).noCollission());
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
@@ -66,31 +68,27 @@ public class RuneBaseBlock extends Block {
      * particle effect instead of the default missing-texture one.
      */
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.INVISIBLE;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new RuneBaseTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new RuneBaseTileEntity();
-    }
-
-    @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!Block.hasEnoughSolidSide(worldIn, pos.down(), Direction.UP)) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!Block.canSupportCenter(worldIn, pos.below(), Direction.UP)) {
             worldIn.removeBlock(pos, false);
         }
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof RuneBaseTileEntity) {
                 DyeColor[][] runeData = ((RuneBaseTileEntity) te).getRuneData();
@@ -101,14 +99,14 @@ public class RuneBaseBlock extends Block {
                             ItemStack dustStack = new ItemStack(RuneDustItems.BY_COLOR.get(runeData[x][y]));
 
                             ItemEntity itemEntity = new ItemEntity(worldIn, pos.getX() + x / 4.0 + 0.125, pos.getY() + 0.1, pos.getZ() + y / 4.0 + 0.125, dustStack);
-                            itemEntity.setNoPickupDelay();
-                            worldIn.addEntity(itemEntity);
+                            itemEntity.setNoPickUpDelay();
+                            worldIn.addFreshEntity(itemEntity);
                         }
                     }
                 }
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
@@ -126,25 +124,25 @@ public class RuneBaseBlock extends Block {
      * drop logic.
      */
     @Override
-    public void onBlockClicked(BlockState state, World worldIn, BlockPos pos, PlayerEntity playerIn) {
-        if (!worldIn.isRemote) {
-            Vector3d start = playerIn.getEyePosition(1.0F);
-            Vector3d end = start.add(playerIn.getLookVec().scale(6));
+    public void attack(BlockState state, Level worldIn, BlockPos pos, Player playerIn) {
+        if (!worldIn.isClientSide) {
+            Vec3 start = playerIn.getEyePosition(1.0F);
+            Vec3 end = start.add(playerIn.getLookAngle().scale(6));
 
-            RayTraceResult result = worldIn.rayTraceBlocks(new RayTraceContext(start, end, RayTraceContext.BlockMode.OUTLINE, RayTraceContext.FluidMode.NONE, playerIn));
+            HitResult result = worldIn.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, playerIn));
 
-            if (result.getType() == RayTraceResult.Type.BLOCK && ((net.minecraft.util.math.BlockRayTraceResult) result).getPos().equals(pos)) {
-                TileEntity te = worldIn.getTileEntity(pos);
+            if (result.getType() == HitResult.Type.BLOCK && ((net.minecraft.world.phys.BlockHitResult) result).getBlockPos().equals(pos)) {
+                BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (!(te instanceof RuneBaseTileEntity) || ((RuneBaseTileEntity) te).isEmpty()) {
                     return;
                 }
 
-                worldIn.playSound(null, pos, SoundEvents.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1F, 0.8F);
+                worldIn.playSound(null, pos, SoundEvents.STONE_BREAK, SoundSource.BLOCKS, 1F, 0.8F);
                 worldIn.removeBlock(pos, false);
             }
         }
 
-        super.onBlockClicked(state, worldIn, pos, playerIn);
+        super.attack(state, worldIn, pos, playerIn);
     }
 }

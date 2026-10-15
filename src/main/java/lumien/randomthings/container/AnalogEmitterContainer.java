@@ -2,48 +2,48 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.AnalogEmitterTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 
 /**
  * AnalogEmitterContainer
  */
-public class AnalogEmitterContainer extends Container implements ISignalContainer
+public class AnalogEmitterContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public IntReferenceHolder emitLevel = IntReferenceHolder.single();
+	public DataSlot emitLevel = DataSlot.standalone();
 
-	public AnalogEmitterContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public AnalogEmitterContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, IWorldPosCallable.DUMMY);
+		this(windowId, ContainerLevelAccess.NULL);
 	}
 
-	public AnalogEmitterContainer(int windowId, IWorldPosCallable pos)
+	public AnalogEmitterContainer(int windowId, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.ANALOG_EMITTER, windowId);
 
 		this.pos = pos;
 
-		this.trackInt(emitLevel);
+		this.addDataSlot(emitLevel);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.ANALOG_EMITTER);
+		return stillValid(this.pos, playerIn, ModBlocks.ANALOG_EMITTER);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof AnalogEmitterTileEntity)
 			{
@@ -51,18 +51,18 @@ public class AnalogEmitterContainer extends Container implements ISignalContaine
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
 			int action = data.readInt();
 
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof AnalogEmitterTileEntity)
 				{

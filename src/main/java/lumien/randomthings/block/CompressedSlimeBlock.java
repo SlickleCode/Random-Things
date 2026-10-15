@@ -1,26 +1,26 @@
 package lumien.randomthings.block;
 
 import lumien.randomthings.lib.IRTBlockColor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.Entity;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.Level;
 
 public class CompressedSlimeBlock extends Block implements IRTBlockColor
 {
-	protected static final VoxelShape SHAPE_0 = Block.makeCuboidShape(0, 0, 0, 16, 8, 16);
-	protected static final VoxelShape SHAPE_1 = Block.makeCuboidShape(0, 0, 0, 16, 4, 16);
-	protected static final VoxelShape SHAPE_2 = Block.makeCuboidShape(0, 0, 0, 16, 2, 16);
+	protected static final VoxelShape SHAPE_0 = Block.box(0, 0, 0, 16, 8, 16);
+	protected static final VoxelShape SHAPE_1 = Block.box(0, 0, 0, 16, 4, 16);
+	protected static final VoxelShape SHAPE_2 = Block.box(0, 0, 0, 16, 2, 16);
 
 	private static final int[] COMPRESSION_COLORS = new int[] { 0xC8C8C8, 0x969696, 0x646464 };
 
@@ -28,21 +28,21 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 
 	public CompressedSlimeBlock()
 	{
-		super(Block.Properties.create(Material.CLAY, MaterialColor.LIGHT_GRAY).sound(SoundType.SLIME));
+		super(Block.Properties.of(Material.CLAY, MaterialColor.COLOR_LIGHT_GRAY).sound(SoundType.SLIME_BLOCK));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(COMPRESSION, 0));
+		this.registerDefaultState(this.stateDefinition.any().setValue(COMPRESSION, 0));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(COMPRESSION);
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		switch (state.get(COMPRESSION))
+		switch (state.getValue(COMPRESSION))
 		{
 			case 0:
 				return SHAPE_0;
@@ -54,25 +54,25 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 	}
 
 	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn)
+	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn)
 	{
-		super.onEntityCollision(state, worldIn, pos, entityIn);
+		super.entityInside(state, worldIn, pos, entityIn);
 
-		if (entityIn.getMotion().y < 1)
+		if (entityIn.getDeltaMovement().y < 1)
 		{
-			int compression = state.get(COMPRESSION);
+			int compression = state.getValue(COMPRESSION);
 
 			entityIn.setOnGround(false);
 
 			double motionY = 0.8 + compression * 0.4;
-			entityIn.setMotion(entityIn.getMotion().x, motionY, entityIn.getMotion().z);
+			entityIn.setDeltaMovement(entityIn.getDeltaMovement().x, motionY, entityIn.getDeltaMovement().z);
 			entityIn.fallDistance = 0;
 		}
 	}
 
 	@Override
-	public int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex)
+	public int colorMultiplier(BlockState state, BlockAndTintGetter worldIn, BlockPos pos, int tintIndex)
 	{
-		return COMPRESSION_COLORS[state.get(COMPRESSION)];
+		return COMPRESSION_COLORS[state.getValue(COMPRESSION)];
 	}
 }

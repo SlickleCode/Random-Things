@@ -7,25 +7,26 @@ import java.util.Random;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Draws {@link DiaphanousBlockTileEntity}'s displayed block as a real baked
@@ -51,25 +52,24 @@ import net.minecraft.util.math.vector.Vector3d;
  * SuperLubricentPhysics}'s {@code deltaRotation} field) for when no public
  * equivalent exists.
  */
-public class DiaphanousBlockTileEntityRenderer extends TileEntityRenderer<DiaphanousBlockTileEntity> {
+public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<DiaphanousBlockTileEntity> {
     private final Random random = new Random();
 
-    public DiaphanousBlockTileEntityRenderer(TileEntityRendererDispatcher dispatcher) {
-        super(dispatcher);
+    public DiaphanousBlockTileEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
     @Override
-    public void render(DiaphanousBlockTileEntity te, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
+    public void render(DiaphanousBlockTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
         BlockState display = te.getDisplayState();
 
-        if (display.getRenderType() != BlockRenderType.MODEL) {
+        if (display.getRenderShape() != RenderShape.MODEL) {
             return;
         }
 
-        Vector3d camera = this.renderDispatcher.renderInfo.getProjectedView();
-        double dx = te.getPos().getX() + 0.5 - camera.x;
-        double dy = te.getPos().getY() + 0.5 - camera.y;
-        double dz = te.getPos().getZ() + 0.5 - camera.z;
+        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        double dx = te.getBlockPos().getX() + 0.5 - camera.x;
+        double dy = te.getBlockPos().getY() + 0.5 - camera.y;
+        double dz = te.getBlockPos().getZ() + 0.5 - camera.z;
         double distance = Math.max(0, dx * dx + dy * dy + dz * dz - 5);
 
         float curve = -0.5F * ((float) Math.cos(Math.PI * Math.min(Math.max(0, distance - 8), 25) / 25) - 1);
@@ -79,12 +79,12 @@ public class DiaphanousBlockTileEntityRenderer extends TileEntityRenderer<Diapha
             return;
         }
 
-        World world = te.getWorld();
-        BlockRendererDispatcher dispatcher = Minecraft.getInstance().getBlockRendererDispatcher();
-        IBakedModel model = dispatcher.getModelForState(display);
+        Level world = te.getLevel();
+        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
+        BakedModel model = dispatcher.getBlockModel(display);
 
-        IVertexBuilder translucent = new AlphaVertexBuilder(buffer.getBuffer(RenderType.getTranslucent()), alpha);
+        VertexConsumer translucent = new AlphaVertexBuilder(buffer.getBuffer(RenderType.translucent()), alpha);
 
-        dispatcher.getBlockModelRenderer().renderModel(world, model, display, te.getPos(), matrixStack, translucent, true, random, display.getPositionRandom(te.getPos()), combinedOverlay);
+        dispatcher.getModelRenderer().tesselateBlock(world, model, display, te.getBlockPos(), matrixStack, translucent, true, random, display.getSeed(te.getBlockPos()), combinedOverlay);
     }
 }

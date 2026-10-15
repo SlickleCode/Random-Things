@@ -8,23 +8,22 @@ import java.util.Set;
 
 import lumien.randomthings.block.BlockDestabilizerBlock;
 import lumien.randomthings.container.BlockDestabilizerContainer;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.item.FallingBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 /**
  * Ported from 1.12.2's {@code TileEntityBlockDestabilizer}: BFS flood-fills
@@ -37,14 +36,14 @@ import net.minecraft.util.text.TranslationTextComponent;
  * line-for-line copy of vanilla's own falling-block entity, just with {@code
  * shouldDropItem} exposed - because that flag isn't public on every version
  * of vanilla's class. In this Forge build {@code
- * net.minecraft.entity.item.FallingBlockEntity#shouldDropItem} already is a
+ * net.minecraft.world.entity.item.FallingBlockEntity#shouldDropItem} already is a
  * public mutable field, so this port spawns vanilla's own entity directly
  * instead of maintaining a parallel copy.
  *
  * <p>Not build-verified in this sandbox (network policy blocks the Forge/
  * Mojang Maven hosts {@code ./gradlew build} needs) - flag for retest.
  */
-public class BlockDestabilizerTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider {
+public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProvider {
     private enum State {
         IDLE, SEARCHING, DROPPING;
     }
@@ -65,8 +64,8 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
 
     private boolean poweredLastCheck;
 
-    public BlockDestabilizerTileEntity() {
-        super(ModTileEntityTypes.BLOCK_DESTABILIZER);
+    public BlockDestabilizerTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.BLOCK_DESTABILIZER, pos, state);
     }
 
     public boolean isLazy() {
@@ -85,19 +84,19 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
                 invalidBlocks = null;
             }
 
-            markDirty();
+            setChanged();
         }
     }
 
     public void toggleFuzzy() {
         fuzzy = !fuzzy;
-        markDirty();
+        setChanged();
     }
 
     public void resetLazy() {
         if (state == State.IDLE) {
             invalidBlocks = null;
-            markDirty();
+            setChanged();
         }
     }
 
@@ -110,9 +109,8 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         }
     }
 
-    @Override
     public void tick() {
-        if (world == null || world.isRemote) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
@@ -124,15 +122,15 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
     }
 
     private void initStart() {
-        Direction facing = world.getBlockState(pos).get(BlockDestabilizerBlock.FACING);
-        BlockPos targetPos = pos.offset(facing);
+        Direction facing = level.getBlockState(worldPosition).getValue(BlockDestabilizerBlock.FACING);
+        BlockPos targetPos = worldPosition.relative(facing);
 
-        if (world.isAirBlock(targetPos)) {
+        if (level.isEmptyBlock(targetPos)) {
             return;
         }
 
-        BlockState candidate = world.getBlockState(targetPos);
-        if (candidate.getBlockHardness(world, targetPos) < 0 || !candidate.isNormalCube(world, targetPos)) {
+        BlockState candidate = level.getBlockState(targetPos);
+        if (candidate.getDestroySpeed(level, targetPos) < 0 || !candidate.isRedstoneConductor(level, targetPos)) {
             return;
         }
 
@@ -153,7 +151,7 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
             invalidBlocks = null;
         }
 
-        markDirty();
+        setChanged();
     }
 
     /**
@@ -181,15 +179,15 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         }
 
         alreadyChecked.add(nextPos);
-        BlockState blockStateAt = world.getBlockState(nextPos);
+        BlockState blockStateAt = level.getBlockState(nextPos);
 
-        boolean matches = (fuzzy ? blockStateAt.getBlock() == targetState.getBlock() : blockStateAt.equals(targetState)) && blockStateAt.isNormalCube(world, nextPos);
+        boolean matches = (fuzzy ? blockStateAt.getBlock() == targetState.getBlock() : blockStateAt.equals(targetState)) && blockStateAt.isRedstoneConductor(level, nextPos);
 
         if (matches) {
             targetBlocks.add(nextPos);
 
             for (Direction facing : Direction.values()) {
-                BlockPos neighbor = nextPos.offset(facing);
+                BlockPos neighbor = nextPos.relative(facing);
 
                 if (!alreadyChecked.contains(neighbor)) {
                     toCheck.add(neighbor);
@@ -199,14 +197,14 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
             invalidBlocks.add(nextPos);
         }
 
-        markDirty();
+        setChanged();
     }
 
     private void initDrop() {
         targetBlocksSorted = new ArrayList<>(targetBlocks);
 
-        BlockPos origin = this.pos;
-        targetBlocksSorted.sort(Comparator.<BlockPos>comparingInt(p -> p.getY()).thenComparingDouble(p -> p.distanceSq(origin)));
+        BlockPos origin = this.worldPosition;
+        targetBlocksSorted.sort(Comparator.<BlockPos>comparingInt(p -> p.getY()).thenComparingDouble(p -> p.distSqr(origin)));
 
         state = State.DROPPING;
         dropCounter = 0;
@@ -215,7 +213,7 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
         toCheck = null;
         alreadyChecked = null;
 
-        markDirty();
+        setChanged();
     }
 
     private void dropNextBlock() {
@@ -223,29 +221,27 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
             state = State.IDLE;
             targetBlocksSorted = null;
             targetState = null;
-            markDirty();
+            setChanged();
             return;
         }
 
         BlockPos targetPos = targetBlocksSorted.get(dropCounter);
-        BlockState target = world.getBlockState(targetPos);
+        BlockState target = level.getBlockState(targetPos);
 
         boolean matches = fuzzy ? target.getBlock() == targetState.getBlock() : target.equals(targetState);
 
-        if (matches && world.getTileEntity(targetPos) == null) {
-            FallingBlockEntity fallingEntity = new FallingBlockEntity(world, targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5, target);
-            fallingEntity.shouldDropItem = false;
-
-            world.addEntity(fallingEntity);
+        if (matches && level.getBlockEntity(targetPos) == null) {
+            FallingBlockEntity fallingEntity = FallingBlockEntity.fall(level, targetPos, target);
+            fallingEntity.dropItem = false;
         }
 
         dropCounter++;
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("lazy", lazy);
@@ -260,19 +256,18 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
             compound.put("alreadyChecked", writePosList(alreadyChecked));
             compound.put("toCheck", writePosList(toCheck));
             compound.put("targetBlocks", writePosList(targetBlocks));
-            compound.put("targetState", NBTUtil.writeBlockState(targetState));
+            compound.put("targetState", NbtUtils.writeBlockState(targetState));
         } else if (state == State.DROPPING) {
             compound.putInt("dropCounter", dropCounter);
             compound.put("targetBlocksSorted", writePosList(targetBlocksSorted));
-            compound.put("targetState", NBTUtil.writeBlockState(targetState));
+            compound.put("targetState", NbtUtils.writeBlockState(targetState));
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         state = State.values()[compound.getInt("state")];
         lazy = compound.getBoolean("lazy");
@@ -287,51 +282,51 @@ public class BlockDestabilizerTileEntity extends TileEntity implements ITickable
             alreadyChecked = readPosSet(compound.getList("alreadyChecked", 10));
             toCheck = readPosList(compound.getList("toCheck", 10));
             targetBlocks = readPosSet(compound.getList("targetBlocks", 10));
-            targetState = compound.contains("targetState") ? NBTUtil.readBlockState(compound.getCompound("targetState")) : Blocks.STONE.getDefaultState();
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
         } else if (state == State.DROPPING) {
             dropCounter = compound.getInt("dropCounter");
             targetBlocksSorted = readPosList(compound.getList("targetBlocksSorted", 10));
-            targetState = compound.contains("targetState") ? NBTUtil.readBlockState(compound.getCompound("targetState")) : Blocks.STONE.getDefaultState();
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
         }
     }
 
-    private static ListNBT writePosList(Iterable<BlockPos> positions) {
-        ListNBT list = new ListNBT();
+    private static ListTag writePosList(Iterable<BlockPos> positions) {
+        ListTag list = new ListTag();
 
         for (BlockPos p : positions) {
-            list.add(NBTUtil.writeBlockPos(p));
+            list.add(NbtUtils.writeBlockPos(p));
         }
 
         return list;
     }
 
-    private static List<BlockPos> readPosList(ListNBT list) {
+    private static List<BlockPos> readPosList(ListTag list) {
         List<BlockPos> result = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(NBTUtil.readBlockPos(list.getCompound(i)));
+            result.add(NbtUtils.readBlockPos(list.getCompound(i)));
         }
 
         return result;
     }
 
-    private static Set<BlockPos> readPosSet(ListNBT list) {
+    private static Set<BlockPos> readPosSet(ListTag list) {
         Set<BlockPos> result = new HashSet<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(NBTUtil.readBlockPos(list.getCompound(i)));
+            result.add(NbtUtils.readBlockPos(list.getCompound(i)));
         }
 
         return result;
     }
 
     @Override
-    public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-        return new BlockDestabilizerContainer(windowId, IWorldPosCallable.of(this.world, pos));
+    public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity) {
+        return new BlockDestabilizerContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
     }
 
     @Override
-    public ITextComponent getDisplayName() {
-        return new TranslationTextComponent("block.randomthings.block_destabilizer");
+    public Component getDisplayName() {
+        return new TranslatableComponent("block.randomthings.block_destabilizer");
     }
 }

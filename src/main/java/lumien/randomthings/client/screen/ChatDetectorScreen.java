@@ -1,35 +1,39 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.client.screen.ScreenWidgets;
+
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.ChatDetectorContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.EditBox;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * ChatDetectorScreen
  */
-public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
+public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorContainer>
 {
 	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/chat_detector.png");
 
-	private TextFieldWidget messageField;
+	private EditBox messageField;
 	private String lastSent;
 
-	public ChatDetectorScreen(ChatDetectorContainer screenContainer, PlayerInventory inv, ITextComponent titleIn)
+	public ChatDetectorScreen(ChatDetectorContainer screenContainer, Inventory inv, Component titleIn)
 	{
 		super(screenContainer, inv, titleIn);
 
-		this.xSize = 136;
-		this.ySize = 54;
+		this.imageWidth = 136;
+		this.imageHeight = 54;
 	}
 
 	@Override
@@ -37,34 +41,34 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	{
 		super.init();
 
-		this.messageField = new TextFieldWidget(this.font, this.guiLeft + 5, this.guiTop + 27, 127, 20, new StringTextComponent(""));
-		this.messageField.setMaxStringLength(256);
-		this.messageField.setText(this.container.getChatMessage());
-		this.lastSent = this.messageField.getText();
-		this.addButton(this.messageField);
-		this.setFocusedDefault(this.messageField);
+		this.messageField = new EditBox(this.font, this.leftPos + 5, this.topPos + 27, 127, 20, new TextComponent(""));
+		this.messageField.setMaxLength(256);
+		this.messageField.setValue(this.menu.getChatMessage());
+		this.lastSent = this.messageField.getValue();
+		this.addRenderableWidget(this.messageField);
+		this.setInitialFocus(this.messageField);
 		// Real bug, found 2026-09-28 (see OnlineDetectorScreen for the full writeup):
 		// setFocusedDefault only sets the Screen's own input-routing pointer, not the
 		// widget's own internal isFocused() flag that TextFieldWidget's keyPressed/
 		// charTyped (and this class's own keyPressed override below) actually gate
 		// on - without this, typing immediately after opening the GUI fell straight
 		// through to ContainerScreen's close-on-inventory-key check instead.
-		this.messageField.setFocused2(true);
+		this.messageField.setFocus(true);
 
-		this.addButton(new ToggleIconButton(this.guiLeft + 112, this.guiTop + 5, 20, 20, GUI_TEXTURES, 136, 0, () -> this.container.consume.get() != 0, (button) -> {
-			this.container.send(1, (pb) -> {
+		this.addRenderableWidget(new ToggleIconButton(this.leftPos + 112, this.topPos + 5, 20, 20, GUI_TEXTURES, 136, 0, () -> this.menu.consume.get() != 0, (button) -> {
+			this.menu.send(1, (pb) -> {
 			});
-		}).setTooltip(on -> I18n.format(on ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")));
+		}).setTooltip(on -> I18n.get(on ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")));
 	}
 
 	@Override
-	public void tick()
+	public void containerTick()
 	{
-		super.tick();
+		super.containerTick();
 		this.messageField.tick();
 
 		// Sync on every change; sending only from removed() raced the close-window packet.
-		if (!this.messageField.getText().equals(this.lastSent))
+		if (!this.messageField.getValue().equals(this.lastSent))
 		{
 			submitMessage();
 		}
@@ -96,48 +100,49 @@ public class ChatDetectorScreen extends ContainerScreen<ChatDetectorContainer>
 	}
 
 	@Override
-	public void onClose()
+	public void removed()
 	{
 		submitMessage();
-		super.onClose();
+		super.removed();
 	}
 
 	private void submitMessage()
 	{
-		String text = this.messageField.getText();
+		String text = this.messageField.getValue();
 		this.lastSent = text;
-		this.container.send(0, (pb) -> pb.writeString(text));
+		this.menu.send(0, (pb) -> pb.writeUtf(text));
 	}
 
 	@Override
-	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
 	{
 
-		this.font.drawString(matrixStack, I18n.format("gui.randomthings.chat_detector.message"), 8, 6, 4210752);
+		this.font.draw(matrixStack, I18n.get("gui.randomthings.chat_detector.message"), 8, 6, 4210752);
 
-		if (this.buttons.get(1).isHovered())
+		if (ScreenWidgets.buttons(this).get(1).isHoveredOrFocused())
 		{
-			boolean consume = this.container.consume.get() != 0;
-			this.renderTooltip(matrixStack, new StringTextComponent(I18n.format(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.guiLeft, mouseY - this.guiTop);
+			boolean consume = this.menu.consume.get() != 0;
+			this.renderTooltip(matrixStack, new TextComponent(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
 		}
 
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-		int i = (this.width - this.xSize) / 2;
-		int j = (this.height - this.ySize) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+		int i = (this.width - this.imageWidth) / 2;
+		int j = (this.height - this.imageHeight) / 2;
+		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
 		this.renderBackground(matrixStack);
 		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
 	}
 }

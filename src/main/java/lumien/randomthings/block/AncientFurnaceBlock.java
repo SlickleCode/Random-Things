@@ -1,26 +1,36 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.AncientFurnaceTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import java.util.Random;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Direct port of 1.12.2's {@code BlockAncientFurnace}: a rare, naturally
@@ -36,66 +46,68 @@ import net.minecraft.util.ActionResultType;
  * a multi-minute heat-up, a TNT-strength blast that also removes the furnace
  * itself) rather than guessing at 1.12.2's originals.
  */
-public class AncientFurnaceBlock extends Block {
+public class AncientFurnaceBlock extends Block implements EntityBlock {
     public static final BooleanProperty HEATING = BooleanProperty.create("heating");
 
     public AncientFurnaceBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(50.0F, 10.0F));
+        super(Block.Properties.of(Material.STONE).strength(50.0F, 10.0F));
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(HEATING, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(HEATING, false));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(HEATING);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new AncientFurnaceTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new AncientFurnaceTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.ANCIENT_FURNACE, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (state.get(HEATING)) {
-            return ActionResultType.PASS;
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        if (state.getValue(HEATING)) {
+            return InteractionResult.PASS;
         }
 
-        ItemStack stack = player.getHeldItem(handIn);
+        ItemStack stack = player.getItemInHand(handIn);
 
         if (stack.getItem() != Items.NETHER_STAR) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        if (worldIn.isRemote) {
-            return ActionResultType.SUCCESS;
+        if (worldIn.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (!(te instanceof AncientFurnaceTileEntity)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        if (!player.abilities.isCreativeMode) {
+        if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
 
-        worldIn.setBlockState(pos, state.with(HEATING, true), 3);
+        worldIn.setBlock(pos, state.setValue(HEATING, true), 3);
         ((AncientFurnaceTileEntity) te).startHeating();
-        worldIn.playSound(null, pos, SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.BLOCKS, 1.0F, 0.6F);
+        worldIn.playSound(null, pos, SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 1.0F, 0.6F);
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void animateTick(BlockState state, World worldIn, BlockPos pos, Random rand) {
-        if (!state.get(HEATING)) {
+    public void animateTick(BlockState state, Level worldIn, BlockPos pos, Random rand) {
+        if (!state.getValue(HEATING)) {
             return;
         }
 

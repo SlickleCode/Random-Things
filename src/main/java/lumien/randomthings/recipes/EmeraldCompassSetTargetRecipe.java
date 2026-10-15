@@ -5,15 +5,15 @@ import java.util.UUID;
 import lumien.randomthings.item.EmeraldCompassItem;
 import lumien.randomthings.item.IdCardItem;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 /**
  * Combine an {@link EmeraldCompassItem} with an {@link IdCardItem} to bind
@@ -25,9 +25,9 @@ import net.minecraft.world.World;
  * Anchor recipe right above it in {@code ModRecipes.java}, always true once
  * the item is already confirmed to be an ID card, so not reproduced here.)
  */
-public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
+public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 {
-	public static final IRecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SpecialRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
+	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SimpleRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
 
 	public EmeraldCompassSetTargetRecipe(ResourceLocation id)
 	{
@@ -35,14 +35,14 @@ public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
 	}
 
 	@Override
-	public boolean matches(CraftingInventory inv, World worldIn)
+	public boolean matches(CraftingContainer inv, Level worldIn)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getSizeInventory(); i++)
+		for (int i = 0; i < inv.getContainerSize(); i++)
 		{
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 
 			if (stack.isEmpty())
 			{
@@ -75,14 +75,14 @@ public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
 	}
 
 	@Override
-	public ItemStack getCraftingResult(CraftingInventory inv)
+	public ItemStack assemble(CraftingContainer inv)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getSizeInventory(); i++)
+		for (int i = 0; i < inv.getContainerSize(); i++)
 		{
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 
 			if (stack.getItem() == ModItems.EMERALD_COMPASS)
 			{
@@ -99,11 +99,11 @@ public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
 
 		if (uuid != null)
 		{
-			CompoundNBT compound = result.getTag();
+			CompoundTag compound = result.getTag();
 
 			if (compound == null)
 			{
-				result.setTag(compound = new CompoundNBT());
+				result.setTag(compound = new CompoundTag());
 			}
 
 			compound.putString("uuid", uuid.toString());
@@ -113,13 +113,13 @@ public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
 	}
 
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv)
+	public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv)
 	{
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
-		for (int i = 0; i < inv.getSizeInventory(); i++)
+		for (int i = 0; i < inv.getContainerSize(); i++)
 		{
-			ItemStack stack = inv.getStackInSlot(i);
+			ItemStack stack = inv.getItem(i);
 
 			if (stack.getItem() == ModItems.ID_CARD)
 			{
@@ -133,13 +133,13 @@ public class EmeraldCompassSetTargetRecipe extends SpecialRecipe
 	}
 
 	@Override
-	public boolean canFit(int width, int height)
+	public boolean canCraftInDimensions(int width, int height)
 	{
 		return true;
 	}
 
 	@Override
-	public IRecipeSerializer<?> getSerializer()
+	public RecipeSerializer<?> getSerializer()
 	{
 		return SERIALIZER;
 	}

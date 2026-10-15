@@ -2,10 +2,10 @@ package lumien.randomthings.client.renderer;
 
 import lumien.randomthings.entity.WeatherCloudEntity;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.util.ResourceLocation;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.resources.ResourceLocation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 /**
  * {@link WeatherCloudEntity} has no visual of its own - it's entirely
@@ -15,18 +15,18 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
  * variant's decorative sunburst overlay).
  */
 public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntity> {
-    public WeatherCloudEntityRenderer(EntityRendererManager renderManager) {
+    public WeatherCloudEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
 
-        this.shadowSize = 0F;
+        this.shadowRadius = 0F;
     }
 
     @Override
-    public void render(WeatherCloudEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
+    public void render(WeatherCloudEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
     }
 
     @Override
-    public ResourceLocation getEntityTexture(WeatherCloudEntity entity) {
+    public ResourceLocation getTextureLocation(WeatherCloudEntity entity) {
         return null;
     }
 }

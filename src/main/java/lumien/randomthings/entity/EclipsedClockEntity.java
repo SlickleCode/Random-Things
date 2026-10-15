@@ -4,28 +4,28 @@ import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.TimeInABottleItem;
 import lumien.randomthings.network.RTPacketHandler;
 import lumien.randomthings.network.messages.EclipsedClockAnimationMessage;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.item.HangingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.HangingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A wall-mounted clock face (like an item frame) that shows a chosen target
@@ -55,9 +55,9 @@ import net.minecraft.util.ActionResultType;
  * same as it does for the ordinary day/night cycle.
  */
 public class EclipsedClockEntity extends HangingEntity {
-    private static final DataParameter<Integer> TARGET_TIME = EntityDataManager.createKey(EclipsedClockEntity.class, DataSerializers.VARINT);
-    private static final DataParameter<BlockPos> HANGING_POS = EntityDataManager.createKey(EclipsedClockEntity.class, DataSerializers.BLOCK_POS);
-    private static final DataParameter<Direction> FACING = EntityDataManager.createKey(EclipsedClockEntity.class, DataSerializers.DIRECTION);
+    private static final EntityDataAccessor<Integer> TARGET_TIME = SynchedEntityData.defineId(EclipsedClockEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<BlockPos> HANGING_POS = SynchedEntityData.defineId(EclipsedClockEntity.class, EntityDataSerializers.BLOCK_POS);
+    private static final EntityDataAccessor<Direction> FACING = SynchedEntityData.defineId(EclipsedClockEntity.class, EntityDataSerializers.DIRECTION);
 
     /** Day-time ticks advanced per real (server) tick while fast-forwarding. */
     private static final long FAST_FORWARD_RATE = 100;
@@ -69,45 +69,45 @@ public class EclipsedClockEntity extends HangingEntity {
     /** -1 when not fast-forwarding; otherwise the day time to stop at. */
     private long fastForwardTarget = -1;
 
-    public EclipsedClockEntity(EntityType<EclipsedClockEntity> type, World world) {
+    public EclipsedClockEntity(EntityType<EclipsedClockEntity> type, Level world) {
         super(type, world);
     }
 
-    public EclipsedClockEntity(World world, BlockPos hangingPositionIn, Direction facing) {
+    public EclipsedClockEntity(Level world, BlockPos hangingPositionIn, Direction facing) {
         super(ModEntityTypes.ECLIPSED_CLOCK, world, hangingPositionIn);
 
-        this.updateFacingWithBoundingBox(facing);
-        this.dataManager.set(HANGING_POS, hangingPositionIn);
-        this.dataManager.set(FACING, facing);
+        this.setDirection(facing);
+        this.entityData.set(HANGING_POS, hangingPositionIn);
+        this.entityData.set(FACING, facing);
     }
 
     @Override
-    protected void registerData() {
-        this.dataManager.register(TARGET_TIME, 0);
-        this.dataManager.register(HANGING_POS, BlockPos.ZERO);
-        this.dataManager.register(FACING, Direction.NORTH);
+    protected void defineSynchedData() {
+        this.entityData.define(TARGET_TIME, 0);
+        this.entityData.define(HANGING_POS, BlockPos.ZERO);
+        this.entityData.define(FACING, Direction.NORTH);
     }
 
     @Override
-    public void notifyDataManagerChange(DataParameter<?> key) {
-        super.notifyDataManagerChange(key);
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
 
-        if (this.world.isRemote && (key.equals(HANGING_POS) || key.equals(FACING))) {
-            this.hangingPosition = this.dataManager.get(HANGING_POS);
-            this.updateFacingWithBoundingBox(this.dataManager.get(FACING));
+        if (this.level.isClientSide && (key.equals(HANGING_POS) || key.equals(FACING))) {
+            this.pos = this.entityData.get(HANGING_POS);
+            this.setDirection(this.entityData.get(FACING));
         }
     }
 
     @Override
-    public void writeAdditional(CompoundNBT compound) {
-        super.writeAdditional(compound);
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
 
         compound.putInt("targetTime", getTargetTime());
     }
 
     @Override
-    public void readAdditional(CompoundNBT compound) {
-        super.readAdditional(compound);
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
 
         setTargetTime(compound.getInt("targetTime"));
     }
@@ -116,7 +116,7 @@ public class EclipsedClockEntity extends HangingEntity {
     public void tick() {
         super.tick();
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             if (this.timeDisplayCounter > 0) {
                 this.timeDisplayCounter--;
             }
@@ -130,14 +130,14 @@ public class EclipsedClockEntity extends HangingEntity {
             }
 
             if (fastForwardTarget >= 0) {
-                long current = this.world.getDayTime();
+                long current = this.level.getDayTime();
                 long remaining = fastForwardTarget - current;
 
                 if (remaining <= FAST_FORWARD_RATE) {
-                    ((net.minecraft.world.server.ServerWorld) this.world).setDayTime(fastForwardTarget);
+                    ((net.minecraft.server.level.ServerLevel) this.level).setDayTime(fastForwardTarget);
                     fastForwardTarget = -1;
                 } else {
-                    ((net.minecraft.world.server.ServerWorld) this.world).setDayTime(current + FAST_FORWARD_RATE);
+                    ((net.minecraft.server.level.ServerLevel) this.level).setDayTime(current + FAST_FORWARD_RATE);
                 }
             }
         }
@@ -148,10 +148,10 @@ public class EclipsedClockEntity extends HangingEntity {
             this.animationCounter = 100;
 
             for (int i = 0; i < 20; i++) {
-                double angle = this.rand.nextDouble() * Math.PI * 2;
-                double radius = this.rand.nextDouble() * 0.3 + 0.1;
+                double angle = this.random.nextDouble() * Math.PI * 2;
+                double radius = this.random.nextDouble() * 0.3 + 0.1;
 
-                this.world.addParticle(net.minecraft.particles.ParticleTypes.ENCHANT, this.getPosX() + Math.cos(angle) * radius, this.getPosY() + this.rand.nextDouble() * 0.5, this.getPosZ() + Math.sin(angle) * radius, 0.5 - this.rand.nextDouble(), this.rand.nextDouble() * 0.2, 0.5 - this.rand.nextDouble());
+                this.level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, this.getX() + Math.cos(angle) * radius, this.getY() + this.random.nextDouble() * 0.5, this.getZ() + Math.sin(angle) * radius, 0.5 - this.random.nextDouble(), this.random.nextDouble() * 0.2, 0.5 - this.random.nextDouble());
             }
         }
     }
@@ -161,37 +161,37 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    public ActionResultType processInitialInteract(PlayerEntity player, Hand hand) {
-        ItemStack held = player.getHeldItem(hand);
+    public InteractionResult interact(Player player, InteractionHand hand) {
+        ItemStack held = player.getItemInHand(hand);
 
         if (held.getItem() instanceof TimeInABottleItem) {
-            if (!this.world.isRemote && cooldownCounter == 0 && fastForwardTarget < 0) {
+            if (!this.level.isClientSide && cooldownCounter == 0 && fastForwardTarget < 0) {
                 int timeStored = TimeInABottleItem.getStoredTime(held);
-                int dif = (getTargetTime() - (int) this.world.getDayTime()) % 24000;
+                int dif = (getTargetTime() - (int) this.level.getDayTime()) % 24000;
 
                 if (dif < 0) {
                     dif += 24000;
                 }
 
-                if (timeStored >= dif || player.abilities.isCreativeMode) {
-                    fastForwardTarget = this.world.getDayTime() + dif;
+                if (timeStored >= dif || player.getAbilities().instabuild) {
+                    fastForwardTarget = this.level.getDayTime() + dif;
 
-                    if (!player.abilities.isCreativeMode) {
+                    if (!player.getAbilities().instabuild) {
                         TimeInABottleItem.setStoredTime(held, timeStored - dif);
                     }
 
                     cooldownCounter = 110;
 
-                    RTPacketHandler.sendToAllNear(new EclipsedClockAnimationMessage(this.getEntityId()), this.world, this.getPosition(), 32F);
+                    RTPacketHandler.sendToAllNear(new EclipsedClockAnimationMessage(this.getId()), this.level, this.blockPosition(), 32F);
 
-                    this.world.playSound(null, this.getPosition(), SoundEvents.BLOCK_NOTE_BLOCK_CHIME, SoundCategory.BLOCKS, 0.3F, 1.2F);
+                    this.level.playSound(null, this.blockPosition(), SoundEvents.NOTE_BLOCK_CHIME, SoundSource.BLOCKS, 0.3F, 1.2F);
                 }
             }
         } else {
-            if (!this.world.isRemote) {
+            if (!this.level.isClientSide) {
                 int targetTime = getTargetTime();
 
-                if (player.isSneaking()) {
+                if (player.isShiftKeyDown()) {
                     targetTime -= 20 * 30;
                 } else {
                     targetTime += 20 * 30;
@@ -205,15 +205,15 @@ public class EclipsedClockEntity extends HangingEntity {
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public int getTargetTime() {
-        return this.dataManager.get(TARGET_TIME);
+        return this.entityData.get(TARGET_TIME);
     }
 
     public void setTargetTime(int newTime) {
-        this.dataManager.set(TARGET_TIME, newTime);
+        this.entityData.set(TARGET_TIME, newTime);
     }
 
     public String getStringTargetTime() {
@@ -232,30 +232,30 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    public int getWidthPixels() {
+    public int getWidth() {
         return 12;
     }
 
     @Override
-    public int getHeightPixels() {
+    public int getHeight() {
         return 12;
     }
 
     @Override
-    public void onBroken(Entity brokenEntity) {
-        if (this.world.getGameRules().getBoolean(net.minecraft.world.GameRules.DO_ENTITY_DROPS)) {
-            this.playSound(net.minecraft.util.SoundEvents.ENTITY_PAINTING_BREAK, 1.0F, 1.0F);
+    public void dropItem(Entity brokenEntity) {
+        if (this.level.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
+            this.playSound(net.minecraft.sounds.SoundEvents.PAINTING_BREAK, 1.0F, 1.0F);
 
-            if (brokenEntity instanceof PlayerEntity && ((PlayerEntity) brokenEntity).abilities.isCreativeMode) {
+            if (brokenEntity instanceof Player && ((Player) brokenEntity).getAbilities().instabuild) {
                 return;
             }
 
-            this.entityDropItem(new ItemStack(ModItems.ECLIPSED_CLOCK), 0.0F);
+            this.spawnAtLocation(new ItemStack(ModItems.ECLIPSED_CLOCK), 0.0F);
         }
     }
 
     @Override
-    public void playPlaceSound() {
+    public void playPlacementSound() {
     }
 
     public int getAnimationCounter() {
@@ -263,7 +263,7 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

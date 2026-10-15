@@ -6,25 +6,25 @@ import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * A thrown-and-dropped ender pearl that never deals fall damage and, instead
@@ -51,14 +51,14 @@ public class StableEnderpearlItem extends Item
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		CompoundNBT compound = stack.getTag();
+		CompoundTag compound = stack.getTag();
 
 		if (compound != null)
 		{
 			String playerName = compound.getString("player-name");
-			tooltip.add(new TranslationTextComponent("tooltip.randomthings.stable_enderpearl.boundto", playerName));
+			tooltip.add(new TranslatableComponent("tooltip.randomthings.stable_enderpearl.boundto", playerName));
 		}
 	}
 
@@ -72,58 +72,58 @@ public class StableEnderpearlItem extends Item
 	 */
 	public void tickDroppedPearl(ItemEntity entityItem)
 	{
-		CompoundNBT data = entityItem.getPersistentData();
+		CompoundTag data = entityItem.getPersistentData();
 		int counter = data.getInt("counter");
 
 		if (counter == 140)
 		{
-			if (!entityItem.world.isRemote)
+			if (!entityItem.level.isClientSide)
 			{
-				entityItem.remove();
+				entityItem.discard();
 
 				ItemStack itemStack = entityItem.getItem();
-				ServerPlayerEntity player = null;
+				ServerPlayer player = null;
 
 				if (itemStack.getTag() != null)
 				{
 					String uuidString = itemStack.getTag().getString("player-uuid");
 					UUID uuid = UUID.fromString(uuidString);
-					player = ((ServerWorld) entityItem.world).getServer().getPlayerList().getPlayerByUUID(uuid);
+					player = ((ServerLevel) entityItem.level).getServer().getPlayerList().getPlayer(uuid);
 				}
 
 				if (player != null)
 				{
-					player.world.playSound(null, player.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-					player.connection.setPlayerLocation(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ(), player.rotationYaw, player.rotationPitch);
+					player.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+					player.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), player.getYRot(), player.getXRot());
 				}
 				else
 				{
-					List<LivingEntity> entityList = entityItem.world.getEntitiesWithinAABB(LivingEntity.class, new AxisAlignedBB(entityItem.getPosX() - 10, entityItem.getPosY() - 10, entityItem.getPosZ() - 10, entityItem.getPosX() + 10, entityItem.getPosY() + 10, entityItem.getPosZ() + 10), (e) -> true);
+					List<LivingEntity> entityList = entityItem.level.getEntitiesOfClass(LivingEntity.class, new AABB(entityItem.getX() - 10, entityItem.getY() - 10, entityItem.getZ() - 10, entityItem.getX() + 10, entityItem.getY() + 10, entityItem.getZ() + 10), (e) -> true);
 
 					if (!entityList.isEmpty())
 					{
 						LivingEntity target = entityList.get(rand.nextInt(entityList.size()));
 
-						if (target instanceof ServerPlayerEntity)
+						if (target instanceof ServerPlayer)
 						{
-							ServerPlayerEntity targetPlayer = (ServerPlayerEntity) target;
-							targetPlayer.world.playSound(null, targetPlayer.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							targetPlayer.connection.setPlayerLocation(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ(), targetPlayer.rotationYaw, targetPlayer.rotationPitch);
+							ServerPlayer targetPlayer = (ServerPlayer) target;
+							targetPlayer.level.playSound(null, targetPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+							targetPlayer.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), targetPlayer.getYRot(), targetPlayer.getXRot());
 						}
 						else
 						{
-							target.world.playSound(null, target.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
-							target.setPositionAndUpdate(entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ());
+							target.level.playSound(null, target.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+							target.teleportTo(entityItem.getX(), entityItem.getY(), entityItem.getZ());
 						}
 					}
 				}
 
-				entityItem.world.playSound(null, entityItem.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 1, 1);
+				entityItem.level.playSound(null, entityItem.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
 			}
 		}
 		else
 		{
-			if (!entityItem.world.isRemote)
+			if (!entityItem.level.isClientSide)
 			{
 				data.putInt("counter", counter + 1);
 			}
@@ -131,24 +131,24 @@ public class StableEnderpearlItem extends Item
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand)
+	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand)
 	{
-		ItemStack itemStackIn = playerIn.getHeldItem(hand);
+		ItemStack itemStackIn = playerIn.getItemInHand(hand);
 
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
 			if (itemStackIn.getTag() == null)
 			{
-				itemStackIn.setTag(new CompoundNBT());
+				itemStackIn.setTag(new CompoundTag());
 			}
 
-			CompoundNBT compound = itemStackIn.getTag();
+			CompoundTag compound = itemStackIn.getTag();
 			GameProfile gameProfile = playerIn.getGameProfile();
 
 			compound.putString("player-uuid", gameProfile.getId().toString());
 			compound.putString("player-name", gameProfile.getName());
 		}
 
-		return new ActionResult<>(ActionResultType.SUCCESS, itemStackIn);
+		return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStackIn);
 	}
 }

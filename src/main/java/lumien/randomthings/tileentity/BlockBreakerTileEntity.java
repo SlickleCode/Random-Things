@@ -10,24 +10,23 @@ import com.mojang.authlib.GameProfile;
 
 import lumien.randomthings.block.BlockBreakerBlock;
 import lumien.randomthings.enchantment.ModEnchantments;
-import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.Items;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.PacketDirection;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -56,7 +55,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
  * 1.12.2's original handled this by assigning a no-op net handler in {@code initFakePlayer()};
  * this port does the same (see below).
  */
-public class BlockBreakerTileEntity extends TileEntity implements ITickableTileEntity {
+public class BlockBreakerTileEntity extends BlockEntity {
     private static final GameProfile BREAKER_PROFILE = new GameProfile(UUID.nameUUIDFromBytes("RTBlockBreaker".getBytes(StandardCharsets.UTF_8)), "RTBlockBreaker");
 
     private UUID uuid;
@@ -67,17 +66,17 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
 
     private WeakReference<FakePlayer> fakePlayer;
 
-    public BlockBreakerTileEntity() {
-        super(ModTileEntityTypes.BLOCK_BREAKER);
+    public BlockBreakerTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.BLOCK_BREAKER, pos, state);
     }
 
     private FakePlayer initFakePlayer() {
         if (uuid == null) {
             uuid = UUID.randomUUID();
-            markDirty();
+            setChanged();
         }
 
-        FakePlayer player = FakePlayerFactory.get((ServerWorld) world, BREAKER_PROFILE);
+        FakePlayer player = FakePlayerFactory.get((ServerLevel) level, BREAKER_PROFILE);
 
         ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
         pickaxe.getOrCreateTag().putBoolean("Unbreakable", true);
@@ -86,7 +85,7 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         enchantments.put(ModEnchantments.MAGNETIC, 1);
         EnchantmentHelper.setEnchantments(enchantments, pickaxe);
 
-        player.setHeldItem(Hand.MAIN_HAND, pickaxe);
+        player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
         player.setOnGround(true);
 
         // ForgeHooks#onBlockBreakEvent unconditionally does
@@ -94,9 +93,9 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         // entity, but FakePlayer never gets a real ServerPlayNetHandler assigned - it's
         // null, which NPEs tryHarvestBlock. 1.12.2 worked around this the same way: give
         // it a real net handler whose sendPacket is a no-op.
-        player.connection = new ServerPlayNetHandler(world.getServer(), new NetworkManager(PacketDirection.SERVERBOUND), player) {
+        player.connection = new ServerGamePacketListenerImpl(level.getServer(), new Connection(PacketFlow.SERVERBOUND), player) {
             @Override
-            public void sendPacket(IPacket<?> packetIn) {
+            public void send(Packet<?> packetIn) {
             }
         };
 
@@ -104,9 +103,8 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         return player;
     }
 
-    @Override
     public void tick() {
-        if (world == null || world.isRemote) {
+        if (level == null || level.isClientSide) {
             return;
         }
 
@@ -120,36 +118,36 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
             return;
         }
 
-        Direction facing = world.getBlockState(pos).get(BlockBreakerBlock.FACING);
-        BlockPos targetPos = pos.offset(facing);
-        BlockState targetState = world.getBlockState(targetPos);
+        Direction facing = level.getBlockState(worldPosition).getValue(BlockBreakerBlock.FACING);
+        BlockPos targetPos = worldPosition.relative(facing);
+        BlockState targetState = level.getBlockState(targetPos);
 
         FakePlayer player = fakePlayer != null ? fakePlayer.get() : null;
         if (player == null) {
             player = initFakePlayer();
         }
 
-        curBlockDamage += targetState.getPlayerRelativeBlockHardness(player, world, targetPos);
+        curBlockDamage += targetState.getDestroyProgress(player, level, targetPos);
 
         if (curBlockDamage < 1.0F) {
-            world.sendBlockBreakProgress(uuid.hashCode(), targetPos, (int) (curBlockDamage * 10.0F) - 1);
+            level.destroyBlockProgress(uuid.hashCode(), targetPos, (int) (curBlockDamage * 10.0F) - 1);
             return;
         }
 
         mining = false;
-        resetProgress(world.getBlockState(pos));
+        resetProgress(level.getBlockState(worldPosition));
 
-        player.interactionManager.tryHarvestBlock(targetPos);
+        player.gameMode.destroyBlock(targetPos);
 
         IItemHandler target = null;
-        TileEntity neighborTe = world.getTileEntity(pos.offset(facing.getOpposite()));
+        BlockEntity neighborTe = level.getBlockEntity(worldPosition.relative(facing.getOpposite()));
         if (neighborTe != null) {
             target = neighborTe.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing).orElse(null);
         }
 
-        for (int i = 1; i < player.inventory.mainInventory.size(); i++) {
-            ItemStack stack = player.inventory.getStackInSlot(i);
-            player.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
+        for (int i = 1; i < player.getInventory().items.size(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            player.getInventory().setItem(i, ItemStack.EMPTY);
 
             if (stack.isEmpty()) {
                 continue;
@@ -158,23 +156,23 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
             ItemStack remainder = target != null ? ItemHandlerHelper.insertItemStacked(target, stack, false) : stack;
 
             if (!remainder.isEmpty()) {
-                InventoryHelper.spawnItemStack(world, pos.getX() + facing.getXOffset(), pos.getY() + facing.getYOffset(), pos.getZ() + facing.getZOffset(), remainder);
+                Containers.dropItemStack(level, worldPosition.getX() + facing.getStepX(), worldPosition.getY() + facing.getStepY(), worldPosition.getZ() + facing.getStepZ(), remainder);
             }
         }
     }
 
     public void neighborChanged() {
-        if (world == null) {
+        if (level == null) {
             return;
         }
 
-        BlockState state = world.getBlockState(pos);
-        Direction facing = state.get(BlockBreakerBlock.FACING);
-        BlockPos targetPos = pos.offset(facing);
+        BlockState state = level.getBlockState(worldPosition);
+        Direction facing = state.getValue(BlockBreakerBlock.FACING);
+        BlockPos targetPos = worldPosition.relative(facing);
 
-        canMine = !world.isBlockPowered(pos);
+        canMine = !level.hasNeighborSignal(worldPosition);
 
-        if (canMine && !world.isAirBlock(targetPos)) {
+        if (canMine && !level.isEmptyBlock(targetPos)) {
             if (!mining) {
                 mining = true;
                 curBlockDamage = 0;
@@ -187,39 +185,38 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
 
     public void onBreakerBroken() {
         if (mining && uuid != null) {
-            resetProgress(world.getBlockState(pos));
+            resetProgress(level.getBlockState(worldPosition));
         }
     }
 
     private void resetProgress(BlockState state) {
-        if (uuid == null || world == null) {
+        if (uuid == null || level == null) {
             return;
         }
 
-        BlockPos targetPos = pos.offset(state.get(BlockBreakerBlock.FACING));
-        world.sendBlockBreakProgress(uuid.hashCode(), targetPos, -1);
+        BlockPos targetPos = worldPosition.relative(state.getValue(BlockBreakerBlock.FACING));
+        level.destroyBlockProgress(uuid.hashCode(), targetPos, -1);
         curBlockDamage = 0;
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (uuid != null) {
-            compound.put("uuid", NBTUtil.func_240626_a_(uuid));
+            compound.put("uuid", NbtUtils.createUUID(uuid));
         }
         compound.putBoolean("mining", mining);
         compound.putBoolean("canMine", canMine);
         compound.putFloat("curBlockDamage", curBlockDamage);
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("uuid")) {
-            uuid = NBTUtil.readUniqueId(compound.getCompound("uuid"));
+            uuid = NbtUtils.loadUUID(compound.getCompound("uuid"));
         }
         mining = compound.getBoolean("mining");
         canMine = compound.getBoolean("canMine");

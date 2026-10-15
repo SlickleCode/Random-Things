@@ -3,9 +3,9 @@ package lumien.randomthings.util;
 import org.apache.logging.log4j.LogManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeDictionary.Type;
 
@@ -42,13 +42,13 @@ public class BiomeColorUtil {
      * {@code biome} directly regardless of position (used for a stored/target
      * biome that isn't actually under the caller, e.g. a Biome Crystal).
      */
-    public static int getBiomeColor(IBlockDisplayReader worldIn, final Biome biome, final BlockPos pos) {
+    public static int getBiomeColor(BlockAndTintGetter worldIn, final Biome biome, final BlockPos pos) {
         if (worldIn != null) {
             int i = 0;
             int j = 0;
             int k = 0;
 
-            for (BlockPos p : BlockPos.getAllInBoxMutable(pos.add(-1, 0, -1), pos.add(1, 0, 1))) {
+            for (BlockPos p : BlockPos.betweenClosed(pos.offset(-1, 0, -1), pos.offset(1, 0, 1))) {
                 Biome biomeA = getBiomeAt(worldIn, p);
                 int l = singleBiomeColor(biomeA, p);
 
@@ -64,12 +64,12 @@ public class BiomeColorUtil {
     }
 
     /** 1.16: {@code IBlockDisplayReader} has no biome lookup, so go through the world when the reader is one. */
-    private static Biome getBiomeAt(IBlockDisplayReader reader, BlockPos pos) {
-        if (reader instanceof net.minecraft.world.IWorldReader) {
-            return ((net.minecraft.world.IWorldReader) reader).getBiome(pos);
+    private static Biome getBiomeAt(BlockAndTintGetter reader, BlockPos pos) {
+        if (reader instanceof net.minecraft.world.level.LevelReader) {
+            return ((net.minecraft.world.level.LevelReader) reader).getBiome(pos).value();
         }
 
-        return net.minecraft.client.Minecraft.getInstance().world.getBiome(pos);
+        return net.minecraft.client.Minecraft.getInstance().level.getBiome(pos).value();
     }
 
     private static int singleBiomeColor(final Biome biome, final BlockPos pos) {

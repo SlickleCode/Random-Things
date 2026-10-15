@@ -7,8 +7,8 @@ import java.util.Map;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 
 /**
@@ -26,11 +26,11 @@ public final class TintedGlintRenderType extends RenderType {
     private static final Map<String, RenderType> CACHE = new HashMap<>();
 
     private TintedGlintRenderType(String name, RenderType base, float r, float g, float b) {
-        super(name, base.getVertexFormat(), base.getDrawMode(), 256, false, false, () -> {
+        super(name, base.format(), base.mode(), 256, false, false, () -> {
             base.setupRenderState();
-            RenderSystem.color4f(r, g, b, 1.0F);
+            RenderSystem.setShaderColor(r, g, b, 1.0F);
         }, () -> {
-            RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
             base.clearRenderState();
         });
     }
@@ -64,7 +64,7 @@ public final class TintedGlintRenderType extends RenderType {
         try {
             if (fixedBuffersField == null) {
                 // the map of render type -> dedicated builder; found by its type so the (obfuscated) field name does not matter
-                for (Field f : IRenderTypeBuffer.Impl.class.getDeclaredFields()) {
+                for (Field f : MultiBufferSource.BufferSource.class.getDeclaredFields()) {
                     if (Map.class.isAssignableFrom(f.getType()) && f.getGenericType().toString().contains("BufferBuilder") && f.getGenericType().toString().contains("RenderType")) {
                         f.setAccessible(true);
                         fixedBuffersField = f;
@@ -73,7 +73,7 @@ public final class TintedGlintRenderType extends RenderType {
                 }
             }
 
-            Map<RenderType, BufferBuilder> fixed = (Map<RenderType, BufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().getRenderTypeBuffers().getBufferSource());
+            Map<RenderType, BufferBuilder> fixed = (Map<RenderType, BufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().renderBuffers().bufferSource());
             fixed.put(type, new BufferBuilder(256));
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("cannot register the tinted glint buffer", e);

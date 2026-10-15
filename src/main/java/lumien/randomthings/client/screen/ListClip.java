@@ -3,7 +3,7 @@ package lumien.randomthings.client.screen;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /** Small helper: clip drawing to a rectangle given in GUI-scaled coordinates (glScissor wants framebuffer pixels, origin bottom-left). */
 final class ListClip
@@ -14,8 +14,8 @@ final class ListClip
 
 	static void begin(Minecraft mc, int x0, int y0, int x1, int y1)
 	{
-		double scale = mc.getMainWindow().getGuiScaleFactor();
-		int framebufferHeight = mc.getMainWindow().getFramebufferHeight();
+		double scale = mc.getWindow().getGuiScale();
+		int framebufferHeight = mc.getWindow().getHeight();
 
 		GL11.glEnable(GL11.GL_SCISSOR_TEST);
 		GL11.glScissor((int) (x0 * scale), (int) (framebufferHeight - y1 * scale), (int) ((x1 - x0) * scale), (int) ((y1 - y0) * scale));

@@ -4,15 +4,15 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.entity.SpiritEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.SlimeGelLayer;
-import net.minecraft.client.renderer.entity.model.SlimeModel;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.entity.layers.SlimeOuterLayer;
+import net.minecraft.client.model.SlimeModel;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.BlockPos;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
 
 /**
  * Reuses vanilla's own {@code SlimeModel}/{@code SlimeGelLayer} wholesale
@@ -28,25 +28,25 @@ import net.minecraft.util.math.BlockPos;
 public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, SlimeModel<SpiritEntity>> {
     private static final ResourceLocation TEXTURE = new ResourceLocation("randomthings", "textures/entity/spirit.png");
 
-    public SpiritEntityRenderer(EntityRendererManager renderManager) {
-        super(renderManager, new SlimeModel<>(16), 0.125F);
+    public SpiritEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
+        super(renderManager, new SlimeModel<>(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.SLIME)), 0.125F);
 
-        this.addLayer(new SlimeGelLayer<>(this));
+        this.addLayer(new SlimeOuterLayer<>(this, renderManager.getModelSet()));
     }
 
     /** 1.14.4 switched lighting and the lightmap off while drawing the spirit (it glows); full block light does the same here. */
     @Override
-    protected int getBlockLight(SpiritEntity entity, BlockPos pos) {
+    protected int getBlockLightLevel(SpiritEntity entity, BlockPos pos) {
         return 15;
     }
 
     @Override
-    protected void preRenderCallback(SpiritEntity entity, MatrixStack matrixStack, float partialTickTime) {
+    protected void scale(SpiritEntity entity, PoseStack matrixStack, float partialTickTime) {
         matrixStack.scale(0.5F, 0.5F, 0.5F);
     }
 
     @Override
-    public ResourceLocation getEntityTexture(SpiritEntity entity) {
+    public ResourceLocation getTextureLocation(SpiritEntity entity) {
         return TEXTURE;
     }
 }

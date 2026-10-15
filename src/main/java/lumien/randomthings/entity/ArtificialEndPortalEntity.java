@@ -1,22 +1,22 @@
 package lumien.randomthings.entity;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.DimensionType;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 
@@ -35,24 +35,24 @@ import java.util.List;
  * World.addParticle}, so this uses the particle's own default look instead.
  */
 public class ArtificialEndPortalEntity extends Entity {
-    private static final DataParameter<Integer> ACTION_TIMER = EntityDataManager.createKey(ArtificialEndPortalEntity.class, DataSerializers.VARINT);
+    private static final EntityDataAccessor<Integer> ACTION_TIMER = SynchedEntityData.defineId(ArtificialEndPortalEntity.class, EntityDataSerializers.INT);
 
-    public ArtificialEndPortalEntity(EntityType<? extends ArtificialEndPortalEntity> type, World world) {
+    public ArtificialEndPortalEntity(EntityType<? extends ArtificialEndPortalEntity> type, Level world) {
         super(type, world);
     }
 
-    public ArtificialEndPortalEntity(World world, double x, double y, double z) {
+    public ArtificialEndPortalEntity(Level world, double x, double y, double z) {
         this(ModEntityTypes.ARTIFICIAL_END_PORTAL, world);
-        this.setPosition(x, y, z);
+        this.setPos(x, y, z);
     }
 
     @Override
-    protected void registerData() {
-        this.dataManager.register(ACTION_TIMER, 0);
+    protected void defineSynchedData() {
+        this.entityData.define(ACTION_TIMER, 0);
     }
 
     public int getActionTimer() {
-        return this.dataManager.get(ACTION_TIMER);
+        return this.entityData.get(ACTION_TIMER);
     }
 
     @Override
@@ -63,81 +63,81 @@ public class ArtificialEndPortalEntity extends Entity {
 
         if (actionTimer < 200) {
             actionTimer++;
-            this.dataManager.set(ACTION_TIMER, actionTimer);
+            this.entityData.set(ACTION_TIMER, actionTimer);
 
-            if (this.world.isRemote && actionTimer > 40) {
+            if (this.level.isClientSide && actionTimer > 40) {
                 spawnParticles();
             }
         }
 
-        if (!this.world.isRemote) {
-            if (this.world.getGameTime() % 40 == 0) {
-                if (!isValidPosition(this.world, new BlockPos(this.getPosX(), this.getPosY(), this.getPosZ()), false)) {
-                    this.remove();
+        if (!this.level.isClientSide) {
+            if (this.level.getGameTime() % 40 == 0) {
+                if (!isValidPosition(this.level, new BlockPos(this.getX(), this.getY(), this.getZ()), false)) {
+                    this.discard();
                 }
             }
         } else {
             if (actionTimer == 85) {
-                this.world.playSound(this.getPosX(), this.getPosY(), this.getPosZ(), SoundEvents.BLOCK_PORTAL_TRAVEL, SoundCategory.BLOCKS, 0.2F, 1, false);
+                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.2F, 1, false);
             }
         }
     }
 
     private void spawnParticles() {
         for (int i = 0; i < 5; i++) {
-            double modX = this.rand.nextFloat() * 0.05 - 0.025;
-            double modZ = this.rand.nextFloat() * 0.05 - 0.025;
+            double modX = this.random.nextFloat() * 0.05 - 0.025;
+            double modZ = this.random.nextFloat() * 0.05 - 0.025;
 
-            this.world.addParticle(ParticleTypes.ENCHANT, this.getPosX() + modX, this.getPosY() + 2, this.getPosZ() + modZ, modX * 2, 1, modZ * 2);
+            this.level.addParticle(ParticleTypes.ENCHANT, this.getX() + modX, this.getY() + 2, this.getZ() + modZ, modX * 2, 1, modZ * 2);
         }
     }
 
     @Override
-    public void onCollideWithPlayer(PlayerEntity entityIn) {
-        super.onCollideWithPlayer(entityIn);
+    public void playerTouch(Player entityIn) {
+        super.playerTouch(entityIn);
 
-        if (!this.world.isRemote && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isBeingRidden()) {
-            entityIn.changeDimension(this.world.getServer().getWorld(World.THE_END));
+        if (!this.level.isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
+            entityIn.changeDimension(this.level.getServer().getLevel(Level.END));
         }
     }
 
     @Override
-    protected void readAdditional(CompoundNBT compound) {
-        this.dataManager.set(ACTION_TIMER, compound.getInt("actionTimer"));
+    protected void readAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(ACTION_TIMER, compound.getInt("actionTimer"));
     }
 
     @Override
-    protected void writeAdditional(CompoundNBT compound) {
+    protected void addAdditionalSaveData(CompoundTag compound) {
         compound.putInt("actionTimer", getActionTimer());
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 
-    public static boolean isValidPosition(World world, BlockPos center, boolean checkForOtherPortals) {
+    public static boolean isValidPosition(Level world, BlockPos center, boolean checkForOtherPortals) {
         for (int modX = -1; modX < 2; modX++) {
             for (int modZ = -1; modZ < 2; modZ++) {
-                if (!world.isAirBlock(center.add(modX, 0, modZ))) {
+                if (!world.isEmptyBlock(center.offset(modX, 0, modZ))) {
                     return false;
                 }
             }
         }
 
         for (int modY = 1; modY < 3; modY++) {
-            if (!world.isAirBlock(center.add(0, modY, 0))) {
+            if (!world.isEmptyBlock(center.offset(0, modY, 0))) {
                 return false;
             }
         }
 
-        if (world.getBlockState(center.add(0, 3, 0)).getBlock() != Blocks.END_ROD || world.getBlockState(center.add(0, 4, 0)).getBlock() != Blocks.END_STONE) {
+        if (world.getBlockState(center.offset(0, 3, 0)).getBlock() != Blocks.END_ROD || world.getBlockState(center.offset(0, 4, 0)).getBlock() != Blocks.END_STONE) {
             return false;
         }
 
         for (int modX = -1; modX < 2; modX++) {
             for (int modZ = -1; modZ < 2; modZ++) {
-                if (world.getBlockState(center.add(modX, -1, modZ)).getBlock() != Blocks.END_STONE) {
+                if (world.getBlockState(center.offset(modX, -1, modZ)).getBlock() != Blocks.END_STONE) {
                     return false;
                 }
             }
@@ -146,7 +146,7 @@ public class ArtificialEndPortalEntity extends Entity {
         for (int modX = -2; modX < 3; modX++) {
             for (int modZ = -2; modZ < 3; modZ++) {
                 if (modX == -2 || modZ == -2 || modX == 2 || modZ == 2) {
-                    if (world.getBlockState(center.add(modX, 0, modZ)).getBlock() != Blocks.OBSIDIAN) {
+                    if (world.getBlockState(center.offset(modX, 0, modZ)).getBlock() != Blocks.OBSIDIAN) {
                         return false;
                     }
                 }
@@ -154,7 +154,7 @@ public class ArtificialEndPortalEntity extends Entity {
         }
 
         if (checkForOtherPortals) {
-            List<ArtificialEndPortalEntity> portalList = world.getEntitiesWithinAABB(ArtificialEndPortalEntity.class, new AxisAlignedBB(center, center.add(1, 2, 1)));
+            List<ArtificialEndPortalEntity> portalList = world.getEntitiesOfClass(ArtificialEndPortalEntity.class, new AABB(center, center.offset(1, 2, 1)));
 
             if (!portalList.isEmpty()) {
                 return false;

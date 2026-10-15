@@ -1,114 +1,112 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.tileentity.SoundBoxTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Insert a {@link lumien.randomthings.item.SoundPatternItem} and power it
  * with redstone to play that sound. Direct port of 1.12.2's
  * {@code BlockSoundBox}.
  */
-public class SoundBoxBlock extends Block {
+public class SoundBoxBlock extends Block implements EntityBlock {
     public static final BooleanProperty HAS_PATTERN = BooleanProperty.create("has_pattern");
 
     public SoundBoxBlock() {
-        super(Block.Properties.create(Material.WOOD).sound(SoundType.WOOD).hardnessAndResistance(0.8F));
+        super(Block.Properties.of(Material.WOOD).sound(SoundType.WOOD).strength(0.8F));
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(HAS_PATTERN, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(HAS_PATTERN, false));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(HAS_PATTERN);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new SoundBoxTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new SoundBoxTileEntity();
-    }
-
-    @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof SoundBoxTileEntity) {
                 ItemStack pattern = ((SoundBoxTileEntity) te).getPattern();
 
                 if (!pattern.isEmpty()) {
-                    Block.spawnAsEntity(worldIn, pos, pattern);
+                    Block.popResource(worldIn, pos, pattern);
                 }
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (!(te instanceof SoundBoxTileEntity)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
         SoundBoxTileEntity soundBox = (SoundBoxTileEntity) te;
 
         if (soundBox.hasPattern()) {
-            if (!worldIn.isRemote) {
+            if (!worldIn.isClientSide) {
                 ItemStack pattern = soundBox.getPattern();
                 soundBox.insertPattern(ItemStack.EMPTY);
-                Block.spawnAsEntity(worldIn, pos.up(), pattern);
+                Block.popResource(worldIn, pos.above(), pattern);
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         } else {
-            ItemStack heldItem = player.getHeldItem(hand);
+            ItemStack heldItem = player.getItemInHand(hand);
 
             if (heldItem.getItem() == ModItems.SOUND_PATTERN) {
-                if (!worldIn.isRemote) {
+                if (!worldIn.isClientSide) {
                     ItemStack inserted = heldItem.copy();
                     inserted.setCount(1);
                     soundBox.insertPattern(inserted);
 
-                    if (!player.abilities.isCreativeMode) {
+                    if (!player.getAbilities().instabuild) {
                         heldItem.shrink(1);
                     }
                 }
 
-                return ActionResultType.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
 
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof SoundBoxTileEntity) {
-            boolean powered = worldIn.getRedstonePowerFromNeighbors(pos) > 0;
+            boolean powered = worldIn.getBestNeighborSignal(pos) > 0;
             ((SoundBoxTileEntity) te).updatePowerState(powered);
         }
     }

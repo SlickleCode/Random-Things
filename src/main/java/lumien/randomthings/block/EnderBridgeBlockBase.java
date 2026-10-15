@@ -1,18 +1,18 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Shared facing/active state and placement behavior for {@link
@@ -27,24 +27,19 @@ public abstract class EnderBridgeBlockBase extends Block {
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     protected EnderBridgeBlockBase() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(1.5F));
+        super(Block.Properties.of(Material.STONE).strength(1.5F));
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(ACTIVE, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING, ACTIVE);
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof lumien.randomthings.tileentity.EnderBridgeTileEntity) {
             ((lumien.randomthings.tileentity.EnderBridgeTileEntity) te).neighborChanged(worldIn, pos);
@@ -52,13 +47,13 @@ public abstract class EnderBridgeBlockBase extends Block {
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
-        super.onBlockAdded(state, worldIn, pos, oldState, isMoving);
+    public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
+        super.onPlace(state, worldIn, pos, oldState, isMoving);
         setDefaultFacing(worldIn, pos, state);
     }
 
-    private void setDefaultFacing(World worldIn, BlockPos pos, BlockState state) {
-        if (worldIn.isRemote) {
+    private void setDefaultFacing(Level worldIn, BlockPos pos, BlockState state) {
+        if (worldIn.isClientSide) {
             return;
         }
 
@@ -66,34 +61,34 @@ public abstract class EnderBridgeBlockBase extends Block {
         BlockState south = worldIn.getBlockState(pos.south());
         BlockState west = worldIn.getBlockState(pos.west());
         BlockState east = worldIn.getBlockState(pos.east());
-        Direction facing = state.get(FACING);
+        Direction facing = state.getValue(FACING);
 
-        if (facing == Direction.NORTH && north.isSolid() && !south.isSolid()) {
+        if (facing == Direction.NORTH && north.canOcclude() && !south.canOcclude()) {
             facing = Direction.SOUTH;
-        } else if (facing == Direction.SOUTH && south.isSolid() && !north.isSolid()) {
+        } else if (facing == Direction.SOUTH && south.canOcclude() && !north.canOcclude()) {
             facing = Direction.NORTH;
-        } else if (facing == Direction.WEST && west.isSolid() && !east.isSolid()) {
+        } else if (facing == Direction.WEST && west.canOcclude() && !east.canOcclude()) {
             facing = Direction.EAST;
-        } else if (facing == Direction.EAST && east.isSolid() && !west.isSolid()) {
+        } else if (facing == Direction.EAST && east.canOcclude() && !west.canOcclude()) {
             facing = Direction.WEST;
         }
 
-        worldIn.setBlockState(pos, state.with(FACING, facing), 2);
+        worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         LivingEntity placer = context.getPlayer();
-        Direction facing = placer != null ? Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z) : Direction.NORTH;
+        Direction facing = placer != null ? Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z) : Direction.NORTH;
 
-        return this.getDefaultState().with(FACING, facing);
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            Direction facing = Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z);
-            worldIn.setBlockState(pos, state.with(FACING, facing), 2);
+            Direction facing = Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z);
+            worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
         }
     }
 }

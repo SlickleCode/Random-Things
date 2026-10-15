@@ -3,18 +3,18 @@ package lumien.randomthings.item;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click the top of a solid block (or an existing Rune Base) to place a
@@ -40,32 +40,32 @@ public class RuneDustItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
 
-        if (world.isRemote || context.getFace() != Direction.UP) {
-            return ActionResultType.PASS;
+        if (world.isClientSide || context.getClickedFace() != Direction.UP) {
+            return InteractionResult.PASS;
         }
 
-        PlayerEntity player = context.getPlayer();
+        Player player = context.getPlayer();
         BlockState targetState = world.getBlockState(pos);
 
         RuneBaseTileEntity te;
 
         if (targetState.getBlock() == ModBlocks.RUNE_BASE) {
-            te = (RuneBaseTileEntity) world.getTileEntity(pos);
+            te = (RuneBaseTileEntity) world.getBlockEntity(pos);
         } else {
             te = null;
 
-            if (net.minecraft.block.Block.hasEnoughSolidSide(world, pos, Direction.UP)) {
-                BlockPos abovePos = pos.up();
+            if (net.minecraft.world.level.block.Block.canSupportCenter(world, pos, Direction.UP)) {
+                BlockPos abovePos = pos.above();
                 BlockState toReplace = world.getBlockState(abovePos);
 
                 if (toReplace.isAir() || toReplace.getMaterial().isReplaceable()) {
-                    world.setBlockState(abovePos, ModBlocks.RUNE_BASE.getDefaultState());
+                    world.setBlockAndUpdate(abovePos, ModBlocks.RUNE_BASE.defaultBlockState());
 
-                    TileEntity placedTe = world.getTileEntity(abovePos);
+                    BlockEntity placedTe = world.getBlockEntity(abovePos);
 
                     if (placedTe instanceof RuneBaseTileEntity) {
                         te = (RuneBaseTileEntity) placedTe;
@@ -76,31 +76,31 @@ public class RuneDustItem extends Item implements IRTItemColor {
         }
 
         if (te == null) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        Vector3d hitVec = context.getHitVec();
+        Vec3 hitVec = context.getClickLocation();
         int x = (int) Math.floor((hitVec.x - pos.getX()) * 4);
         int y = (int) Math.floor((hitVec.z - pos.getZ()) * 4);
-        x = net.minecraft.util.math.MathHelper.clamp(x, 0, 3);
-        y = net.minecraft.util.math.MathHelper.clamp(y, 0, 3);
+        x = net.minecraft.util.Mth.clamp(x, 0, 3);
+        y = net.minecraft.util.Mth.clamp(y, 0, 3);
 
         if (te.getRuneData()[x][y] == null) {
             te.getRuneData()[x][y] = color;
             te.syncTE();
 
-            if (player != null && !player.abilities.isCreativeMode) {
-                context.getItem().shrink(1);
+            if (player != null && !player.getAbilities().instabuild) {
+                context.getItemInHand().shrink(1);
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResultType.FAIL;
+        return InteractionResult.FAIL;
     }
 
     @Override
     public int getColorFromItemstack(ItemStack stack, int tintIndex) {
-        return color.getColorValue();
+        return lumien.randomthings.util.DyeUtil.rgb(color);
     }
 }

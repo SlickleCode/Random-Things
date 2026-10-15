@@ -1,6 +1,6 @@
 package lumien.randomthings.util;
 
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.lang.reflect.Field;
 
@@ -39,8 +39,8 @@ public class PotionMetadataUtil {
 
         try {
             // field_70752_e = potionsNeedUpdate (SRG name so it also resolves in a production jar)
-            potionsNeedUpdateField = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(LivingEntity.class, "field_70752_e");
-        } catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e) {
+            potionsNeedUpdateField = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20948_");
+        } catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             lookupFailed = true;
         }
 

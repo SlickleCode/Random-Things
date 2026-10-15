@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Rarity;
-import net.minecraft.item.UseAction;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click while submerged to drink; fully refills the drinker's air in
@@ -35,32 +35,32 @@ public class BottleOfAirItem extends Item
 	}
 
 	@Override
-	public UseAction getUseAction(ItemStack stack)
+	public UseAnim getUseAnimation(ItemStack stack)
 	{
-		return UseAction.DRINK;
+		return UseAnim.DRINK;
 	}
 
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand)
+	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand)
 	{
-		ItemStack itemStack = playerIn.getHeldItem(hand);
+		ItemStack itemStack = playerIn.getItemInHand(hand);
 
 		if (playerIn.isInWater())
 		{
-			playerIn.setActiveHand(hand);
+			playerIn.startUsingItem(hand);
 
-			return new ActionResult<>(ActionResultType.SUCCESS, itemStack);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStack);
 		}
 
-		return new ActionResult<>(ActionResultType.FAIL, itemStack);
+		return new InteractionResultHolder<>(InteractionResult.FAIL, itemStack);
 	}
 
 	@Override
-	public ItemStack onItemUseFinish(ItemStack stack, World worldIn, LivingEntity livingEntity)
+	public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			livingEntity.setAir(livingEntity.getMaxAir());
+			livingEntity.setAirSupply(livingEntity.getMaxAirSupply());
 		}
 
 		stack.shrink(1);

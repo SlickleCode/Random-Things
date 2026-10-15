@@ -2,20 +2,20 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.item.ChunkAnalyzerItem;
 import lumien.randomthings.util.ChunkAnalyzerResult;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.IntReferenceHolder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,10 +42,10 @@ import java.util.Map.Entry;
  * "is scanning" flag is replaced by {@code Container.trackInt}, which syncs
  * automatically - the screen just reads {@code scanning.get()}.
  */
-public class ChunkAnalyzerContainer extends Container implements ISignalContainer {
-    private final PlayerEntity player;
+public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISignalContainer {
+    private final Player player;
 
-    public final IntReferenceHolder scanning = IntReferenceHolder.single();
+    public final DataSlot scanning = DataSlot.standalone();
 
     private boolean isScanning;
     private int chunkX;
@@ -61,12 +61,12 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
         ItemStack stack;
     }
 
-    public ChunkAnalyzerContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
+    public ChunkAnalyzerContainer(int windowId, Inventory playerInventory, FriendlyByteBuf extraData) {
         super(ModContainerTypes.CHUNK_ANALYZER, windowId);
 
         this.player = playerInventory.player;
 
-        this.trackInt(scanning);
+        this.addDataSlot(scanning);
     }
 
     public void startScanning() {
@@ -74,7 +74,7 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
         this.scanning.set(1);
         this.countMap = new HashMap<>();
 
-        Chunk targetChunk = player.world.getChunkAt(player.getPosition());
+        LevelChunk targetChunk = player.level.getChunkAt(player.blockPosition());
 
         this.chunkX = targetChunk.getPos().x;
         this.chunkZ = targetChunk.getPos().z;
@@ -83,19 +83,19 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
     }
 
     @Override
-    public void detectAndSendChanges() {
+    public void broadcastChanges() {
         // The player's own inventory/armor/crafting slots only get pushed to
         // the client via `openContainer.detectAndSendChanges()` in the vanilla
         // tick loop - while this GUI is open, `openContainer` is `this`, so
         // `player.container` (the always-present default PlayerContainer)
         // would never sync on its own. Force it every tick, matching
         // 1.12.2's unconditional `player.inventoryContainer.detectAndSendChanges()`.
-        player.container.detectAndSendChanges();
+        player.inventoryMenu.broadcastChanges();
 
         for (int q = 0; q < 10 && isScanning; q++) {
-            Chunk c = player.world.getChunk(chunkX, chunkZ);
-            int chunkBaseX = c.getPos().getXStart();
-            int chunkBaseZ = c.getPos().getZStart();
+            LevelChunk c = player.level.getChunk(chunkX, chunkZ);
+            int chunkBaseX = c.getPos().getMinBlockX();
+            int chunkBaseZ = c.getPos().getMinBlockZ();
 
             // Chunk.getTopBlockY(...) returns Heightmap.getHeight(...) - 1, i.e. the
             // actual Y of the topmost tracked block - one less than 1.12.2's
@@ -104,13 +104,13 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
             // scan silently skips whatever the current topmost block in each
             // column is (confirmed in-game: missing superflat's own grass layer,
             // and missing a block freshly placed on top of it).
-            int top = c.getTopBlockY(Heightmap.Type.WORLD_SURFACE, nextX, nextZ) + 1;
+            int top = c.getHeight(Heightmap.Types.WORLD_SURFACE, nextX, nextZ) + 1;
 
-            for (int y = 0; y < top; y++) {
+            for (int y = c.getMinBuildHeight(); y < top; y++) {
                 BlockPos pos = new BlockPos(chunkBaseX + nextX, y, chunkBaseZ + nextZ);
                 BlockState state = c.getBlockState(pos);
 
-                if (!state.getBlock().isAir(state, player.world, pos)) {
+                if (!state.isAir()) {
                     countMap.merge(state, 1, Integer::sum);
                 }
             }
@@ -128,7 +128,7 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
             }
         }
 
-        super.detectAndSendChanges();
+        super.broadcastChanges();
     }
 
     private void finishScanning() {
@@ -150,11 +150,11 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
                 // No real item for this block (e.g. fire, fluids) - fall back to
                 // the block's own translated name, matching 1.12.2's
                 // getLocalizedName() fallback.
-                name = new TranslationTextComponent(state.getBlock().getTranslationKey()).getString();
+                name = new TranslatableComponent(state.getBlock().getDescriptionId()).getString();
                 br.stack = ItemStack.EMPTY;
             } else {
                 br.stack = new ItemStack(item);
-                name = br.stack.getDisplayName().getString();
+                name = br.stack.getHoverName().getString();
             }
 
             br.name = name;
@@ -177,13 +177,13 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
             result.addBlock(br.stack, br.name, br.count);
         }
 
-        ItemStack analyzer = player.getHeldItemMainhand();
+        ItemStack analyzer = player.getMainHandItem();
 
         if (!analyzer.isEmpty() && analyzer.getItem() instanceof ChunkAnalyzerItem) {
-            CompoundNBT tag = analyzer.getOrCreateChildTag("result");
+            CompoundTag tag = analyzer.getOrCreateTagElement("result");
             result.writeToNBT(tag);
 
-            player.container.detectAndSendChanges();
+            player.inventoryMenu.broadcastChanges();
         }
 
         isScanning = false;
@@ -192,17 +192,17 @@ public class ChunkAnalyzerContainer extends Container implements ISignalContaine
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public void handle(int id, PacketBuffer data) {
+    public void handle(int id, FriendlyByteBuf data) {
         if (id == 0) {
             startScanning();
         }

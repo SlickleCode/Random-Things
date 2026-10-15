@@ -1,18 +1,18 @@
 package lumien.randomthings.block.spectretree;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.Random;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Vanilla's LeavesBlock already implements the distance-based leaf decay
@@ -28,17 +28,17 @@ public class SpectreLeafBlock extends LeavesBlock
 {
 	public SpectreLeafBlock()
 	{
-		super(Block.Properties.create(Material.LEAVES, MaterialColor.PURPLE).notSolid().hardnessAndResistance(0.2F).tickRandomly().sound(SoundType.PLANT));
+		super(Block.Properties.of(Material.LEAVES, MaterialColor.COLOR_PURPLE).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
 	}
 
 	@Override
-	public void randomTick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random)
 	{
 		super.randomTick(state, worldIn, pos, random);
 
 		if (random.nextInt(55) == 0)
 		{
-			Block.spawnAsEntity(worldIn, pos, new ItemStack(ModItems.ECTOPLASM));
+			Block.popResource(worldIn, pos, new ItemStack(ModItems.ECTOPLASM));
 		}
 	}
 

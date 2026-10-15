@@ -1,13 +1,13 @@
 package lumien.randomthings.util;
 
 import lumien.randomthings.item.EscapeRopeItem;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -33,15 +33,15 @@ public class EscapeRopeHandler {
     private final List<Task> runningTasks = new ArrayList<>();
 
     private static class Task {
-        WeakReference<ServerPlayerEntity> player;
+        WeakReference<ServerPlayer> player;
         ArrayList<BlockPos> toCheck = new ArrayList<>();
         HashSet<BlockPos> alreadyChecked = new HashSet<>();
     }
 
-    public void addTask(ServerPlayerEntity player) {
+    public void addTask(ServerPlayer player) {
         Task t = new Task();
         t.player = new WeakReference<>(player);
-        t.toCheck.add(player.getPosition());
+        t.toCheck.add(player.blockPosition());
 
         this.runningTasks.add(t);
     }
@@ -51,14 +51,14 @@ public class EscapeRopeHandler {
 
         while (iterator.hasNext()) {
             Task t = iterator.next();
-            ServerPlayerEntity actualPlayer = t.player.get();
+            ServerPlayer actualPlayer = t.player.get();
 
-            if (actualPlayer == null || actualPlayer.world == null) {
+            if (actualPlayer == null || actualPlayer.level == null) {
                 iterator.remove();
                 continue;
             }
 
-            ItemStack holding = actualPlayer.getActiveItemStack();
+            ItemStack holding = actualPlayer.getUseItem();
 
             if (holding.isEmpty() || !(holding.getItem() instanceof EscapeRopeItem)) {
                 continue;
@@ -66,7 +66,7 @@ public class EscapeRopeHandler {
 
             ArrayList<BlockPos> toCheck = t.toCheck;
             HashSet<BlockPos> alreadyChecked = t.alreadyChecked;
-            World world = actualPlayer.world;
+            Level world = actualPlayer.level;
 
             for (int runs = 0; runs < 4; runs++) {
                 boolean finished = false;
@@ -74,8 +74,8 @@ public class EscapeRopeHandler {
                 if (toCheck.isEmpty() || alreadyChecked.size() > 10000) {
                     finished = true;
 
-                    actualPlayer.dropItem(holding, false);
-                    actualPlayer.setHeldItem(actualPlayer.getActiveHand(), ItemStack.EMPTY);
+                    actualPlayer.drop(holding, false);
+                    actualPlayer.setItemInHand(actualPlayer.getUsedItemHand(), ItemStack.EMPTY);
                 } else {
                     BlockPos nextPos = toCheck.remove(toCheck.size() - 1);
 
@@ -84,55 +84,55 @@ public class EscapeRopeHandler {
                     }
 
                     if (!alreadyChecked.contains(nextPos)) {
-                        if (world.chunkExists(nextPos.getX() >> 4, nextPos.getZ() >> 4) && (world.isAirBlock(nextPos) || world.getBlockState(nextPos).getCollisionShape(world, nextPos).isEmpty())) {
-                            if (world.canBlockSeeSky(nextPos)) {
+                        if (world.hasChunk(nextPos.getX() >> 4, nextPos.getZ() >> 4) && (world.isEmptyBlock(nextPos) || world.getBlockState(nextPos).getCollisionShape(world, nextPos).isEmpty())) {
+                            if (world.canSeeSkyFromBelowWater(nextPos)) {
                                 // Excludes actualPlayer from this first sound (played at the old
                                 // position, before teleporting) - their own client plays the
                                 // teleport sound independently once it receives the new position,
                                 // so this is just for anyone else nearby. The second call below
                                 // (after teleporting) passes null so the traveling player also
                                 // hears their own arrival.
-                                world.playSound(actualPlayer, actualPlayer.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 0.5F, 1);
+                                world.playSound(actualPlayer, actualPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5F, 1);
 
                                 boolean foundSolid = false;
 
-                                for (int y = nextPos.getY(); y >= 0; y--) {
+                                for (int y = nextPos.getY(); y >= world.getMinBuildHeight(); y--) {
                                     BlockPos target = new BlockPos(nextPos.getX(), y, nextPos.getZ());
 
-                                    if (world.getBlockState(target).isSolid()) {
-                                        actualPlayer.connection.setPlayerLocation(target.getX() + 0.5, target.getY() + 1, target.getZ() + 0.5, actualPlayer.rotationYaw, actualPlayer.rotationPitch);
+                                    if (world.getBlockState(target).canOcclude()) {
+                                        actualPlayer.connection.teleport(target.getX() + 0.5, target.getY() + 1, target.getZ() + 0.5, actualPlayer.getYRot(), actualPlayer.getXRot());
                                         foundSolid = true;
                                         break;
                                     }
                                 }
 
                                 if (!foundSolid) {
-                                    actualPlayer.connection.setPlayerLocation(nextPos.getX() + 0.5, nextPos.getY() + 1, nextPos.getZ() + 0.5, actualPlayer.rotationYaw, actualPlayer.rotationPitch);
+                                    actualPlayer.connection.teleport(nextPos.getX() + 0.5, nextPos.getY() + 1, nextPos.getZ() + 0.5, actualPlayer.getYRot(), actualPlayer.getXRot());
                                 }
 
-                                actualPlayer.resetActiveHand();
+                                actualPlayer.stopUsingItem();
 
-                                world.playSound(null, actualPlayer.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 0.5F, 1);
+                                world.playSound(null, actualPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5F, 1);
 
-                                holding.damageItem(1, actualPlayer, (p) -> p.sendBreakAnimation(actualPlayer.getActiveHand()));
+                                holding.hurtAndBreak(1, actualPlayer, (p) -> p.broadcastBreakEvent(actualPlayer.getUsedItemHand()));
                                 finished = true;
                             } else {
                                 alreadyChecked.add(nextPos);
 
-                                if (!alreadyChecked.contains(nextPos.offset(Direction.DOWN))) {
-                                    toCheck.add(nextPos.offset(Direction.DOWN));
+                                if (!alreadyChecked.contains(nextPos.relative(Direction.DOWN))) {
+                                    toCheck.add(nextPos.relative(Direction.DOWN));
                                 }
 
                                 for (Direction facing : Direction.Plane.HORIZONTAL) {
-                                    BlockPos addPos = nextPos.offset(facing);
+                                    BlockPos addPos = nextPos.relative(facing);
 
                                     if (!alreadyChecked.contains(addPos)) {
                                         toCheck.add(addPos);
                                     }
                                 }
 
-                                if (!alreadyChecked.contains(nextPos.offset(Direction.UP))) {
-                                    toCheck.add(nextPos.offset(Direction.UP));
+                                if (!alreadyChecked.contains(nextPos.relative(Direction.UP))) {
+                                    toCheck.add(nextPos.relative(Direction.UP));
                                 }
                             }
                         }

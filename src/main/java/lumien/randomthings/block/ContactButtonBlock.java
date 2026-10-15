@@ -1,23 +1,23 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import java.util.Random;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * A pressure-plate-like button that is triggered by external code (e.g. an
@@ -29,78 +29,78 @@ public class ContactButtonBlock extends Block {
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
     public ContactButtonBlock() {
-        super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(1.5F).tickRandomly());
+        super(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F).randomTicks());
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(POWERED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
     }
 
     @Override
-    protected void fillStateContainer(Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
         builder.add(FACING, POWERED);
     }
 
-    public int tickRate(World worldIn) {
+    public int tickRate(Level worldIn) {
         return 20;
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!isMoving && state.getBlock() != newState.getBlock()) {
-            if (state.get(POWERED)) {
-                this.notifyNeighbors(worldIn, pos, state.get(FACING));
+            if (state.getValue(POWERED)) {
+                this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
-        return blockState.get(POWERED) ? 15 : 0;
+    public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side) {
+        return blockState.getValue(POWERED) ? 15 : 0;
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side) {
-        return blockState.get(POWERED) ? 15 : 0;
+    public int getDirectSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side) {
+        return blockState.getValue(POWERED) ? 15 : 0;
     }
 
     @Override
-    public boolean canProvidePower(BlockState state) {
+    public boolean isSignalSource(BlockState state) {
         return true;
     }
 
     @Override
-    public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
-        if (!worldIn.isRemote && state.get(POWERED)) {
-            worldIn.setBlockState(pos, state.with(POWERED, false));
-            this.notifyNeighbors(worldIn, pos, state.get(FACING));
-            worldIn.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 0.3F, 0.5F);
+    public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand) {
+        if (!worldIn.isClientSide && state.getValue(POWERED)) {
+            worldIn.setBlockAndUpdate(pos, state.setValue(POWERED, false));
+            this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
+            worldIn.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 0.3F, 0.5F);
         }
     }
 
-    private void notifyNeighbors(World worldIn, BlockPos pos, Direction facing) {
-        worldIn.notifyNeighborsOfStateChange(pos, this);
+    private void notifyNeighbors(Level worldIn, BlockPos pos, Direction facing) {
+        worldIn.updateNeighborsAt(pos, this);
 
         for (Direction f : Direction.values()) {
-            worldIn.notifyNeighborsOfStateChange(pos.offset(f), this);
+            worldIn.updateNeighborsAt(pos.relative(f), this);
         }
     }
 
     @Override
-    public BlockState getStateForPlacement(net.minecraft.item.BlockItemUseContext context) {
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
         LivingEntity placer = context.getPlayer();
-        Direction facing = placer != null ? Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z) : Direction.NORTH;
+        Direction facing = placer != null ? Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z) : Direction.NORTH;
 
-        return this.getDefaultState().with(FACING, facing);
+        return this.defaultBlockState().setValue(FACING, facing);
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            Direction facing = Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z);
-            worldIn.setBlockState(pos, state.with(FACING, facing), 2);
+            Direction facing = Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z);
+            worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
         }
     }
 
@@ -108,16 +108,16 @@ public class ContactButtonBlock extends Block {
      * Called by an external trigger (e.g. an entity walking into the block) to
      * power this button for one {@link #tickRate} worth of ticks.
      */
-    public void activate(World world, BlockPos pos, Direction fromFacing) {
+    public void activate(Level world, BlockPos pos, Direction fromFacing) {
         BlockState state = world.getBlockState(pos);
 
-        if (state.get(POWERED)) {
+        if (state.getValue(POWERED)) {
             return;
         }
 
-        world.setBlockState(pos, state.with(POWERED, true), 3);
-        world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundCategory.BLOCKS, 0.3F, 0.6F);
-        this.notifyNeighbors(world, pos, state.get(FACING));
-        world.getPendingBlockTicks().scheduleTick(pos, this, this.tickRate(world));
+        world.setBlock(pos, state.setValue(POWERED, true), 3);
+        world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 0.3F, 0.6F);
+        this.notifyNeighbors(world, pos, state.getValue(FACING));
+        world.scheduleTick(pos, this, this.tickRate(world));
     }
 }

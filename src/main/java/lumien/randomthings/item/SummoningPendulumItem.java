@@ -1,28 +1,28 @@
 package lumien.randomthings.item;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.DyeColor;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.item.Rarity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
@@ -47,101 +47,101 @@ public class SummoningPendulumItem extends Item {
     }
 
     @Override
-    public int getRGBDurabilityForDisplay(ItemStack stack) {
-        return DyeColor.PURPLE.getColorValue();
+    public int getBarColor(ItemStack stack) {
+        return lumien.randomthings.util.DyeUtil.rgb(DyeColor.PURPLE);
     }
 
     @Override
-    public double getDurabilityForDisplay(ItemStack stack) {
-        return 1 - 1F / 5F * getEntityCount(stack);
+    public int getBarWidth(ItemStack stack) {
+        return Math.round(13.0F * (1.0F - (float) (1 - 1F / 5F * getEntityCount(stack))));
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
+    public boolean isFoil(ItemStack stack) {
         return getEntityCount(stack) == 5;
     }
 
     @Override
-    public boolean showDurabilityBar(ItemStack stack) {
+    public boolean isBarVisible(ItemStack stack) {
         return getEntityCount(stack) != 5;
     }
 
     @Override
-    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
         int entityCount = getEntityCount(stack);
 
         if (Screen.hasShiftDown() && entityCount != 0) {
-            ListNBT tagList = stack.getTag().getList("entitys", 10);
+            ListTag tagList = stack.getTag().getList("entitys", 10);
 
             for (int i = 0; i < tagList.size(); i++) {
                 ResourceLocation entityLocation = new ResourceLocation(tagList.getCompound(i).getString("id"));
                 EntityType<?> type = ForgeRegistries.ENTITIES.getValue(entityLocation);
 
                 if (type != null) {
-                    tooltip.add(new StringTextComponent("- ").appendSibling(type.getName()));
+                    tooltip.add(new TextComponent("- ").append(type.getDescription()));
                 }
             }
             return;
         }
 
-        tooltip.add(new TranslationTextComponent(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
+        tooltip.add(new TranslatableComponent(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
     }
 
     @Override
-    public ActionResultType itemInteractionForEntity(ItemStack stack, PlayerEntity player, LivingEntity entity, Hand hand) {
-        if (entity.world.isRemote) {
-            return ActionResultType.PASS;
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
+        if (entity.level.isClientSide) {
+            return InteractionResult.PASS;
         }
 
-        if (!(entity instanceof IMob || entity instanceof PlayerEntity)) {
-            ItemStack heldStack = player.getHeldItemMainhand();
-            CompoundNBT compound = heldStack.hasTag() ? heldStack.getTag() : new CompoundNBT();
+        if (!(entity instanceof Enemy || entity instanceof Player)) {
+            ItemStack heldStack = player.getMainHandItem();
+            CompoundTag compound = heldStack.hasTag() ? heldStack.getTag() : new CompoundTag();
 
-            ListNBT tagList = compound.getList("entitys", 10);
+            ListTag tagList = compound.getList("entitys", 10);
             if (tagList.size() < 5) {
-                CompoundNBT entityNBT = new CompoundNBT();
-                entity.writeUnlessPassenger(entityNBT);
+                CompoundTag entityNBT = new CompoundTag();
+                entity.save(entityNBT);
                 tagList.add(entityNBT);
-                entity.remove();
-                entity.world.playSound(null, player.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 0.5f, 1.5F);
+                entity.discard();
+                entity.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.5F);
             } else {
-                entity.world.playSound(null, player.getPosition(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.5f, 1.5F);
+                entity.level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 1.5F);
             }
 
             compound.put("entitys", tagList);
             heldStack.setTag(compound);
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        ItemStack stack = context.getItem();
-        BlockPos pos = context.getPos().offset(context.getFace());
-        World world = context.getWorld();
-        PlayerEntity player = context.getPlayer();
+    public InteractionResult useOn(UseOnContext context) {
+        ItemStack stack = context.getItemInHand();
+        BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
+        Level world = context.getLevel();
+        Player player = context.getPlayer();
 
-        if (!world.isRemote && player != null) {
-            CompoundNBT compound = stack.getTag();
+        if (!world.isClientSide && player != null) {
+            CompoundTag compound = stack.getTag();
             if (compound != null) {
-                ListNBT tagList = compound.getList("entitys", 10);
+                ListTag tagList = compound.getList("entitys", 10);
                 if (tagList.size() > 0) {
-                    CompoundNBT entityNBT = tagList.getCompound(0);
+                    CompoundTag entityNBT = tagList.getCompound(0);
                     tagList.remove(0);
 
 
-                    EntityType.loadEntityUnchecked(entityNBT, world).ifPresent(entity -> {
-                        entity.setPosition(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-                        world.addEntity(entity);
-                        player.world.playSound(null, player.getPosition(), SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.PLAYERS, 0.5f, 0.5F);
+                    EntityType.create(entityNBT, world).ifPresent(entity -> {
+                        entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+                        world.addFreshEntity(entity);
+                        player.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 0.5F);
                     });
                 } else {
-                    player.world.playSound(null, player.getPosition(), SoundEvents.ITEM_FIRECHARGE_USE, SoundCategory.PLAYERS, 0.5f, 0.2F);
+                    player.level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 0.2F);
                 }
             }
         }
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

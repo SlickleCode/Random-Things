@@ -1,9 +1,9 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.entity.FlooFireplaceEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.nbt.CompoundTag;
 
 /**
  * Drop it and leave it resting on the ground for a while (past tick 100) and
@@ -36,18 +36,18 @@ public class FlooTokenItem extends Item {
         int age = age(entityItem);
 
         if (age > 100 && entityItem.isOnGround()) {
-            boolean nearbyFireplace = !entityItem.world.getEntitiesWithinAABB(FlooFireplaceEntity.class, entityItem.getBoundingBox().grow(5)).isEmpty();
+            boolean nearbyFireplace = !entityItem.level.getEntitiesOfClass(FlooFireplaceEntity.class, entityItem.getBoundingBox().inflate(5)).isEmpty();
 
             if (!nearbyFireplace) {
-                FlooFireplaceEntity toSpawn = new FlooFireplaceEntity(entityItem.world, entityItem.getPosX(), entityItem.getPosY(), entityItem.getPosZ());
-                entityItem.world.addEntity(toSpawn);
-                entityItem.remove();
+                FlooFireplaceEntity toSpawn = new FlooFireplaceEntity(entityItem.level, entityItem.getX(), entityItem.getY(), entityItem.getZ());
+                entityItem.level.addFreshEntity(toSpawn);
+                entityItem.discard();
             }
         }
     }
 
     private static int age(ItemEntity entityItem) {
-        CompoundNBT data = entityItem.getPersistentData();
+        CompoundTag data = entityItem.getPersistentData();
         int age = data.getInt("flooTokenAge") + 1;
         data.putInt("flooTokenAge", age);
 

@@ -3,17 +3,17 @@ package lumien.randomthings.item;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.handler.floo.FlooNetworkHandler;
 import lumien.randomthings.tileentity.FlooBrickTileEntity;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,28 +35,28 @@ public class FlooSignItem extends Item {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World worldIn = context.getWorld();
-        BlockPos pos = context.getPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Level worldIn = context.getLevel();
+        BlockPos pos = context.getClickedPos();
         BlockState state = worldIn.getBlockState(pos);
 
         if (state.getBlock() != Blocks.BRICKS) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        if (worldIn.isRemote) {
-            return ActionResultType.SUCCESS;
+        if (worldIn.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        PlayerEntity player = context.getPlayer();
-        ItemStack flooSign = context.getItem();
+        Player player = context.getPlayer();
+        ItemStack flooSign = context.getItemInHand();
 
-        String signName = flooSign.hasDisplayName() ? flooSign.getDisplayName().getString() : null;
+        String signName = flooSign.hasCustomHoverName() ? flooSign.getHoverName().getString() : null;
 
-        Direction teleportFacing = context.getFace();
+        Direction teleportFacing = context.getClickedFace();
 
         if (!teleportFacing.getAxis().isHorizontal()) {
-            teleportFacing = player != null ? player.getHorizontalFacing().getOpposite() : Direction.NORTH;
+            teleportFacing = player != null ? player.getDirection().getOpposite() : Direction.NORTH;
         }
 
         List<BlockPos> brickList = new ArrayList<>();
@@ -78,16 +78,16 @@ public class FlooSignItem extends Item {
 
             if (takeState.getBlock() == Blocks.BRICKS) {
                 if (brickList.size() > MAX_BRICKS) {
-                    return ActionResultType.FAIL;
+                    return InteractionResult.FAIL;
                 }
 
                 brickList.add(take);
 
                 for (Direction offsetFacing : Direction.Plane.HORIZONTAL) {
-                    checkStack.add(take.offset(offsetFacing));
+                    checkStack.add(take.relative(offsetFacing));
                 }
             } else if (takeState.getBlock() == ModBlocks.FLOO_BRICK) {
-                return ActionResultType.FAIL;
+                return InteractionResult.FAIL;
             }
         }
 
@@ -98,29 +98,29 @@ public class FlooSignItem extends Item {
         boolean valid = FlooNetworkHandler.get(worldIn).createFireplace(uuid, signName, player, pos, brickList);
 
         if (!valid) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        worldIn.setBlockState(pos, ModBlocks.FLOO_BRICK.getDefaultState());
-        TileEntity masterTe = worldIn.getTileEntity(pos);
+        worldIn.setBlockAndUpdate(pos, ModBlocks.FLOO_BRICK.defaultBlockState());
+        BlockEntity masterTe = worldIn.getBlockEntity(pos);
 
         if (masterTe instanceof FlooBrickTileEntity) {
             ((FlooBrickTileEntity) masterTe).initToMaster(brickList, teleportFacing, uuid);
         }
 
         for (BlockPos brickPos : brickList) {
-            worldIn.setBlockState(brickPos, ModBlocks.FLOO_BRICK.getDefaultState());
-            TileEntity te = worldIn.getTileEntity(brickPos);
+            worldIn.setBlockAndUpdate(brickPos, ModBlocks.FLOO_BRICK.defaultBlockState());
+            BlockEntity te = worldIn.getBlockEntity(brickPos);
 
             if (te instanceof FlooBrickTileEntity) {
                 ((FlooBrickTileEntity) te).initToChild(uuid);
             }
         }
 
-        if (player != null && !player.abilities.isCreativeMode) {
+        if (player != null && !player.getAbilities().instabuild) {
             flooSign.shrink(1);
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

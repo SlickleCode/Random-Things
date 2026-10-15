@@ -1,18 +1,18 @@
 package lumien.randomthings.recipes;
 
 import lumien.randomthings.item.block.DiaphanousBlockItem;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 /**
  * Combine a Diaphanous Block with any other single block item (one with no
@@ -31,8 +31,8 @@ import net.minecraft.world.World;
  * its own separate registry entry anyway, matching the target block
  * directly).
  */
-public class DiaphanousSetRecipe extends SpecialRecipe {
-    public static final IRecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new SpecialRecipeSerializer<>(DiaphanousSetRecipe::new);
+public class DiaphanousSetRecipe extends CustomRecipe {
+    public static final RecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new SimpleRecipeSerializer<>(DiaphanousSetRecipe::new);
 
     public DiaphanousSetRecipe(ResourceLocation id) {
         super(id);
@@ -44,16 +44,16 @@ public class DiaphanousSetRecipe extends SpecialRecipe {
         }
 
         Block block = ((BlockItem) stack.getItem()).getBlock();
-        return !block.hasTileEntity(block.getDefaultState());
+        return !(block instanceof net.minecraft.world.level.block.EntityBlock);
     }
 
     @Override
-    public boolean matches(CraftingInventory inv, World worldIn) {
+    public boolean matches(CraftingContainer inv, Level worldIn) {
         ItemStack diaphanous = ItemStack.EMPTY;
         ItemStack target = ItemStack.EMPTY;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (stack.isEmpty()) {
                 continue;
@@ -78,12 +78,12 @@ public class DiaphanousSetRecipe extends SpecialRecipe {
     }
 
     @Override
-    public ItemStack getCraftingResult(CraftingInventory inv) {
+    public ItemStack assemble(CraftingContainer inv) {
         ItemStack diaphanous = ItemStack.EMPTY;
         Block targetBlock = Blocks.STONE;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (stack.isEmpty()) {
                 continue;
@@ -99,7 +99,7 @@ public class DiaphanousSetRecipe extends SpecialRecipe {
         ItemStack result = diaphanous.copy();
         result.setCount(1);
 
-        CompoundNBT tag = result.getOrCreateTag();
+        CompoundTag tag = result.getOrCreateTag();
         tag.putString("block", targetBlock.getRegistryName().toString());
 
         if (!tag.contains("inverted")) {
@@ -110,11 +110,11 @@ public class DiaphanousSetRecipe extends SpecialRecipe {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv) {
-        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (!stack.isEmpty() && !(stack.getItem() instanceof DiaphanousBlockItem)) {
                 ItemStack copy = stack.copy();
@@ -127,12 +127,12 @@ public class DiaphanousSetRecipe extends SpecialRecipe {
     }
 
     @Override
-    public boolean canFit(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return SERIALIZER;
     }
 }

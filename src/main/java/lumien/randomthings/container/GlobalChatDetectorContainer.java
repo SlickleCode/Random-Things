@@ -2,17 +2,17 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.GlobalChatDetectorTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -20,19 +20,19 @@ import net.minecraftforge.items.SlotItemHandler;
 /**
  * GlobalChatDetectorContainer
  */
-public class GlobalChatDetectorContainer extends Container implements ISignalContainer
+public class GlobalChatDetectorContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 	String chatMessage;
 
-	public IntReferenceHolder consume = IntReferenceHolder.single();
+	public DataSlot consume = DataSlot.standalone();
 
-	public GlobalChatDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public GlobalChatDetectorContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(9), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
+		this(windowId, (Inventory) playerInventory, new ItemStackHandler(9), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readUtf(32767));
 	}
 
-	public GlobalChatDetectorContainer(int windowId, PlayerInventory playerInventory, IItemHandler idCardInventory, IWorldPosCallable pos, String chatMessage)
+	public GlobalChatDetectorContainer(int windowId, Inventory playerInventory, IItemHandler idCardInventory, ContainerLevelAccess pos, String chatMessage)
 	{
 		super(ModContainerTypes.GLOBAL_CHAT_DETECTOR, windowId);
 
@@ -57,13 +57,13 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 133));
 		}
 
-		this.trackInt(consume);
+		this.addDataSlot(consume);
 	}
 
-	private static IWorldPosCallable resolvePos(IInventory playerInventory, BlockPos blockPos)
+	private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos)
 	{
-		PlayerInventory inv = (PlayerInventory) playerInventory;
-		return IWorldPosCallable.of(inv.player.world, blockPos);
+		Inventory inv = (Inventory) playerInventory;
+		return ContainerLevelAccess.create(inv.player.level, blockPos);
 	}
 
 	public String getChatMessage()
@@ -72,16 +72,16 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.GLOBAL_CHAT_DETECTOR);
+		return stillValid(this.pos, playerIn, ModBlocks.GLOBAL_CHAT_DETECTOR);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof GlobalChatDetectorTileEntity)
 			{
@@ -89,39 +89,39 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index)
+	public ItemStack quickMoveStack(Player playerIn, int index)
 	{
 		ItemStack result = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
+		Slot slot = this.slots.get(index);
 
-		if (slot != null && slot.getHasStack())
+		if (slot != null && slot.hasItem())
 		{
-			ItemStack stackInSlot = slot.getStack();
+			ItemStack stackInSlot = slot.getItem();
 			result = stackInSlot.copy();
 
 			if (index < 9)
 			{
-				if (!this.mergeItemStack(stackInSlot, 9, 45, true))
+				if (!this.moveItemStackTo(stackInSlot, 9, 45, true))
 				{
 					return ItemStack.EMPTY;
 				}
 			}
-			else if (!this.mergeItemStack(stackInSlot, 0, 9, false))
+			else if (!this.moveItemStackTo(stackInSlot, 0, 9, false))
 			{
 				return ItemStack.EMPTY;
 			}
 
 			if (stackInSlot.isEmpty())
 			{
-				slot.putStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			}
 			else
 			{
-				slot.onSlotChanged();
+				slot.setChanged();
 			}
 
 			if (stackInSlot.getCount() == result.getCount())
@@ -136,15 +136,15 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
-			String newMessage = data.readString(32767);
+			String newMessage = data.readUtf(32767);
 			this.chatMessage = newMessage;
 
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof GlobalChatDetectorTileEntity)
 				{
@@ -154,8 +154,8 @@ public class GlobalChatDetectorContainer extends Container implements ISignalCon
 		}
 		else if (id == 1)
 		{
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof GlobalChatDetectorTileEntity)
 				{

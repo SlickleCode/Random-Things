@@ -3,21 +3,21 @@ package lumien.randomthings.block.spectretree;
 import java.util.Random;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BushBlock;
-import net.minecraft.block.IGrowable;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * The 1.12.2 version generated its grown tree through a custom
@@ -27,62 +27,62 @@ import net.minecraft.world.server.ServerWorld;
  * once the worldgen batch adapts the rest of the mod's tree/structure
  * generation to the 1.14.4 Feature API.
  */
-public class SpectreSaplingBlock extends BushBlock implements IGrowable
+public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 {
 	public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 1);
-	protected static final VoxelShape SHAPE = Block.makeCuboidShape(1.6, 0, 1.6, 14.4, 12.8, 14.4);
+	protected static final VoxelShape SHAPE = Block.box(1.6, 0, 1.6, 14.4, 12.8, 14.4);
 
 	public SpectreSaplingBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(0.0F).tickRandomly().sound(SoundType.PLANT).doesNotBlockMovement());
+		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(STAGE, 0));
+		this.registerDefaultState(this.stateDefinition.any().setValue(STAGE, 0));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
-		super.fillStateContainer(builder);
+		super.createBlockStateDefinition(builder);
 
 		builder.add(STAGE);
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
 	}
 
 	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			if (worldIn.getLightSubtracted(pos.up(), 0) >= 9 && rand.nextInt(14) == 0)
+			if (worldIn.getRawBrightness(pos.above(), 0) >= 9 && rand.nextInt(14) == 0)
 			{
-				this.grow(worldIn, rand, pos, state);
+				this.performBonemeal(worldIn, rand, pos, state);
 			}
 		}
 	}
 
 	@Override
-	public boolean canGrow(IBlockReader worldIn, BlockPos pos, BlockState state, boolean isClient)
+	public boolean isValidBonemealTarget(BlockGetter worldIn, BlockPos pos, BlockState state, boolean isClient)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean canUseBonemeal(World worldIn, Random rand, BlockPos pos, BlockState state)
+	public boolean isBonemealSuccess(Level worldIn, Random rand, BlockPos pos, BlockState state)
 	{
 		return true;
 	}
 
 	@Override
-	public void grow(ServerWorld worldIn, Random rand, BlockPos pos, BlockState state)
+	public void performBonemeal(ServerLevel worldIn, Random rand, BlockPos pos, BlockState state)
 	{
-		if (state.get(STAGE) == 0)
+		if (state.getValue(STAGE) == 0)
 		{
-			worldIn.setBlockState(pos, state.with(STAGE, 1), 3);
+			worldIn.setBlock(pos, state.setValue(STAGE, 1), 3);
 		}
 		else
 		{
@@ -90,18 +90,18 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 		}
 	}
 
-	private void generateTree(World worldIn, BlockPos pos, Random rand)
+	private void generateTree(Level worldIn, BlockPos pos, Random rand)
 	{
 		int height = 4 + rand.nextInt(3);
 
-		BlockState log = ModBlocks.SPECTRE_LOG.getDefaultState();
-		BlockState leaves = ModBlocks.SPECTRE_LEAF.getDefaultState();
+		BlockState log = ModBlocks.SPECTRE_LOG.defaultBlockState();
+		BlockState leaves = ModBlocks.SPECTRE_LEAF.defaultBlockState();
 
-		worldIn.setBlockState(pos, log, 3);
+		worldIn.setBlock(pos, log, 3);
 
 		for (int y = 1; y < height; y++)
 		{
-			worldIn.setBlockState(pos.up(y), log, 3);
+			worldIn.setBlock(pos.above(y), log, 3);
 		}
 
 		for (int dx = -2; dx <= 2; dx++)
@@ -115,11 +115,11 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 						continue;
 					}
 
-					BlockPos leafPos = pos.add(dx, height + dy, dz);
+					BlockPos leafPos = pos.offset(dx, height + dy, dz);
 
-					if (worldIn.getBlockState(leafPos).getBlock().isAir(worldIn.getBlockState(leafPos), worldIn, leafPos))
+					if (worldIn.getBlockState(leafPos).isAir())
 					{
-						worldIn.setBlockState(leafPos, leaves, 3);
+						worldIn.setBlock(leafPos, leaves, 3);
 					}
 				}
 			}
@@ -127,8 +127,8 @@ public class SpectreSaplingBlock extends BushBlock implements IGrowable
 	}
 
 	@Override
-	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
+	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
-		return worldIn.getBlockState(pos.down()).canSustainPlant(worldIn, pos.down(), net.minecraft.util.Direction.UP, this);
+		return worldIn.getBlockState(pos.below()).canSustainPlant(worldIn, pos.below(), net.minecraft.core.Direction.UP, this);
 	}
 }

@@ -1,15 +1,17 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.components.Button;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.network.chat.TextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
  * Port of 1.12.2's {@code GuiSlotButton}: an 18x18 slot-shaped button (sprite at (0,0), hover
@@ -23,29 +25,29 @@ public class ItemSlotButton extends Button implements TooltipButton
 	private final ItemStack stack;
 	private final String tooltip;
 
-	public ItemSlotButton(int x, int y, ItemStack stack, String tooltip, IPressable onPress)
+	public ItemSlotButton(int x, int y, ItemStack stack, String tooltip, OnPress onPress)
 	{
-		super(x, y, 18, 18, new StringTextComponent(""), onPress);
+		super(x, y, 18, 18, new TextComponent(""), onPress);
 
 		this.stack = stack;
 		this.tooltip = tooltip;
 	}
 
 	@Override
-	public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		RenderSystem.disableLighting();
-		mc.getTextureManager().bindTexture(TEXTURE);
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, TEXTURE);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
-		this.blit(matrixStack, this.x, this.y, 0, this.isHovered() ? 18 : 0, 18, 18);
+		this.blit(matrixStack, this.x, this.y, 0, this.isHovered ? 18 : 0, 18, 18);
 
 		if (!this.stack.isEmpty())
 		{
 			RenderSystem.enableDepthTest();
-			mc.getItemRenderer().renderItemAndEffectIntoGUI(mc.player, this.stack, this.x + 1, this.y + 1);
+			mc.getItemRenderer().renderAndDecorateItem(mc.player, this.stack, this.x + 1, this.y + 1, 0);
 		}
 	}
 

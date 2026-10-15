@@ -1,6 +1,6 @@
 package lumien.randomthings.lib;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Implemented by items that need a runtime tint on their inventory icon.

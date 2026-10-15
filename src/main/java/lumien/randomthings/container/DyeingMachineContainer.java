@@ -5,17 +5,17 @@ import lumien.randomthings.container.slot.DyeCraftingSlot;
 import lumien.randomthings.container.slot.DyeSlot;
 import lumien.randomthings.container.slot.DyeableSlot;
 import lumien.randomthings.util.DyeUtil;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.CraftResultInventory;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 
 /**
  * Direct port of 1.12.2's {@code ContainerDyeingMachine}: 2 input slots (item
@@ -27,18 +27,18 @@ import net.minecraft.util.IWorldPosCallable;
  * persistent inventory backing this machine; unconsumed ingredients just drop
  * on container close, matching the original.
  */
-public class DyeingMachineContainer extends Container {
-    private final IWorldPosCallable pos;
+public class DyeingMachineContainer extends AbstractContainerMenu {
+    private final ContainerLevelAccess pos;
 
-    private final CraftingInventory ingredients = new CraftingInventory(this, 2, 1);
-    private final IInventory dyeResult = new CraftResultInventory();
-    private final IInventory enchantmentResult = new CraftResultInventory();
+    private final CraftingContainer ingredients = new CraftingContainer(this, 2, 1);
+    private final Container dyeResult = new ResultContainer();
+    private final Container enchantmentResult = new ResultContainer();
 
-    public DyeingMachineContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, IWorldPosCallable.of(((PlayerInventory) playerInventory).player.world, extraData.readBlockPos()));
+    public DyeingMachineContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, (Inventory) playerInventory, ContainerLevelAccess.create(((Inventory) playerInventory).player.level, extraData.readBlockPos()));
     }
 
-    public DyeingMachineContainer(int windowId, PlayerInventory playerInventory, IWorldPosCallable pos) {
+    public DyeingMachineContainer(int windowId, Inventory playerInventory, ContainerLevelAccess pos) {
         super(ModContainerTypes.DYEING_MACHINE, windowId);
 
         this.pos = pos;
@@ -60,39 +60,39 @@ public class DyeingMachineContainer extends Container {
     }
 
     @Override
-    public void onCraftMatrixChanged(IInventory inventoryIn) {
-        ItemStack toDye = inventoryIn.getStackInSlot(0);
-        ItemStack dye = inventoryIn.getStackInSlot(1);
+    public void slotsChanged(Container inventoryIn) {
+        ItemStack toDye = inventoryIn.getItem(0);
+        ItemStack dye = inventoryIn.getItem(1);
 
         if (!toDye.isEmpty() && !dye.isEmpty()) {
             int dyeColor = DyeUtil.getDyeColor(dye);
             ItemStack copy = toDye.copy();
 
             if (copy.getTag() == null) {
-                copy.setTag(new CompoundNBT());
+                copy.setTag(new CompoundTag());
             }
 
-            CompoundNBT compound = copy.getTag();
+            CompoundTag compound = copy.getTag();
             copy.setCount(1);
             compound.putInt("rtDye", dyeColor);
-            this.dyeResult.setInventorySlotContents(0, copy);
+            this.dyeResult.setItem(0, copy);
 
             ItemStack enchantmentCopy = toDye.copy();
             enchantmentCopy.setCount(1);
             if (enchantmentCopy.getTag() == null) {
-                enchantmentCopy.setTag(new CompoundNBT());
+                enchantmentCopy.setTag(new CompoundTag());
             }
 
             enchantmentCopy.getTag().putInt("enchantmentColor", dyeColor);
 
-            enchantmentResult.setInventorySlotContents(0, enchantmentCopy);
+            enchantmentResult.setItem(0, enchantmentCopy);
         } else if (!toDye.isEmpty() && dye.isEmpty()) {
-            this.enchantmentResult.setInventorySlotContents(0, ItemStack.EMPTY);
+            this.enchantmentResult.setItem(0, ItemStack.EMPTY);
             ItemStack copy = toDye.copy();
             copy.setCount(1);
 
             if (copy.getTag() != null) {
-                CompoundNBT compound = copy.getTag();
+                CompoundTag compound = copy.getTag();
 
                 if (compound.contains("rtDye")) {
                     compound.remove("rtDye");
@@ -106,27 +106,27 @@ public class DyeingMachineContainer extends Container {
                     copy.setTag(null);
                 }
 
-                this.dyeResult.setInventorySlotContents(0, copy);
+                this.dyeResult.setItem(0, copy);
             } else {
-                this.dyeResult.setInventorySlotContents(0, ItemStack.EMPTY);
+                this.dyeResult.setItem(0, ItemStack.EMPTY);
             }
         } else {
-            this.dyeResult.setInventorySlotContents(0, ItemStack.EMPTY);
-            this.enchantmentResult.setInventorySlotContents(0, ItemStack.EMPTY);
+            this.dyeResult.setItem(0, ItemStack.EMPTY);
+            this.enchantmentResult.setItem(0, ItemStack.EMPTY);
         }
     }
 
     @Override
-    public void onContainerClosed(PlayerEntity playerIn) {
-        super.onContainerClosed(playerIn);
+    public void removed(Player playerIn) {
+        super.removed(playerIn);
 
-        this.pos.consume((world, blockPos) -> {
-            if (!world.isRemote) {
+        this.pos.execute((world, blockPos) -> {
+            if (!world.isClientSide) {
                 for (int i = 0; i < 2; ++i) {
-                    ItemStack itemstack = this.ingredients.removeStackFromSlot(i);
+                    ItemStack itemstack = this.ingredients.removeItemNoUpdate(i);
 
                     if (!itemstack.isEmpty()) {
-                        playerIn.dropItem(itemstack, false);
+                        playerIn.drop(itemstack, false);
                     }
                 }
             }
@@ -134,17 +134,17 @@ public class DyeingMachineContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.DYEING_MACHINE);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.DYEING_MACHINE);
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 4) {
@@ -153,17 +153,17 @@ public class DyeingMachineContainer extends Container {
                 // No plausible intentional reason for a shift-click to silently refuse to land
                 // in a player's last 3 hotbar slots specifically, so this is treated as an
                 // original off-by-a-few slip and corrected here, not preserved.
-                if (!this.mergeItemStack(stackInSlot, 4, 40, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 4, 40, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 2, false)) {
+            } else if (!this.moveItemStackTo(stackInSlot, 0, 2, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (stackInSlot.getCount() == result.getCount()) {
@@ -187,7 +187,7 @@ public class DyeingMachineContainer extends Container {
      * damage stacking cases to account for).
      */
     @Override
-    protected boolean mergeItemStack(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
+    protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
         boolean changed = false;
         int i = startIndex;
 
@@ -197,21 +197,21 @@ public class DyeingMachineContainer extends Container {
 
         if (stack.isStackable()) {
             while (stack.getCount() > 0 && (!reverseDirection && i < endIndex || reverseDirection && i >= startIndex)) {
-                Slot slot = this.inventorySlots.get(i);
-                ItemStack slotStack = slot.getStack();
+                Slot slot = this.slots.get(i);
+                ItemStack slotStack = slot.getItem();
 
-                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.areItemStackTagsEqual(stack, slotStack) && slot.isItemValid(stack)) {
+                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.tagMatches(stack, slotStack) && slot.mayPlace(stack)) {
                     int combined = slotStack.getCount() + stack.getCount();
 
                     if (combined <= stack.getMaxStackSize()) {
                         stack.setCount(0);
                         slotStack.setCount(combined);
-                        slot.onSlotChanged();
+                        slot.setChanged();
                         changed = true;
                     } else if (slotStack.getCount() < stack.getMaxStackSize()) {
                         stack.shrink(stack.getMaxStackSize() - slotStack.getCount());
                         slotStack.setCount(stack.getMaxStackSize());
-                        slot.onSlotChanged();
+                        slot.setChanged();
                         changed = true;
                     }
                 }
@@ -224,21 +224,21 @@ public class DyeingMachineContainer extends Container {
             i = reverseDirection ? endIndex - 1 : startIndex;
 
             while (!reverseDirection && i < endIndex || reverseDirection && i >= startIndex) {
-                Slot slot = this.inventorySlots.get(i);
-                ItemStack slotStack = slot.getStack();
+                Slot slot = this.slots.get(i);
+                ItemStack slotStack = slot.getItem();
 
-                if (slotStack.isEmpty() && slot.isItemValid(stack)) {
+                if (slotStack.isEmpty() && slot.mayPlace(stack)) {
                     if (stack.getCount() > 1) {
                         ItemStack copy = stack.copy();
                         copy.setCount(1);
-                        slot.putStack(copy);
+                        slot.set(copy);
 
                         stack.shrink(1);
                         changed = true;
                         break;
                     } else {
-                        slot.putStack(stack.copy());
-                        slot.onSlotChanged();
+                        slot.set(stack.copy());
+                        slot.setChanged();
                         stack.setCount(0);
                         changed = true;
                         break;

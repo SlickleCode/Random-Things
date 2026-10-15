@@ -1,43 +1,45 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.EnderLetterContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Direct port of 1.12.2's {@code GuiEnderLetter}: a 9-slot item tray plus a
  * receiver-name field (disabled, once the letter's actually been delivered
  * to you - matches the container's own output-only slot switch).
  */
-public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
+public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContainer> {
     public static final int MAX_MESSAGE_LENGTH = 200;
 
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/ender_letter.png");
 
     private final boolean received;
 
-    private TextFieldWidget receiverField;
+    private EditBox receiverField;
     private String lastSentReceiver = "";
     private MultilineTextFieldWidget messageField;
     private String lastSentMessage = "";
 
-    public EnderLetterScreen(EnderLetterContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public EnderLetterScreen(EnderLetterContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 176;
-        this.ySize = 183;
+        this.imageWidth = 176;
+        this.imageHeight = 183;
 
-        ItemStack letterStack = inv.player.getHeldItemMainhand();
+        ItemStack letterStack = inv.player.getMainHandItem();
         this.received = letterStack.hasTag() && letterStack.getTag().getBoolean("received");
     }
 
@@ -45,28 +47,28 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
     protected void init() {
         super.init();
 
-        ItemStack letterStack = this.minecraft.player.getHeldItemMainhand();
+        ItemStack letterStack = this.minecraft.player.getMainHandItem();
         String receiver = letterStack.hasTag() ? letterStack.getTag().getString("receiver") : "";
 
-        this.receiverField = new TextFieldWidget(this.font, this.guiLeft + 92, this.guiTop + 5, 76, 10, new StringTextComponent(""));
-        this.receiverField.setMaxStringLength(64);
-        this.receiverField.setEnabled(!received);
-        this.receiverField.setText(receiver);
-        this.addButton(this.receiverField);
+        this.receiverField = new EditBox(this.font, this.leftPos + 92, this.topPos + 5, 76, 10, new TextComponent(""));
+        this.receiverField.setMaxLength(64);
+        this.receiverField.setEditable(!received);
+        this.receiverField.setValue(receiver);
+        this.addRenderableWidget(this.receiverField);
         this.lastSentReceiver = receiver;
 
         String message = letterStack.hasTag() ? letterStack.getTag().getString("message") : "";
 
-        this.messageField = new MultilineTextFieldWidget(this.font, this.guiLeft + 8, this.guiTop + 40, 162, 44, MAX_MESSAGE_LENGTH);
+        this.messageField = new MultilineTextFieldWidget(this.font, this.leftPos + 8, this.topPos + 40, 162, 44, MAX_MESSAGE_LENGTH);
         this.messageField.setEditable(!received);
         this.messageField.setText(message);
-        this.addButton(this.messageField);
+        this.addRenderableWidget(this.messageField);
         this.lastSentMessage = this.messageField.getText();
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
+        super.containerTick();
         this.receiverField.tick();
 
         // Sending only from removed() raced the vanilla close-window packet - the server could
@@ -75,8 +77,8 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
         // even after hitting enter" - closing the GUI is the only thing that ever sent it at
         // all). Syncing on every text change instead means the server already has the latest
         // value long before the GUI ever starts closing.
-        if (!received && !this.receiverField.getText().equals(this.lastSentReceiver)) {
-            this.lastSentReceiver = this.receiverField.getText();
+        if (!received && !this.receiverField.getValue().equals(this.lastSentReceiver)) {
+            this.lastSentReceiver = this.receiverField.getValue();
             submitReceiver();
         }
 
@@ -90,7 +92,7 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // only one of the two text inputs may hold focus; the clicked one claims it
         if (this.messageField.isMouseOver(mouseX, mouseY)) {
-            this.receiverField.setFocused2(false);
+            this.receiverField.setFocus(false);
         } else {
             this.messageField.setFocusedState(false);
         }
@@ -114,50 +116,51 @@ public class EnderLetterScreen extends ContainerScreen<EnderLetterContainer> {
     }
 
     @Override
-    public void onClose() {
+    public void removed() {
         submitReceiver();
         submitMessage();
-        super.onClose();
+        super.removed();
     }
 
     private void submitReceiver() {
         if (!received) {
-            this.container.send(0, (pb) -> pb.writeString(this.receiverField.getText()));
+            this.menu.send(0, (pb) -> pb.writeUtf(this.receiverField.getValue()));
         }
     }
 
     private void submitMessage() {
         if (!received) {
-            this.container.send(1, (pb) -> pb.writeString(this.messageField.getText()));
+            this.menu.send(1, (pb) -> pb.writeUtf(this.messageField.getText()));
         }
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, I18n.format("item.randomthings.ender_letter"), 8, 6, 4210752);
-        this.font.drawString(matrixStack, I18n.format("container.inventory"), 8, this.ySize - 96 + 2, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, I18n.get("item.randomthings.ender_letter"), 8, 6, 4210752);
+        this.font.draw(matrixStack, I18n.get("container.inventory"), 8, this.imageHeight - 96 + 2, 4210752);
 
         if (!received) {
             String counter = this.messageField.getText().length() + "/" + MAX_MESSAGE_LENGTH;
-            this.font.drawString(matrixStack, counter, this.xSize - 8 - this.font.getStringWidth(counter), this.ySize - 96 + 2, 0x707070);
+            this.font.draw(matrixStack, counter, this.imageWidth - 8 - this.font.width(counter), this.imageHeight - 96 + 2, 0x707070);
         }
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int x = (this.width - this.xSize) / 2;
-        int y = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         this.receiverField.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 }

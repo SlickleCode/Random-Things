@@ -4,13 +4,13 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.util.ChunkAnalyzerResult;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.widget.list.ExtendedList;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.ItemStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Scrollable list of scan results (icon, count, block name), one row per
@@ -31,7 +31,7 @@ import net.minecraft.util.text.StringTextComponent;
  * that means overriding {@code render()} itself and keeping only the actual
  * row rendering plus a minimal hand-drawn scrollbar.
  */
-public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanResultList.ResultEntry> {
+public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyzerScanResultList.ResultEntry> {
     public ChunkAnalyzerScanResultList(Minecraft client, int width, int height, int top, int bottom, int left) {
         super(client, width, height, top, bottom, 20);
 
@@ -58,7 +58,7 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
@@ -73,7 +73,7 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         renderScrollbar(matrixStack);
     }
 
-    private void renderScrollbar(MatrixStack matrixStack) {
+    private void renderScrollbar(PoseStack matrixStack) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.y1 - this.y0;
 
@@ -86,8 +86,8 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         int thumbHeight = Math.max(32, visibleHeight * visibleHeight / totalHeight);
         int thumbY = this.y0 + (int) ((visibleHeight - thumbHeight) * (this.getScrollAmount() / maxScroll));
 
-        AbstractGui.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF000000);
-        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);
+        GuiComponent.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF000000);
+        GuiComponent.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);
     }
 
     public void setResults(ChunkAnalyzerResult results) {
@@ -100,7 +100,12 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         }
     }
 
-    public static class ResultEntry extends ExtendedList.AbstractListEntry<ResultEntry> {
+    public static class ResultEntry extends ObjectSelectionList.Entry<ResultEntry> {
+    @Override
+    public net.minecraft.network.chat.Component getNarration() {
+        return net.minecraft.network.chat.TextComponent.EMPTY;
+    }
+
         private final ItemStack stack;
         private final String description;
         private final int count;
@@ -112,13 +117,13 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
         }
 
         @Override
-        public void render(MatrixStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void render(PoseStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             Minecraft mc = Minecraft.getInstance();
 
-            mc.getItemRenderer().renderItemAndEffectIntoGUI(mc.player, stack, left + 2, top + 1);
+            mc.getItemRenderer().renderAndDecorateItem(mc.player, stack, left + 2, top + 1, 0);
 
             String countText = count + "x ";
-            mc.fontRenderer.drawString(matrixStack, countText, left + 2 + 16 + 4, top + 5, 16777215);
+            mc.font.draw(matrixStack, countText, left + 2 + 16 + 4, top + 5, 16777215);
 
             String displayDescription = description;
 
@@ -126,7 +131,7 @@ public class ChunkAnalyzerScanResultList extends ExtendedList<ChunkAnalyzerScanR
                 displayDescription = displayDescription.substring(0, 19) + "...";
             }
 
-            mc.fontRenderer.drawString(matrixStack, displayDescription, left + 2 + 16 + 4 + 50, top + 5, 16777215);
+            mc.font.draw(matrixStack, displayDescription, left + 2 + 16 + 4 + 50, top + 5, 16777215);
         }
     }
 }

@@ -1,22 +1,28 @@
 package lumien.randomthings.item;
 
+import net.minecraft.world.item.Items;
+
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,13 +42,13 @@ public class RunePatternItem extends Item {
     }
 
     @Override
-    public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, net.minecraft.client.util.ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+        super.appendHoverText(stack, worldIn, tooltip, flagIn);
 
         DyeColor[][] pattern = getPattern(stack);
 
         if (pattern == null) {
-            tooltip.add(new TranslationTextComponent("tooltip.randomthings.general.empty"));
+            tooltip.add(new TranslatableComponent("tooltip.randomthings.general.empty"));
             return;
         }
 
@@ -67,49 +73,49 @@ public class RunePatternItem extends Item {
         present.sort(Comparator.comparingInt((DyeColor c) -> amounts[c.getId()]).reversed());
 
         for (DyeColor color : present) {
-            tooltip.add(new StringTextComponent("- " + amounts[color.getId()] + "x " + color.getTranslationKey()));
+            tooltip.add(new TextComponent("- " + amounts[color.getId()] + "x " + color.getName()));
         }
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand hand) {
-        if (playerIn.isSneaking()) {
-            return new ActionResult<>(ActionResultType.SUCCESS, new ItemStack(Items.PAPER));
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+        if (playerIn.isShiftKeyDown()) {
+            return new InteractionResultHolder<>(InteractionResult.SUCCESS, new ItemStack(Items.PAPER));
         }
 
-        return new ActionResult<>(ActionResultType.PASS, playerIn.getHeldItem(hand));
+        return new InteractionResultHolder<>(InteractionResult.PASS, playerIn.getItemInHand(hand));
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World worldIn = context.getWorld();
-        BlockPos pos = context.getPos();
+    public InteractionResult useOn(UseOnContext context) {
+        Level worldIn = context.getLevel();
+        BlockPos pos = context.getClickedPos();
         BlockState state = worldIn.getBlockState(pos);
 
         if (state.getBlock() == ModBlocks.RUNE_BASE) {
-            if (!worldIn.isRemote) {
-                TileEntity te = worldIn.getTileEntity(pos);
+            if (!worldIn.isClientSide) {
+                BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof RuneBaseTileEntity) {
-                    setPattern(context.getItem(), ((RuneBaseTileEntity) te).getRuneData());
+                    setPattern(context.getItemInHand(), ((RuneBaseTileEntity) te).getRuneData());
                 }
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        if (context.getFace() != Direction.UP || !worldIn.isAirBlock(pos.up()) || !Block.hasEnoughSolidSide(worldIn, pos, Direction.UP)) {
-            return ActionResultType.FAIL;
+        if (context.getClickedFace() != Direction.UP || !worldIn.isEmptyBlock(pos.above()) || !Block.canSupportCenter(worldIn, pos, Direction.UP)) {
+            return InteractionResult.FAIL;
         }
 
-        DyeColor[][] pattern = getPattern(context.getItem());
+        DyeColor[][] pattern = getPattern(context.getItemInHand());
 
         if (pattern == null) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        PlayerEntity player = context.getPlayer();
-        boolean creative = player != null && player.abilities.isCreativeMode;
+        Player player = context.getPlayer();
+        boolean creative = player != null && player.getAbilities().instabuild;
 
         DyeColor[][] actual = new DyeColor[4][4];
         boolean anything = creative;
@@ -119,7 +125,7 @@ public class RunePatternItem extends Item {
                 DyeColor color = pattern[x][y];
 
                 if (color != null && !creative) {
-                    if (consumeMatchingDust(player, color, worldIn.isRemote)) {
+                    if (consumeMatchingDust(player, color, worldIn.isClientSide)) {
                         anything = true;
                     } else {
                         color = null;
@@ -133,31 +139,31 @@ public class RunePatternItem extends Item {
         }
 
         if (!anything) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        if (!worldIn.isRemote) {
-            worldIn.setBlockState(pos.up(), ModBlocks.RUNE_BASE.getDefaultState());
+        if (!worldIn.isClientSide) {
+            worldIn.setBlockAndUpdate(pos.above(), ModBlocks.RUNE_BASE.defaultBlockState());
 
-            TileEntity te = worldIn.getTileEntity(pos.up());
+            BlockEntity te = worldIn.getBlockEntity(pos.above());
 
             if (te instanceof RuneBaseTileEntity) {
                 ((RuneBaseTileEntity) te).setRuneData(actual);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    private boolean consumeMatchingDust(PlayerEntity player, DyeColor color, boolean clientSide) {
+    private boolean consumeMatchingDust(Player player, DyeColor color, boolean clientSide) {
         if (player == null) {
             return false;
         }
 
         Item dustItem = RuneDustItems.BY_COLOR.get(color);
 
-        for (int s = 0; s < player.inventory.getSizeInventory(); s++) {
-            ItemStack stack = player.inventory.getStackInSlot(s);
+        for (int s = 0; s < player.getInventory().getContainerSize(); s++) {
+            ItemStack stack = player.getInventory().getItem(s);
 
             if (!stack.isEmpty() && stack.getItem() == dustItem) {
                 if (!clientSide) {
@@ -172,7 +178,7 @@ public class RunePatternItem extends Item {
     }
 
     public static DyeColor[][] getPattern(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         if (compound == null || !compound.contains("runeData")) {
             return null;

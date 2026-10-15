@@ -1,18 +1,20 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.container.FilteredSuperLubricentPlatformContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Holds the one example-item filter slot used by
@@ -23,21 +25,20 @@ import net.minecraft.block.BlockState;
  * - 1.12.2's filter was the fully configurable `ItemItemFilter` item; this
  * matches by plain item type ({@code ItemStack.areItemsEqual}) instead.
  */
-public class FilteredSuperLubricentPlatformTileEntity extends TileEntity implements INamedContainerProvider
+public class FilteredSuperLubricentPlatformTileEntity extends BlockEntity implements MenuProvider
 {
 	private final ItemStackHandler filterInventory = new ItemStackHandler(1)
 	{
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
-	public FilteredSuperLubricentPlatformTileEntity()
-	{
-		super(ModTileEntityTypes.FILTERED_SUPER_LUBRICENT_PLATFORM);
-	}
+	public FilteredSuperLubricentPlatformTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.FILTERED_SUPER_LUBRICENT_PLATFORM, pos, state);
+    }
 
 	public ItemStackHandler filterInventory()
 	{
@@ -47,33 +48,32 @@ public class FilteredSuperLubricentPlatformTileEntity extends TileEntity impleme
 	public boolean matchesFilter(ItemStack stack)
 	{
 		ItemStack filterStack = filterInventory.getStackInSlot(0);
-		return !filterStack.isEmpty() && ItemStack.areItemsEqual(filterStack, stack);
+		return !filterStack.isEmpty() && ItemStack.isSame(filterStack, stack);
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.put("inventory", filterInventory.serializeNBT());
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		filterInventory.deserializeNBT(compound.getCompound("inventory"));
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new FilteredSuperLubricentPlatformContainer(windowId, playerInventory, filterInventory, IWorldPosCallable.of(this.world, pos));
+		return new FilteredSuperLubricentPlatformContainer(windowId, playerInventory, filterInventory, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.filtered_super_lubricent_platform");
+		return new TranslatableComponent("block.randomthings.filtered_super_lubricent_platform");
 	}
 }

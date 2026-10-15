@@ -3,38 +3,38 @@ package lumien.randomthings.container;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.PotionVaporizerItemHandler;
 import lumien.randomthings.tileentity.PotionVaporizerTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 /**
  * PotionVaporizerContainer
  */
-public class PotionVaporizerContainer extends Container
+public class PotionVaporizerContainer extends AbstractContainerMenu
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public IntReferenceHolder duration = IntReferenceHolder.single();
-	public IntReferenceHolder durationLeft = IntReferenceHolder.single();
-	public IntReferenceHolder color = IntReferenceHolder.single();
-	public IntReferenceHolder fuelBurnTime = IntReferenceHolder.single();
-	public IntReferenceHolder fuelBurn = IntReferenceHolder.single();
+	public DataSlot duration = DataSlot.standalone();
+	public DataSlot durationLeft = DataSlot.standalone();
+	public DataSlot color = DataSlot.standalone();
+	public DataSlot fuelBurnTime = DataSlot.standalone();
+	public DataSlot fuelBurn = DataSlot.standalone();
 
-	public PotionVaporizerContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public PotionVaporizerContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new PotionVaporizerItemHandler(), IWorldPosCallable.DUMMY);
+		this(windowId, (Inventory) playerInventory, new PotionVaporizerItemHandler(), ContainerLevelAccess.NULL);
 	}
 
-	public PotionVaporizerContainer(int windowId, PlayerInventory playerInventory, IItemHandler itemHandler, IWorldPosCallable pos)
+	public PotionVaporizerContainer(int windowId, Inventory playerInventory, IItemHandler itemHandler, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.POTION_VAPORIZER, windowId);
 
@@ -57,24 +57,24 @@ public class PotionVaporizerContainer extends Container
 			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
 		}
 
-		this.trackInt(duration);
-		this.trackInt(durationLeft);
-		this.trackInt(color);
-		this.trackInt(fuelBurnTime);
-		this.trackInt(fuelBurn);
+		this.addDataSlot(duration);
+		this.addDataSlot(durationLeft);
+		this.addDataSlot(color);
+		this.addDataSlot(fuelBurnTime);
+		this.addDataSlot(fuelBurn);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.POTION_VAPORIZER);
+		return stillValid(this.pos, playerIn, ModBlocks.POTION_VAPORIZER);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof PotionVaporizerTileEntity)
 			{
@@ -88,39 +88,39 @@ public class PotionVaporizerContainer extends Container
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index)
+	public ItemStack quickMoveStack(Player playerIn, int index)
 	{
 		ItemStack result = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
+		Slot slot = this.slots.get(index);
 
-		if (slot != null && slot.getHasStack())
+		if (slot != null && slot.hasItem())
 		{
-			ItemStack stackInSlot = slot.getStack();
+			ItemStack stackInSlot = slot.getItem();
 			result = stackInSlot.copy();
 
 			if (index < 3)
 			{
-				if (!this.mergeItemStack(stackInSlot, 3, 39, true))
+				if (!this.moveItemStackTo(stackInSlot, 3, 39, true))
 				{
 					return ItemStack.EMPTY;
 				}
 			}
-			else if (!this.mergeItemStack(stackInSlot, 0, 2, false))
+			else if (!this.moveItemStackTo(stackInSlot, 0, 2, false))
 			{
 				return ItemStack.EMPTY;
 			}
 
 			if (stackInSlot.isEmpty())
 			{
-				slot.putStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			}
 			else
 			{
-				slot.onSlotChanged();
+				slot.setChanged();
 			}
 
 			if (stackInSlot.getCount() == result.getCount())

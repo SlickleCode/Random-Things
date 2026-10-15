@@ -1,15 +1,15 @@
 package lumien.randomthings.entity;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.Item;
-import net.minecraft.particles.ItemParticleData;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.Level;
 
 import lumien.randomthings.item.ModItems;
 
@@ -21,16 +21,16 @@ import lumien.randomthings.item.ModItems;
  * the same reason as {@code ThrownWeatherEggEntity} - free client item-stack
  * sync and item-based rendering, no custom spawn data needed.
  */
-public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.ProjectileItemEntity {
-    public ThrownGoldenEggEntity(EntityType<? extends ThrownGoldenEggEntity> type, World world) {
+public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile.ThrowableItemProjectile {
+    public ThrownGoldenEggEntity(EntityType<? extends ThrownGoldenEggEntity> type, Level world) {
         super(type, world);
     }
 
-    public ThrownGoldenEggEntity(World world, LivingEntity thrower) {
+    public ThrownGoldenEggEntity(Level world, LivingEntity thrower) {
         super(ModEntityTypes.THROWN_GOLDEN_EGG, thrower, world);
     }
 
-    public ThrownGoldenEggEntity(World world, double x, double y, double z) {
+    public ThrownGoldenEggEntity(Level world, double x, double y, double z) {
         super(ModEntityTypes.THROWN_GOLDEN_EGG, x, y, z, world);
     }
 
@@ -40,33 +40,33 @@ public class ThrownGoldenEggEntity extends net.minecraft.entity.projectile.Proje
     }
 
     @Override
-    public void handleStatusUpdate(byte id) {
+    public void handleEntityEvent(byte id) {
         if (id == 3) {
             for (int i = 0; i < 8; ++i) {
-                this.world.addParticle(new ItemParticleData(ParticleTypes.ITEM, this.getItem()), this.getPosX(), this.getPosY(), this.getPosZ(), ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D, ((double) this.rand.nextFloat() - 0.5D) * 0.08D);
+                this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
             }
         }
     }
 
     @Override
-    protected void onImpact(RayTraceResult result) {
-        if (result.getType() == RayTraceResult.Type.ENTITY) {
-            Entity hitEntity = ((EntityRayTraceResult) result).getEntity();
-            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getShooter()), 1.0F);
+    protected void onHit(HitResult result) {
+        if (result.getType() == HitResult.Type.ENTITY) {
+            Entity hitEntity = ((EntityHitResult) result).getEntity();
+            hitEntity.hurt(DamageSource.thrown(this, this.getOwner()), 1.0F);
         }
 
-        if (!this.world.isRemote) {
-            GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.world);
-            chicken.setLocationAndAngles(this.getPosX(), this.getPosY(), this.getPosZ(), this.rotationYaw, 0.0F);
-            this.world.addEntity(chicken);
+        if (!this.level.isClientSide) {
+            GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level);
+            chicken.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
+            this.level.addFreshEntity(chicken);
 
-            this.world.setEntityState(this, (byte) 3);
-            this.remove();
+            this.level.broadcastEntityEvent(this, (byte) 3);
+            this.discard();
         }
     }
 
     @Override
-    public net.minecraft.network.IPacket<?> createSpawnPacket() {
-        return net.minecraftforge.fml.network.NetworkHooks.getEntitySpawningPacket(this);
+    public net.minecraft.network.protocol.Packet<?> getAddEntityPacket() {
+        return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
     }
 }

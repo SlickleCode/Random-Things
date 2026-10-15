@@ -1,60 +1,71 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import net.minecraft.world.level.Level;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.ItemCollectorTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
 
 /**
  * A small directional plate mounted onto an inventory that vacuums up
  * nearby dropped items and feeds them in.
  */
-public class ItemCollectorBlock extends Block
-{
+public class ItemCollectorBlock extends Block implements EntityBlock {
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
-	private static final VoxelShape SHAPE_UP = Block.makeCuboidShape(6, 0, 6, 10, 3.5, 10);
-	private static final VoxelShape SHAPE_DOWN = Block.makeCuboidShape(6, 12.5, 6, 10, 16, 10);
-	private static final VoxelShape SHAPE_NORTH = Block.makeCuboidShape(6, 6, 12.5, 10, 10, 16);
-	private static final VoxelShape SHAPE_SOUTH = Block.makeCuboidShape(6, 6, 0, 10, 10, 3.5);
-	private static final VoxelShape SHAPE_WEST = Block.makeCuboidShape(12.5, 6, 6, 16, 10, 10);
-	private static final VoxelShape SHAPE_EAST = Block.makeCuboidShape(0, 6, 6, 3.5, 10, 10);
+	private static final VoxelShape SHAPE_UP = Block.box(6, 0, 6, 10, 3.5, 10);
+	private static final VoxelShape SHAPE_DOWN = Block.box(6, 12.5, 6, 10, 16, 10);
+	private static final VoxelShape SHAPE_NORTH = Block.box(6, 6, 12.5, 10, 10, 16);
+	private static final VoxelShape SHAPE_SOUTH = Block.box(6, 6, 0, 10, 10, 3.5);
+	private static final VoxelShape SHAPE_WEST = Block.box(12.5, 6, 6, 16, 10, 10);
+	private static final VoxelShape SHAPE_EAST = Block.box(0, 6, 6, 3.5, 10, 10);
 
 	public ItemCollectorBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).notSolid().hardnessAndResistance(0.3F).doesNotBlockMovement());
+		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).noOcclusion().strength(0.3F).noCollission());
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(FACING);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state)
+	public RenderShape getRenderShape(BlockState state)
 	{
-		return BlockRenderType.MODEL;
+		return RenderShape.MODEL;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		switch (state.get(FACING))
+		switch (state.getValue(FACING))
 		{
 			case DOWN:
 				return SHAPE_DOWN;
@@ -74,28 +85,28 @@ public class ItemCollectorBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return VoxelShapes.empty();
+		return Shapes.empty();
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new ItemCollectorTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
 	{
-		return new ItemCollectorTileEntity();
+	    return Tickers.of(type, ModTileEntityTypes.ITEM_COLLECTOR, (l, p, s2, be) -> be.tick());
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context)
+	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
 		// FACING points from this block toward the inventory it's mounted on,
 		// i.e. the side of the existing block that was clicked to place it.
-		return this.getDefaultState().with(FACING, context.getFace());
+		return this.defaultBlockState().setValue(FACING, context.getClickedFace());
 	}
 }

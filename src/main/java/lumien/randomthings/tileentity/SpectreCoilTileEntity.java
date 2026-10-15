@@ -5,12 +5,11 @@ import java.util.UUID;
 import lumien.randomthings.block.SpectreCoilBlock;
 import lumien.randomthings.block.SpectreCoilBlock.CoilType;
 import lumien.randomthings.handler.spectrecoils.SpectreCoilHandler;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -26,39 +25,38 @@ import net.minecraftforge.energy.IEnergyStorage;
  * loot-table-injection infrastructure this port hasn't built for anything yet, and are a separate,
  * lower-value worldgen concern from the energy network itself. Flag for a future slice if wanted.
  */
-public class SpectreCoilTileEntity extends TileEntity implements ITickableTileEntity {
+public class SpectreCoilTileEntity extends BlockEntity {
     private UUID owner;
 
-    public SpectreCoilTileEntity() {
-        super(ModTileEntityTypes.SPECTRE_COIL);
+    public SpectreCoilTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.SPECTRE_COIL, pos, state);
     }
 
     public void setOwner(UUID owner) {
         this.owner = owner;
-        markDirty();
+        setChanged();
     }
 
     private CoilType coilType() {
-        BlockState state = world.getBlockState(pos);
+        BlockState state = level.getBlockState(worldPosition);
         return state.getBlock() instanceof SpectreCoilBlock ? ((SpectreCoilBlock) state.getBlock()).getCoilType() : CoilType.NORMAL;
     }
 
-    @Override
     public void tick() {
-        if (world.isRemote || owner == null) {
+        if (level.isClientSide || owner == null) {
             return;
         }
 
-        BlockState state = world.getBlockState(pos);
+        BlockState state = level.getBlockState(worldPosition);
         if (!(state.getBlock() instanceof SpectreCoilBlock)) {
             return;
         }
 
         // FACING points away from the block this coil is mounted on (matching the torch/lever
         // convention already used elsewhere in this port), so the support sits the opposite way.
-        Direction facing = state.get(SpectreCoilBlock.FACING);
-        BlockPos targetPos = pos.offset(facing.getOpposite());
-        TileEntity targetTe = world.getTileEntity(targetPos);
+        Direction facing = state.getValue(SpectreCoilBlock.FACING);
+        BlockPos targetPos = worldPosition.relative(facing.getOpposite());
+        BlockEntity targetTe = level.getBlockEntity(targetPos);
 
         if (targetTe == null) {
             return;
@@ -79,7 +77,7 @@ public class SpectreCoilTileEntity extends TileEntity implements ITickableTileEn
             return;
         }
 
-        IEnergyStorage coilStorage = SpectreCoilHandler.get(world).getStorageCoil(owner);
+        IEnergyStorage coilStorage = SpectreCoilHandler.get(level).getStorageCoil(owner);
 
         int available = coilStorage.extractEnergy(type.rate, true);
         int remaining = available - targetStorage.receiveEnergy(available, false);
@@ -90,22 +88,21 @@ public class SpectreCoilTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (owner != null) {
-            compound.putUniqueId("owner", owner);
+            compound.putUUID("owner", owner);
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("owner")) {
-            owner = compound.getUniqueId("owner");
+            owner = compound.getUUID("owner");
         }
     }
 }

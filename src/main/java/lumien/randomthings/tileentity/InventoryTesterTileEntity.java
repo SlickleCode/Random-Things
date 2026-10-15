@@ -1,26 +1,27 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.block.InventoryTesterBlock;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.container.InventoryTesterContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A tiny redstone-comparator-like nub: whatever item sits in its own single
@@ -28,14 +29,14 @@ import net.minecraft.block.BlockState;
  * faces every few ticks, and it emits weak power if that insertion would
  * succeed (optionally inverted).
  */
-public class InventoryTesterTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class InventoryTesterTileEntity extends BlockEntity implements MenuProvider
 {
 	private final ItemStackHandler itemHandler = new ItemStackHandler(1)
 	{
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
@@ -43,10 +44,9 @@ public class InventoryTesterTileEntity extends TileEntity implements ITickableTi
 	private boolean emitRedstone = false;
 	private int counter = 0;
 
-	public InventoryTesterTileEntity()
-	{
-		super(ModTileEntityTypes.INVENTORY_TESTER);
-	}
+	public InventoryTesterTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.INVENTORY_TESTER, pos, state);
+    }
 
 	public IItemHandler itemHandler()
 	{
@@ -66,13 +66,12 @@ public class InventoryTesterTileEntity extends TileEntity implements ITickableTi
 	public void toggleInvert()
 	{
 		this.invertSignal = !this.invertSignal;
-		this.markDirty();
+		this.setChanged();
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote || ++counter < 2)
+		if (this.level.isClientSide || ++counter < 2)
 		{
 			return;
 		}
@@ -86,8 +85,8 @@ public class InventoryTesterTileEntity extends TileEntity implements ITickableTi
 			return;
 		}
 
-		Direction facing = this.getBlockState().get(InventoryTesterBlock.FACING);
-		TileEntity target = this.world.getTileEntity(this.pos.offset(facing.getOpposite()));
+		Direction facing = this.getBlockState().getValue(InventoryTesterBlock.FACING);
+		BlockEntity target = this.level.getBlockEntity(this.worldPosition.relative(facing.getOpposite()));
 
 		if (target == null)
 		{
@@ -113,39 +112,38 @@ public class InventoryTesterTileEntity extends TileEntity implements ITickableTi
 		if (newRedstone != emitRedstone)
 		{
 			this.emitRedstone = newRedstone;
-			this.markDirty();
-			this.world.notifyNeighborsOfStateChange(pos, ModBlocks.INVENTORY_TESTER);
+			this.setChanged();
+			this.level.updateNeighborsAt(worldPosition, ModBlocks.INVENTORY_TESTER);
 		}
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putBoolean("emitRedstone", emitRedstone);
 		compound.putBoolean("invertSignal", invertSignal);
 		compound.put("inventory", itemHandler.serializeNBT());
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.emitRedstone = compound.getBoolean("emitRedstone");
 		this.invertSignal = compound.getBoolean("invertSignal");
 		itemHandler.deserializeNBT(compound.getCompound("inventory"));
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new InventoryTesterContainer(windowId, playerInventory, itemHandler, IWorldPosCallable.of(this.world, pos));
+		return new InventoryTesterContainer(windowId, playerInventory, itemHandler, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.inventory_tester");
+		return new TranslatableComponent("block.randomthings.inventory_tester");
 	}
 }

@@ -1,13 +1,13 @@
 package lumien.randomthings.client.screen;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.list.ExtendedList;
+import net.minecraft.client.gui.components.ObjectSelectionList;
 
 import java.util.List;
 import java.util.function.Consumer;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.client.gui.GuiComponent;
 
 /**
  * Scrollable list of recorded sound names, one clickable row per sound -
@@ -20,7 +20,7 @@ import net.minecraft.client.gui.AbstractGui;
  * bytecode rather than behind a cleanly overridable hook (see that class's
  * javadoc for the full story - same fix applies here verbatim).
  */
-public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
+public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEntry> {
     private final Consumer<String> onSelect;
 
     public SoundNameList(Minecraft client, int width, int height, int top, int bottom, int left, List<String> sounds, Consumer<String> onSelect) {
@@ -83,10 +83,10 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         // ContainerScreen#render leaves item lighting on and a stale GL color, which dimmed both the
         // hover bar and the (white) hovered text to near-black in the screenshots
-        com.mojang.blaze3d.systems.RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int rowLeft = this.getRowLeft();
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
@@ -124,17 +124,17 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
     }
 
     /** Light 1px frame around the scrollable area. */
-    private void renderBorder(MatrixStack matrixStack) {
+    private void renderBorder(PoseStack matrixStack) {
         int color = 0xFFFFFFFF;
 
-        AbstractGui.fill(matrixStack, this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
-        AbstractGui.fill(matrixStack, this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
-        AbstractGui.fill(matrixStack, this.x0 - 1, this.y0, this.x0, this.y1, color);
-        AbstractGui.fill(matrixStack, this.x1, this.y0, this.x1 + 1, this.y1, color);
+        GuiComponent.fill(matrixStack, this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
+        GuiComponent.fill(matrixStack, this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
+        GuiComponent.fill(matrixStack, this.x0 - 1, this.y0, this.x0, this.y1, color);
+        GuiComponent.fill(matrixStack, this.x1, this.y0, this.x1 + 1, this.y1, color);
     }
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
-    private void renderScrollbar(MatrixStack matrixStack) {
+    private void renderScrollbar(PoseStack matrixStack) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.y1 - this.y0;
 
@@ -150,12 +150,17 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.getMaxPosition())));
         int thumbY = Math.max(this.y0, Math.min(this.y1 - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.y0));
 
-        AbstractGui.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
-        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
-        AbstractGui.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
+        GuiComponent.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
+        GuiComponent.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
+        GuiComponent.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
     }
 
-    public class SoundNameEntry extends ExtendedList.AbstractListEntry<SoundNameEntry> {
+    public class SoundNameEntry extends ObjectSelectionList.Entry<SoundNameEntry> {
+    @Override
+    public net.minecraft.network.chat.Component getNarration() {
+        return net.minecraft.network.chat.TextComponent.EMPTY;
+    }
+
         private final String sound;
 
         public SoundNameEntry(String sound) {
@@ -163,8 +168,8 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
         }
 
         @Override
-        public void render(MatrixStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
-            net.minecraft.client.gui.FontRenderer font = Minecraft.getInstance().fontRenderer;
+        public void render(PoseStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+            net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
 
             // Dark text on the GUI's light-gray panel (white was nearly invisible there - found via
             // the debug GUI screenshots 2026-10-03); hovered rows get a dark highlight bar + white
@@ -172,19 +177,19 @@ public class SoundNameList extends ExtendedList<SoundNameList.SoundNameEntry> {
             // text is shrunk to fit (down to half size) instead of being cut off mid-id, and the
             // bar always spans the full row.
             if (isMouseOver) {
-                AbstractGui.fill(matrixStack, left, top - 2, left + width, top + height + 2, 0xFF404040);
+                GuiComponent.fill(matrixStack, left, top - 2, left + width, top + height + 2, 0xFF404040);
             }
 
             int available = width - 4;
-            int textWidth = font.getStringWidth(sound);
+            int textWidth = font.width(sound);
             float scale = textWidth > available ? Math.max(0.5F, (float) available / textWidth) : 1.0F;
-            String shown = font.getStringWidth(sound) * scale > available ? font.trimStringToWidth(sound, (int) (available / scale)) : sound;
+            String shown = font.width(sound) * scale > available ? font.plainSubstrByWidth(sound, (int) (available / scale)) : sound;
 
-            matrixStack.push();
+            matrixStack.pushPose();
             matrixStack.translate(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0D);
             matrixStack.scale(scale, scale, 1.0F);
-            font.drawString(matrixStack, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
-            matrixStack.pop();
+            font.draw(matrixStack, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
+            matrixStack.popPose();
         }
 
         @Override

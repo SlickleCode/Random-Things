@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.math.Vector3f;
 
 import org.lwjgl.opengl.GL11;
 
@@ -17,17 +17,17 @@ import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.client.util.RenderUtils;
 import lumien.randomthings.item.DiviningRodItem;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.client.Camera;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 public class DiviningRodRenderer
 {
@@ -52,25 +52,25 @@ public class DiviningRodRenderer
 
 	int modX, modY, modZ;
 
-	public void render(MatrixStack matrixStack)
+	public void render(PoseStack matrixStack)
 	{
-		ActiveRenderInfo ari = Minecraft.getInstance().gameRenderer.getActiveRenderInfo();
+		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
 
-		Vector3d pos = ari.getProjectedView();
+		Vec3 pos = ari.getPosition();
 
 		RenderSystem.disableTexture();
 		RenderSystem.disableDepthTest();
 		RenderUtils.enableDefaultBlending();
 
-		matrixStack.push();
-		matrixStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
+		matrixStack.pushPose();
+		matrixStack.translate(-pos.x(), -pos.y(), -pos.z());
 		for (Indicator indicator : indicators)
 		{
 			float size = (1 - (indicator.duration / 160F)) * 0.2F + 0.1F;
 			Color c = indicator.color;
 			RenderUtils.drawCube(matrixStack, (float) (indicator.target.getX() + 0.5 - size / 2), (float) (indicator.target.getY() + 0.5 - size / 2), (float) (indicator.target.getZ() + 0.5 - size / 2), size, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		}
-		matrixStack.pop();
+		matrixStack.popPose();
 
 		RenderUtils.enableDefaultBlending();
 		RenderSystem.enableTexture();
@@ -95,16 +95,16 @@ public class DiviningRodRenderer
 			}
 		}
 
-		PlayerEntity player = Minecraft.getInstance().player;
+		Player player = Minecraft.getInstance().player;
 
 		if (player != null)
 		{
-			World world = player.world;
+			Level world = player.level;
 
 			if (world != null)
 			{
-				ItemStack main = player.getHeldItemMainhand();
-				ItemStack off = player.getHeldItemOffhand();
+				ItemStack main = player.getMainHandItem();
+				ItemStack off = player.getOffhandItem();
 
 				ItemStack rod = ItemStack.EMPTY;
 				DiviningRodItem type;
@@ -121,7 +121,7 @@ public class DiviningRodRenderer
 				if (!rod.isEmpty())
 				{
 					type = (DiviningRodItem) rod.getItem();
-					BlockPos playerPos = player.getPosition();
+					BlockPos playerPos = player.blockPosition();
 
 					for (int i = 0; i < 60; i++)
 					{
@@ -144,10 +144,10 @@ public class DiviningRodRenderer
 							}
 						}
 
-						BlockPos target = playerPos.add(modX, modY, modZ);
+						BlockPos target = playerPos.offset(modX, modY, modZ);
 						BlockState blockState = world.getBlockState(target);
 
-						if (world.isAreaLoaded(target, 0))
+						if (world.hasChunkAt(target))
 						{
 							int matchIndex = type.matches(blockState);
 							if (matchIndex != -1)

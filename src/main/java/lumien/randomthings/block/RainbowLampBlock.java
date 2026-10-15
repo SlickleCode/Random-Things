@@ -1,14 +1,14 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.DyeColor;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public class RainbowLampBlock extends Block
 {
@@ -16,46 +16,46 @@ public class RainbowLampBlock extends Block
 
 	public RainbowLampBlock()
 	{
-		super(Block.Properties.create(Material.REDSTONE_LIGHT).setLightLevel(state -> 15).hardnessAndResistance(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.of(Material.BUILDABLE_GLASS).lightLevel(state -> 15).strength(0.3F).sound(SoundType.GLASS));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(COLOR, DyeColor.WHITE));
+		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, DyeColor.WHITE));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
-		super.fillStateContainer(builder);
+		super.createBlockStateDefinition(builder);
 
 		builder.add(COLOR);
 	}
 
 	@Override
-	public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState state2, boolean what)
+	public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState state2, boolean what)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
 			updateColor(state, worldIn, pos);
 		}
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean what)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean what)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
 			updateColor(state, worldIn, pos);
 		}
 	}
 
-	private void updateColor(BlockState state, World worldIn, BlockPos pos)
+	private void updateColor(BlockState state, Level worldIn, BlockPos pos)
 	{
-		int redstoneLevel = worldIn.getRedstonePowerFromNeighbors(pos);
+		int redstoneLevel = worldIn.getBestNeighborSignal(pos);
 
-		int colorIndex = state.get(COLOR).ordinal();
+		int colorIndex = state.getValue(COLOR).ordinal();
 
 		if (redstoneLevel != colorIndex)
 		{
-			worldIn.setBlockState(pos, state.with(COLOR, DyeColor.values()[redstoneLevel]), 2);
+			worldIn.setBlock(pos, state.setValue(COLOR, DyeColor.values()[redstoneLevel]), 2);
 		}
 	}
 }

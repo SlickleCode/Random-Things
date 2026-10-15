@@ -3,28 +3,28 @@ package lumien.randomthings.entity;
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.IRendersAsItem;
-import net.minecraft.entity.MoverType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.IPacket;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.ItemSupplier;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Set;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A floating orb, placed by right-clicking with a {@link
@@ -101,38 +101,38 @@ import net.minecraft.util.ActionResultType;
  * this version's rewritten light engine. See {@link SpectreIlluminatorRelight}
  * for the fix (bounded per-tick draining instead of one big burst).
  */
-@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = IRendersAsItem.class)
-public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
+@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
+public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
 
     public static final Set<SpectreIlluminatorEntity> ILLUMINATORS = WeakSets.create();
 
-    private static final DataParameter<Boolean> ILLUMINATED = EntityDataManager.createKey(SpectreIlluminatorEntity.class, DataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> ILLUMINATED = SynchedEntityData.defineId(SpectreIlluminatorEntity.class, EntityDataSerializers.BOOLEAN);
 
-    public SpectreIlluminatorEntity(EntityType<? extends SpectreIlluminatorEntity> type, World world) {
+    public SpectreIlluminatorEntity(EntityType<? extends SpectreIlluminatorEntity> type, Level world) {
         super(type, world);
 
-        this.noClip = true;
+        this.noPhysics = true;
 
         ILLUMINATORS.add(this);
     }
 
-    public SpectreIlluminatorEntity(World world, double x, double y, double z) {
+    public SpectreIlluminatorEntity(Level world, double x, double y, double z) {
         this(ModEntityTypes.SPECTRE_ILLUMINATOR, world);
 
-        this.setPosition(x, y, z);
+        this.setPos(x, y, z);
     }
 
     @Override
-    protected void registerData() {
-        this.dataManager.register(ILLUMINATED, false);
+    protected void defineSynchedData() {
+        this.entityData.define(ILLUMINATED, false);
     }
 
     @Override
-    public void notifyDataManagerChange(DataParameter<?> key) {
-        super.notifyDataManagerChange(key);
+    public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+        super.onSyncedDataUpdated(key);
 
-        if (this.world.isRemote && key.equals(ILLUMINATED) && this.dataManager.get(ILLUMINATED)) {
-            RTDebug.log("[SpectreIlluminator] entity {} learned illuminated=true on the client, relighting", this.getEntityId());
+        if (this.level.isClientSide && key.equals(ILLUMINATED) && this.entityData.get(ILLUMINATED)) {
+            RTDebug.log("[SpectreIlluminator] entity {} learned illuminated=true on the client, relighting", this.getId());
             relight();
         }
     }
@@ -145,7 +145,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
 
         ILLUMINATORS.remove(this);
 
-        RTDebug.log("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getEntityId(), this.world.isRemote, wasIlluminated);
+        RTDebug.log("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getId(), this.level.isClientSide, wasIlluminated);
 
         if (wasIlluminated) {
             relight();
@@ -153,7 +153,7 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
     }
 
     public boolean isIlluminated() {
-        return this.dataManager.get(ILLUMINATED);
+        return this.entityData.get(ILLUMINATED);
     }
 
     @Override
@@ -162,32 +162,32 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
     }
 
     @Override
-    public boolean isInRangeToRenderDist(double distance) {
+    public boolean shouldRenderAtSqrDistance(double distance) {
         return true;
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean isPickable() {
         return true;
     }
 
     @Override
-    public ActionResultType processInitialInteract(PlayerEntity player, Hand hand) {
-        if (!this.world.isRemote) {
-            this.remove();
+    public InteractionResult interact(Player player, InteractionHand hand) {
+        if (!this.level.isClientSide) {
+            this.discard();
 
-            this.entityDropItem(new net.minecraft.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
+            this.spawnAtLocation(new net.minecraft.world.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    public boolean isInChunk(World world, ChunkPos chunkPos) {
-        if (!isIlluminated() || this.world != world) {
+    public boolean isInChunk(Level world, ChunkPos chunkPos) {
+        if (!isIlluminated() || this.level != world) {
             return false;
         }
 
-        BlockPos p = this.getPosition();
+        BlockPos p = this.blockPosition();
         return (p.getX() >> 4) == chunkPos.x && (p.getZ() >> 4) == chunkPos.z;
     }
 
@@ -195,14 +195,14 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
     public void tick() {
         super.tick();
 
-        if (!this.world.isRemote) {
-            Chunk chunk = this.world.getChunk(((int) this.getPosX()) >> 4, ((int) this.getPosZ()) >> 4);
+        if (!this.level.isClientSide) {
+            LevelChunk chunk = this.level.getChunk(((int) this.getX()) >> 4, ((int) this.getZ()) >> 4);
 
             int highestBlockInChunk = 0;
 
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    int height = chunk.getTopBlockY(Heightmap.Type.MOTION_BLOCKING, x, z) + 1;
+                    int height = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 1;
 
                     if (height > highestBlockInChunk) {
                         highestBlockInChunk = height;
@@ -210,52 +210,52 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
                 }
             }
 
-            if (Math.abs(highestBlockInChunk - this.getPosY()) > 0.05) {
-                this.setMotion(this.getMotion().x, highestBlockInChunk < this.getPosY() ? -0.05 : 0.05, this.getMotion().z);
+            if (Math.abs(highestBlockInChunk - this.getY()) > 0.05) {
+                this.setDeltaMovement(this.getDeltaMovement().x, highestBlockInChunk < this.getY() ? -0.05 : 0.05, this.getDeltaMovement().z);
             } else {
-                this.setRawPosition(this.getPosX(), highestBlockInChunk, this.getPosZ());
-                this.setMotion(this.getMotion().x, 0, this.getMotion().z);
+                this.setPosRaw(this.getX(), highestBlockInChunk, this.getZ());
+                this.setDeltaMovement(this.getDeltaMovement().x, 0, this.getDeltaMovement().z);
             }
 
-            ChunkPos chunkPos = new ChunkPos(this.getPosition());
+            ChunkPos chunkPos = new ChunkPos(this.blockPosition());
 
-            double chunkX = (chunkPos.getXStart() + chunkPos.getXEnd()) / 2D;
-            double chunkZ = (chunkPos.getZStart() + chunkPos.getZEnd()) / 2D;
+            double chunkX = (chunkPos.getMinBlockX() + chunkPos.getMaxBlockX()) / 2D;
+            double chunkZ = (chunkPos.getMinBlockZ() + chunkPos.getMaxBlockZ()) / 2D;
 
-            if (Math.abs(getPosX() - chunkX) > 0.03) {
-                this.setMotion(chunkX > getPosX() ? 0.03 : -0.03, this.getMotion().y, this.getMotion().z);
+            if (Math.abs(getX() - chunkX) > 0.03) {
+                this.setDeltaMovement(chunkX > getX() ? 0.03 : -0.03, this.getDeltaMovement().y, this.getDeltaMovement().z);
             } else {
-                this.setRawPosition(chunkX, this.getPosY(), this.getPosZ());
-                this.setMotion(0, this.getMotion().y, this.getMotion().z);
+                this.setPosRaw(chunkX, this.getY(), this.getZ());
+                this.setDeltaMovement(0, this.getDeltaMovement().y, this.getDeltaMovement().z);
             }
 
-            if (Math.abs(getPosZ() - chunkZ) > 0.03) {
-                this.setMotion(this.getMotion().x, this.getMotion().y, chunkZ > getPosZ() ? 0.03 : -0.03);
+            if (Math.abs(getZ() - chunkZ) > 0.03) {
+                this.setDeltaMovement(this.getDeltaMovement().x, this.getDeltaMovement().y, chunkZ > getZ() ? 0.03 : -0.03);
             } else {
-                this.setRawPosition(this.getPosX(), this.getPosY(), chunkZ);
-                this.setMotion(this.getMotion().x, this.getMotion().y, 0);
+                this.setPosRaw(this.getX(), this.getY(), chunkZ);
+                this.setDeltaMovement(this.getDeltaMovement().x, this.getDeltaMovement().y, 0);
             }
 
             if (!isIlluminated()) {
-                if (this.world.getGameTime() % 100 == 0) {
-                    RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getEntityId(), getPosX(), getPosY(), getPosZ(), chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
+                if (this.level.getGameTime() % 100 == 0) {
+                    RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getId(), getX(), getY(), getZ(), chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
                 }
 
-                if (getPosX() == chunkX && getPosZ() == chunkZ) {
-                    RTDebug.log("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getEntityId(), getPosX(), getPosY(), getPosZ(), chunkPos);
+                if (getX() == chunkX && getZ() == chunkZ) {
+                    RTDebug.log("[SpectreIlluminator] entity {} settled at ({}, {}, {}), illuminating chunk {}", this.getId(), getX(), getY(), getZ(), chunkPos);
 
-                    this.dataManager.set(ILLUMINATED, true);
+                    this.entityData.set(ILLUMINATED, true);
 
                     relight();
                 }
             }
         } else if (isIlluminated()) {
-            if (this.world.getGameTime() % 5 == 0) {
-                this.world.addParticle(ParticleTypes.END_ROD, this.getPosX() + (this.rand.nextDouble() - 0.5) * 0.3, this.getPosY() + this.rand.nextDouble() * 0.3, this.getPosZ() + (this.rand.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
+            if (this.level.getGameTime() % 5 == 0) {
+                this.level.addParticle(ParticleTypes.END_ROD, this.getX() + (this.random.nextDouble() - 0.5) * 0.3, this.getY() + this.random.nextDouble() * 0.3, this.getZ() + (this.random.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
             }
         }
 
-        this.move(MoverType.SELF, this.getMotion());
+        this.move(MoverType.SELF, this.getDeltaMovement());
     }
 
     /**
@@ -269,21 +269,21 @@ public class SpectreIlluminatorEntity extends Entity implements IRendersAsItem {
      * attempt, did it), and for how wide that padding actually needs to be.
      */
     private void relight() {
-        SpectreIlluminatorRelight.queue(this.world, this.getPosition());
+        SpectreIlluminatorRelight.queue(this.level, this.blockPosition());
     }
 
     @Override
-    protected void readAdditional(CompoundNBT compound) {
-        this.dataManager.set(ILLUMINATED, compound.getBoolean("illuminated"));
+    protected void readAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(ILLUMINATED, compound.getBoolean("illuminated"));
     }
 
     @Override
-    protected void writeAdditional(CompoundNBT compound) {
+    protected void addAdditionalSaveData(CompoundTag compound) {
         compound.putBoolean("illuminated", isIlluminated());
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

@@ -4,11 +4,11 @@ import lumien.randomthings.container.RedstoneRemoteEditContainer;
 import lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler;
 import lumien.randomthings.item.PositionFilterItem;
 import lumien.randomthings.network.IRTMessage;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent.Context;
 import net.minecraftforge.items.ItemStackHandler;
 
 /**
@@ -33,19 +33,19 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
     }
 
     @Override
-    public void read(PacketBuffer pb) {
+    public void read(FriendlyByteBuf pb) {
         this.slot = pb.readInt();
     }
 
     @Override
-    public void write(PacketBuffer pb) {
+    public void write(FriendlyByteBuf pb) {
         pb.writeInt(slot);
     }
 
     @Override
     public void handle(Context ctx) {
         ctx.enqueueWork(() -> {
-            ServerPlayerEntity player = ctx.getSender();
+            ServerPlayer player = ctx.getSender();
 
             if (player == null || slot < 0 || slot >= 9) {
                 return;
@@ -69,7 +69,7 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
             BlockPos target = PositionFilterItem.getPosition(positionFilter);
 
             if (target != null) {
-                RedstoneSignalHandler.get(player.world).addSignal(player.world, target, 20, 15);
+                RedstoneSignalHandler.get(player.level).addSignal(player.level, target, 20, 15);
             }
         });
     }

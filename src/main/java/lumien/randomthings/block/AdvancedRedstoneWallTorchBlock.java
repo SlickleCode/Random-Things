@@ -5,119 +5,119 @@ import java.util.Random;
 import javax.annotation.Nullable;
 
 import lumien.randomthings.tileentity.AdvancedRedstoneTorchTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.HorizontalBlock;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.WallTorchBlock;
-import net.minecraft.block.material.Material;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.WallTorchBlock;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraft.particles.ParticleTypes;
+import net.minecraft.core.particles.ParticleTypes;
 
 public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 {
-	public static final DirectionProperty FACING = HorizontalBlock.HORIZONTAL_FACING;
+	public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 	public static final EnumProperty<AdvancedRedstoneTorchBlock.COLOR> COLOR_PROPERTY = AdvancedRedstoneTorchBlock.COLOR_PROPERTY;
 
 	protected AdvancedRedstoneWallTorchBlock()
 	{
-		super(Block.Properties.create(Material.MISCELLANEOUS).doesNotBlockMovement().hardnessAndResistance(0).setLightLevel(state -> 7).sound(SoundType.WOOD));
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
+		super(Block.Properties.of(Material.DECORATION).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
 	}
 
 	/**
 	 * Returns the unlocalized name of the block with "tile." appended to the front.
 	 */
-	public String getTranslationKey()
+	public String getDescriptionId()
 	{
-		return this.asItem().getTranslationKey();
+		return this.asItem().getDescriptionId();
 	}
 
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return WallTorchBlock.getShapeForState(state);
+		return WallTorchBlock.getShape(state);
 	}
 
-	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
+	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
-		return Blocks.WALL_TORCH.isValidPosition(state, worldIn, pos);
+		return Blocks.WALL_TORCH.canSurvive(state, worldIn, pos);
 	}
 
 	/**
 	 * Update the provided state given the provided neighbor facing and neighbor state, returning a new state. For example, fences make their connections to the passed in state if possible, and wet concrete powder immediately returns its solidified counterpart. Note that this method should ideally consider only the specific face passed in.
 	 */
-	public BlockState updatePostPlacement(BlockState stateIn, Direction facing, BlockState facingState, IWorld worldIn, BlockPos currentPos, BlockPos facingPos)
+	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos)
 	{
-		return Blocks.WALL_TORCH.updatePostPlacement(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+		return Blocks.WALL_TORCH.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
 	}
 
 	@Nullable
-	public BlockState getStateForPlacement(BlockItemUseContext context)
+	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
 		BlockState blockstate = Blocks.WALL_TORCH.getStateForPlacement(context);
-		return blockstate == null ? null : this.getDefaultState().with(FACING, blockstate.get(FACING));
+		return blockstate == null ? null : this.defaultBlockState().setValue(FACING, blockstate.getValue(FACING));
 	}
 
 	/**
 	 * Called periodically clientside on blocks near the player to show effects (like furnace fire particles). Note that this method is unrelated to {@link randomTick} and {@link #needsRandomTick}, and will always be called regardless of whether the block can receive random update ticks
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void animateTick(BlockState stateIn, World worldIn, BlockPos pos, Random rand)
+	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, Random rand)
 	{
-		if (stateIn.get(COLOR_PROPERTY) == COLOR.RED)
+		if (stateIn.getValue(COLOR_PROPERTY) == COLOR.RED)
 		{
-			Direction direction = stateIn.get(FACING).getOpposite();
+			Direction direction = stateIn.getValue(FACING).getOpposite();
 			double d0 = 0.27D;
-			double d1 = (double) pos.getX() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getXOffset();
+			double d1 = (double) pos.getX() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getStepX();
 			double d2 = (double) pos.getY() + 0.7D + (rand.nextDouble() - 0.5D) * 0.2D + 0.22D;
-			double d3 = (double) pos.getZ() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getZOffset();
-			worldIn.addParticle(RedstoneParticleData.REDSTONE_DUST, d1, d2, d3, 0.0D, 0.0D, 0.0D);
+			double d3 = (double) pos.getZ() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getStepZ();
+			worldIn.addParticle(DustParticleOptions.REDSTONE, d1, d2, d3, 0.0D, 0.0D, 0.0D);
 		}
 		else
 		{
-			Direction direction = stateIn.get(FACING).getOpposite();
+			Direction direction = stateIn.getValue(FACING).getOpposite();
 			double d0 = 0.27D;
-			double d1 = (double) pos.getX() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getXOffset();
+			double d1 = (double) pos.getX() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getStepX();
 			double d2 = (double) pos.getY() + 0.7D + (rand.nextDouble() - 0.5D) * 0.2D + 0.22D;
-			double d3 = (double) pos.getZ() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getZOffset();
+			double d3 = (double) pos.getZ() + 0.5D + (rand.nextDouble() - 0.5D) * 0.2D + 0.27D * (double) direction.getStepZ();
 			worldIn.addParticle(GREEN_DUST, d1, d2, d3, 0.0D, 0.0D, 0.0D);
 		}
 	}
 
 	@Override
-	protected boolean shouldBeGreen(World worldIn, BlockPos pos, BlockState state)
+	protected boolean shouldBeGreen(Level worldIn, BlockPos pos, BlockState state)
 	{
-		Direction direction = state.get(FACING).getOpposite();
-		return worldIn.isSidePowered(pos.offset(direction), direction);
+		Direction direction = state.getValue(FACING).getOpposite();
+		return worldIn.hasSignal(pos.relative(direction), direction);
 	}
 
 	/**
 	 * @deprecated call via {@link IBlockState#getWeakPower(IBlockAccess,BlockPos,EnumFacing)} whenever possible. Implementing/overriding is fine.
 	 */
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		AdvancedRedstoneTorchTileEntity te = (AdvancedRedstoneTorchTileEntity) blockAccess.getTileEntity(pos);
+		AdvancedRedstoneTorchTileEntity te = (AdvancedRedstoneTorchTileEntity) blockAccess.getBlockEntity(pos);
 
-		int strength = blockState.get(COLOR_PROPERTY) == COLOR.RED ? te.signalStrengthRed() : te.signalStrengthGreen();
+		int strength = blockState.getValue(COLOR_PROPERTY) == COLOR.RED ? te.signalStrengthRed() : te.signalStrengthGreen();
 
-		return blockState.get(FACING) != side ? strength : 0;
+		return blockState.getValue(FACING) != side ? strength : 0;
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 		return Blocks.WALL_TORCH.mirror(state, mirrorIn);
 	}
 
-	protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
 	{
 		builder.add(FACING, COLOR_PROPERTY);
 	}

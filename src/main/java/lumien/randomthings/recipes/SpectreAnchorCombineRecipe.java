@@ -1,15 +1,15 @@
 package lumien.randomthings.recipes;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.nbt.ByteNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.nbt.ByteTag;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 /**
  * Combine a Spectre Anchor with any other single, non-stackable item to tag
@@ -23,20 +23,20 @@ import net.minecraft.world.World;
  * becomes the single output) - matching 1.12.2's own {@code getRemainingItems}
  * exactly, which returns an all-empty list.
  */
-public class SpectreAnchorCombineRecipe extends SpecialRecipe {
-    public static final IRecipeSerializer<SpectreAnchorCombineRecipe> SERIALIZER = new SpecialRecipeSerializer<>(SpectreAnchorCombineRecipe::new);
+public class SpectreAnchorCombineRecipe extends CustomRecipe {
+    public static final RecipeSerializer<SpectreAnchorCombineRecipe> SERIALIZER = new SimpleRecipeSerializer<>(SpectreAnchorCombineRecipe::new);
 
     public SpectreAnchorCombineRecipe(ResourceLocation id) {
         super(id);
     }
 
     @Override
-    public boolean matches(CraftingInventory inv, World worldIn) {
+    public boolean matches(CraftingContainer inv, Level worldIn) {
         ItemStack anchor = ItemStack.EMPTY;
         ItemStack target = ItemStack.EMPTY;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (stack.isEmpty()) {
                 continue;
@@ -61,11 +61,11 @@ public class SpectreAnchorCombineRecipe extends SpecialRecipe {
     }
 
     @Override
-    public ItemStack getCraftingResult(CraftingInventory inv) {
+    public ItemStack assemble(CraftingContainer inv) {
         ItemStack target = ItemStack.EMPTY;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (!stack.isEmpty() && stack.getItem() != ModItems.SPECTRE_ANCHOR) {
                 target = stack;
@@ -73,23 +73,23 @@ public class SpectreAnchorCombineRecipe extends SpecialRecipe {
         }
 
         ItemStack result = target.copy();
-        result.getOrCreateTag().put("spectreAnchor", ByteNBT.valueOf((byte) 0));
+        result.getOrCreateTag().put("spectreAnchor", ByteTag.valueOf((byte) 0));
 
         return result;
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv) {
-        return NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
+        return NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
     }
 
     @Override
-    public boolean canFit(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return SERIALIZER;
     }
 }

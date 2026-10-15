@@ -1,12 +1,12 @@
 package lumien.randomthings.container;
 
 import lumien.randomthings.util.ItemInventoryHandler;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.items.SlotItemHandler;
 
 /**
@@ -18,13 +18,13 @@ import net.minecraftforge.items.SlotItemHandler;
  * lumien.randomthings.item.EnderLetterItem}'s "unwrap and it disappears once
  * empty" behavior. Direct port of 1.12.2's {@code ContainerEnderLetter}.
  */
-public class EnderLetterContainer extends net.minecraft.inventory.container.Container implements ISignalContainer {
+public class EnderLetterContainer extends net.minecraft.world.inventory.AbstractContainerMenu implements ISignalContainer {
     public static final int MAX_MESSAGE_LENGTH = 200;
 
     private final ItemStack letterStack;
     private final boolean received;
 
-    public EnderLetterContainer(int windowId, PlayerInventory playerInventory, ItemStack letterStack) {
+    public EnderLetterContainer(int windowId, Inventory playerInventory, ItemStack letterStack) {
         super(ModContainerTypes.ENDER_LETTER, windowId);
 
         this.letterStack = letterStack;
@@ -36,7 +36,7 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
             if (received) {
                 this.addSlot(new SlotItemHandler(content, i, 8 + i * 18, 18) {
                     @Override
-                    public boolean isItemValid(ItemStack stack) {
+                    public boolean mayPlace(ItemStack stack) {
                         return false;
                     }
                 });
@@ -48,12 +48,12 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
         bindPlayerInventory(playerInventory);
     }
 
-    public EnderLetterContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, ((PlayerInventory) playerInventory).player.getHeldItemMainhand());
+    public EnderLetterContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, (Inventory) playerInventory, ((Inventory) playerInventory).player.getMainHandItem());
     }
 
-    private void bindPlayerInventory(PlayerInventory playerInventory) {
-        ItemStack heldLetter = playerInventory.player.getHeldItemMainhand();
+    private void bindPlayerInventory(Inventory playerInventory) {
+        ItemStack heldLetter = playerInventory.player.getMainHandItem();
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
@@ -62,15 +62,15 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
         }
 
         for (int i = 0; i < 9; i++) {
-            if (playerInventory.getStackInSlot(i) == heldLetter) {
+            if (playerInventory.getItem(i) == heldLetter) {
                 this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 159) {
                     @Override
-                    public boolean isItemValid(ItemStack stack) {
+                    public boolean mayPlace(ItemStack stack) {
                         return false;
                     }
 
                     @Override
-                    public boolean canTakeStack(PlayerEntity playerIn) {
+                    public boolean mayPickup(Player playerIn) {
                         return false;
                     }
                 });
@@ -81,22 +81,22 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return ItemStack.areItemsEqual(letterStack, playerIn.getHeldItemMainhand());
+    public boolean stillValid(Player playerIn) {
+        return ItemStack.isSame(letterStack, playerIn.getMainHandItem());
     }
 
     @Override
-    public void onContainerClosed(PlayerEntity playerIn) {
-        super.onContainerClosed(playerIn);
+    public void removed(Player playerIn) {
+        super.removed(playerIn);
 
-        if (received && !playerIn.world.isRemote && isLetterEmpty()) {
-            playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, ItemStack.EMPTY);
+        if (received && !playerIn.level.isClientSide && isLetterEmpty()) {
+            playerIn.getInventory().setItem(playerIn.getInventory().selected, ItemStack.EMPTY);
         }
     }
 
     private boolean isLetterEmpty() {
         for (int i = 0; i < 9; i++) {
-            if (!this.getSlot(i).getStack().isEmpty()) {
+            if (!this.getSlot(i).getItem().isEmpty()) {
                 return false;
             }
         }
@@ -105,12 +105,12 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
     }
 
     @Override
-    public void handle(int id, PacketBuffer data) {
+    public void handle(int id, FriendlyByteBuf data) {
         if (id == 0 && !received) {
-            String receiver = data.readString(32767);
+            String receiver = data.readUtf(32767);
             letterStack.getOrCreateTag().putString("receiver", receiver);
         } else if (id == 1 && !received) {
-            String message = data.readString(1024);
+            String message = data.readUtf(1024);
 
             if (message.length() > MAX_MESSAGE_LENGTH) {
                 message = message.substring(0, MAX_MESSAGE_LENGTH);
@@ -125,26 +125,26 @@ public class EnderLetterContainer extends net.minecraft.inventory.container.Cont
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 9) {
-                if (!this.mergeItemStack(stackInSlot, 9, 45, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 9, 45, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (received || !this.mergeItemStack(stackInSlot, 0, 9, false)) {
+            } else if (received || !this.moveItemStackTo(stackInSlot, 0, 9, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (stackInSlot.getCount() == result.getCount()) {

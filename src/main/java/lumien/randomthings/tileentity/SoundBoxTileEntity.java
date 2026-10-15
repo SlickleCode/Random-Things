@@ -1,28 +1,30 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.block.SoundBoxBlock;
 import lumien.randomthings.item.SoundPatternItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Holds one {@link SoundPatternItem} and plays it (at the block, volume/pitch
  * 1.0) on a redstone rising edge. Direct port of 1.12.2's
  * {@code TileEntitySoundBox}.
  */
-public class SoundBoxTileEntity extends TileEntity {
+public class SoundBoxTileEntity extends BlockEntity {
     private ItemStack pattern = ItemStack.EMPTY;
     private boolean powered;
 
-    public SoundBoxTileEntity() {
-        super(ModTileEntityTypes.SOUND_BOX);
+    public SoundBoxTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.SOUND_BOX, pos, state);
     }
 
     public boolean hasPattern() {
@@ -38,11 +40,11 @@ public class SoundBoxTileEntity extends TileEntity {
 
         boolean hasPattern = !this.pattern.isEmpty();
 
-        if (this.world.getBlockState(this.pos).get(SoundBoxBlock.HAS_PATTERN) != hasPattern) {
-            this.world.setBlockState(this.pos, ModBlocks.SOUND_BOX.getDefaultState().with(SoundBoxBlock.HAS_PATTERN, hasPattern));
+        if (this.level.getBlockState(this.worldPosition).getValue(SoundBoxBlock.HAS_PATTERN) != hasPattern) {
+            this.level.setBlockAndUpdate(this.worldPosition, ModBlocks.SOUND_BOX.defaultBlockState().setValue(SoundBoxBlock.HAS_PATTERN, hasPattern));
         }
 
-        this.markDirty();
+        this.setChanged();
     }
 
     /**
@@ -61,27 +63,26 @@ public class SoundBoxTileEntity extends TileEntity {
                 SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(soundLocation);
 
                 if (soundEvent != null) {
-                    this.world.playSound(null, this.pos, soundEvent, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    this.level.playSound(null, this.worldPosition, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
                 }
             }
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (!pattern.isEmpty()) {
-            compound.put("pattern", pattern.write(new CompoundNBT()));
+            compound.put("pattern", pattern.save(new CompoundTag()));
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
-        this.pattern = compound.contains("pattern") ? ItemStack.read(compound.getCompound("pattern")) : ItemStack.EMPTY;
+        this.pattern = compound.contains("pattern") ? ItemStack.of(compound.getCompound("pattern")) : ItemStack.EMPTY;
     }
 }

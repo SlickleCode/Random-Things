@@ -2,45 +2,45 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.ChatDetectorTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.core.BlockPos;
 
 /**
  * ChatDetectorContainer
  */
-public class ChatDetectorContainer extends Container implements ISignalContainer
+public class ChatDetectorContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 	String chatMessage;
 
-	public IntReferenceHolder consume = IntReferenceHolder.single();
+	public DataSlot consume = DataSlot.standalone();
 
-	public ChatDetectorContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public ChatDetectorContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767));
+		this(windowId, resolvePos(playerInventory, extraData.readBlockPos()), extraData.readUtf(32767));
 	}
 
-	public ChatDetectorContainer(int windowId, IWorldPosCallable pos, String chatMessage)
+	public ChatDetectorContainer(int windowId, ContainerLevelAccess pos, String chatMessage)
 	{
 		super(ModContainerTypes.CHAT_DETECTOR, windowId);
 
 		this.pos = pos;
 		this.chatMessage = chatMessage;
 
-		this.trackInt(consume);
+		this.addDataSlot(consume);
 	}
 
-	private static IWorldPosCallable resolvePos(IInventory playerInventory, BlockPos blockPos)
+	private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos)
 	{
-		PlayerInventory inv = (PlayerInventory) playerInventory;
-		return IWorldPosCallable.of(inv.player.world, blockPos);
+		Inventory inv = (Inventory) playerInventory;
+		return ContainerLevelAccess.create(inv.player.level, blockPos);
 	}
 
 	public String getChatMessage()
@@ -49,16 +49,16 @@ public class ChatDetectorContainer extends Container implements ISignalContainer
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.CHAT_DETECTOR);
+		return stillValid(this.pos, playerIn, ModBlocks.CHAT_DETECTOR);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof ChatDetectorTileEntity)
 			{
@@ -66,19 +66,19 @@ public class ChatDetectorContainer extends Container implements ISignalContainer
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
-			String newMessage = data.readString(32767);
+			String newMessage = data.readUtf(32767);
 			this.chatMessage = newMessage;
 
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof ChatDetectorTileEntity)
 				{
@@ -88,8 +88,8 @@ public class ChatDetectorContainer extends Container implements ISignalContainer
 		}
 		else if (id == 1)
 		{
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof ChatDetectorTileEntity)
 				{

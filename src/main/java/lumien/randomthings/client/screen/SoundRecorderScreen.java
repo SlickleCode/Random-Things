@@ -1,15 +1,17 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.SoundRecorderContainer;
 import lumien.randomthings.item.SoundRecorderItem;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -18,42 +20,43 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * container (id 0, the sound name) to stamp it onto the blank pattern in the
  * input slot.
  */
-public class SoundRecorderScreen extends ContainerScreen<SoundRecorderContainer> {
+public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/sound_recorder.png");
 
     private SoundNameList soundList;
 
-    public SoundRecorderScreen(SoundRecorderContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public SoundRecorderScreen(SoundRecorderContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 190;
-        this.ySize = 186;
+        this.imageWidth = 190;
+        this.imageHeight = 186;
     }
 
     @Override
     protected void init() {
         super.init();
 
-        ItemStack recorderStack = this.playerInventory.player.getHeldItemMainhand();
+        ItemStack recorderStack = this.minecraft.player.getMainHandItem();
 
-        this.soundList = new SoundNameList(this.minecraft, 180, 50, this.guiTop + 17, this.guiTop + 67, this.guiLeft + 5, SoundRecorderItem.getRecordedSounds(recorderStack), selected -> this.container.send(0, buf -> buf.writeString(selected)));
+        this.soundList = new SoundNameList(this.minecraft, 180, 50, this.topPos + 17, this.topPos + 67, this.leftPos + 5, SoundRecorderItem.getRecordedSounds(recorderStack), selected -> this.menu.send(0, buf -> buf.writeUtf(selected)));
 
-        this.children.add(this.soundList);
+        this.addWidget(this.soundList);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
-        this.font.drawString(matrixStack, new net.minecraft.util.text.TranslationTextComponent("container.inventory").getString(), 15, this.ySize - 96 + 2, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
+        this.font.draw(matrixStack, new net.minecraft.network.chat.TranslatableComponent("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int x = (this.width - this.xSize) / 2;
-        int y = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     // ContainerScreen's mouseDragged/mouseReleased don't forward to child widgets, so the list's
@@ -70,12 +73,12 @@ public class SoundRecorderScreen extends ContainerScreen<SoundRecorderContainer>
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
 
         this.soundList.render(matrixStack, mouseX, mouseY, partialTicks);
 
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 }

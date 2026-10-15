@@ -1,10 +1,10 @@
 package lumien.randomthings.tileentity;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.tileentity.AbstractFurnaceTileEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.List;
@@ -35,10 +35,10 @@ public class PotionVaporizerItemHandler extends ItemStackHandler {
     public boolean isItemValid(int slot, ItemStack stack) {
         switch (slot) {
             case 0:
-                return AbstractFurnaceTileEntity.isFuel(stack);
+                return AbstractFurnaceBlockEntity.isFuel(stack);
             case 1:
-                List<EffectInstance> effects = PotionUtils.getEffectsFromStack(stack);
-                return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getPotion().isInstant();
+                List<MobEffectInstance> effects = PotionUtils.getMobEffects(stack);
+                return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getEffect().isInstantenous();
             case 2:
                 return false;
             default:

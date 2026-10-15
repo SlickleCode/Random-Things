@@ -1,12 +1,12 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
 
 /**
  * Zero friction (see {@link SuperLubricentPlatformBlock}'s class javadoc for
@@ -24,7 +24,7 @@ public class SuperLubricentIceBlock extends Block
 {
 	public SuperLubricentIceBlock()
 	{
-		super(Block.Properties.create(Material.ICE, MaterialColor.ICE).notSolid().hardnessAndResistance(0.5F).slipperiness(1F / 0.91F));
+		super(Block.Properties.of(Material.ICE, MaterialColor.ICE).noOcclusion().strength(0.5F).friction(1F / 0.91F));
 	}
 
 	/**
@@ -33,8 +33,8 @@ public class SuperLubricentIceBlock extends Block
 	 * value.
 	 */
 	@Override
-	public float getSlipperiness(BlockState state, IWorldReader world, BlockPos pos, Entity entity)
+	public float getFriction(BlockState state, LevelReader world, BlockPos pos, Entity entity)
 	{
-		return SuperLubricentPhysics.slipperinessFor(entity, super.getSlipperiness(state, world, pos, entity));
+		return SuperLubricentPhysics.slipperinessFor(entity, super.getFriction(state, world, pos, entity));
 	}
 }

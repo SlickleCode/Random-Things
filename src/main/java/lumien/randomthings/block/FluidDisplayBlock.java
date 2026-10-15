@@ -1,20 +1,22 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.FluidDisplayTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
@@ -30,24 +32,24 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
  * this port's established substitute for exactly that kind of per-instance
  * dynamic render data (see {@code RuneBaseBlock}/{@code RuneBaseTileEntityRenderer}).
  */
-public class FluidDisplayBlock extends Block {
+public class FluidDisplayBlock extends Block implements EntityBlock {
     public FluidDisplayBlock() {
-        super(Block.Properties.create(Material.GLASS).notSolid().sound(SoundType.GLASS).hardnessAndResistance(0.3F));
+        super(Block.Properties.of(Material.GLASS).noOcclusion().sound(SoundType.GLASS).strength(0.3F));
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) {
-            return ActionResultType.SUCCESS;
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (worldIn.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
         if (!(te instanceof FluidDisplayTileEntity)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
         FluidDisplayTileEntity display = (FluidDisplayTileEntity) te;
-        ItemStack heldItem = player.getHeldItem(Hand.MAIN_HAND);
+        ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
 
         IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).orElse(null);
 
@@ -57,17 +59,17 @@ public class FluidDisplayBlock extends Block {
             if (contents != null && !contents.isEmpty()) {
                 display.setFluidStack(new FluidStack(contents.getFluid(), 1000, contents.getTag()));
                 display.syncTE();
-                return ActionResultType.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        if (player.isSneaking()) {
+        if (player.isShiftKeyDown()) {
             display.cycleRotation();
         } else {
             display.toggleFlowing();
         }
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -77,8 +79,8 @@ public class FluidDisplayBlock extends Block {
      * warning, and so breaking this block shows a themed particle effect instead of the default one.
      */
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.INVISIBLE;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     /**
@@ -101,12 +103,8 @@ public class FluidDisplayBlock extends Block {
      * coupling with no 1.12.2 counterpart, not a disclosed simplification.
      */
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new FluidDisplayTileEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new FluidDisplayTileEntity(pos, state);
     }
 }

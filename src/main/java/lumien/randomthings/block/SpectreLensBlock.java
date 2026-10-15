@@ -1,25 +1,35 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
 import lumien.randomthings.tileentity.SpectreLensTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
 /**
  * Ported from 1.12.2's {@code BlockSpectreLens} - a thin cap that can only be placed directly on top of
@@ -28,52 +38,54 @@ import net.minecraft.world.World;
  * no now-obsolete Forge multi-layer blockstate trick), so it's ported faithfully rather than simplified
  * - same 1/16-tall shape, same real texture.
  */
-public class SpectreLensBlock extends Block {
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(0, 0, 0, 16, 1, 16);
+public class SpectreLensBlock extends Block implements EntityBlock {
+    private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 1, 16);
 
     public SpectreLensBlock() {
-        super(Block.Properties.create(Material.GLASS).hardnessAndResistance(0.3F).sound(SoundType.GLASS).variableOpacity());
+        super(Block.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).dynamicShape());
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new SpectreLensTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new SpectreLensTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.SPECTRE_LENS, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
         return isOnBeacon(worldIn, pos);
     }
 
-    private static boolean isOnBeacon(IWorldReader world, BlockPos pos) {
-        return world.getBlockState(pos.down()).getBlock() == Blocks.BEACON;
+    private static boolean isOnBeacon(LevelReader world, BlockPos pos) {
+        return world.getBlockState(pos.below()).getBlock() == Blocks.BEACON;
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!worldIn.isRemote && !isOnBeacon(worldIn, pos)) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!worldIn.isClientSide && !isOnBeacon(worldIn, pos)) {
             worldIn.destroyBlock(pos, true);
         }
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isRemote && placer instanceof PlayerEntity) {
-            GameProfile profile = ((PlayerEntity) placer).getGameProfile();
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (!worldIn.isClientSide && placer instanceof Player) {
+            GameProfile profile = ((Player) placer).getGameProfile();
 
             if (profile != null) {
                 UUID id = profile.getId();
-                TileEntity te = worldIn.getTileEntity(pos);
+                BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof SpectreLensTileEntity) {
                     ((SpectreLensTileEntity) te).setOwner(id);

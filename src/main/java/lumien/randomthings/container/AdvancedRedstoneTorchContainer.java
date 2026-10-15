@@ -2,52 +2,52 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.AdvancedRedstoneTorchTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 
 /**
  * AdvancedRedstoneTorchContainer
  */
-public class AdvancedRedstoneTorchContainer extends Container implements ISignalContainer
+public class AdvancedRedstoneTorchContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public IntReferenceHolder strengthGreen = IntReferenceHolder.single();
-	public IntReferenceHolder strengthRed = IntReferenceHolder.single();
+	public DataSlot strengthGreen = DataSlot.standalone();
+	public DataSlot strengthRed = DataSlot.standalone();
 
 	AdvancedRedstoneTorchTileEntity te;
 
-	public AdvancedRedstoneTorchContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public AdvancedRedstoneTorchContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, IWorldPosCallable.DUMMY);
+		this(windowId, ContainerLevelAccess.NULL);
 	}
 
-	public AdvancedRedstoneTorchContainer(int windowId, IWorldPosCallable pos)
+	public AdvancedRedstoneTorchContainer(int windowId, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.ADVANCED_REDSTONE_TORCH, windowId);
 
 		this.pos = pos;
 
-		this.trackInt(strengthGreen);
-		this.trackInt(strengthRed);
+		this.addDataSlot(strengthGreen);
+		this.addDataSlot(strengthRed);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.ADVANCED_REDSTONE_TORCH) || isWithinUsableDistance(this.pos, playerIn, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH);
+		return stillValid(this.pos, playerIn, ModBlocks.ADVANCED_REDSTONE_TORCH) || stillValid(this.pos, playerIn, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof AdvancedRedstoneTorchTileEntity)
 			{
@@ -58,18 +58,18 @@ public class AdvancedRedstoneTorchContainer extends Container implements ISignal
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
 			int action = data.readInt();
 
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof AdvancedRedstoneTorchTileEntity)
 				{
@@ -91,7 +91,7 @@ public class AdvancedRedstoneTorchContainer extends Container implements ISignal
 							break;
 					}
 
-					art.getWorld().notifyNeighborsOfStateChange(art.getPos(), art.getBlockState().getBlock());
+					art.getLevel().updateNeighborsAt(art.getBlockPos(), art.getBlockState().getBlock());
 				}
 			});
 		}

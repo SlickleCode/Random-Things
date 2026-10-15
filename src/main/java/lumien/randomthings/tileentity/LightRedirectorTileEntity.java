@@ -6,13 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityLightRedirector}: which of the 6
@@ -41,19 +41,19 @@ import net.minecraft.block.BlockState;
  * directly out of {@link #onDataPacket} instead - no separate message class
  * needed.
  */
-public class LightRedirectorTileEntity extends TileEntity {
+public class LightRedirectorTileEntity extends BlockEntity {
     public static final Set<LightRedirectorTileEntity> REDIRECTORS = WeakSets.create();
 
     private final Map<Direction, Boolean> enabledMap = new EnumMap<>(Direction.class);
     public final Map<BlockPos, BlockPos> targets = new HashMap<>();
     public boolean established;
 
-    public LightRedirectorTileEntity() {
-        super(ModTileEntityTypes.LIGHT_REDIRECTOR);
+    public LightRedirectorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.LIGHT_REDIRECTOR, pos, state);
 
         for (Direction facing : Direction.values()) {
             enabledMap.put(facing, true);
-        }
+    }
 
         REDIRECTORS.add(this);
     }
@@ -64,10 +64,10 @@ public class LightRedirectorTileEntity extends TileEntity {
 
     public void toggleSide(Direction facing) {
         enabledMap.put(facing, !enabledMap.get(facing));
-        this.markDirty();
+        this.setChanged();
 
-        if (this.world != null) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
@@ -75,66 +75,66 @@ public class LightRedirectorTileEntity extends TileEntity {
     public void onLoad() {
         super.onLoad();
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             established = true;
 
             for (Direction facing : Direction.values()) {
-                this.world.notifyBlockUpdate(this.pos.offset(facing), this.world.getBlockState(this.pos.offset(facing)), this.world.getBlockState(this.pos.offset(facing)), 3);
+                this.level.sendBlockUpdated(this.worldPosition.relative(facing), this.level.getBlockState(this.worldPosition.relative(facing)), this.level.getBlockState(this.worldPosition.relative(facing)), 3);
             }
         }
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         REDIRECTORS.remove(this);
 
-        if (this.world != null && this.world.isRemote) {
+        if (this.level != null && this.level.isClientSide) {
             for (Direction facing : Direction.values()) {
-                this.world.notifyBlockUpdate(this.pos.offset(facing), this.world.getBlockState(this.pos.offset(facing)), this.world.getBlockState(this.pos.offset(facing)), 3);
+                this.level.sendBlockUpdated(this.worldPosition.relative(facing), this.level.getBlockState(this.worldPosition.relative(facing)), this.level.getBlockState(this.worldPosition.relative(facing)), 3);
             }
         }
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
 
         targets.clear();
 
         for (Direction facing : Direction.values()) {
-            this.world.notifyBlockUpdate(this.pos.offset(facing), this.world.getBlockState(this.pos.offset(facing)), this.world.getBlockState(this.pos.offset(facing)), 3);
+            this.level.sendBlockUpdated(this.worldPosition.relative(facing), this.level.getBlockState(this.worldPosition.relative(facing)), this.level.getBlockState(this.worldPosition.relative(facing)), 3);
         }
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         for (Direction facing : Direction.values()) {
-            compound.putBoolean("enabled_" + facing.getString(), enabledMap.get(facing));
+            compound.putBoolean("enabled_" + facing.getSerializedName(), enabledMap.get(facing));
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         for (Direction facing : Direction.values()) {
-            String key = "enabled_" + facing.getString();
+            String key = "enabled_" + facing.getSerializedName();
 
             if (compound.contains(key)) {
                 enabledMap.put(facing, compound.getBoolean(key));

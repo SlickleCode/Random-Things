@@ -3,15 +3,15 @@ package lumien.randomthings.item;
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.entity.SpectreIlluminatorEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click a block to place a {@link SpectreIlluminatorEntity}, which
@@ -25,12 +25,12 @@ public class SpectreIlluminatorItem extends Item {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
-        PlayerEntity player = context.getPlayer();
+    public InteractionResult useOn(UseOnContext context) {
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
 
-        if (!world.isRemote) {
+        if (!world.isClientSide) {
             ChunkPos cp = new ChunkPos(pos);
 
             boolean alreadyLit = false;
@@ -45,26 +45,26 @@ public class SpectreIlluminatorItem extends Item {
             if (alreadyLit) {
                 RTDebug.log("[SpectreIlluminator] placement at {} refused: chunk {} already has an illuminated orb", pos, cp);
             } else {
-                AxisAlignedBB scanBox = new AxisAlignedBB(new BlockPos(cp.getXStart() - 2, 0, cp.getZStart() - 2), new BlockPos(cp.getXEnd() + 2, 255, cp.getZEnd() + 2));
-                java.util.List<SpectreIlluminatorEntity> nearby = world.getEntitiesWithinAABB(SpectreIlluminatorEntity.class, scanBox);
+                AABB scanBox = new AABB(new BlockPos(cp.getMinBlockX() - 2, world.getMinBuildHeight(), cp.getMinBlockZ() - 2), new BlockPos(cp.getMaxBlockX() + 2, world.getMaxBuildHeight() - 1, cp.getMaxBlockZ() + 2));
+                java.util.List<SpectreIlluminatorEntity> nearby = world.getEntitiesOfClass(SpectreIlluminatorEntity.class, scanBox);
 
                 if (!nearby.isEmpty()) {
-                    RTDebug.log("[SpectreIlluminator] placement at {} refused: {} existing orb(s) within 2 chunks (e.g. {} at {}, illuminated={})", pos, nearby.size(), nearby.get(0), nearby.get(0).getPosition(), nearby.get(0).isIlluminated());
-                    return ActionResultType.FAIL;
+                    RTDebug.log("[SpectreIlluminator] placement at {} refused: {} existing orb(s) within 2 chunks (e.g. {} at {}, illuminated={})", pos, nearby.size(), nearby.get(0), nearby.get(0).blockPosition(), nearby.get(0).isIlluminated());
+                    return InteractionResult.FAIL;
                 }
 
                 SpectreIlluminatorEntity illuminator = new SpectreIlluminatorEntity(world, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5);
-                world.addEntity(illuminator);
+                world.addFreshEntity(illuminator);
 
-                RTDebug.log("[SpectreIlluminator] placed at {} (entity {})", pos, illuminator.getEntityId());
+                RTDebug.log("[SpectreIlluminator] placed at {} (entity {})", pos, illuminator.getId());
 
-                if (player == null || !player.abilities.isCreativeMode) {
-                    ItemStack stack = context.getItem();
+                if (player == null || !player.getAbilities().instabuild) {
+                    ItemStack stack = context.getItemInHand();
                     stack.shrink(1);
                 }
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

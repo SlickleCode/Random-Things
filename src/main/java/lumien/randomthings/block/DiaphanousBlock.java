@@ -1,22 +1,24 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 /**
  * Direct port of 1.12.2's {@code BlockBlockDiaphanous}: a non-solid block
@@ -53,28 +55,24 @@ import net.minecraft.world.server.ServerWorld;
  * reproducing it faithfully would need hand-rolled particle positioning like
  * 1.12.2's own version - not worth it for a detail this minor.
  */
-public class DiaphanousBlock extends Block {
+public class DiaphanousBlock extends Block implements EntityBlock {
     public DiaphanousBlock() {
-        super(Block.Properties.create(Material.GLASS).notSolid().sound(net.minecraft.block.SoundType.GLASS).hardnessAndResistance(0.3F).doesNotBlockMovement());
+        super(Block.Properties.of(Material.GLASS).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.INVISIBLE;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.INVISIBLE;
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new DiaphanousBlockTileEntity(pos, state);
     }
 
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new DiaphanousBlockTileEntity();
-    }
-
-    private static boolean isInverted(IBlockReader world, BlockPos pos) {
-        TileEntity te = world.getTileEntity(pos);
+    private static boolean isInverted(BlockGetter world, BlockPos pos) {
+        BlockEntity te = world.getBlockEntity(pos);
         return te instanceof DiaphanousBlockTileEntity && ((DiaphanousBlockTileEntity) te).isInverted();
     }
 
@@ -94,88 +92,93 @@ public class DiaphanousBlock extends Block {
      * gated on {@code inverted}.
      */
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return VoxelShapes.fullCube();
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return Shapes.block();
     }
 
     @Override
-    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return isInverted(worldIn, pos) ? VoxelShapes.fullCube() : VoxelShapes.empty();
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return isInverted(worldIn, pos) ? Shapes.block() : Shapes.empty();
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(worldIn, pos, state, placer, stack);
 
-        if (worldIn.isRemote) {
+        if (worldIn.isClientSide) {
             return;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (!(te instanceof DiaphanousBlockTileEntity) || !stack.hasTag()) {
             return;
         }
 
-        CompoundNBT tag = stack.getTag();
+        CompoundTag tag = stack.getTag();
 
         if (!tag.contains("block")) {
             return;
         }
 
-        net.minecraft.block.Block displayBlock = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation(tag.getString("block")));
+        net.minecraft.world.level.block.Block displayBlock = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.resources.ResourceLocation(tag.getString("block")));
 
         if (displayBlock != null) {
-            ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.getDefaultState(), tag.getBoolean("inverted"));
+            ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBoolean("inverted"));
         }
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (newState.getBlock() != this && !worldIn.isRemote) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (newState.getBlock() != this && !worldIn.isClientSide) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof DiaphanousBlockTileEntity) {
                 DiaphanousBlockTileEntity diaphanous = (DiaphanousBlockTileEntity) te;
 
                 ItemStack drop = new ItemStack(this);
-                CompoundNBT tag = new CompoundNBT();
+                CompoundTag tag = new CompoundTag();
                 tag.putString("block", diaphanous.getDisplayState().getBlock().getRegistryName().toString());
                 tag.putBoolean("inverted", diaphanous.isInverted());
                 drop.setTag(tag);
 
-                Block.spawnAsEntity(worldIn, pos, drop);
+                Block.popResource(worldIn, pos, drop);
             }
         }
 
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override
-    public boolean addLandingEffects(BlockState state, ServerWorld worldObj, BlockPos pos, BlockState iblockstate, LivingEntity entity, int numberOfParticles) {
-        TileEntity te = worldObj.getTileEntity(pos);
+    public boolean addLandingEffects(BlockState state, ServerLevel worldObj, BlockPos pos, BlockState iblockstate, LivingEntity entity, int numberOfParticles) {
+        BlockEntity te = worldObj.getBlockEntity(pos);
 
         if (!(te instanceof DiaphanousBlockTileEntity)) {
             return false;
         }
 
         BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
-        worldObj.spawnParticle(new net.minecraft.particles.BlockParticleData(net.minecraft.particles.ParticleTypes.BLOCK, display), pos.getX(), pos.getY(), pos.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15000000596046448D);
+        worldObj.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, display), pos.getX(), pos.getY(), pos.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15000000596046448D);
 
         return true;
     }
 
     @Override
-    public boolean addDestroyEffects(BlockState state, World world, BlockPos pos, ParticleManager manager) {
-        TileEntity te = world.getTileEntity(pos);
+    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.IBlockRenderProperties> consumer) {
+        consumer.accept(new net.minecraftforge.client.IBlockRenderProperties() {
+            @Override
+            public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine manager) {
+                BlockEntity te = world.getBlockEntity(pos);
 
-        if (!(te instanceof DiaphanousBlockTileEntity)) {
-            return false;
-        }
+                if (!(te instanceof DiaphanousBlockTileEntity)) {
+                    return false;
+                }
 
-        BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
-        manager.addBlockDestroyEffects(pos, display);
+                BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
+                manager.destroy(pos, display);
 
-        return true;
+                return true;
+            }
+        });
     }
 }

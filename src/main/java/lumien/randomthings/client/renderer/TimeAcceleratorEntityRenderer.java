@@ -4,16 +4,16 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 /**
@@ -34,32 +34,32 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
     /** How far past the block's own half-width (0.5) each icon sits. */
     private static final float SURFACE_GAP = 0.05F;
 
-    public TimeAcceleratorEntityRenderer(EntityRendererManager renderManager) {
+    public TimeAcceleratorEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
 
-        this.shadowSize = 0F;
+        this.shadowRadius = 0F;
     }
 
     @Override
-    public void render(TimeAcceleratorEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
+    public void render(TimeAcceleratorEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         ItemStack stack = entity.getItem();
         float offset = 0.5F + SURFACE_GAP;
 
         for (Direction direction : Direction.values()) {
-            matrixStack.push();
-            matrixStack.translate(direction.getXOffset() * offset, direction.getYOffset() * offset, direction.getZOffset() * offset);
+            matrixStack.pushPose();
+            matrixStack.translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset);
             // billboard: face the camera, then flip like the 1.14.4 renderer did
-            matrixStack.rotate(this.renderManager.getCameraOrientation());
-            matrixStack.rotate(Vector3f.YP.rotationDegrees(180.0F));
+            matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+            matrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, 0);
 
-            matrixStack.pop();
+            matrixStack.popPose();
         }
     }
 
     @Override
-    public ResourceLocation getEntityTexture(TimeAcceleratorEntity entity) {
+    public ResourceLocation getTextureLocation(TimeAcceleratorEntity entity) {
         return null;
     }
 }

@@ -1,17 +1,19 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import java.awt.Color;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.DyeingMachineContainer;
 import lumien.randomthings.util.DyeUtil;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -19,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * swatch that eases between the machine's "idle" color and whatever dye
  * currently sits in the dye slot.
  */
-public class DyeingMachineScreen extends ContainerScreen<DyeingMachineContainer> {
+public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/dyeing_machine.png");
     private static final int IDLE_COLOR = 9145227;
     private static final float COLOR_MOD = 1F / 255F;
@@ -28,16 +30,16 @@ public class DyeingMachineScreen extends ContainerScreen<DyeingMachineContainer>
     private int currentColor = IDLE_COLOR;
     private float p = 1;
 
-    public DyeingMachineScreen(DyeingMachineContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public DyeingMachineScreen(DyeingMachineContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 176;
-        this.ySize = 141;
+        this.imageWidth = 176;
+        this.imageHeight = 141;
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
+        super.containerTick();
 
         if (this.currentColor != this.targetColor) {
             this.p -= 0.02f;
@@ -55,41 +57,42 @@ public class DyeingMachineScreen extends ContainerScreen<DyeingMachineContainer>
             this.p = 1;
         }
 
-        if (this.container.getSlot(1).getHasStack() && p == 1) {
-            ItemStack dye = this.container.getSlot(1).getStack();
+        if (this.menu.getSlot(1).hasItem() && p == 1) {
+            ItemStack dye = this.menu.getSlot(1).getItem();
 
             int checkDye = DyeUtil.getDyeColor(dye);
 
             if (checkDye != 0) {
                 this.targetColor = checkDye;
             }
-        } else if (!this.container.getSlot(1).getHasStack() && p == 1) {
+        } else if (!this.menu.getSlot(1).hasItem() && p == 1) {
             targetColor = IDLE_COLOR;
         }
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int x = (this.width - this.xSize) / 2;
-        int y = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         Color c = new Color(currentColor);
-        RenderSystem.color3f(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue());
+        RenderSystem.setShaderColor(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue(), 1.0F);
         this.blit(matrixStack, x + 102, y + 23, 176, 21, 22, 15);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 }

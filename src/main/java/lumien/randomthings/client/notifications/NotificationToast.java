@@ -1,19 +1,21 @@
 package lumien.randomthings.client.notifications;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import net.minecraft.client.gui.toasts.IToast;
-import net.minecraft.client.gui.toasts.ToastGui;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.components.toasts.Toast;
+import net.minecraft.client.gui.components.toasts.ToastComponent;
+import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
  * A vanilla-style toast showing a title/description and an item icon,
  * triggered by {@code NotificationInterfaceBlock}. Layout ground-truthed via
  * bytecode disassembly of vanilla's own {@code SystemToast.draw}.
  */
-public class NotificationToast implements IToast
+public class NotificationToast implements Toast
 {
 	private static final long DISPLAY_TIME_MS = 5000L;
 
@@ -32,7 +34,7 @@ public class NotificationToast implements IToast
 	}
 
 	@Override
-	public Visibility func_230444_a_(MatrixStack matrixStack, ToastGui toastGui, long delta)
+	public Visibility render(PoseStack matrixStack, ToastComponent toastGui, long delta)
 	{
 		if (newDisplay)
 		{
@@ -40,16 +42,17 @@ public class NotificationToast implements IToast
 			newDisplay = false;
 		}
 
-		toastGui.getMinecraft().getTextureManager().bindTexture(TEXTURE_TOASTS);
-		RenderSystem.color3f(1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, TEXTURE);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		toastGui.blit(matrixStack, 0, 0, 0, 0, 160, 32);
 
-		toastGui.getMinecraft().fontRenderer.drawString(matrixStack, title, 30, 7, 0xFFFFFF00);
-		toastGui.getMinecraft().fontRenderer.drawString(matrixStack, description, 30, 18, 0xFFFFFFFF);
+		toastGui.getMinecraft().font.draw(matrixStack, title, 30, 7, 0xFFFFFF00);
+		toastGui.getMinecraft().font.draw(matrixStack, description, 30, 18, 0xFFFFFFFF);
 
 		if (!icon.isEmpty())
 		{
-			toastGui.getMinecraft().getItemRenderer().renderItemAndEffectIntoGUI(icon, 8, 8);
+			toastGui.getMinecraft().getItemRenderer().renderAndDecorateItem(icon, 8, 8);
 		}
 
 		return delta - firstDrawTime < DISPLAY_TIME_MS ? Visibility.SHOW : Visibility.HIDE;

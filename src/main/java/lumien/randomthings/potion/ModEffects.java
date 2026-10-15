@@ -1,6 +1,6 @@
 package lumien.randomthings.potion;
 
-import net.minecraft.potion.Effect;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
@@ -10,19 +10,19 @@ import java.awt.*;
 @ObjectHolder("randomthings")
 public class ModEffects {
     @ObjectHolder("imbue_fire")
-    public static Effect IMBUE_FIRE;
+    public static MobEffect IMBUE_FIRE;
 
     @ObjectHolder("imbue_poison")
-    public static Effect IMBUE_POISON;
+    public static MobEffect IMBUE_POISON;
 
     @ObjectHolder("imbue_experience")
-    public static Effect IMBUE_EXPERIENCE;
+    public static MobEffect IMBUE_EXPERIENCE;
 
     @ObjectHolder("imbue_wither")
-    public static Effect IMBUE_WITHER;
+    public static MobEffect IMBUE_WITHER;
 
-    public static void registerEffects(Register<Effect> effectRegistryEvent) {
-        IForgeRegistry<Effect> registry = effectRegistryEvent.getRegistry();
+    public static void registerEffects(Register<MobEffect> effectRegistryEvent) {
+        IForgeRegistry<MobEffect> registry = effectRegistryEvent.getRegistry();
 
         registry.register(new ImbueEffect(Color.ORANGE.getRGB()).setRegistryName("imbue_fire"));
         registry.register(new ImbueEffect(Color.GREEN.darker().getRGB()).setRegistryName("imbue_poison"));

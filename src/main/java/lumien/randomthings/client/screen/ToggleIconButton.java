@@ -1,16 +1,18 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.util.text.StringTextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.network.chat.TextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
  * Port of 1.12.2's {@code GuiCustomButton}: a two-state sprite button drawn straight from the
@@ -26,9 +28,9 @@ public class ToggleIconButton extends Button implements TooltipButton
 	private final BooleanSupplier value;
 	private Function<Boolean, String> tooltip;
 
-	public ToggleIconButton(int x, int y, int width, int height, ResourceLocation texture, int u, int v, BooleanSupplier value, IPressable onPress)
+	public ToggleIconButton(int x, int y, int width, int height, ResourceLocation texture, int u, int v, BooleanSupplier value, OnPress onPress)
 	{
-		super(x, y, width, height, new StringTextComponent(""), onPress);
+		super(x, y, width, height, new TextComponent(""), onPress);
 
 		this.texture = texture;
 		this.u = u;
@@ -49,10 +51,11 @@ public class ToggleIconButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
-		Minecraft.getInstance().getTextureManager().bindTexture(this.texture);
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		this.blit(matrixStack, this.x, this.y, this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered() ? 20 : 0), this.width, this.height);
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderTexture(0, this.texture);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		this.blit(matrixStack, this.x, this.y, this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered ? 20 : 0), this.width, this.height);
 	}
 }

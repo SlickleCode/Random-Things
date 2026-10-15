@@ -1,5 +1,24 @@
 package lumien.randomthings;
 
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+
+import net.minecraft.core.Direction;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.damagesource.IndirectEntityDamageSource;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ShovelItem;
+import net.minecraft.world.item.context.UseOnContext;
+
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.asm.AsmHandler;
 import lumien.randomthings.block.*;
@@ -22,38 +41,34 @@ import lumien.randomthings.tileentity.*;
 import lumien.randomthings.util.EscapeRopeHandler;
 import lumien.randomthings.util.InventoryUtil;
 import lumien.randomthings.worldgen.ModFeatures;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MoverType;
-import net.minecraft.entity.item.BoatEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.item.*;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.*;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.util.*;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.gen.placement.ChanceConfig;
-import net.minecraft.world.gen.placement.Placement;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.GenerationStep;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.ServerChatEvent;
@@ -100,7 +115,7 @@ public class RandomThings {
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> {
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.server.ServerAboutToStartEvent event) -> {
             lumien.randomthings.handler.ModDimensions.addToServer(event.getServer());
             lumien.randomthings.worldgen.PeaceCandleChurchPool.install(event.getServer());
         });
@@ -112,17 +127,17 @@ public class RandomThings {
         }
 
         MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
-            ItemUseContext context = event.getContext();
+            UseOnContext context = event.getContext();
 
-            World world = context.getWorld();
-            BlockPos pos = context.getPos();
+            Level world = context.getLevel();
+            BlockPos pos = context.getClickedPos();
             BlockState state = world.getBlockState(pos);
 
-            if (state.getBlock() == ModBlocks.FERTILIZED_DIRT && !state.get(FertilizedDirtBlock.TILLED)) {
+            if (state.getBlock() == ModBlocks.FERTILIZED_DIRT && !state.getValue(FertilizedDirtBlock.TILLED)) {
                 event.setResult(Result.ALLOW);
-                world.setBlockState(pos, state.with(FertilizedDirtBlock.TILLED, true));
-                PlayerEntity playerentity = context.getPlayer();
-                world.playSound(playerentity, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                world.setBlockAndUpdate(pos, state.setValue(FertilizedDirtBlock.TILLED, true));
+                Player playerentity = context.getPlayer();
+                world.playSound(playerentity, pos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
             }
         });
 
@@ -138,29 +153,29 @@ public class RandomThings {
                 return;
             }
 
-            World world = event.getWorld();
+            Level world = event.getWorld();
             BlockPos pos = event.getPos();
             BlockState targetState = world.getBlockState(pos);
-            PlayerEntity player = event.getPlayer();
+            Player player = event.getPlayer();
 
             if (targetState.getBlock() == Blocks.SLIME_BLOCK) {
-                player.swingArm(event.getHand());
+                player.swing(event.getHand());
 
-                if (!world.isRemote) {
-                    world.setBlockState(pos, ModBlocks.COMPRESSED_SLIME_BLOCK.getDefaultState());
-                    world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundCategory.PLAYERS, 1.0F, 0.8F);
-                    equipped.damageItem(1, player, (p) -> p.sendBreakAnimation(event.getHand()));
+                if (!world.isClientSide) {
+                    world.setBlockAndUpdate(pos, ModBlocks.COMPRESSED_SLIME_BLOCK.defaultBlockState());
+                    world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F);
+                    equipped.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(event.getHand()));
                 }
             } else if (targetState.getBlock() == ModBlocks.COMPRESSED_SLIME_BLOCK) {
-                int currentCompression = targetState.get(CompressedSlimeBlock.COMPRESSION);
+                int currentCompression = targetState.getValue(CompressedSlimeBlock.COMPRESSION);
 
                 if (currentCompression < 2) {
-                    player.swingArm(event.getHand());
+                    player.swing(event.getHand());
 
-                    if (!world.isRemote) {
-                        world.setBlockState(pos, targetState.with(CompressedSlimeBlock.COMPRESSION, currentCompression + 1));
-                        world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundCategory.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
-                        equipped.damageItem(1, player, (p) -> p.sendBreakAnimation(event.getHand()));
+                    if (!world.isClientSide) {
+                        world.setBlockAndUpdate(pos, targetState.setValue(CompressedSlimeBlock.COMPRESSION, currentCompression + 1));
+                        world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
+                        equipped.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(event.getHand()));
                     }
                 }
             }
@@ -174,23 +189,23 @@ public class RandomThings {
         // the clicked block, and activates the first match found (button checked
         // before lever, matching the original's ordering).
         MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
-            World world = event.getWorld();
+            Level world = event.getWorld();
 
-            if (world.isRemote || event.getHand() != Hand.MAIN_HAND) {
+            if (world.isClientSide || event.getHand() != InteractionHand.MAIN_HAND) {
                 return;
             }
 
             BlockPos clickedPos = event.getPos();
 
             for (Direction facing : Direction.values()) {
-                BlockPos neighborPos = clickedPos.offset(facing);
+                BlockPos neighborPos = clickedPos.relative(facing);
                 BlockState neighborState = world.getBlockState(neighborPos);
                 Block neighborBlock = neighborState.getBlock();
 
-                if (neighborBlock instanceof ContactButtonBlock && neighborState.get(ContactButtonBlock.FACING) == facing.getOpposite()) {
+                if (neighborBlock instanceof ContactButtonBlock && neighborState.getValue(ContactButtonBlock.FACING) == facing.getOpposite()) {
                     ((ContactButtonBlock) neighborBlock).activate(world, neighborPos, facing.getOpposite());
                     break;
-                } else if (neighborBlock instanceof ContactLeverBlock && neighborState.get(ContactLeverBlock.FACING) == facing.getOpposite()) {
+                } else if (neighborBlock instanceof ContactLeverBlock && neighborState.getValue(ContactLeverBlock.FACING) == facing.getOpposite()) {
                     ((ContactLeverBlock) neighborBlock).activate(world, neighborPos, facing.getOpposite());
                     break;
                 }
@@ -204,30 +219,30 @@ public class RandomThings {
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
         MinecraftForge.EVENT_BUS.addListener((LivingHurtEvent event) -> {
-            if (event.isCanceled() || event.getEntityLiving().world.isRemote || !(event.getSource() instanceof EntityDamageSource) || event.getSource() instanceof IndirectEntityDamageSource) {
+            if (event.isCanceled() || event.getEntityLiving().level.isClientSide || !(event.getSource() instanceof EntityDamageSource) || event.getSource() instanceof IndirectEntityDamageSource) {
                 return;
             }
 
             EntityDamageSource damageSource = (EntityDamageSource) event.getSource();
 
-            if (!(damageSource.getTrueSource() instanceof LivingEntity)) {
+            if (!(damageSource.getEntity() instanceof LivingEntity)) {
                 return;
             }
 
-            LivingEntity attacker = (LivingEntity) damageSource.getTrueSource();
+            LivingEntity attacker = (LivingEntity) damageSource.getEntity();
 
-            if (attacker.isPotionActive(ModEffects.IMBUE_FIRE)) {
-                event.getEntityLiving().setFire(10);
-            } else if (attacker.isPotionActive(ModEffects.IMBUE_WITHER)) {
-                event.getEntityLiving().addPotionEffect(new EffectInstance(Effects.WITHER, 5 * 20, 1));
-            } else if (attacker.isPotionActive(ModEffects.IMBUE_POISON)) {
-                event.getEntityLiving().addPotionEffect(new EffectInstance(Effects.POISON, 10 * 20, 1));
+            if (attacker.hasEffect(ModEffects.IMBUE_FIRE)) {
+                event.getEntityLiving().setSecondsOnFire(10);
+            } else if (attacker.hasEffect(ModEffects.IMBUE_WITHER)) {
+                event.getEntityLiving().addEffect(new MobEffectInstance(MobEffects.WITHER, 5 * 20, 1));
+            } else if (attacker.hasEffect(ModEffects.IMBUE_POISON)) {
+                event.getEntityLiving().addEffect(new MobEffectInstance(MobEffects.POISON, 10 * 20, 1));
             }
         });
 
         // Imbue Experience: doubles whatever XP a kill would have dropped.
         MinecraftForge.EVENT_BUS.addListener((LivingExperienceDropEvent event) -> {
-            if (event.getAttackingPlayer() != null && event.getAttackingPlayer().isPotionActive(ModEffects.IMBUE_EXPERIENCE)) {
+            if (event.getAttackingPlayer() != null && event.getAttackingPlayer().hasEffect(ModEffects.IMBUE_EXPERIENCE)) {
                 event.setDroppedExperience(event.getDroppedExperience() + event.getOriginalExperience());
             }
         });
@@ -254,7 +269,7 @@ public class RandomThings {
                 return;
             }
 
-            boolean wearingLubricentBoots = !entity.isSneaking() && entity.getItemStackFromSlot(EquipmentSlotType.FEET).getItem() instanceof SuperLubricentBootsItem;
+            boolean wearingLubricentBoots = !entity.isShiftKeyDown() && entity.getItemBySlot(EquipmentSlot.FEET).getItem() instanceof SuperLubricentBootsItem;
 
             if (!wearingLubricentBoots && !SuperLubricentPhysics.isOnLubricentBlock(entity)) {
                 return;
@@ -303,13 +318,13 @@ public class RandomThings {
         // input climbing toward the limit, not compensating for anything
         // growing on its own anymore.
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
-            for (Entity entity : ((ServerWorld) event.world).getEntities(EntityType.BOAT, e -> true)) {
-                if (entity instanceof BoatEntity && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((BoatEntity) entity);
+            for (Entity entity : ((ServerLevel) event.world).getEntities(EntityType.BOAT, e -> true)) {
+                if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
             }
         });
@@ -319,13 +334,13 @@ public class RandomThings {
         // own spawn tile (or fully back home if they don't have a cube at all). Direct
         // port of 1.12.2's RTEventHandler#livingUpdate's Spectre-dimension branch.
         MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
-            if (event.getEntityLiving().world.isRemote || !(event.getEntityLiving() instanceof ServerPlayerEntity)) {
+            if (event.getEntityLiving().level.isClientSide || !(event.getEntityLiving() instanceof ServerPlayer)) {
                 return;
             }
 
-            ServerPlayerEntity player = (ServerPlayerEntity) event.getEntityLiving();
+            ServerPlayer player = (ServerPlayer) event.getEntityLiving();
 
-            if (lumien.randomthings.handler.ModDimensions.isSpectre(player.world)) {
+            if (lumien.randomthings.handler.ModDimensions.isSpectre(player.level)) {
                 lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.getServer());
 
                 if (spectreHandler != null) {
@@ -339,33 +354,33 @@ public class RandomThings {
         // on the item itself (Item.onEntityItemUpdate doesn't exist in this Forge
         // build).
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
-            ((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
         });
 
         // Drives FlooTokenItem's on-the-ground-long-enough-to-spawn-a-fireplace
         // countdown - same "no Item.onEntityItemUpdate hook in this Forge build"
         // finding as StableEnderpearlItem above, same fix.
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
-            ((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
         });
 
         // Drives PortkeyItem's "sitting on the ground, priming" countdown - same
         // "no Item.onEntityItemUpdate hook in this Forge build" finding as
         // StableEnderpearlItem/FlooTokenItem above, same fix.
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
-            ((ServerWorld) event.world).getEntities().filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
         });
 
         // Teleports whoever picks up a primed, bound PortkeyItem to its target
@@ -377,19 +392,19 @@ public class RandomThings {
             ItemEntity ei = event.getItem();
             ItemStack stack = ei.getItem();
 
-            if (ei.world.isRemote || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
+            if (ei.level.isClientSide || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
                 return;
             }
 
-            CompoundNBT compound = stack.getTag();
+            CompoundTag compound = stack.getTag();
 
             if (compound == null || !compound.getBoolean("hasTarget") || compound.getInt("dropCounter") <= 100) {
                 return;
             }
 
-            PlayerEntity player = event.getPlayer();
+            Player player = event.getPlayer();
 
-            if (!(player instanceof ServerPlayerEntity) || !player.world.getDimensionKey().getLocation().toString().equals(compound.getString("dimension"))) {
+            if (!(player instanceof ServerPlayer) || !player.level.dimension().location().toString().equals(compound.getString("dimension"))) {
                 return;
             }
 
@@ -401,11 +416,11 @@ public class RandomThings {
 
             for (int modX = -2; modX <= 2; modX++) {
                 for (int modZ = -2; modZ <= 2; modZ++) {
-                    for (int y = targetY; y >= 0 && y >= targetY - 10; y--) {
+                    for (int y = targetY; y >= ei.level.getMinBuildHeight() && y >= targetY - 10; y--) {
                         BlockPos evPos = new BlockPos(targetX + modX, y, targetZ + modZ);
-                        BlockState belowState = ei.world.getBlockState(evPos);
+                        BlockState belowState = ei.level.getBlockState(evPos);
 
-                        if (Block.hasEnoughSolidSide(ei.world, evPos, net.minecraft.util.Direction.UP) && ei.world.isAirBlock(evPos.up()) && ei.world.isAirBlock(evPos.up().up())) {
+                        if (Block.canSupportCenter(ei.level, evPos, net.minecraft.core.Direction.UP) && ei.level.isEmptyBlock(evPos.above()) && ei.level.isEmptyBlock(evPos.above().above())) {
                             possiblePositions.add(evPos);
                         }
                     }
@@ -416,12 +431,12 @@ public class RandomThings {
                 java.util.Collections.shuffle(possiblePositions);
 
                 BlockPos teleportTarget = possiblePositions.get(0);
-                ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+                ServerPlayer serverPlayer = (ServerPlayer) player;
 
-                player.world.playSound(null, player.getPosition(), net.minecraft.util.SoundEvents.ENTITY_ENDERMAN_TELEPORT, net.minecraft.util.SoundCategory.PLAYERS, 1, 1);
-                serverPlayer.connection.setPlayerLocation(teleportTarget.getX() + 0.5, teleportTarget.getY() + 1, teleportTarget.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
+                player.level.playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.ENDERMAN_TELEPORT, net.minecraft.sounds.SoundSource.PLAYERS, 1, 1);
+                serverPlayer.connection.teleport(teleportTarget.getX() + 0.5, teleportTarget.getY() + 1, teleportTarget.getZ() + 0.5, player.getYRot(), player.getXRot());
 
-                ei.remove();
+                ei.discard();
                 event.setCanceled(true);
             }
         });
@@ -434,34 +449,34 @@ public class RandomThings {
         // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
         // inventory only - Baubles isn't present in this port).
         MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGHEST, (net.minecraftforge.event.entity.player.PlayerEvent.Clone event) -> {
-            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getPlayer() instanceof net.minecraftforge.common.util.FakePlayer || event.getPlayer().world.getGameRules().getBoolean(net.minecraft.world.GameRules.KEEP_INVENTORY)) {
+            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getPlayer() instanceof net.minecraftforge.common.util.FakePlayer || event.getPlayer().level.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
                 return;
             }
 
-            PlayerEntity oldPlayer = event.getOriginal();
-            PlayerEntity newPlayer = event.getPlayer();
+            Player oldPlayer = event.getOriginal();
+            Player newPlayer = event.getPlayer();
 
-            for (int i = 0; i < oldPlayer.inventory.getSizeInventory(); i++) {
-                ItemStack stack = oldPlayer.inventory.getStackInSlot(i);
+            for (int i = 0; i < oldPlayer.getInventory().getContainerSize(); i++) {
+                ItemStack stack = oldPlayer.getInventory().getItem(i);
 
                 if (stack.isEmpty() || !stack.hasTag() || !stack.getTag().contains("spectreAnchor")) {
                     continue;
                 }
 
-                ItemStack newStackInSlot = newPlayer.inventory.getStackInSlot(i);
+                ItemStack newStackInSlot = newPlayer.getInventory().getItem(i);
 
                 if (newStackInSlot.isEmpty()) {
-                    newPlayer.inventory.setInventorySlotContents(i, stack.copy());
+                    newPlayer.getInventory().setItem(i, stack.copy());
                 } else {
                     // Another mod put an ItemStack into the slot first.
-                    int emptySlot = newPlayer.inventory.getFirstEmptyStack();
+                    int emptySlot = newPlayer.getInventory().getFreeSlot();
 
                     if (emptySlot != -1) {
-                        newPlayer.inventory.setInventorySlotContents(emptySlot, newStackInSlot);
-                        newPlayer.inventory.setInventorySlotContents(i, stack.copy());
+                        newPlayer.getInventory().setItem(emptySlot, newStackInSlot);
+                        newPlayer.getInventory().setItem(i, stack.copy());
                     } else {
                         LOGGER.info("Couldn't keep Anchored Item in the Inventory");
-                        net.minecraft.inventory.InventoryHelper.spawnItemStack(oldPlayer.world, oldPlayer.getPosX(), oldPlayer.getPosY(), oldPlayer.getPosZ(), stack);
+                        net.minecraft.world.Containers.dropItemStack(oldPlayer.level, oldPlayer.getX(), oldPlayer.getY(), oldPlayer.getZ(), stack);
                     }
                 }
             }
@@ -475,15 +490,15 @@ public class RandomThings {
         // (same chance formula, same FakePlayer exclusion so things like
         // Advanced Item Collector's fake-player harvesting never trigger it).
         MinecraftForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
-            if (event.getEntityLiving().world.isRemote) {
+            if (event.getEntityLiving().level.isClientSide) {
                 return;
             }
 
-            if (event.getEntityLiving() instanceof net.minecraft.entity.boss.dragon.EnderDragonEntity) {
+            if (event.getEntityLiving() instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) {
                 RTWorldInformationHandler.get(event.getEntityLiving().getServer()).setEnderDragonDefeated(true);
             }
 
-            if (event.getSource().getTrueSource() == null || event.getSource().getTrueSource() instanceof net.minecraftforge.common.util.FakePlayer || !(event.getSource().getTrueSource() instanceof PlayerEntity) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
+            if (event.getSource().getEntity() == null || event.getSource().getEntity() instanceof net.minecraftforge.common.util.FakePlayer || !(event.getSource().getEntity() instanceof Player) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
                 return;
             }
 
@@ -495,16 +510,16 @@ public class RandomThings {
                 chance += lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_END_INCREASE.get();
             }
 
-            World spiritWorld = event.getEntityLiving().world;
+            Level spiritWorld = event.getEntityLiving().level;
 
-            if (spiritWorld.canBlockSeeSky(event.getEntityLiving().getPosition()) && !spiritWorld.isDaytime()) {
-                float moonFactor = net.minecraft.world.DimensionType.MOON_PHASE_FACTORS[spiritWorld.getDimensionType().getMoonPhase(spiritWorld.getDayTime())];
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntityLiving().blockPosition()) && !spiritWorld.isDay()) {
+                float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
             }
 
             if (Math.random() < chance) {
-                spiritWorld.addEntity(new lumien.randomthings.entity.SpiritEntity(spiritWorld, event.getEntity().getPosX(), event.getEntity().getPosY(), event.getEntity().getPosZ()));
+                spiritWorld.addFreshEntity(new lumien.randomthings.entity.SpiritEntity(spiritWorld, event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ()));
             }
         });
 
@@ -528,7 +543,7 @@ public class RandomThings {
                 return;
             }
 
-            net.minecraft.server.MinecraftServer server = net.minecraftforge.fml.server.ServerLifecycleHooks.getCurrentServer();
+            net.minecraft.server.MinecraftServer server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
 
             if (server != null) {
                 lumien.randomthings.handler.spectrelens.SpectreLensHandler.get(server).tick(server);
@@ -541,7 +556,7 @@ public class RandomThings {
         // see that class's own javadoc for why this is spread out instead of done
         // all at once.
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
@@ -579,7 +594,7 @@ public class RandomThings {
         // StableEnderpearlItem/FlooTokenItem/PortkeyItem above, just per-world state
         // instead of per-entity.
         MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isRemote) {
+            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
                 return;
             }
 
@@ -613,11 +628,11 @@ public class RandomThings {
         // to exactly 0 is what actually stops every particle from spawning - shouldHideParticles
         // is left set too, in case anything else ever reads it, but it was never the real switch.
         MinecraftForge.EVENT_BUS.addListener((PotionColorCalculationEvent event) -> {
-            if (!(event.getEntityLiving() instanceof PlayerEntity)) {
+            if (!(event.getEntityLiving() instanceof Player)) {
                 return;
             }
 
-            ItemStack helmet = event.getEntityLiving().getItemStackFromSlot(EquipmentSlotType.HEAD);
+            ItemStack helmet = event.getEntityLiving().getItemBySlot(EquipmentSlot.HEAD);
 
             if (helmet.getItem() == ModItems.MAGIC_HOOD) {
                 event.shouldHideParticles(true);
@@ -638,7 +653,7 @@ public class RandomThings {
         // Hood state actually changes, letting the very next tick's already-correct vanilla
         // logic (and the listener above) do the real work.
         MinecraftForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
-            if (event.getEntityLiving().world.isRemote || event.getSlot() != EquipmentSlotType.HEAD) {
+            if (event.getEntityLiving().level.isClientSide || event.getSlot() != EquipmentSlot.HEAD) {
                 return;
             }
 
@@ -655,7 +670,7 @@ public class RandomThings {
         // BlockEvent for each block a world-gen feature places, so we can veto that
         // specific replacement without any bytecode patching.
         MinecraftForge.EVENT_BUS.addListener((BlockEvent.EntityPlaceEvent event) -> {
-            if (event.getPlacedBlock().getBlock() == net.minecraft.block.Blocks.DIRT && event.getBlockSnapshot().getReplacedBlock().getBlock() == ModBlocks.FERTILIZED_DIRT) {
+            if (event.getPlacedBlock().getBlock() == net.minecraft.world.level.block.Blocks.DIRT && event.getBlockSnapshot().getReplacedBlock().getBlock() == ModBlocks.FERTILIZED_DIRT) {
                 event.setCanceled(true);
             }
         });
@@ -666,8 +681,8 @@ public class RandomThings {
 
     /** 1.16: living entities need their attribute map registered (it was set in {@code registerAttributes()} per instance before). */
     private void registerEntityAttributes(final net.minecraftforge.event.entity.EntityAttributeCreationEvent event) {
-        event.put(ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.entity.GoldenChickenEntity.registerAttributes().create());
-        event.put(ModEntityTypes.SPIRIT, lumien.randomthings.entity.SpiritEntity.registerAttributes().create());
+        event.put(ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.entity.GoldenChickenEntity.registerAttributes().build());
+        event.put(ModEntityTypes.SPIRIT, lumien.randomthings.entity.SpiritEntity.registerAttributes().build());
     }
 
     private void setupCommon(final FMLCommonSetupEvent event) {
@@ -688,7 +703,7 @@ public class RandomThings {
      * matcher, not something the vanilla recipe/JSON pipeline models.
      */
     private void registerImbuingRecipes() {
-        ItemStack waterBottle = PotionUtils.addPotionToItemStack(new ItemStack(Items.POTION), Potions.WATER);
+        ItemStack waterBottle = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
 
         ImbuingRecipeHandler.addRecipe(waterBottle, new ItemStack(Items.VINE), new ItemStack(Items.BONE_MEAL), new ItemStack(Items.COBBLESTONE), new ItemStack(Items.MOSSY_COBBLESTONE));
 
@@ -712,13 +727,13 @@ public class RandomThings {
      * fireplace and shouldn't reach chat/Chat Detectors either way).
      */
     private static boolean handleFlooChat(ServerChatEvent event) {
-        ServerPlayerEntity player = event.getPlayer();
-        BlockPos below = player.getPosition().down();
-        BlockState belowState = player.world.getBlockState(below);
-        ItemStack heldFlooPowder = player.getHeldItemMainhand();
+        ServerPlayer player = event.getPlayer();
+        BlockPos below = player.blockPosition().below();
+        BlockState belowState = player.level.getBlockState(below);
+        ItemStack heldFlooPowder = player.getMainHandItem();
 
-        if (!player.world.getEntitiesWithinAABB(FlooFireplaceEntity.class, player.getBoundingBox().grow(0.5)).isEmpty()) {
-            FlooNetworkHandler.get(player.world).teleport(player.world, null, null, player, event.getMessage());
+        if (!player.level.getEntitiesOfClass(FlooFireplaceEntity.class, player.getBoundingBox().inflate(0.5)).isEmpty()) {
+            FlooNetworkHandler.get(player.level).teleport(player.level, null, null, player, event.getMessage());
             event.setCanceled(true);
             return true;
         }
@@ -731,11 +746,11 @@ public class RandomThings {
         boolean hasFlooInHand = !heldFlooPowder.isEmpty() && heldFlooPowder.getItem() == ModItems.FLOO_POWDER;
         boolean hasFlooPouch = !pouch.isEmpty() && FlooPouchItem.getFlooCount(pouch) > 0;
 
-        if (!player.abilities.isCreativeMode && !hasFlooPouch && !hasFlooInHand) {
+        if (!player.getAbilities().instabuild && !hasFlooPouch && !hasFlooInHand) {
             return false;
         }
 
-        TileEntity te = player.world.getTileEntity(below);
+        BlockEntity te = player.level.getBlockEntity(below);
 
         if (!(te instanceof FlooBrickTileEntity)) {
             return false;
@@ -747,17 +762,17 @@ public class RandomThings {
             return false;
         }
 
-        FlooNetworkHandler networkHandler = FlooNetworkHandler.get(player.world);
-        TileEntity masterTe = networkHandler.getFirePlaceTE(player.world, firePlaceUUID);
+        FlooNetworkHandler networkHandler = FlooNetworkHandler.get(player.level);
+        BlockEntity masterTe = networkHandler.getFirePlaceTE(player.level, firePlaceUUID);
 
         if (!(masterTe instanceof FlooBrickTileEntity) || !((FlooBrickTileEntity) masterTe).isMaster()) {
             return false;
         }
 
         FlooBrickTileEntity masterBrick = (FlooBrickTileEntity) masterTe;
-        boolean success = networkHandler.teleport(player.world, masterBrick.getPos(), masterBrick, player, event.getMessage());
+        boolean success = networkHandler.teleport(player.level, masterBrick.getBlockPos(), masterBrick, player, event.getMessage());
 
-        if (success && !player.abilities.isCreativeMode) {
+        if (success && !player.getAbilities().instabuild) {
             if (hasFlooInHand) {
                 heldFlooPowder.shrink(1);
             } else {
@@ -784,17 +799,17 @@ public class RandomThings {
         }
 
         @SubscribeEvent
-        public static void onTileEntityTypesRegistry(final RegistryEvent.Register<TileEntityType<?>> tileEntityTypeRegistryEvent) {
+        public static void onTileEntityTypesRegistry(final RegistryEvent.Register<BlockEntityType<?>> tileEntityTypeRegistryEvent) {
             ModTileEntityTypes.registerTypes(tileEntityTypeRegistryEvent);
         }
 
         @SubscribeEvent
-        public static void onContainerTypesRegistry(final RegistryEvent.Register<ContainerType<?>> containerTypeRegistryEvent) {
+        public static void onContainerTypesRegistry(final RegistryEvent.Register<MenuType<?>> containerTypeRegistryEvent) {
             ModContainerTypes.registerContainerTypes(containerTypeRegistryEvent);
         }
 
         @SubscribeEvent
-        public static void onRecipeSerializersRegistry(final RegistryEvent.Register<IRecipeSerializer<?>> recipeSerializerRegistryEvent) {
+        public static void onRecipeSerializersRegistry(final RegistryEvent.Register<RecipeSerializer<?>> recipeSerializerRegistryEvent) {
             ModRecipeSerializers.registerRecipeSerializers(recipeSerializerRegistryEvent);
         }
 
@@ -804,12 +819,12 @@ public class RandomThings {
         }
 
         @SubscribeEvent
-        public static void onEffectsRegistry(final RegistryEvent.Register<Effect> effectRegistryEvent) {
+        public static void onEffectsRegistry(final RegistryEvent.Register<MobEffect> effectRegistryEvent) {
             ModEffects.registerEffects(effectRegistryEvent);
         }
 
         @SubscribeEvent
-        public static void onEnchantmentsRegistry(final RegistryEvent.Register<net.minecraft.enchantment.Enchantment> enchantmentRegistryEvent) {
+        public static void onEnchantmentsRegistry(final RegistryEvent.Register<net.minecraft.world.item.enchantment.Enchantment> enchantmentRegistryEvent) {
             lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(enchantmentRegistryEvent);
         }
 

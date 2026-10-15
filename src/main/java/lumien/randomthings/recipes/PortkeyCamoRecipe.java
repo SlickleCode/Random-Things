@@ -1,15 +1,15 @@
 package lumien.randomthings.recipes;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipe;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 /**
  * Combine a Portkey with any other single item to disguise the Portkey as
@@ -21,20 +21,20 @@ import net.minecraft.world.World;
  * The donor item is returned unconsumed (a copy, count 1), matching 1.12.2's
  * own {@code getRemainingItems} exactly - it's only being read, not spent.
  */
-public class PortkeyCamoRecipe extends SpecialRecipe {
-    public static final IRecipeSerializer<PortkeyCamoRecipe> SERIALIZER = new SpecialRecipeSerializer<>(PortkeyCamoRecipe::new);
+public class PortkeyCamoRecipe extends CustomRecipe {
+    public static final RecipeSerializer<PortkeyCamoRecipe> SERIALIZER = new SimpleRecipeSerializer<>(PortkeyCamoRecipe::new);
 
     public PortkeyCamoRecipe(ResourceLocation id) {
         super(id);
     }
 
     @Override
-    public boolean matches(CraftingInventory inv, World worldIn) {
+    public boolean matches(CraftingContainer inv, Level worldIn) {
         ItemStack portkey = ItemStack.EMPTY;
         ItemStack camo = ItemStack.EMPTY;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (stack.isEmpty()) {
                 continue;
@@ -59,12 +59,12 @@ public class PortkeyCamoRecipe extends SpecialRecipe {
     }
 
     @Override
-    public ItemStack getCraftingResult(CraftingInventory inv) {
+    public ItemStack assemble(CraftingContainer inv) {
         ItemStack portkey = ItemStack.EMPTY;
         ItemStack camo = ItemStack.EMPTY;
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (stack.getItem() == ModItems.PORTKEY) {
                 portkey = stack;
@@ -74,24 +74,24 @@ public class PortkeyCamoRecipe extends SpecialRecipe {
         }
 
         ItemStack result = portkey.copy();
-        CompoundNBT resultTag = result.getOrCreateTag();
+        CompoundTag resultTag = result.getOrCreateTag();
 
         ItemStack camoCopy = camo.copy();
         camoCopy.setCount(1);
 
-        CompoundNBT camoCompound = new CompoundNBT();
-        camoCompound.put("stack", camoCopy.write(new CompoundNBT()));
+        CompoundTag camoCompound = new CompoundTag();
+        camoCompound.put("stack", camoCopy.save(new CompoundTag()));
         resultTag.put("camo", camoCompound);
 
         return result;
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInventory inv) {
-        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getSizeInventory(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
 
-        for (int i = 0; i < inv.getSizeInventory(); i++) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
 
             if (!stack.isEmpty() && stack.getItem() != ModItems.PORTKEY) {
                 ItemStack copy = stack.copy();
@@ -104,12 +104,12 @@ public class PortkeyCamoRecipe extends SpecialRecipe {
     }
 
     @Override
-    public boolean canFit(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return SERIALIZER;
     }
 }

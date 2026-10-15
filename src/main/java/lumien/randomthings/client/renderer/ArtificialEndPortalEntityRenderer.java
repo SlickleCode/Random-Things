@@ -3,22 +3,22 @@ package lumien.randomthings.client.renderer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.ArtificialEndPortalEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.Tessellator;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.platform.MemoryTracker;
+import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.resources.ResourceLocation;
 
 import java.nio.FloatBuffer;
 import java.util.Random;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.util.math.vector.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 /**
  * The swirling end-portal starfield effect, keyed off {@code actionTimer}
@@ -33,10 +33,10 @@ import net.minecraft.util.math.vector.Matrix4f;
 public class ArtificialEndPortalEntityRenderer extends EntityRenderer<ArtificialEndPortalEntity> {
     private static final Random RANDOM = new Random(31100L);
 
-    public ArtificialEndPortalEntityRenderer(EntityRendererManager renderManager) {
+    public ArtificialEndPortalEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
 
-        this.shadowSize = 0F;
+        this.shadowRadius = 0F;
     }
 
     /**
@@ -45,29 +45,22 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
      * quad, the number of passes shrinks with distance.
      */
     @Override
-    public void render(ArtificialEndPortalEntity portal, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
+    public void render(ArtificialEndPortalEntity portal, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         double size = Math.min(3, 3.0 / 115 * (portal.getActionTimer() + partialTicks - 85));
 
         if (portal.getActionTimer() > 85) {
             RANDOM.setSeed(31100L);
-            int passes = this.getPasses(this.renderManager.squareDistanceTo(portal));
             float height = this.getOffset();
-            Matrix4f matrix = matrixStack.getLast().getMatrix();
+            Matrix4f matrix = matrixStack.last().pose();
             double sizeHalf = size / 2;
 
-            for (int j = 0; j < passes; ++j) {
-                float brightness = j == 0 ? 0.15F : 2.0F / (18 - j);
-                IVertexBuilder builder = buffer.getBuffer(RenderType.getEndPortal(j + 1));
+            // 1.17+ draws the end portal with a fixed-layer shader (RenderType.endPortal()); the 1.16 per-distance pass count is gone
+            VertexConsumer builder = buffer.getBuffer(RenderType.endPortal());
 
-                float r = (RANDOM.nextFloat() * 0.5F + 0.1F) * brightness;
-                float g = (RANDOM.nextFloat() * 0.5F + 0.4F) * brightness;
-                float b = (RANDOM.nextFloat() * 0.5F + 0.5F) * brightness;
-
-                builder.pos(matrix, (float) -sizeHalf, height, (float) sizeHalf).color(r, g, b, 1.0F).endVertex();
-                builder.pos(matrix, (float) sizeHalf, height, (float) sizeHalf).color(r, g, b, 1.0F).endVertex();
-                builder.pos(matrix, (float) sizeHalf, height, (float) -sizeHalf).color(r, g, b, 1.0F).endVertex();
-                builder.pos(matrix, (float) -sizeHalf, height, (float) -sizeHalf).color(r, g, b, 1.0F).endVertex();
-            }
+            builder.vertex(matrix, (float) -sizeHalf, height, (float) sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            builder.vertex(matrix, (float) sizeHalf, height, (float) sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            builder.vertex(matrix, (float) sizeHalf, height, (float) -sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            builder.vertex(matrix, (float) -sizeHalf, height, (float) -sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
         }
     }
 
@@ -98,7 +91,7 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
     }
 
     @Override
-    public ResourceLocation getEntityTexture(ArtificialEndPortalEntity entity) {
+    public ResourceLocation getTextureLocation(ArtificialEndPortalEntity entity) {
         return null;
     }
 }

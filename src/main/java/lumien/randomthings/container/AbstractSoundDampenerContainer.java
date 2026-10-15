@@ -2,12 +2,12 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundPatternItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -21,14 +21,14 @@ import net.minecraftforge.items.SlotItemHandler;
  * merged here since 1.14.4's base {@code Container} already provides
  * {@code mergeItemStack}, leaving nothing left to duplicate.
  */
-public abstract class AbstractSoundDampenerContainer extends Container {
-    protected AbstractSoundDampenerContainer(ContainerType<?> type, int windowId, PlayerInventory playerInventory, IItemHandler filterHandler) {
+public abstract class AbstractSoundDampenerContainer extends AbstractContainerMenu {
+    protected AbstractSoundDampenerContainer(MenuType<?> type, int windowId, Inventory playerInventory, IItemHandler filterHandler) {
         super(type, windowId);
 
         for (int i = 0; i < 9; i++) {
             this.addSlot(new SlotItemHandler(filterHandler, i, 8 + i * 18, 18) {
                 @Override
-                public boolean isItemValid(ItemStack stack) {
+                public boolean mayPlace(ItemStack stack) {
                     return stack.getItem() == ModItems.SOUND_PATTERN && SoundPatternItem.getSoundLocation(stack) != null;
                 }
             });
@@ -46,26 +46,26 @@ public abstract class AbstractSoundDampenerContainer extends Container {
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 9) {
-                if (!this.mergeItemStack(stackInSlot, 9, 45, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 9, 45, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 9, false)) {
+            } else if (!this.moveItemStackTo(stackInSlot, 0, 9, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
         }
 

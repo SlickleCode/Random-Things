@@ -1,13 +1,15 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AbstractSoundDampenerContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -15,36 +17,37 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * {@link SoundDampenerScreen} and {@link PortableSoundDampenerScreen} -
  * standard chest-sized background, no widgets beyond the slots themselves.
  */
-public abstract class AbstractSoundDampenerScreen<T extends AbstractSoundDampenerContainer> extends ContainerScreen<T> {
+public abstract class AbstractSoundDampenerScreen<T extends AbstractSoundDampenerContainer> extends AbstractContainerScreen<T> {
     private final ResourceLocation guiTextures;
 
-    protected AbstractSoundDampenerScreen(T screenContainer, PlayerInventory inv, ITextComponent titleIn, ResourceLocation guiTextures) {
+    protected AbstractSoundDampenerScreen(T screenContainer, Inventory inv, Component titleIn, ResourceLocation guiTextures) {
         super(screenContainer, inv, titleIn);
 
         this.guiTextures = guiTextures;
-        this.xSize = 176;
-        this.ySize = 166;
+        this.imageWidth = 176;
+        this.imageHeight = 166;
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, mouseX, mouseY, partialTicks);
         // 1.12.2's GuiContainerBase did this for every container GUI: without it the Sound Pattern tooltips never show
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(matrixStack, mouseX, mouseY);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(guiTextures);
-        int x = (this.width - this.xSize) / 2;
-        int y = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, guiTextures);
+        int x = (this.width - this.imageWidth) / 2;
+        int y = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
     }
 }

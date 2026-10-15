@@ -1,14 +1,14 @@
 package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -16,16 +16,16 @@ import net.minecraftforge.items.SlotItemHandler;
 /**
  * FilteredSuperLubricentPlatformContainer
  */
-public class FilteredSuperLubricentPlatformContainer extends Container
+public class FilteredSuperLubricentPlatformContainer extends AbstractContainerMenu
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public FilteredSuperLubricentPlatformContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public FilteredSuperLubricentPlatformContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), IWorldPosCallable.DUMMY);
+		this(windowId, (Inventory) playerInventory, new ItemStackHandler(1), ContainerLevelAccess.NULL);
 	}
 
-	public FilteredSuperLubricentPlatformContainer(int windowId, PlayerInventory playerInventory, IItemHandler filterInventory, IWorldPosCallable pos)
+	public FilteredSuperLubricentPlatformContainer(int windowId, Inventory playerInventory, IItemHandler filterInventory, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.FILTERED_SUPER_LUBRICENT_PLATFORM, windowId);
 
@@ -48,41 +48,41 @@ public class FilteredSuperLubricentPlatformContainer extends Container
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.FILTERED_SUPER_LUBRICENT_PLATFORM);
+		return stillValid(this.pos, playerIn, ModBlocks.FILTERED_SUPER_LUBRICENT_PLATFORM);
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index)
+	public ItemStack quickMoveStack(Player playerIn, int index)
 	{
 		ItemStack result = ItemStack.EMPTY;
-		Slot slot = this.inventorySlots.get(index);
+		Slot slot = this.slots.get(index);
 
-		if (slot != null && slot.getHasStack())
+		if (slot != null && slot.hasItem())
 		{
-			ItemStack stackInSlot = slot.getStack();
+			ItemStack stackInSlot = slot.getItem();
 			result = stackInSlot.copy();
 
 			if (index < 1)
 			{
-				if (!this.mergeItemStack(stackInSlot, 1, 37, true))
+				if (!this.moveItemStackTo(stackInSlot, 1, 37, true))
 				{
 					return ItemStack.EMPTY;
 				}
 			}
-			else if (!this.mergeItemStack(stackInSlot, 0, 1, false))
+			else if (!this.moveItemStackTo(stackInSlot, 0, 1, false))
 			{
 				return ItemStack.EMPTY;
 			}
 
 			if (stackInSlot.isEmpty())
 			{
-				slot.putStack(ItemStack.EMPTY);
+				slot.set(ItemStack.EMPTY);
 			}
 			else
 			{
-				slot.onSlotChanged();
+				slot.setChanged();
 			}
 
 			if (stackInSlot.getCount() == result.getCount())

@@ -1,15 +1,17 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.handler.floo.FlooNetworkHandler;
 import lumien.randomthings.tileentity.FlooBrickTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.material.Material;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,19 +34,15 @@ import java.util.UUID;
  * for any of that trick's other 1.12.2 users either (see {@code LuminousBlock}
  * javadoc), so this isn't a new divergence.
  */
-public class FlooBrickBlock extends Block {
+public class FlooBrickBlock extends Block implements EntityBlock {
     public FlooBrickBlock() {
-        super(Block.Properties.create(Material.ROCK).notSolid().hardnessAndResistance(2.0F, 10.0F));
+        super(Block.Properties.of(Material.STONE).noOcclusion().strength(2.0F, 10.0F));
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new FlooBrickTileEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new FlooBrickTileEntity(pos, state);
     }
 
     /**
@@ -61,9 +59,9 @@ public class FlooBrickBlock extends Block {
      * pointless repeated work.
      */
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof FlooBrickTileEntity) {
                 FlooBrickTileEntity flooTE = (FlooBrickTileEntity) te;
@@ -74,29 +72,29 @@ public class FlooBrickBlock extends Block {
                     UUID masterUid = flooTE.getFirePlaceUid();
 
                     if (masterUid != null) {
-                        TileEntity masterTe = FlooNetworkHandler.get(worldIn).getFirePlaceTE(worldIn, masterUid);
+                        BlockEntity masterTe = FlooNetworkHandler.get(worldIn).getFirePlaceTE(worldIn, masterUid);
 
                         if (masterTe instanceof FlooBrickTileEntity) {
-                            breakFireplace(worldIn, masterTe.getPos(), (FlooBrickTileEntity) masterTe);
+                            breakFireplace(worldIn, masterTe.getBlockPos(), (FlooBrickTileEntity) masterTe);
                         }
                     }
                 }
             }
         }
 
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
-    private static void breakFireplace(World world, BlockPos masterPos, FlooBrickTileEntity masterTE) {
+    private static void breakFireplace(Level world, BlockPos masterPos, FlooBrickTileEntity masterTE) {
         List<BlockPos> children = new ArrayList<>(masterTE.getChildren());
         UUID masterUid = masterTE.getUid();
 
-        world.setBlockState(masterPos, Blocks.BRICKS.getDefaultState());
+        world.setBlockAndUpdate(masterPos, Blocks.BRICKS.defaultBlockState());
 
         FlooNetworkHandler.get(world).brokenMaster(masterUid);
 
         for (BlockPos childPos : children) {
-            world.setBlockState(childPos, Blocks.BRICKS.getDefaultState());
+            world.setBlockAndUpdate(childPos, Blocks.BRICKS.defaultBlockState());
         }
     }
 }

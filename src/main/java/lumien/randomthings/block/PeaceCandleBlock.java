@@ -1,17 +1,19 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.PeaceCandleTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
 
 /**
  * Direct port of 1.12.2's {@code BlockPeaceCandle}: a standalone decorative
@@ -32,44 +34,40 @@ import net.minecraft.world.World;
  * and its mob-suppression are otherwise fully functional; it's creative-menu
  * only until natural generation exists.
  */
-public class PeaceCandleBlock extends Block {
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(6, 0, 6, 10, 10, 10);
+public class PeaceCandleBlock extends Block implements EntityBlock {
+    private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 10, 10);
 
     public PeaceCandleBlock() {
-        super(Block.Properties.create(Material.MISCELLANEOUS).notSolid().doesNotBlockMovement().hardnessAndResistance(0.0F));
+        super(Block.Properties.of(Material.DECORATION).noOcclusion().noCollission().strength(0.0F));
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return VoxelShapes.empty();
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        return Shapes.empty();
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return worldIn.getBlockState(pos.down()).isSolid();
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        return worldIn.getBlockState(pos.below()).canOcclude();
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        if (!isValidPosition(state, worldIn, pos)) {
-            spawnDrops(state, worldIn, pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        if (!canSurvive(state, worldIn, pos)) {
+            dropResources(state, worldIn, pos);
             worldIn.removeBlock(pos, isMoving);
         }
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new PeaceCandleTileEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new PeaceCandleTileEntity(pos, state);
     }
 }

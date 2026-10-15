@@ -4,24 +4,24 @@ import java.util.Random;
 
 import lumien.randomthings.block.IgniterBlock;
 import lumien.randomthings.container.IgniterContainer;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
-public class IgniterTileEntity extends TileEntity implements INamedContainerProvider
+public class IgniterTileEntity extends BlockEntity implements MenuProvider
 {
 	public enum MODE
 	{
@@ -31,23 +31,21 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 	private MODE mode = MODE.TOGGLE;
 	private boolean powered = false;
 
-	public IgniterTileEntity()
-	{
-		super(ModTileEntityTypes.IGNITER);
-	}
+	public IgniterTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.IGNITER, pos, state);
+    }
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 		compound.putInt("mode", this.mode.ordinal());
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 		this.mode = MODE.values()[compound.getInt("mode")];
 	}
 
@@ -58,17 +56,17 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 
 	private BlockPos frontPos()
 	{
-		BlockState state = this.world.getBlockState(pos);
-		Direction facing = state.get(IgniterBlock.FACING);
-		return pos.offset(facing);
+		BlockState state = this.level.getBlockState(worldPosition);
+		Direction facing = state.getValue(IgniterBlock.FACING);
+		return worldPosition.relative(facing);
 	}
 
 	private void ignite(BlockPos target)
 	{
-		if (world.isAirBlock(target) && Blocks.FIRE.getDefaultState().isValidPosition(world, target))
+		if (level.isEmptyBlock(target) && Blocks.FIRE.defaultBlockState().canSurvive(level, target))
 		{
-			world.playSound(null, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, new Random().nextFloat() * 0.4F + 0.8F);
-			world.setBlockState(target, Blocks.FIRE.getDefaultState());
+			level.playSound(null, worldPosition, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, new Random().nextFloat() * 0.4F + 0.8F);
+			level.setBlockAndUpdate(target, Blocks.FIRE.defaultBlockState());
 		}
 	}
 
@@ -86,9 +84,9 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 		if (oldPowered && !newPowered)
 		{
 			BlockPos front = frontPos();
-			if (world.getBlockState(front).getBlock() == Blocks.FIRE && mode == MODE.TOGGLE)
+			if (level.getBlockState(front).getBlock() == Blocks.FIRE && mode == MODE.TOGGLE)
 			{
-				world.removeBlock(front, false);
+				level.removeBlock(front, false);
 			}
 		}
 		else if (newPowered && !oldPowered)
@@ -109,18 +107,18 @@ public class IgniterTileEntity extends TileEntity implements INamedContainerProv
 				break;
 		}
 
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new IgniterContainer(windowId, IWorldPosCallable.of(this.world, pos));
+		return new IgniterContainer(windowId, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.igniter");
+		return new TranslatableComponent("block.randomthings.igniter");
 	}
 }

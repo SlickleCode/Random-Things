@@ -1,22 +1,24 @@
 package lumien.randomthings.tileentity;
 
-import net.minecraft.item.DyeColor;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.block.BlockState;
+import net.minecraft.core.BlockPos;
+
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * A 4x4 grid of colored rune pixels ({@code null} = empty). Direct port of
  * 1.12.2's {@code TileEntityRuneBase}, storing {@link DyeColor} directly
  * instead of a raw int index into a 1.12.2-era ordinal enum.
  */
-public class RuneBaseTileEntity extends TileEntity {
+public class RuneBaseTileEntity extends BlockEntity {
     private final DyeColor[][] runeData = new DyeColor[4][4];
 
-    public RuneBaseTileEntity() {
-        super(ModTileEntityTypes.RUNE_BASE);
+    public RuneBaseTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.RUNE_BASE, pos, state);
     }
 
     public DyeColor[][] getRuneData() {
@@ -42,16 +44,16 @@ public class RuneBaseTileEntity extends TileEntity {
     }
 
     public void syncTE() {
-        this.markDirty();
+        this.setChanged();
 
-        if (this.world != null) {
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     /**
@@ -70,18 +72,19 @@ public class RuneBaseTileEntity extends TileEntity {
      * nothing without this override).
      */
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
     }
 
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         byte[] flat = new byte[16];
 
@@ -93,12 +96,11 @@ public class RuneBaseTileEntity extends TileEntity {
 
         compound.putByteArray("runeData", flat);
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("runeData")) {
             byte[] flat = compound.getByteArray("runeData");

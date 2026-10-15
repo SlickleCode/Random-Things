@@ -1,16 +1,16 @@
 package lumien.randomthings.item;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemFrameEntity;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.client.renderer.item.ItemPropertyFunction;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -36,38 +36,38 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.item.ItemModelsProperties.registerProperty(this, new ResourceLocation("angle"), new IItemPropertyGetter()
+		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("angle"), new ItemPropertyFunction()
 		{
 			private double rotation;
 			private double rota;
 			private long lastUpdateTick;
 
 			@Override
-			public float call(ItemStack stack, net.minecraft.client.world.ClientWorld worldIn, LivingEntity entityIn)
+			public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, LivingEntity entityIn, int seed)
 			{
-				if (entityIn == null && !stack.isOnItemFrame())
+				if (entityIn == null && !stack.isFramed())
 				{
 					return 0.0F;
 				}
 
 				boolean heldByEntity = entityIn != null;
-				Entity entity = heldByEntity ? entityIn : stack.getItemFrame();
+				Entity entity = heldByEntity ? entityIn : stack.getFrame();
 
-				World world = worldIn;
+				Level world = worldIn;
 
 				if (world == null)
 				{
-					world = entity.world;
+					world = entity.level;
 				}
 
 				double angle;
 
-				CompoundNBT compound = stack.getTag();
+				CompoundTag compound = stack.getTag();
 				boolean hasTarget = compound != null && compound.contains("targetX");
 
 				if (hasTarget)
 				{
-					double facing = heldByEntity ? entity.rotationYaw : getFrameRotation((ItemFrameEntity) entity);
+					double facing = heldByEntity ? entity.getYRot() : getFrameRotation((ItemFrame) entity);
 					facing = facing % 360.0D;
 					double angleToTarget = getAngleToPos(entity, new BlockPos(compound.getInt("targetX"), 0, compound.getInt("targetZ")));
 					angle = Math.PI - ((facing - 90.0D) * 0.01745329238474369D - angleToTarget);
@@ -83,10 +83,10 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 				}
 
 				float f = (float) (angle / (Math.PI * 2D));
-				return MathHelper.positiveModulo(f, 1.0F);
+				return Mth.positiveModulo(f, 1.0F);
 			}
 
-			private double wobble(World world, double target)
+			private double wobble(Level world, double target)
 			{
 				if (world.getGameTime() != this.lastUpdateTick)
 				{
@@ -94,7 +94,7 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 
 					double delta = target - this.rotation;
 					delta = delta % (Math.PI * 2D);
-					delta = MathHelper.clamp(delta, -1.0D, 1.0D);
+					delta = Mth.clamp(delta, -1.0D, 1.0D);
 					this.rota += delta * 0.1D;
 					this.rota *= 0.8D;
 					this.rotation += this.rota;
@@ -103,9 +103,9 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 				return this.rotation;
 			}
 
-			private double getFrameRotation(ItemFrameEntity itemFrame)
+			private double getFrameRotation(ItemFrame itemFrame)
 			{
-				return MathHelper.wrapDegrees(180 + itemFrame.getHorizontalFacing().getHorizontalIndex() * 90);
+				return Mth.wrapDegrees(180 + itemFrame.getDirection().get2DDataValue() * 90);
 			}
 
 			/**
@@ -116,7 +116,7 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 			 */
 			private double getAngleToPos(Entity entity, BlockPos pos)
 			{
-				return Math.atan2((pos.getZ() + 0.5D) - entity.getPosZ(), (pos.getX() + 0.5D) - entity.getPosX());
+				return Math.atan2((pos.getZ() + 0.5D) - entity.getZ(), (pos.getX() + 0.5D) - entity.getX());
 			}
 		});
 	}

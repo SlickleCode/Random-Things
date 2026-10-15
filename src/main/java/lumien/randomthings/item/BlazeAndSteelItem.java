@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public class BlazeAndSteelItem extends Item
 {
@@ -19,29 +19,29 @@ public class BlazeAndSteelItem extends Item
 	}
 
 	@Override
-	public ActionResultType onItemUse(ItemUseContext context)
+	public InteractionResult useOn(UseOnContext context)
 	{
-		PlayerEntity player = context.getPlayer();
-		World world = context.getWorld();
-		BlockPos pos = context.getPos().offset(context.getFace());
-		ItemStack stack = context.getItem();
+		Player player = context.getPlayer();
+		Level world = context.getLevel();
+		BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
+		ItemStack stack = context.getItemInHand();
 
-		if (player != null && !player.canPlayerEdit(pos, context.getFace(), stack))
+		if (player != null && !player.mayUseItemAt(pos, context.getClickedFace(), stack))
 		{
-			return ActionResultType.FAIL;
+			return InteractionResult.FAIL;
 		}
 
-		if (world.isAirBlock(pos))
+		if (world.isEmptyBlock(pos))
 		{
-			world.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, random.nextFloat() * 0.8F + 0.8F);
-			world.setBlockState(pos, ModBlocks.BLAZING_FIRE.getDefaultState(), 11);
+			world.playSound(player, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1.0F, world.random.nextFloat() * 0.8F + 0.8F);
+			world.setBlock(pos, ModBlocks.BLAZING_FIRE.defaultBlockState(), 11);
 		}
 
 		if (player != null)
 		{
-			stack.damageItem(1, player, (p) -> p.sendBreakAnimation(context.getHand()));
+			stack.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(context.getHand()));
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

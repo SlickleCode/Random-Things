@@ -3,10 +3,10 @@ package lumien.randomthings.network.messages;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundRecorderItem;
 import lumien.randomthings.network.IRTMessage;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * Client -> server: "I just heard this sound and slot N of my inventory
@@ -28,27 +28,27 @@ public class PlayedSoundMessage implements IRTMessage {
     }
 
     @Override
-    public void read(PacketBuffer pb) {
-        this.soundName = pb.readString(32767);
+    public void read(FriendlyByteBuf pb) {
+        this.soundName = pb.readUtf(32767);
         this.recorderSlot = pb.readInt();
     }
 
     @Override
-    public void write(PacketBuffer pb) {
-        pb.writeString(soundName);
+    public void write(FriendlyByteBuf pb) {
+        pb.writeUtf(soundName);
         pb.writeInt(recorderSlot);
     }
 
     @Override
     public void handle(Context ctx) {
         ctx.enqueueWork(() -> {
-            ServerPlayerEntity player = ctx.getSender();
+            ServerPlayer player = ctx.getSender();
 
-            if (player == null || recorderSlot < 0 || recorderSlot >= player.inventory.getSizeInventory()) {
+            if (player == null || recorderSlot < 0 || recorderSlot >= player.getInventory().getContainerSize()) {
                 return;
             }
 
-            ItemStack recorderStack = player.inventory.getStackInSlot(recorderSlot);
+            ItemStack recorderStack = player.getInventory().getItem(recorderSlot);
 
             if (!recorderStack.isEmpty() && recorderStack.getItem() == ModItems.SOUND_RECORDER) {
                 SoundRecorderItem.recordSound(recorderStack, soundName);

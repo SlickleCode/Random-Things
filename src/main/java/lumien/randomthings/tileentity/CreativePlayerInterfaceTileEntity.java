@@ -1,12 +1,16 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.world.level.block.state.BlockState;
+
+import net.minecraft.core.BlockPos;
+
 /**
  * A cosmetic/creative-menu-only variant with no unique behavior of its own -
  * matches 1.12.2's {@code TileEntityCreativePlayerInterface}, itself an empty
  * subclass of {@code TileEntityPlayerInterface}.
  */
 public class CreativePlayerInterfaceTileEntity extends PlayerInterfaceTileEntity {
-    public CreativePlayerInterfaceTileEntity() {
-        super(ModTileEntityTypes.CREATIVE_PLAYER_INTERFACE);
+    public CreativePlayerInterfaceTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.CREATIVE_PLAYER_INTERFACE, pos, state);
     }
 }

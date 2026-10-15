@@ -1,7 +1,7 @@
 package lumien.randomthings.item.spectretools;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.SwordItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.SwordItem;
 
 /**
  * Ported from 1.12.2's {@code ItemSpectreSword} - plain {@code ItemSword} on the spectre material, no

@@ -2,57 +2,56 @@ package lumien.randomthings.block;
 
 import java.util.Random;
 
-import net.minecraft.block.AttachedStemBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.StemBlock;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.pathfinding.PathType;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.PlantType;
-import net.minecraftforge.common.ToolType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
 
 
 public class FertilizedDirtBlock extends Block
 {
-	private static final VoxelShape SHAPE_TILLED = Block.makeCuboidShape(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
+	private static final VoxelShape SHAPE_TILLED = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
 	public static final BooleanProperty TILLED = BooleanProperty.create("tilled");
 
 	public FertilizedDirtBlock()
 	{
-		super(Block.Properties.create(Material.EARTH, MaterialColor.DIRT).hardnessAndResistance(0.5F).sound(SoundType.GROUND).tickRandomly());
+		super(Block.Properties.of(Material.DIRT, MaterialColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL).randomTicks());
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(TILLED, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(TILLED, false));
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random)
 	{
 		super.tick(state, worldIn, pos, random);
 
 		for (int i = 0; i < 3; i++)
 		{
-			BlockState aboveState = worldIn.getBlockState(pos.up());
+			BlockState aboveState = worldIn.getBlockState(pos.above());
 			Block aboveBlock = aboveState.getBlock();
 
-			if (aboveBlock instanceof IPlantable && aboveState.ticksRandomly())
+			if (aboveBlock instanceof IPlantable && aboveState.isRandomlyTicking())
 			{
-				aboveState.randomTick(worldIn, pos.up(), random);
+				aboveState.randomTick(worldIn, pos.above(), random);
 			}
 			else
 			{
@@ -61,43 +60,37 @@ public class FertilizedDirtBlock extends Block
 		}
 	}
 
-	@Override
-	public boolean isToolEffective(BlockState state, ToolType tool)
-	{
-		return tool == ToolType.SHOVEL;
-	}
-
 	public boolean func_220074_n(BlockState state)
 	{
-		return state.get(TILLED);
+		return state.getValue(TILLED);
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return state.get(TILLED) ? SHAPE_TILLED : VoxelShapes.fullCube();
+		return state.getValue(TILLED) ? SHAPE_TILLED : Shapes.block();
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(TILLED);
 	}
 
-	public boolean allowsMovement(BlockState state, IBlockReader worldIn, BlockPos pos, PathType type)
+	public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean canSustainPlant(BlockState state, IBlockReader world, BlockPos pos, Direction facing, IPlantable plantable)
+	public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, IPlantable plantable)
 	{
-		PlantType plantType = plantable.getPlantType(world, pos.up());
-		boolean tilled = state.get(TILLED);
+		PlantType plantType = plantable.getPlantType(world, pos.above());
+		boolean tilled = state.getValue(TILLED);
 
-		Block b = plantable.getPlant(world, pos.offset(facing)).getBlock();
+		Block b = plantable.getPlant(world, pos.relative(facing)).getBlock();
 
-		if (b.getBlock() instanceof AttachedStemBlock)
+		if (b instanceof AttachedStemBlock)
 		{
 			return true;
 		}
@@ -120,7 +113,7 @@ public class FertilizedDirtBlock extends Block
 		}
 		else if (plantType == PlantType.PLAINS)
 		{
-			return !tilled || tilled && world.getBlockState(pos.up()).getBlock() == Blocks.BEETROOTS;
+			return !tilled || tilled && world.getBlockState(pos.above()).getBlock() == Blocks.BEETROOTS;
 		}
 		else if (plantType == PlantType.WATER)
 		{
@@ -135,7 +128,7 @@ public class FertilizedDirtBlock extends Block
 	}
 
 	@Override
-	public boolean isFertile(BlockState state, IBlockReader world, BlockPos pos)
+	public boolean isFertile(BlockState state, BlockGetter world, BlockPos pos)
 	{
 		return true;
 	}

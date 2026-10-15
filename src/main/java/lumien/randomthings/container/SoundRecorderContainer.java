@@ -3,12 +3,12 @@ package lumien.randomthings.container;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundPatternItem;
 import lumien.randomthings.item.SoundRecorderItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -22,11 +22,11 @@ import net.minecraftforge.items.SlotItemHandler;
  * ({@code SoundRecorderScreen}) reusing {@link ISignalContainer} instead of
  * a bespoke network message.
  */
-public class SoundRecorderContainer extends Container implements ISignalContainer {
-    private final PlayerEntity player;
+public class SoundRecorderContainer extends AbstractContainerMenu implements ISignalContainer {
+    private final Player player;
     private final ItemStackHandler patternHandler;
 
-    public SoundRecorderContainer(int windowId, PlayerInventory playerInventory) {
+    public SoundRecorderContainer(int windowId, Inventory playerInventory) {
         super(ModContainerTypes.SOUND_RECORDER, windowId);
 
         this.player = playerInventory.player;
@@ -44,12 +44,12 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
         bindPlayerInventory(playerInventory);
     }
 
-    public SoundRecorderContainer(int windowId, PlayerInventory playerInventory, PacketBuffer extraData) {
+    public SoundRecorderContainer(int windowId, Inventory playerInventory, FriendlyByteBuf extraData) {
         this(windowId, playerInventory);
     }
 
-    private void bindPlayerInventory(PlayerInventory playerInventory) {
-        ItemStack heldRecorder = playerInventory.player.getHeldItemMainhand();
+    private void bindPlayerInventory(Inventory playerInventory) {
+        ItemStack heldRecorder = playerInventory.player.getMainHandItem();
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
@@ -58,15 +58,15 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
         }
 
         for (int i = 0; i < 9; i++) {
-            if (playerInventory.getStackInSlot(i) == heldRecorder) {
+            if (playerInventory.getItem(i) == heldRecorder) {
                 this.addSlot(new Slot(playerInventory, i, 15 + i * 18, 163) {
                     @Override
-                    public boolean isItemValid(ItemStack stack) {
+                    public boolean mayPlace(ItemStack stack) {
                         return false;
                     }
 
                     @Override
-                    public boolean canTakeStack(PlayerEntity playerIn) {
+                    public boolean mayPickup(Player playerIn) {
                         return false;
                     }
                 });
@@ -77,46 +77,46 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 
     @Override
-    public void onContainerClosed(PlayerEntity playerIn) {
-        super.onContainerClosed(playerIn);
+    public void removed(Player playerIn) {
+        super.removed(playerIn);
 
-        if (!playerIn.world.isRemote) {
+        if (!playerIn.level.isClientSide) {
             for (int i = 0; i < patternHandler.getSlots(); i++) {
                 ItemStack stack = patternHandler.extractItem(i, patternHandler.getSlotLimit(i), false);
 
-                if (!stack.isEmpty() && !playerIn.inventory.addItemStackToInventory(stack)) {
-                    playerIn.dropItem(stack, false);
+                if (!stack.isEmpty() && !playerIn.getInventory().add(stack)) {
+                    playerIn.drop(stack, false);
                 }
             }
         }
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 2) {
-                if (!this.mergeItemStack(stackInSlot, 2, 38, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 1, false)) {
+            } else if (!this.moveItemStackTo(stackInSlot, 0, 1, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
         }
 
@@ -124,9 +124,9 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
     }
 
     @Override
-    public void handle(int id, PacketBuffer data) {
+    public void handle(int id, FriendlyByteBuf data) {
         if (id == 0) {
-            outputSound(data.readString(32767));
+            outputSound(data.readUtf(32767));
         }
     }
 
@@ -145,7 +145,7 @@ public class SoundRecorderContainer extends Container implements ISignalContaine
 
             patternHandler.setStackInSlot(1, stamped);
             patternHandler.extractItem(0, 1, false);
-        } else if (ItemStack.areItemsEqual(patternOut, new ItemStack(ModItems.SOUND_PATTERN)) && SoundPatternItem.getSoundLocation(patternOut) != null && SoundPatternItem.getSoundLocation(patternOut).toString().equals(selectedSound) && patternOut.getCount() < patternOut.getMaxStackSize()) {
+        } else if (ItemStack.isSame(patternOut, new ItemStack(ModItems.SOUND_PATTERN)) && SoundPatternItem.getSoundLocation(patternOut) != null && SoundPatternItem.getSoundLocation(patternOut).toString().equals(selectedSound) && patternOut.getCount() < patternOut.getMaxStackSize()) {
             patternOut.grow(1);
             patternHandler.extractItem(0, 1, false);
         }

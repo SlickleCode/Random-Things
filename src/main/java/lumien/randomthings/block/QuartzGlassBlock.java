@@ -1,23 +1,23 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
 
 public class QuartzGlassBlock extends Block
 {
 	public QuartzGlassBlock()
 	{
-		super(Block.Properties.create(Material.GLASS, MaterialColor.QUARTZ).notSolid().hardnessAndResistance(0.3F).sound(SoundType.GLASS).setSuffocates((state, world, pos) -> false));
+		super(Block.Properties.of(Material.GLASS, MaterialColor.QUARTZ).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> false));
 	}
 
 	/**
@@ -34,16 +34,16 @@ public class QuartzGlassBlock extends Block
 	 */
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		Entity entity = context.getEntity();
+		Entity entity = context instanceof net.minecraft.world.phys.shapes.EntityCollisionContext ecc ? ecc.getEntity() : null;
 
-		if (entity != null && !(entity instanceof PlayerEntity))
+		if (entity != null && !(entity instanceof Player))
 		{
 			return super.getCollisionShape(state, worldIn, pos, context);
 		}
 
-		return VoxelShapes.empty();
+		return Shapes.empty();
 	}
 
 	/**

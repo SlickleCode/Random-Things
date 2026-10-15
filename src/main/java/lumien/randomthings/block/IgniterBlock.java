@@ -1,117 +1,112 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.IgniterTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.LevelReader;
 
 /**
  * A block version of flint and steel: reacts to redstone changes on itself
  * by igniting/extinguishing the block directly in front of it (per its
  * configurable mode).
  */
-public class IgniterBlock extends Block
-{
+public class IgniterBlock extends Block implements EntityBlock {
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
 	public IgniterBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(1.5F));
+		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F));
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(FACING);
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
-	}
-
-	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
-	{
-		return new IgniterTileEntity();
+	    return new IgniterTileEntity(pos, state);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public boolean isFireSource(BlockState state, IWorldReader world, BlockPos pos, Direction side)
+	public boolean isFireSource(BlockState state, LevelReader world, BlockPos pos, Direction side)
 	{
-		return side == state.get(FACING);
+		return side == state.getValue(FACING);
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
-		TileEntity te = worldIn.getTileEntity(pos);
+		BlockEntity te = worldIn.getBlockEntity(pos);
 
 		if (te instanceof IgniterTileEntity)
 		{
-			((IgniterTileEntity) te).updatePowerState(worldIn.isBlockPowered(pos));
+			((IgniterTileEntity) te).updatePowerState(worldIn.hasNeighborSignal(pos));
 		}
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context)
+	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
 		LivingEntity placer = context.getPlayer();
-		Direction facing = placer != null ? Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z) : Direction.NORTH;
+		Direction facing = placer != null ? Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z) : Direction.NORTH;
 
-		return this.getDefaultState().with(FACING, facing);
+		return this.defaultBlockState().setValue(FACING, facing);
 	}
 
 	@Override
-	public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
+	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
 	{
 		if (placer != null)
 		{
-			Direction facing = Direction.getFacingFromVector((float) placer.getLookVec().x, (float) placer.getLookVec().y, (float) placer.getLookVec().z);
-			worldIn.setBlockState(pos, state.with(FACING, facing), 2);
+			Direction facing = Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z);
+			worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
 		}
 
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			worldIn.getPendingBlockTicks().scheduleTick(pos, this, 10);
+			worldIn.scheduleTick(pos, this, 10);
 		}
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof IgniterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (IgniterTileEntity) te);
+				NetworkHooks.openGui((ServerPlayer) player, (IgniterTileEntity) te);
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

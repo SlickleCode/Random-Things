@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
 
 import java.awt.*;
 import java.util.List;
@@ -28,37 +28,37 @@ public class FlooPouchItem extends Item {
     }
 
     @Override
-    public void addInformation(ItemStack stack, World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        tooltip.add(new StringTextComponent(getFlooCount(stack) + " / " + MAX_CHARGE));
+    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+        tooltip.add(new TextComponent(getFlooCount(stack) + " / " + MAX_CHARGE));
     }
 
     @Override
-    public boolean showDurabilityBar(ItemStack stack) {
+    public boolean isBarVisible(ItemStack stack) {
         return true;
     }
 
     @Override
-    public double getDurabilityForDisplay(ItemStack stack) {
-        return 1.0 - (double) getFlooCount(stack) / MAX_CHARGE;
+    public int getBarWidth(ItemStack stack) {
+        return Math.round(13.0F * (1.0F - (float) (1.0 - (double) getFlooCount(stack) / MAX_CHARGE)));
     }
 
     @Override
-    public int getRGBDurabilityForDisplay(ItemStack stack) {
+    public int getBarColor(ItemStack stack) {
         return Color.GREEN.getRGB();
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-        if (!playerIn.isSneaking()) {
-            return new ActionResult<>(ActionResultType.PASS, playerIn.getHeldItem(handIn));
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+        if (!playerIn.isShiftKeyDown()) {
+            return new InteractionResultHolder<>(InteractionResult.PASS, playerIn.getItemInHand(handIn));
         }
 
-        ItemStack me = playerIn.getHeldItem(handIn);
+        ItemStack me = playerIn.getItemInHand(handIn);
         int flooCount = getFlooCount(me);
 
         if (flooCount < MAX_CHARGE) {
-            for (int slot = 0; slot < playerIn.inventory.getSizeInventory() && flooCount < MAX_CHARGE; slot++) {
-                ItemStack slotItem = playerIn.inventory.getStackInSlot(slot);
+            for (int slot = 0; slot < playerIn.getInventory().getContainerSize() && flooCount < MAX_CHARGE; slot++) {
+                ItemStack slotItem = playerIn.getInventory().getItem(slot);
 
                 if (!slotItem.isEmpty() && slotItem.getItem() == ModItems.FLOO_POWDER) {
                     int used = Math.min(slotItem.getCount(), MAX_CHARGE - flooCount);
@@ -71,7 +71,7 @@ public class FlooPouchItem extends Item {
             setFlooCount(me, flooCount);
         }
 
-        return new ActionResult<>(ActionResultType.SUCCESS, me);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, me);
     }
 
     public static void setFlooCount(ItemStack stack, int count) {

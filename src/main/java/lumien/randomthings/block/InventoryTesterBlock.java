@@ -1,28 +1,38 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.tileentity.InventoryTesterTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer.Builder;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A small redstone-comparator-like nub: emits weak power based on whether
@@ -34,40 +44,39 @@ import net.minecraft.util.ActionResultType;
  * no power, i.e. {@code isPowered() == false}, when nothing valid is behind
  * it) rather than reproducing that placement-validation/auto-pop behavior.
  */
-public class InventoryTesterBlock extends Block
-{
+public class InventoryTesterBlock extends Block implements EntityBlock {
 	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
 
-	private static final VoxelShape SHAPE_UP = Block.makeCuboidShape(6, 0, 6, 10, 1, 10);
-	private static final VoxelShape SHAPE_DOWN = Block.makeCuboidShape(6, 15, 6, 10, 16, 10);
-	private static final VoxelShape SHAPE_NORTH = Block.makeCuboidShape(6, 6, 15, 10, 10, 16);
-	private static final VoxelShape SHAPE_SOUTH = Block.makeCuboidShape(6, 6, 0, 10, 10, 1);
-	private static final VoxelShape SHAPE_WEST = Block.makeCuboidShape(15, 6, 6, 16, 10, 10);
-	private static final VoxelShape SHAPE_EAST = Block.makeCuboidShape(0, 6, 6, 1, 10, 10);
+	private static final VoxelShape SHAPE_UP = Block.box(6, 0, 6, 10, 1, 10);
+	private static final VoxelShape SHAPE_DOWN = Block.box(6, 15, 6, 10, 16, 10);
+	private static final VoxelShape SHAPE_NORTH = Block.box(6, 6, 15, 10, 10, 16);
+	private static final VoxelShape SHAPE_SOUTH = Block.box(6, 6, 0, 10, 10, 1);
+	private static final VoxelShape SHAPE_WEST = Block.box(15, 6, 6, 16, 10, 10);
+	private static final VoxelShape SHAPE_EAST = Block.box(0, 6, 6, 1, 10, 10);
 
 	public InventoryTesterBlock()
 	{
-		super(Block.Properties.create(Material.ROCK, MaterialColor.STONE).notSolid().hardnessAndResistance(0.3F).doesNotBlockMovement());
+		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).noOcclusion().strength(0.3F).noCollission());
 
-		this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));
+		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}
 
 	@Override
-	protected void fillStateContainer(Builder<Block, BlockState> builder)
+	protected void createBlockStateDefinition(Builder<Block, BlockState> builder)
 	{
 		builder.add(FACING);
 	}
 
 	@Override
-	public BlockRenderType getRenderType(BlockState state)
+	public RenderShape getRenderShape(BlockState state)
 	{
-		return BlockRenderType.MODEL;
+		return RenderShape.MODEL;
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		switch (state.get(FACING))
+		switch (state.getValue(FACING))
 		{
 			case DOWN:
 				return SHAPE_DOWN;
@@ -87,56 +96,56 @@ public class InventoryTesterBlock extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return VoxelShapes.empty();
+		return Shapes.empty();
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new InventoryTesterTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
 	{
-		return new InventoryTesterTileEntity();
+	    return Tickers.of(type, ModTileEntityTypes.INVENTORY_TESTER, (l, p, s2, be) -> be.tick());
 	}
 
 	@Override
-	public BlockState getStateForPlacement(BlockItemUseContext context)
+	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
-		return this.getDefaultState().with(FACING, context.getFace());
+		return this.defaultBlockState().setValue(FACING, context.getClickedFace());
 	}
 
 	@Override
-	public boolean canProvidePower(BlockState state)
+	public boolean isSignalSource(BlockState state)
 	{
 		return true;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		TileEntity te = blockAccess.getTileEntity(pos);
+		BlockEntity te = blockAccess.getBlockEntity(pos);
 		return te instanceof InventoryTesterTileEntity && ((InventoryTesterTileEntity) te).isPowered() ? 15 : 0;
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof InventoryTesterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (InventoryTesterTileEntity) te);
+				NetworkHooks.openGui((ServerPlayer) player, (InventoryTesterTileEntity) te);
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

@@ -28,9 +28,9 @@ import lumien.randomthings.block.spectretree.SpectreLeafBlock;
 import lumien.randomthings.block.spectretree.SpectreLogBlock;
 import lumien.randomthings.block.spectretree.SpectrePlankBlock;
 import lumien.randomthings.block.spectretree.SpectreSaplingBlock;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -52,7 +52,7 @@ public class RenderLayerSetup
             {
                 if (((StainedBrickBlock) block).isLuminous())
                 {
-                    RenderTypeLookup.setRenderLayer(block, RenderType.getCutoutMipped());
+                    ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutoutMipped());
                 }
             }
             else if (block instanceof DiaphanousBlock ||
@@ -68,7 +68,7 @@ public class RenderLayerSetup
                 block instanceof SpectrePlankBlock ||
                 block instanceof SpectreSaplingBlock)
             {
-                RenderTypeLookup.setRenderLayer(block, RenderType.getTranslucent());
+                ItemBlockRenderTypes.setRenderLayer(block, RenderType.translucent());
             }
             else if (block instanceof AdvancedItemCollectorBlock ||
                 block instanceof BeanStalkBlock ||
@@ -86,7 +86,7 @@ public class RenderLayerSetup
                 block instanceof RainShieldBlock ||
                 block instanceof SticksBlock)
             {
-                RenderTypeLookup.setRenderLayer(block, RenderType.getCutout());
+                ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutout());
             }
         }
     }

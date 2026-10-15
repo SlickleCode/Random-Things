@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
@@ -65,53 +65,53 @@ public class PortkeyItem extends Item {
     }
 
     @Override
-    public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag) {
-        CompoundNBT compound = stack.getTag();
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
+        CompoundTag compound = stack.getTag();
 
         if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get()) {
             // 1.12.2's HideCoordinates: only say whether a target is set, never where
-            tooltip.add(new TranslationTextComponent(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
+            tooltip.add(new TranslatableComponent(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
         } else if (Screen.hasShiftDown()) {
             if (compound != null && compound.getBoolean("hasTarget")) {
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.dimension", compound.getString("dimension")));
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.x", compound.getInt("targetX")));
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.y", compound.getInt("targetY")));
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.z", compound.getInt("targetZ")));
+                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.dimension", compound.getString("dimension")));
+                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.x", compound.getInt("targetX")));
+                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.y", compound.getInt("targetY")));
+                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.z", compound.getInt("targetZ")));
             } else {
-                tooltip.add(new TranslationTextComponent("tooltip.randomthings.portkey.notset"));
+                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.notset"));
             }
         } else {
-            tooltip.add(new TranslationTextComponent("tooltip.randomthings.general.shift"));
+            tooltip.add(new TranslatableComponent("tooltip.randomthings.general.shift"));
         }
 
-        super.addInformation(stack, world, tooltip, flag);
+        super.appendHoverText(stack, world, tooltip, flag);
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        if (!context.getWorld().isRemote) {
-            CompoundNBT compound = context.getItem().getOrCreateTag();
+    public InteractionResult useOn(UseOnContext context) {
+        if (!context.getLevel().isClientSide) {
+            CompoundTag compound = context.getItemInHand().getOrCreateTag();
 
             compound.putBoolean("hasTarget", true);
-            compound.putString("dimension", context.getWorld().getDimensionKey().getLocation().toString());
-            compound.putInt("targetX", context.getPos().getX());
-            compound.putInt("targetY", context.getPos().getY());
-            compound.putInt("targetZ", context.getPos().getZ());
+            compound.putString("dimension", context.getLevel().dimension().location().toString());
+            compound.putInt("targetX", context.getClickedPos().getX());
+            compound.putInt("targetY", context.getClickedPos().getY());
+            compound.putInt("targetZ", context.getClickedPos().getZ());
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World worldIn, net.minecraft.entity.Entity entityIn, int itemSlot, boolean isSelected) {
-        if (!worldIn.isRemote && stack.hasTag() && stack.getTag().contains("dropCounter")) {
+    public void inventoryTick(ItemStack stack, Level worldIn, net.minecraft.world.entity.Entity entityIn, int itemSlot, boolean isSelected) {
+        if (!worldIn.isClientSide && stack.hasTag() && stack.getTag().contains("dropCounter")) {
             stack.getTag().remove("dropCounter");
         }
     }
 
     @Override
-    public boolean hasEffect(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+    public boolean isFoil(ItemStack stack) {
+        CompoundTag compound = stack.getTag();
 
         if (compound == null || !compound.getBoolean("hasTarget")) {
             return true;
@@ -128,13 +128,13 @@ public class PortkeyItem extends Item {
      * how it gets set.
      */
     public static ItemStack getCamoStack(ItemStack stack) {
-        CompoundNBT compound = stack.getTag();
+        CompoundTag compound = stack.getTag();
 
         if (compound == null || !compound.contains("camo")) {
             return ItemStack.EMPTY;
         }
 
-        return ItemStack.read(compound.getCompound("camo").getCompound("stack"));
+        return ItemStack.of(compound.getCompound("camo").getCompound("stack"));
     }
 
     /**
@@ -165,8 +165,8 @@ public class PortkeyItem extends Item {
      * a genuinely different object reference is what actually trips the
      * dirty check and gets it sent.
      */
-    public void tickDroppedPortkey(net.minecraft.entity.item.ItemEntity entityItem) {
-        if (entityItem.world.isRemote) {
+    public void tickDroppedPortkey(net.minecraft.world.entity.item.ItemEntity entityItem) {
+        if (entityItem.level.isClientSide) {
             return;
         }
 
@@ -174,11 +174,27 @@ public class PortkeyItem extends Item {
         int counter = original.hasTag() ? original.getTag().getInt("dropCounter") : 0;
 
         if (counter == 0) {
-            entityItem.setNoDespawn();
+            entityItem.setExtendedLifetime();
         }
 
         ItemStack updated = original.copy();
         updated.getOrCreateTag().putInt("dropCounter", counter + 1);
         entityItem.setItem(updated);
+    }
+
+    @Override
+    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.IItemRenderProperties> consumer) {
+        consumer.accept(new net.minecraftforge.client.IItemRenderProperties() {
+            private lumien.randomthings.client.renderer.PortkeyItemRenderer renderer;
+
+            @Override
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getItemStackRenderer() {
+                if (renderer == null) {
+                    renderer = new lumien.randomthings.client.renderer.PortkeyItemRenderer();
+                }
+
+                return renderer;
+            }
+        });
     }
 }

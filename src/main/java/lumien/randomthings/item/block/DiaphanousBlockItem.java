@@ -1,15 +1,15 @@
 package lumien.randomthings.item.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -28,13 +28,13 @@ public class DiaphanousBlockItem extends BlockItem {
     }
 
     @Override
-    public void fillItemGroup(ItemGroup group, NonNullList<ItemStack> items) {
-        if (!this.isInGroup(group)) {
+    public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
+        if (!this.allowdedIn(group)) {
             return;
         }
 
         ItemStack stack = new ItemStack(this);
-        CompoundNBT tag = new CompoundNBT();
+        CompoundTag tag = new CompoundTag();
         tag.putString("block", Blocks.STONE.getRegistryName().toString());
         tag.putBoolean("inverted", false);
         stack.setTag(tag);
@@ -53,13 +53,13 @@ public class DiaphanousBlockItem extends BlockItem {
      * prefix.
      */
     @Override
-    public String getTranslationKey(ItemStack stack) {
-        return super.getTranslationKey(stack) + (stack.hasTag() && stack.getTag().getBoolean("inverted") ? "_inverted" : "");
+    public String getDescriptionId(ItemStack stack) {
+        return super.getDescriptionId(stack) + (stack.hasTag() && stack.getTag().getBoolean("inverted") ? "_inverted" : "");
     }
 
     @Override
-    public ITextComponent getDisplayName(ItemStack stack) {
-        ITextComponent name = super.getDisplayName(stack);
+    public Component getName(ItemStack stack) {
+        Component name = super.getName(stack);
 
         Block displayBlock = Blocks.STONE;
 
@@ -71,6 +71,6 @@ public class DiaphanousBlockItem extends BlockItem {
             }
         }
 
-        return new net.minecraft.util.text.StringTextComponent("").appendSibling(name).appendString(" <").appendSibling(new ItemStack(displayBlock).getDisplayName()).appendString(">");
+        return new net.minecraft.network.chat.TextComponent("").append(name).append(" <").append(new ItemStack(displayBlock).getHoverName()).append(">");
     }
 }

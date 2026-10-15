@@ -1,19 +1,23 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.client.screen.ScreenWidgets;
+
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.RedstoneRemoteUseContainer;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.network.RTPacketHandler;
 import lumien.randomthings.network.messages.RedstoneRemoteActivateMessage;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
@@ -23,21 +27,21 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * draws each button as an {@link ItemSlotButton}: the camo item chosen in the
  * Redstone Remote's edit screen, or the Position Filter's own icon if none.
  */
-public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseContainer> {
+public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRemoteUseContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_use.png");
 
-    public RedstoneRemoteUseScreen(RedstoneRemoteUseContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public RedstoneRemoteUseScreen(RedstoneRemoteUseContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 187;
-        this.ySize = 41;
+        this.imageWidth = 187;
+        this.imageHeight = 41;
     }
 
     @Override
     protected void init() {
         super.init();
 
-        ItemStack remoteStack = this.container.getRemoteStack();
+        ItemStack remoteStack = this.menu.getRemoteStack();
 
         if (remoteStack.isEmpty() || remoteStack.getItem() != ModItems.REDSTONE_REMOTE || !remoteStack.hasTag() || !remoteStack.getTag().contains("positions")) {
             return;
@@ -64,22 +68,23 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
             ItemStack camo = camoInventory.getStackInSlot(i);
             ItemStack icon = camo.isEmpty() ? positionFilter : camo;
             // the displayed item's own (anvil) name wins, else fall back to the Position Filter's
-            String name = icon.hasDisplayName() ? icon.getDisplayName().getString() : positionFilter.hasDisplayName() ? positionFilter.getDisplayName().getString() : null;
+            String name = icon.hasCustomHoverName() ? icon.getHoverName().getString() : positionFilter.hasCustomHoverName() ? positionFilter.getHoverName().getString() : null;
             int slot = i;
 
-            this.addButton(new ItemSlotButton(this.guiLeft + 5 + i * 20, this.guiTop + 17, icon.copy(), name, (b) -> {
+            this.addRenderableWidget(new ItemSlotButton(this.leftPos + 5 + i * 20, this.topPos + 17, icon.copy(), name, (b) -> {
                 RTPacketHandler.sendToServer(new RedstoneRemoteActivateMessage(slot));
             }));
         }
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int i = (this.width - this.imageWidth) / 2;
+        int j = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
@@ -97,15 +102,15 @@ public class RedstoneRemoteUseScreen extends ContainerScreen<RedstoneRemoteUseCo
      * faithful to the original, not a missing-texture bug.
      */
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
-        SpriteStateButton.renderTooltips(matrixStack, this, this.buttons, mouseX, mouseY, this.guiLeft, this.guiTop);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
+        SpriteStateButton.renderTooltips(matrixStack, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
+    public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-        this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
+        this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
     }
 }

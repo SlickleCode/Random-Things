@@ -1,40 +1,50 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import com.mojang.authlib.GameProfile;
 import lumien.randomthings.handler.EnderLetterHandler;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.tileentity.EnderMailboxTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.items.IItemHandler;
 
 import java.util.Random;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A personal mailbox: whichever player placed it can right-click it to see
@@ -44,34 +54,34 @@ import net.minecraft.util.ActionResultType;
  * lumien.randomthings.item.EnderLetterItem} to actually deliver it into the
  * named recipient's inbox. Direct port of 1.12.2's {@code BlockEnderMailbox}.
  */
-public class EnderMailboxBlock extends Block {
+public class EnderMailboxBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-    private static final VoxelShape SHAPE_NORTH_SOUTH = Block.makeCuboidShape(5, 0, 1, 11, 22, 15);
-    private static final VoxelShape SHAPE_EAST_WEST = Block.makeCuboidShape(1, 0, 5, 15, 22, 11);
+    private static final VoxelShape SHAPE_NORTH_SOUTH = Block.box(5, 0, 1, 11, 22, 15);
+    private static final VoxelShape SHAPE_EAST_WEST = Block.box(1, 0, 5, 15, 22, 11);
 
     public EnderMailboxBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(1.5F, 10.0F).doesNotBlockMovement());
+        super(Block.Properties.of(Material.STONE).strength(1.5F, 10.0F).noCollission());
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.NORTH).with(ACTIVE, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(FACING, ACTIVE);
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        Direction facing = state.get(FACING);
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+        Direction facing = state.getValue(FACING);
 
         return facing.getAxis() == Direction.Axis.X ? SHAPE_EAST_WEST : SHAPE_NORTH_SOUTH;
     }
 
     @Override
-    public void animateTick(BlockState state, World worldIn, BlockPos pos, Random rand) {
-        if (!state.get(ACTIVE)) {
+    public void animateTick(BlockState state, Level worldIn, BlockPos pos, Random rand) {
+        if (!state.getValue(ACTIVE)) {
             return;
         }
 
@@ -97,77 +107,79 @@ public class EnderMailboxBlock extends Block {
     }
 
     @Override
-    public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos) {
-        return worldIn.isAirBlock(pos.up());
+    public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos) {
+        return worldIn.isEmptyBlock(pos.above());
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new EnderMailboxTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new EnderMailboxTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.ENDER_MAILBOX, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite()).with(ACTIVE, false);
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()).setValue(ACTIVE, false);
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isRemote && placer instanceof PlayerEntity) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (!worldIn.isClientSide && placer instanceof Player) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof EnderMailboxTileEntity) {
-                ((EnderMailboxTileEntity) te).setOwner(placer.getUniqueID());
+                ((EnderMailboxTileEntity) te).setOwner(placer.getUUID());
             }
         }
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        if (worldIn.isRemote) {
-            return ActionResultType.SUCCESS;
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (worldIn.isClientSide) {
+            return InteractionResult.SUCCESS;
         }
 
-        ItemStack heldItem = player.getHeldItemMainhand();
+        ItemStack heldItem = player.getMainHandItem();
 
-        if (player.isSneaking() && heldItem.getItem() == ModItems.ENDER_LETTER) {
+        if (player.isShiftKeyDown() && heldItem.getItem() == ModItems.ENDER_LETTER) {
             deliverLetter(worldIn, pos, player, heldItem);
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        TileEntity te = worldIn.getTileEntity(pos);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof EnderMailboxTileEntity) {
             EnderMailboxTileEntity mailbox = (EnderMailboxTileEntity) te;
 
             if (mailbox.getOwner() != null) {
-                if (mailbox.getOwner().equals(player.getUniqueID())) {
-                    net.minecraftforge.fml.network.NetworkHooks.openGui((net.minecraft.entity.player.ServerPlayerEntity) player, mailbox, pos);
+                if (mailbox.getOwner().equals(player.getUUID())) {
+                    net.minecraftforge.network.NetworkHooks.openGui((net.minecraft.server.level.ServerPlayer) player, mailbox, pos);
                 } else {
-                    player.sendStatusMessage(new TranslationTextComponent("block.randomthings.ender_mailbox.owner").mergeStyle(TextFormatting.RED), false);
+                    player.displayClientMessage(new TranslatableComponent("block.randomthings.ender_mailbox.owner").withStyle(ChatFormatting.RED), false);
                 }
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
-    private void deliverLetter(World worldIn, BlockPos pos, PlayerEntity player, ItemStack heldItem) {
-        CompoundNBT compound = heldItem.getTag();
+    private void deliverLetter(Level worldIn, BlockPos pos, Player player, ItemStack heldItem) {
+        CompoundTag compound = heldItem.getTag();
 
         if (compound == null || !compound.contains("receiver") || compound.getBoolean("received")) {
             return;
         }
 
-        GameProfile profile = ((ServerWorld) worldIn).getServer().getPlayerProfileCache().getGameProfileForUsername(compound.getString("receiver"));
+        GameProfile profile = ((ServerLevel) worldIn).getServer().getProfileCache().get(compound.getString("receiver")).orElse(null);
 
         if (profile == null || profile.getId() == null) {
-            player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_player", compound.getString("receiver")).mergeStyle(TextFormatting.DARK_PURPLE), false);
+            player.displayClientMessage(new TranslatableComponent("item.randomthings.ender_letter.no_player", compound.getString("receiver")).withStyle(ChatFormatting.DARK_PURPLE), false);
             return;
         }
 
@@ -183,11 +195,11 @@ public class EnderMailboxBlock extends Block {
                 mailboxInventory.insertItem(slot, sendingLetter, false);
                 heldItem.shrink(1);
 
-                worldIn.playSound(null, pos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1, 1);
+                worldIn.playSound(null, pos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1, 1);
                 return;
             }
         }
 
-        player.sendStatusMessage(new TranslationTextComponent("item.randomthings.ender_letter.no_space").mergeStyle(TextFormatting.DARK_PURPLE), false);
+        player.displayClientMessage(new TranslatableComponent("item.randomthings.ender_letter.no_space").withStyle(ChatFormatting.DARK_PURPLE), false);
     }
 }

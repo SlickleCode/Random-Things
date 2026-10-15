@@ -1,8 +1,8 @@
 package lumien.randomthings.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +25,13 @@ public class ChunkAnalyzerResult {
         blockCounts.add(count);
     }
 
-    public void writeToNBT(CompoundNBT compound) {
-        ListNBT tagList = new ListNBT();
+    public void writeToNBT(CompoundTag compound) {
+        ListTag tagList = new ListTag();
 
         for (int i = 0; i < displayStacks.size(); i++) {
-            CompoundNBT entryCompound = new CompoundNBT();
+            CompoundTag entryCompound = new CompoundTag();
 
-            entryCompound.put("stack", displayStacks.get(i).write(new CompoundNBT()));
+            entryCompound.put("stack", displayStacks.get(i).save(new CompoundTag()));
             entryCompound.putString("description", blockDescriptions.get(i));
             entryCompound.putInt("count", blockCounts.get(i));
 
@@ -41,13 +41,13 @@ public class ChunkAnalyzerResult {
         compound.put("entries", tagList);
     }
 
-    public void readFromNBT(CompoundNBT compound) {
-        ListNBT entryList = compound.getList("entries", 10);
+    public void readFromNBT(CompoundTag compound) {
+        ListTag entryList = compound.getList("entries", 10);
 
         for (int i = 0; i < entryList.size(); i++) {
-            CompoundNBT entryCompound = entryList.getCompound(i);
+            CompoundTag entryCompound = entryList.getCompound(i);
 
-            displayStacks.add(ItemStack.read(entryCompound.getCompound("stack")));
+            displayStacks.add(ItemStack.of(entryCompound.getCompound("stack")));
             blockDescriptions.add(entryCompound.getString("description"));
             blockCounts.add(entryCompound.getInt("count"));
         }

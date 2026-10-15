@@ -1,19 +1,21 @@
 package lumien.randomthings.block.redstoneinterface;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Single-target half of the Redstone Interface family - see {@link
@@ -24,24 +26,20 @@ import net.minecraft.util.ActionResultType;
  * {@link lumien.randomthings.block.RedstoneObserverBlock}'s own convention.
  * Direct port of 1.12.2's {@code BlockBasicRedstoneInterface}.
  */
-public class BasicRedstoneInterfaceBlock extends Block {
+public class BasicRedstoneInterfaceBlock extends Block implements EntityBlock {
     public BasicRedstoneInterfaceBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+        super(Block.Properties.of(Material.STONE).strength(2.0F));
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new BasicRedstoneInterfaceTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new BasicRedstoneInterfaceTileEntity();
-    }
-
-    @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity) {
             ((lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity) te).updateRedstoneState();
@@ -49,8 +47,8 @@ public class BasicRedstoneInterfaceBlock extends Block {
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity) {
             ((lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity) te).updateRedstoneState();
@@ -58,15 +56,15 @@ public class BasicRedstoneInterfaceBlock extends Block {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (!worldIn.isRemote) {
-            TileEntity te = worldIn.getTileEntity(pos);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        if (!worldIn.isClientSide) {
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof BasicRedstoneInterfaceTileEntity) {
-                NetworkHooks.openGui((ServerPlayerEntity) player, (BasicRedstoneInterfaceTileEntity) te);
+                NetworkHooks.openGui((ServerPlayer) player, (BasicRedstoneInterfaceTileEntity) te);
             }
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

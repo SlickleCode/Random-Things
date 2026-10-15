@@ -1,37 +1,40 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.renderer.GameRenderer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.RedstoneRemoteEditContainer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * RedstoneRemoteEditScreen - a row of 9 Position Filter slots, a row of 9 ghost camo-icon slots
  * beneath it, and the player inventory (1.12.2's redstoneremoteedit.png layout).
  */
-public class RedstoneRemoteEditScreen extends ContainerScreen<RedstoneRemoteEditContainer> {
+public class RedstoneRemoteEditScreen extends AbstractContainerScreen<RedstoneRemoteEditContainer> {
     private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_edit.png");
 
-    public RedstoneRemoteEditScreen(RedstoneRemoteEditContainer screenContainer, PlayerInventory inv, ITextComponent titleIn) {
+    public RedstoneRemoteEditScreen(RedstoneRemoteEditContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
 
-        this.xSize = 176;
-        this.ySize = 150;
+        this.imageWidth = 176;
+        this.imageHeight = 150;
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(GUI_TEXTURES);
-        int i = (this.width - this.xSize) / 2;
-        int j = (this.height - this.ySize) / 2;
-        this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
+        int i = (this.width - this.imageWidth) / 2;
+        int j = (this.height - this.imageHeight) / 2;
+        this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
@@ -40,15 +43,15 @@ public class RedstoneRemoteEditScreen extends ContainerScreen<RedstoneRemoteEdit
      * this screen never drew its title either.
      */
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-        this.font.drawString(matrixStack, this.title.getString(), 8, 6, 4210752);
-        this.font.drawString(matrixStack, I18n.format("container.inventory"), 8, this.ySize - 95 + 2, 4210752);
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
+        this.font.draw(matrixStack, I18n.get("container.inventory"), 8, this.imageHeight - 95 + 2, 4210752);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
+    public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
         this.renderBackground(matrixStack);
         super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-        this.renderHoveredTooltip(matrixStack, p_render_1_, p_render_2_);
+        this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
     }
 }

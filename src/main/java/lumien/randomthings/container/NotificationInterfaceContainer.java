@@ -2,17 +2,17 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.NotificationInterfaceTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -20,16 +20,16 @@ import net.minecraftforge.items.SlotItemHandler;
 /**
  * NotificationInterfaceContainer
  */
-public class NotificationInterfaceContainer extends Container implements ISignalContainer {
-    IWorldPosCallable pos;
+public class NotificationInterfaceContainer extends AbstractContainerMenu implements ISignalContainer {
+    ContainerLevelAccess pos;
     String title;
     String description;
 
-    public NotificationInterfaceContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readString(32767), extraData.readString(32767));
+    public NotificationInterfaceContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, (Inventory) playerInventory, new ItemStackHandler(1), resolvePos(playerInventory, extraData.readBlockPos()), extraData.readUtf(32767), extraData.readUtf(32767));
     }
 
-    public NotificationInterfaceContainer(int windowId, PlayerInventory playerInventory, IItemHandler iconInventory, IWorldPosCallable pos, String title, String description) {
+    public NotificationInterfaceContainer(int windowId, Inventory playerInventory, IItemHandler iconInventory, ContainerLevelAccess pos, String title, String description) {
         super(ModContainerTypes.NOTIFICATION_INTERFACE, windowId);
 
         this.pos = pos;
@@ -39,12 +39,12 @@ public class NotificationInterfaceContainer extends Container implements ISignal
         // ghost slot (like the Redstone Remote's camo row): never holds a real item, see slotClick
         this.addSlot(new SlotItemHandler(iconInventory, 0, 11, 31) {
             @Override
-            public boolean isItemValid(ItemStack stack) {
+            public boolean mayPlace(ItemStack stack) {
                 return false;
             }
 
             @Override
-            public boolean canTakeStack(PlayerEntity playerIn) {
+            public boolean mayPickup(Player playerIn) {
                 return false;
             }
         });
@@ -60,9 +60,9 @@ public class NotificationInterfaceContainer extends Container implements ISignal
         }
     }
 
-    private static IWorldPosCallable resolvePos(IInventory playerInventory, BlockPos blockPos) {
-        PlayerInventory inv = (PlayerInventory) playerInventory;
-        return IWorldPosCallable.of(inv.player.world, blockPos);
+    private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos) {
+        Inventory inv = (Inventory) playerInventory;
+        return ContainerLevelAccess.create(inv.player.level, blockPos);
     }
 
     public String getTitle() {
@@ -74,50 +74,50 @@ public class NotificationInterfaceContainer extends Container implements ISignal
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.NOTIFICATION_INTERFACE);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.NOTIFICATION_INTERFACE);
     }
 
     @Override
-    public ItemStack slotClick(int slotId, int dragType, ClickType clickTypeIn, PlayerEntity player) {
+    public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
         if (slotId == 0) {
             // clicking with a stack in hand copies one of it as the icon, clicking empty-handed clears it
-            Slot slot = this.inventorySlots.get(0);
-            ItemStack holding = player.inventory.getItemStack();
+            Slot slot = this.slots.get(0);
+            ItemStack holding = this.getCarried();
 
             if (clickTypeIn == ClickType.PICKUP || clickTypeIn == ClickType.QUICK_MOVE || clickTypeIn == ClickType.SWAP) {
                 if (holding.isEmpty()) {
-                    slot.putStack(ItemStack.EMPTY);
+                    slot.set(ItemStack.EMPTY);
                 } else {
                     ItemStack copy = holding.copy();
                     copy.setCount(1);
-                    slot.putStack(copy);
+                    slot.set(copy);
                 }
             }
 
-            return ItemStack.EMPTY;
+            return;
         }
 
-        return super.slotClick(slotId, dragType, clickTypeIn, player);
+        super.clicked(slotId, dragType, clickTypeIn, player);
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         // the icon slot is ghost-only, so there is nowhere to shift-click to or from
         return ItemStack.EMPTY;
     }
 
     @Override
-    public void handle(int id, PacketBuffer data) {
+    public void handle(int id, FriendlyByteBuf data) {
         if (id == 0) {
-            String newTitle = data.readString(32767);
-            String newDescription = data.readString(32767);
+            String newTitle = data.readUtf(32767);
+            String newDescription = data.readUtf(32767);
 
             this.title = newTitle;
             this.description = newDescription;
 
-            this.pos.consume((world, pos) -> {
-                TileEntity te = world.getTileEntity(pos);
+            this.pos.execute((world, pos) -> {
+                BlockEntity te = world.getBlockEntity(pos);
 
                 if (te instanceof NotificationInterfaceTileEntity) {
                     ((NotificationInterfaceTileEntity) te).setData(newTitle, newDescription);

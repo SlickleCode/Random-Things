@@ -4,19 +4,19 @@ import lumien.randomthings.handler.ModDimensions;
 import lumien.randomthings.handler.spectre.SpectreCube;
 import lumien.randomthings.handler.spectre.SpectreHandler;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.World;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Direct port of 1.12.2's {@code BlockSpectreCore}: the 2x2 unbreakable
@@ -34,11 +34,11 @@ import net.minecraft.util.ActionResultType;
  * 1.12.2's {@code getActualState} did - see that method's javadoc.
  */
 public class SpectreCoreBlock extends Block {
-    public enum CoreOrientation implements IStringSerializable {
+    public enum CoreOrientation implements StringRepresentable {
         NW, NE, ES, SW;
 
         @Override
-        public String getString() {
+        public String getSerializedName() {
             return name().toLowerCase(java.util.Locale.ROOT);
         }
     }
@@ -46,42 +46,42 @@ public class SpectreCoreBlock extends Block {
     public static final EnumProperty<CoreOrientation> ORIENTATION = EnumProperty.create("orientation", CoreOrientation.class);
 
     public SpectreCoreBlock() {
-        super(Block.Properties.create(Material.ROCK).notSolid().hardnessAndResistance(-1.0F, 3600000.0F).sound(net.minecraft.block.SoundType.GLASS).noDrops());
+        super(Block.Properties.of(Material.STONE).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noDrops());
 
-        this.setDefaultState(this.stateContainer.getBaseState().with(ORIENTATION, CoreOrientation.NW));
+        this.registerDefaultState(this.stateDefinition.any().setValue(ORIENTATION, CoreOrientation.NW));
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(ORIENTATION);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, net.minecraft.util.math.BlockPos pos, PlayerEntity playerIn, Hand hand, BlockRayTraceResult hit) {
+    public InteractionResult use(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
         if (!lumien.randomthings.handler.ModDimensions.isSpectre(worldIn)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
-        ItemStack holding = playerIn.getHeldItem(hand);
+        ItemStack holding = playerIn.getItemInHand(hand);
 
         if (!holding.isEmpty() && holding.getItem() == ModItems.ECTOPLASM) {
-            if (!worldIn.isRemote) {
-                SpectreCube cube = SpectreHandler.getInstance(((ServerPlayerEntity) playerIn).getServer()).getSpectreCubeFromPos(worldIn, pos.up());
+            if (!worldIn.isClientSide) {
+                SpectreCube cube = SpectreHandler.getInstance(((ServerPlayer) playerIn).getServer()).getSpectreCubeFromPos(worldIn, pos.above());
 
                 if (cube != null) {
                     holding.shrink(cube.increaseHeight(holding.getCount(), worldIn));
                 }
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         } else if (holding.isEmpty()) {
-            if (!worldIn.isRemote) {
-                SpectreHandler.getInstance(((ServerPlayerEntity) playerIn).getServer()).teleportPlayerBack((ServerPlayerEntity) playerIn);
+            if (!worldIn.isClientSide) {
+                SpectreHandler.getInstance(((ServerPlayer) playerIn).getServer()).teleportPlayerBack((ServerPlayer) playerIn);
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 }

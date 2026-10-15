@@ -1,30 +1,31 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import java.util.List;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.container.EntityDetectorContainer;
 import lumien.randomthings.lib.IEntityFilterItem;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.monster.MonsterEntity;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Emits redstone based on whether any entity matching a configurable filter
@@ -39,11 +40,11 @@ import net.minecraft.block.BlockState;
  * both were substituted with their closest concrete equivalents,
  * {@code AnimalEntity} and {@code MonsterEntity}.
  */
-public class EntityDetectorTileEntity extends TileEntity implements ITickableTileEntity, INamedContainerProvider
+public class EntityDetectorTileEntity extends BlockEntity implements MenuProvider
 {
 	public enum FILTER
 	{
-		ALL(Entity.class), LIVING(LivingEntity.class), ANIMAL(AnimalEntity.class), MONSTER(MonsterEntity.class), PLAYER(PlayerEntity.class), ITEMS(ItemEntity.class), CUSTOM(null);
+		ALL(Entity.class), LIVING(LivingEntity.class), ANIMAL(Animal.class), MONSTER(Monster.class), PLAYER(Player.class), ITEMS(ItemEntity.class), CUSTOM(null);
 
 		final Class<? extends Entity> filterClass;
 
@@ -71,14 +72,13 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 		@Override
 		protected void onContentsChanged(int slot)
 		{
-			markDirty();
+			setChanged();
 		}
 	};
 
-	public EntityDetectorTileEntity()
-	{
-		super(ModTileEntityTypes.ENTITY_DETECTOR);
-	}
+	public EntityDetectorTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ENTITY_DETECTOR, pos, state);
+    }
 
 	public ItemStackHandler filterInventory()
 	{
@@ -123,19 +123,19 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 	public void adjustRangeX(int amount)
 	{
 		rangeX = clampRange(rangeX + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void adjustRangeY(int amount)
 	{
 		rangeY = clampRange(rangeY + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void adjustRangeZ(int amount)
 	{
 		rangeZ = clampRange(rangeZ + amount);
-		this.markDirty();
+		this.setChanged();
 	}
 
 	private static int clampRange(int value)
@@ -147,40 +147,39 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 	{
 		int next = (filter.ordinal() + 1) % FILTER.values().length;
 		filter = FILTER.values()[next];
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void toggleInvert()
 	{
 		invert = !invert;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void toggleStrongOutput()
 	{
 		strongOutput = !strongOutput;
-		this.markDirty();
+		this.setChanged();
 
 		notifyAllSides();
 	}
 
 	private void notifyAllSides()
 	{
-		this.world.notifyNeighborsOfStateChange(pos, ModBlocks.ENTITY_DETECTOR);
+		this.level.updateNeighborsAt(worldPosition, ModBlocks.ENTITY_DETECTOR);
 
 		if (strongOutput)
 		{
 			for (Direction facing : Direction.values())
 			{
-				this.world.notifyNeighborsOfStateChange(pos.offset(facing), ModBlocks.ENTITY_DETECTOR);
+				this.level.updateNeighborsAt(worldPosition.relative(facing), ModBlocks.ENTITY_DETECTOR);
 			}
 		}
 	}
 
-	@Override
 	public void tick()
 	{
-		if (this.world.isRemote)
+		if (this.level.isClientSide)
 		{
 			return;
 		}
@@ -190,14 +189,14 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 		if (newPowered != powered)
 		{
 			powered = newPowered;
-			this.markDirty();
+			this.setChanged();
 			notifyAllSides();
 		}
 	}
 
 	private boolean checkSupposedPoweredState()
 	{
-		AxisAlignedBB box = new AxisAlignedBB(pos, pos.add(1, 1, 1)).grow(rangeX, rangeY, rangeZ);
+		AABB box = new AABB(worldPosition, worldPosition.offset(1, 1, 1)).inflate(rangeX, rangeY, rangeZ);
 
 		if (filter.filterClass == null)
 		{
@@ -209,19 +208,19 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 				return invert;
 			}
 
-			List<Entity> entities = this.world.getEntitiesWithinAABB(Entity.class, box, e -> filterInstance.apply(filterItem, e));
+			List<Entity> entities = this.level.getEntitiesOfClass(Entity.class, box, e -> filterInstance.apply(filterItem, e));
 			return invert != !entities.isEmpty();
 		}
 
-		List<? extends Entity> entities = this.world.getEntitiesWithinAABB(filter.filterClass, box, e -> true);
+		List<? extends Entity> entities = this.level.getEntitiesOfClass(filter.filterClass, box, e -> true);
 
 		return invert != !entities.isEmpty();
 	}
 
 	@Override
-	public CompoundNBT write(CompoundNBT compound)
+	protected void saveAdditional(CompoundTag compound)
 	{
-		super.write(compound);
+		super.saveAdditional(compound);
 
 		compound.putBoolean("powered", powered);
 		compound.putInt("rangeX", rangeX);
@@ -232,13 +231,12 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 		compound.putBoolean("strongOutput", strongOutput);
 		compound.put("inventory", filterInventory.serializeNBT());
 
-		return compound;
 	}
 
 	@Override
-	public void read(BlockState tileState, CompoundNBT compound)
+	public void load(CompoundTag compound)
 	{
-		super.read(tileState, compound);
+		super.load(compound);
 
 		powered = compound.getBoolean("powered");
 		rangeX = compound.getInt("rangeX");
@@ -251,14 +249,14 @@ public class EntityDetectorTileEntity extends TileEntity implements ITickableTil
 	}
 
 	@Override
-	public Container createMenu(int windowId, PlayerInventory playerInventory, PlayerEntity playerEntity)
+	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
-		return new EntityDetectorContainer(windowId, playerInventory, filterInventory, IWorldPosCallable.of(this.world, pos));
+		return new EntityDetectorContainer(windowId, playerInventory, filterInventory, ContainerLevelAccess.create(this.level, worldPosition));
 	}
 
 	@Override
-	public ITextComponent getDisplayName()
+	public Component getDisplayName()
 	{
-		return new TranslationTextComponent("block.randomthings.entity_detector");
+		return new TranslatableComponent("block.randomthings.entity_detector");
 	}
 }

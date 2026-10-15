@@ -2,17 +2,17 @@ package lumien.randomthings.item;
 
 import java.util.List;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 /**
  * Right-click a block to remember its position (dimension + x/y/z) in this
@@ -28,9 +28,9 @@ public class PositionFilterItem extends Item
 	}
 
 	@Override
-	public void addInformation(ItemStack stack, World world, List<ITextComponent> tooltip, ITooltipFlag flag)
+	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
 	{
-		CompoundNBT compound = stack.getTag();
+		CompoundTag compound = stack.getTag();
 
 		if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get())
 		{
@@ -42,36 +42,36 @@ public class PositionFilterItem extends Item
 		{
 			if (compound != null && compound.getBoolean("hasPosition"))
 			{
-				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
-				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
-				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
-				tooltip.add(new TranslationTextComponent("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
+				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
+				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
+				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
+				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
 			}
 		}
 		else
 		{
-			tooltip.add(new TranslationTextComponent("tooltip.randomthings.general.shift"));
+			tooltip.add(new TranslatableComponent("tooltip.randomthings.general.shift"));
 		}
 	}
 
 	@Override
-	public ActionResultType onItemUse(ItemUseContext context)
+	public InteractionResult useOn(UseOnContext context)
 	{
-		if (!context.getWorld().isRemote)
+		if (!context.getLevel().isClientSide)
 		{
-			setPosition(context.getItem(), context.getWorld().getDimensionKey().getLocation().toString(), context.getPos());
+			setPosition(context.getItemInHand(), context.getLevel().dimension().location().toString(), context.getClickedPos());
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 
 	public static void setPosition(ItemStack positionFilter, String dimension, BlockPos pos)
 	{
-		CompoundNBT compound = positionFilter.getTag();
+		CompoundTag compound = positionFilter.getTag();
 
 		if (compound == null)
 		{
-			positionFilter.setTag(compound = new CompoundNBT());
+			positionFilter.setTag(compound = new CompoundTag());
 		}
 
 		compound.putBoolean("hasPosition", true);
@@ -83,7 +83,7 @@ public class PositionFilterItem extends Item
 
 	public static BlockPos getPosition(ItemStack positionFilter)
 	{
-		CompoundNBT compound = positionFilter.getTag();
+		CompoundTag compound = positionFilter.getTag();
 
 		if (compound == null || !compound.getBoolean("hasPosition"))
 		{

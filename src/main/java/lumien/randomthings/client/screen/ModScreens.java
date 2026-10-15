@@ -1,7 +1,7 @@
 package lumien.randomthings.client.screen;
 
 import lumien.randomthings.container.ModContainerTypes;
-import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.gui.screens.MenuScreens;
 
 /**
  * ModScreens
@@ -11,33 +11,33 @@ public class ModScreens
 
 	public static void register()
 	{
-		ScreenManager.registerFactory(ModContainerTypes.ADVANCED_REDSTONE_TORCH, AdvancedRedstoneTorchScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ANALOG_EMITTER, AnalogEmitterScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.IGNITER, IgniterScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ONLINE_DETECTOR, OnlineDetectorScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ADVANCED_REDSTONE_REPEATER, AdvancedRedstoneRepeaterScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.IRON_DROPPER, IronDropperScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.INVENTORY_TESTER, InventoryTesterScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.CHAT_DETECTOR, ChatDetectorScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.REDSTONE_OBSERVER, RedstoneObserverScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.BASIC_REDSTONE_INTERFACE, BasicRedstoneInterfaceScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ADVANCED_REDSTONE_INTERFACE, AdvancedRedstoneInterfaceScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.REDSTONE_REMOTE_EDIT, RedstoneRemoteEditScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.REDSTONE_REMOTE_USE, RedstoneRemoteUseScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.POTION_VAPORIZER, PotionVaporizerScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ENTITY_DETECTOR, EntityDetectorScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ADVANCED_ITEM_COLLECTOR, AdvancedItemCollectorScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.FILTERED_SUPER_LUBRICENT_PLATFORM, FilteredSuperLubricentPlatformScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.NOTIFICATION_INTERFACE, NotificationInterfaceScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.GLOBAL_CHAT_DETECTOR, GlobalChatDetectorScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.CHUNK_ANALYZER, ChunkAnalyzerScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.SOUND_RECORDER, SoundRecorderScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.SOUND_DAMPENER, SoundDampenerScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.PORTABLE_SOUND_DAMPENER, PortableSoundDampenerScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.IMBUING_STATION, ImbuingStationScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ENDER_LETTER, EnderLetterScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.ENDER_MAILBOX, EnderMailboxScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.BLOCK_DESTABILIZER, BlockDestabilizerScreen::new);
-		ScreenManager.registerFactory(ModContainerTypes.DYEING_MACHINE, DyeingMachineScreen::new);
+		MenuScreens.register(ModContainerTypes.ADVANCED_REDSTONE_TORCH, AdvancedRedstoneTorchScreen::new);
+		MenuScreens.register(ModContainerTypes.ANALOG_EMITTER, AnalogEmitterScreen::new);
+		MenuScreens.register(ModContainerTypes.IGNITER, IgniterScreen::new);
+		MenuScreens.register(ModContainerTypes.ONLINE_DETECTOR, OnlineDetectorScreen::new);
+		MenuScreens.register(ModContainerTypes.ADVANCED_REDSTONE_REPEATER, AdvancedRedstoneRepeaterScreen::new);
+		MenuScreens.register(ModContainerTypes.IRON_DROPPER, IronDropperScreen::new);
+		MenuScreens.register(ModContainerTypes.INVENTORY_TESTER, InventoryTesterScreen::new);
+		MenuScreens.register(ModContainerTypes.CHAT_DETECTOR, ChatDetectorScreen::new);
+		MenuScreens.register(ModContainerTypes.REDSTONE_OBSERVER, RedstoneObserverScreen::new);
+		MenuScreens.register(ModContainerTypes.BASIC_REDSTONE_INTERFACE, BasicRedstoneInterfaceScreen::new);
+		MenuScreens.register(ModContainerTypes.ADVANCED_REDSTONE_INTERFACE, AdvancedRedstoneInterfaceScreen::new);
+		MenuScreens.register(ModContainerTypes.REDSTONE_REMOTE_EDIT, RedstoneRemoteEditScreen::new);
+		MenuScreens.register(ModContainerTypes.REDSTONE_REMOTE_USE, RedstoneRemoteUseScreen::new);
+		MenuScreens.register(ModContainerTypes.POTION_VAPORIZER, PotionVaporizerScreen::new);
+		MenuScreens.register(ModContainerTypes.ENTITY_DETECTOR, EntityDetectorScreen::new);
+		MenuScreens.register(ModContainerTypes.ADVANCED_ITEM_COLLECTOR, AdvancedItemCollectorScreen::new);
+		MenuScreens.register(ModContainerTypes.FILTERED_SUPER_LUBRICENT_PLATFORM, FilteredSuperLubricentPlatformScreen::new);
+		MenuScreens.register(ModContainerTypes.NOTIFICATION_INTERFACE, NotificationInterfaceScreen::new);
+		MenuScreens.register(ModContainerTypes.GLOBAL_CHAT_DETECTOR, GlobalChatDetectorScreen::new);
+		MenuScreens.register(ModContainerTypes.CHUNK_ANALYZER, ChunkAnalyzerScreen::new);
+		MenuScreens.register(ModContainerTypes.SOUND_RECORDER, SoundRecorderScreen::new);
+		MenuScreens.register(ModContainerTypes.SOUND_DAMPENER, SoundDampenerScreen::new);
+		MenuScreens.register(ModContainerTypes.PORTABLE_SOUND_DAMPENER, PortableSoundDampenerScreen::new);
+		MenuScreens.register(ModContainerTypes.IMBUING_STATION, ImbuingStationScreen::new);
+		MenuScreens.register(ModContainerTypes.ENDER_LETTER, EnderLetterScreen::new);
+		MenuScreens.register(ModContainerTypes.ENDER_MAILBOX, EnderMailboxScreen::new);
+		MenuScreens.register(ModContainerTypes.BLOCK_DESTABILIZER, BlockDestabilizerScreen::new);
+		MenuScreens.register(ModContainerTypes.DYEING_MACHINE, DyeingMachineScreen::new);
 	}
 }

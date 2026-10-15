@@ -1,16 +1,23 @@
 package lumien.randomthings.item;
 
+import net.minecraft.world.InteractionResult;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+
 import lumien.randomthings.entity.ThrownWeatherEggEntity;
-import net.minecraft.block.DispenserBlock;
-import net.minecraft.dispenser.IPosition;
-import net.minecraft.dispenser.ProjectileDispenseBehavior;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.core.Position;
+import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.*;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
 
 /**
  * Throw it to summon a weather-changing cloud where it lands (see {@link
@@ -24,32 +31,32 @@ public class WeatherEggItem extends Item {
     public WeatherEggItem(Item.Properties properties) {
         super(properties);
 
-        DispenserBlock.registerDispenseBehavior(this, new ProjectileDispenseBehavior() {
+        DispenserBlock.registerBehavior(this, new AbstractProjectileDispenseBehavior() {
             @Override
-            protected ProjectileEntity getProjectileEntity(World world, IPosition position, ItemStack stack) {
-                return new ThrownWeatherEggEntity(world, position.getX(), position.getY(), position.getZ(), WeatherEggItem.this);
+            protected Projectile getProjectile(Level world, Position position, ItemStack stack) {
+                return new ThrownWeatherEggEntity(world, position.x(), position.y(), position.z(), WeatherEggItem.this);
             }
         });
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, PlayerEntity playerIn, Hand handIn) {
-        ItemStack itemstack = playerIn.getHeldItem(handIn);
+    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+        ItemStack itemstack = playerIn.getItemInHand(handIn);
 
-        if (!playerIn.abilities.isCreativeMode) {
+        if (!playerIn.getAbilities().instabuild) {
             itemstack.shrink(1);
         }
 
-        worldIn.playSound(null, playerIn.getPosX(), playerIn.getPosY(), playerIn.getPosZ(), SoundEvents.ENTITY_EGG_THROW, SoundCategory.PLAYERS, 0.5F, 0.4F / (random.nextFloat() * 0.4F + 0.8F));
+        worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (worldIn.random.nextFloat() * 0.4F + 0.8F));
 
-        if (!worldIn.isRemote) {
+        if (!worldIn.isClientSide) {
             ThrownWeatherEggEntity entityegg = new ThrownWeatherEggEntity(worldIn, playerIn, this);
-            entityegg.setDirectionAndMovement(playerIn, playerIn.rotationPitch, playerIn.rotationYaw, 0.0F, 1.5F, 1.0F);
-            worldIn.addEntity(entityegg);
+            entityegg.shootFromRotation(playerIn, playerIn.getXRot(), playerIn.getYRot(), 0.0F, 1.5F, 1.0F);
+            worldIn.addFreshEntity(entityegg);
         }
 
-        playerIn.addStat(Stats.ITEM_USED.get(this));
+        playerIn.awardStat(Stats.ITEM_USED.get(this));
 
-        return new ActionResult<>(ActionResultType.SUCCESS, itemstack);
+        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
     }
 }

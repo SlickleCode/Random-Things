@@ -1,9 +1,9 @@
 package lumien.randomthings.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.material.MaterialColor;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MaterialColor;
 
 public class StainedBrickBlock extends Block
 {
@@ -16,13 +16,13 @@ public class StainedBrickBlock extends Block
 
 	public StainedBrickBlock(boolean luminous)
 	{
-		super(withLight(Block.Properties.create(Material.ROCK, MaterialColor.STONE).hardnessAndResistance(2.0F, 10.0F).sound(SoundType.STONE), luminous));
+		super(withLight(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE), luminous));
 
 		this.luminous = luminous;
 	}
 
 	private static Block.Properties withLight(Block.Properties properties, boolean luminous)
 	{
-		return luminous ? properties.setLightLevel(state -> 15).notSolid() : properties;
+		return luminous ? properties.lightLevel(state -> 15).noOcclusion() : properties;
 	}
 }

@@ -3,16 +3,16 @@ package lumien.randomthings.container;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.ImbuingStationItemHandler;
 import lumien.randomthings.tileentity.ImbuingStationTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -22,16 +22,16 @@ import net.minecraftforge.items.SlotItemHandler;
  * {@link PotionVaporizerContainer}) rather than the original's direct
  * tile-entity-reference style.
  */
-public class ImbuingStationContainer extends Container {
-    private final IWorldPosCallable pos;
+public class ImbuingStationContainer extends AbstractContainerMenu {
+    private final ContainerLevelAccess pos;
 
-    public final IntReferenceHolder imbuingProgress = IntReferenceHolder.single();
+    public final DataSlot imbuingProgress = DataSlot.standalone();
 
-    public ImbuingStationContainer(int windowId, IInventory playerInventory, PacketBuffer extraData) {
-        this(windowId, (PlayerInventory) playerInventory, new ImbuingStationItemHandler(), IWorldPosCallable.DUMMY);
+    public ImbuingStationContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
+        this(windowId, (Inventory) playerInventory, new ImbuingStationItemHandler(), ContainerLevelAccess.NULL);
     }
 
-    public ImbuingStationContainer(int windowId, PlayerInventory playerInventory, IItemHandler itemHandler, IWorldPosCallable pos) {
+    public ImbuingStationContainer(int windowId, Inventory playerInventory, IItemHandler itemHandler, ContainerLevelAccess pos) {
         super(ModContainerTypes.IMBUING_STATION, windowId);
 
         this.pos = pos;
@@ -52,48 +52,48 @@ public class ImbuingStationContainer extends Container {
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 184));
         }
 
-        this.trackInt(imbuingProgress);
+        this.addDataSlot(imbuingProgress);
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return isWithinUsableDistance(this.pos, playerIn, ModBlocks.IMBUING_STATION);
+    public boolean stillValid(Player playerIn) {
+        return stillValid(this.pos, playerIn, ModBlocks.IMBUING_STATION);
     }
 
     @Override
-    public void detectAndSendChanges() {
-        this.pos.consume((world, pos) -> {
-            TileEntity te = world.getTileEntity(pos);
+    public void broadcastChanges() {
+        this.pos.execute((world, pos) -> {
+            BlockEntity te = world.getBlockEntity(pos);
 
             if (te instanceof ImbuingStationTileEntity) {
                 this.imbuingProgress.set(((ImbuingStationTileEntity) te).getImbuingProgress());
             }
         });
 
-        super.detectAndSendChanges();
+        super.broadcastChanges();
     }
 
     @Override
-    public ItemStack transferStackInSlot(PlayerEntity playerIn, int index) {
+    public ItemStack quickMoveStack(Player playerIn, int index) {
         ItemStack result = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        Slot slot = this.slots.get(index);
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack stackInSlot = slot.getStack();
+        if (slot != null && slot.hasItem()) {
+            ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
             if (index < 5) {
-                if (!this.mergeItemStack(stackInSlot, 5, 41, true)) {
+                if (!this.moveItemStackTo(stackInSlot, 5, 41, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stackInSlot, 0, 4, false)) {
+            } else if (!this.moveItemStackTo(stackInSlot, 0, 4, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (stackInSlot.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
 
             if (stackInSlot.getCount() == result.getCount()) {

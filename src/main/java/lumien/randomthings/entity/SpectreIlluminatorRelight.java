@@ -1,11 +1,11 @@
 package lumien.randomthings.entity;
 
 import lumien.randomthings.debug.RTDebug;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -100,16 +100,16 @@ public class SpectreIlluminatorRelight {
      */
     private static final int PADDING = 15;
 
-    private static final Map<World, WorldQueue> PENDING = java.util.Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Level, WorldQueue> PENDING = java.util.Collections.synchronizedMap(new WeakHashMap<>());
 
-    public static void queue(World world, BlockPos center) {
-        Chunk chunk = world.getChunk(center.getX() >> 4, center.getZ() >> 4);
+    public static void queue(Level world, BlockPos center) {
+        LevelChunk chunk = world.getChunk(center.getX() >> 4, center.getZ() >> 4);
 
-        int highest = 0;
+        int highest = world.getMinBuildHeight();
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                int height = chunk.getTopBlockY(Heightmap.Type.MOTION_BLOCKING, x, z) + 1;
+                int height = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) + 1;
 
                 if (height > highest) {
                     highest = height;
@@ -117,20 +117,21 @@ public class SpectreIlluminatorRelight {
             }
         }
 
-        int maxY = Math.min(255, highest + HEIGHT_BUFFER);
+        int minY = world.getMinBuildHeight();
+        int maxY = Math.min(world.getMaxBuildHeight() - 1, highest + HEIGHT_BUFFER);
 
         ChunkPos chunkPos = new ChunkPos(center);
-        Job job = new Job(chunkPos.getXStart() - PADDING, chunkPos.getXEnd() + PADDING, chunkPos.getZStart() - PADDING, chunkPos.getZEnd() + PADDING, maxY);
+        Job job = new Job(chunkPos.getMinBlockX() - PADDING, chunkPos.getMaxBlockX() + PADDING, chunkPos.getMinBlockZ() - PADDING, chunkPos.getMaxBlockZ() + PADDING, minY, maxY);
 
         WorldQueue queue = PENDING.computeIfAbsent(world, w -> new WorldQueue());
         long before = queue.totalRemaining;
         queue.jobs.add(job);
         queue.totalRemaining += job.remaining();
 
-        RTDebug.log("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isRemote, maxY, before, queue.totalRemaining);
+        RTDebug.log("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isClientSide, maxY, before, queue.totalRemaining);
     }
 
-    public static void tick(World world) {
+    public static void tick(Level world) {
         WorldQueue queue = PENDING.get(world);
 
         if (queue == null || queue.jobs.isEmpty()) {
@@ -146,7 +147,7 @@ public class SpectreIlluminatorRelight {
                 break;
             }
 
-            world.getChunkProvider().getLightManager().checkBlock(job.next());
+            world.getChunkSource().getLightEngine().checkBlock(job.next());
             drained++;
             queue.totalRemaining--;
 
@@ -156,7 +157,7 @@ public class SpectreIlluminatorRelight {
         }
 
         if (queue.jobs.isEmpty()) {
-            RTDebug.log("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.getDimensionKey(), drained);
+            RTDebug.log("[SpectreIlluminator] relight queue for world {} drained (drained {} this tick)", world.dimension(), drained);
         }
     }
 
@@ -175,23 +176,25 @@ public class SpectreIlluminatorRelight {
      * at a time only when it's actually about to be checked.
      */
     private static final class Job {
-        private final int xMin, xMax, zMin, zMax, yMax;
+        private final int xMin, xMax, zMin, zMax, yMin, yMax;
         private int x, z, y;
 
-        Job(int xMin, int xMax, int zMin, int zMax, int yMax) {
+        Job(int xMin, int xMax, int zMin, int zMax, int yMin, int yMax) {
             this.xMin = xMin;
             this.xMax = xMax;
             this.zMin = zMin;
             this.zMax = zMax;
+            this.yMin = yMin;
             this.yMax = yMax;
             this.x = xMin;
             this.z = zMin;
-            this.y = 0;
+            this.y = yMin;
         }
 
         int remaining() {
-            long width = (long) (xMax - xMin + 1) * (zMax - zMin + 1) * (yMax + 1);
-            long done = (long) (x - xMin) * (zMax - zMin + 1) * (yMax + 1) + (long) (z - zMin) * (yMax + 1) + y;
+            long ySpan = yMax - yMin + 1;
+            long width = (long) (xMax - xMin + 1) * (zMax - zMin + 1) * ySpan;
+            long done = (long) (x - xMin) * (zMax - zMin + 1) * ySpan + (long) (z - zMin) * ySpan + (y - yMin);
             return (int) Math.max(0, width - done);
         }
 
@@ -204,7 +207,7 @@ public class SpectreIlluminatorRelight {
 
             y++;
             if (y > yMax) {
-                y = 0;
+                y = yMin;
                 z++;
                 if (z > zMax) {
                     z = zMin;

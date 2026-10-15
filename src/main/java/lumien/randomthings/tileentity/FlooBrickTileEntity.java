@@ -1,17 +1,17 @@
 package lumien.randomthings.tileentity;
 
 import lumien.randomthings.handler.floo.FlooNetworkHandler;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityFlooBrick}. One "master" brick per
@@ -24,7 +24,7 @@ import net.minecraft.block.BlockState;
  * this port's {@code RuneBaseBlock} precedent for the same kind of
  * TE-data-read-during-break problem.
  */
-public class FlooBrickTileEntity extends TileEntity {
+public class FlooBrickTileEntity extends BlockEntity {
     private boolean amMaster;
 
     // Master-only fields
@@ -35,59 +35,58 @@ public class FlooBrickTileEntity extends TileEntity {
     // Child-only field
     private UUID masterUUID;
 
-    public FlooBrickTileEntity() {
-        super(ModTileEntityTypes.FLOO_BRICK);
+    public FlooBrickTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.FLOO_BRICK, pos, state);
     }
 
     @Override
     public void onLoad() {
-        if (!this.world.isRemote && uuid != null) {
-            FlooNetworkHandler.get(this.world).updatePosition(uuid, pos);
+        if (!this.level.isClientSide && uuid != null) {
+            FlooNetworkHandler.get(this.level).updatePosition(uuid, worldPosition);
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         compound.putBoolean("amMaster", amMaster);
 
         if (amMaster) {
-            compound.put("uuid", NBTUtil.func_240626_a_(uuid));
+            compound.put("uuid", NbtUtils.createUUID(uuid));
             compound.putInt("facing", facing.ordinal());
 
-            ListNBT childrenTagList = new ListNBT();
+            ListTag childrenTagList = new ListTag();
 
             for (BlockPos childPos : children) {
-                childrenTagList.add(NBTUtil.writeBlockPos(childPos));
+                childrenTagList.add(NbtUtils.writeBlockPos(childPos));
             }
 
             compound.put("children", childrenTagList);
         } else if (masterUUID != null) {
-            compound.put("masterUUID", NBTUtil.func_240626_a_(masterUUID));
+            compound.put("masterUUID", NbtUtils.createUUID(masterUUID));
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         this.amMaster = compound.getBoolean("amMaster");
 
         if (amMaster) {
-            this.uuid = NBTUtil.readUniqueId(compound.getCompound("uuid"));
-            this.facing = Direction.byIndex(compound.getInt("facing"));
+            this.uuid = NbtUtils.loadUUID(compound.getCompound("uuid"));
+            this.facing = Direction.from3DDataValue(compound.getInt("facing"));
 
             children.clear();
-            ListNBT childrenTagList = compound.getList("children", 10);
+            ListTag childrenTagList = compound.getList("children", 10);
 
             for (int i = 0; i < childrenTagList.size(); i++) {
-                children.add(NBTUtil.readBlockPos(childrenTagList.getCompound(i)));
+                children.add(NbtUtils.readBlockPos(childrenTagList.getCompound(i)));
             }
         } else if (compound.contains("masterUUID")) {
-            this.masterUUID = NBTUtil.readUniqueId(compound.getCompound("masterUUID"));
+            this.masterUUID = NbtUtils.loadUUID(compound.getCompound("masterUUID"));
         }
     }
 

@@ -1,17 +1,18 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.BlockPos;
+
 import org.apache.logging.log4j.LogManager;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
 import lumien.randomthings.handler.spectrelens.SpectreLensHandler;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.potion.Effect;
-import net.minecraft.tileentity.BeaconTileEntity;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Ported from 1.12.2's {@code TileEntitySpectreLens} - every 80 ticks, checks the {@link BeaconTileEntity}
@@ -26,65 +27,70 @@ import net.minecraft.block.BlockState;
  * anymore. {@code primaryEffect}/{@code secondaryEffect} are still private with no getter, so those two
  * still need it - using this build's own real (already MCP-mapped, not obfuscated) field names directly.
  */
-public class SpectreLensTileEntity extends TileEntity implements ITickableTileEntity {
+public class SpectreLensTileEntity extends BlockEntity {
     private static final Field PRIMARY_EFFECT;
     private static final Field SECONDARY_EFFECT;
+    private static final Field LEVELS;
 
     static {
         Field primary = null;
         Field secondary = null;
+        Field levels = null;
         try {
             // SRG names (primaryEffect / secondaryEffect) so they also resolve in a production jar
-            primary = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BeaconTileEntity.class, "field_146013_m");
-            secondary = net.minecraftforge.fml.common.ObfuscationReflectionHelper.findField(BeaconTileEntity.class, "field_146010_n");
-        } catch (net.minecraftforge.fml.common.ObfuscationReflectionHelper.UnableToFindFieldException e) {
+            primary = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58652_");
+            secondary = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58653_");
+            levels = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58650_");
+        } catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
         }
         PRIMARY_EFFECT = primary;
         SECONDARY_EFFECT = secondary;
+        LEVELS = levels;
     }
 
     private UUID owner;
 
-    public SpectreLensTileEntity() {
-        super(ModTileEntityTypes.SPECTRE_LENS);
+    public SpectreLensTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.SPECTRE_LENS, pos, state);
     }
 
     public void setOwner(UUID owner) {
         this.owner = owner;
-        markDirty();
+        setChanged();
     }
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
-        if (owner != null && !world.isRemote) {
+        if (owner != null && !level.isClientSide) {
             SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
         }
     }
 
-    @Override
     public void tick() {
-        if (world.isRemote || owner == null || world.getGameTime() % 80 != 0) {
+        if (level.isClientSide || owner == null || level.getGameTime() % 80 != 0) {
             return;
         }
 
-        TileEntity below = world.getTileEntity(pos.down());
+        BlockEntity below = level.getBlockEntity(worldPosition.below());
 
-        if (below instanceof BeaconTileEntity) {
-            BeaconTileEntity beacon = (BeaconTileEntity) below;
+        if (below instanceof BeaconBlockEntity) {
+            BeaconBlockEntity beacon = (BeaconBlockEntity) below;
 
-            if (beacon.getLevels() > 0) {
-                try {
-                    Effect primary = (Effect) PRIMARY_EFFECT.get(beacon);
-                    Effect secondary = (Effect) SECONDARY_EFFECT.get(beacon);
+            try {
+                int beaconLevels = LEVELS.getInt(beacon);
 
-                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beacon.getLevels(), primary, secondary);
+                if (beaconLevels > 0) {
+                    MobEffect primary = (MobEffect) PRIMARY_EFFECT.get(beacon);
+                    MobEffect secondary = (MobEffect) SECONDARY_EFFECT.get(beacon);
+
+                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beaconLevels, primary, secondary);
                     return;
-                } catch (IllegalAccessException e) {
-                    LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
                 }
+            } catch (IllegalAccessException e) {
+                LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
             }
         }
 
@@ -92,22 +98,21 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
         if (owner != null) {
-            compound.putUniqueId("owner", owner);
+            compound.putUUID("owner", owner);
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
         if (compound.contains("owner")) {
-            owner = compound.getUniqueId("owner");
+            owner = compound.getUUID("owner");
         }
     }
 }

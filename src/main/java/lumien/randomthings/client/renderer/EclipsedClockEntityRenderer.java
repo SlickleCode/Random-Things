@@ -6,18 +6,18 @@ import lumien.randomthings.entity.EclipsedClockEntity;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.TextComponent;
 
 /**
  * Draws an {@link EclipsedClockEntity} as its own held-item model, hung flat
@@ -39,41 +39,41 @@ import net.minecraft.util.text.StringTextComponent;
  * Both now subtract that same 1.0 to compensate.
  */
 public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEntity> {
-    public EclipsedClockEntityRenderer(EntityRendererManager renderManager) {
+    public EclipsedClockEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
     }
 
     @Override
-    public void render(EclipsedClockEntity entity, float entityYaw, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
-        matrixStack.push();
+    public void render(EclipsedClockEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+        matrixStack.pushPose();
 
         // the matrix is already translated to the entity; the clock hangs centered on its block
-        BlockPos blockpos = entity.getHangingPosition();
-        double d0 = (double) blockpos.getX() - entity.getPosX();
-        double d1 = (double) blockpos.getY() - entity.getPosY();
-        double d2 = (double) blockpos.getZ() - entity.getPosZ();
+        BlockPos blockpos = entity.getPos();
+        double d0 = (double) blockpos.getX() - entity.getX();
+        double d1 = (double) blockpos.getY() - entity.getY();
+        double d2 = (double) blockpos.getZ() - entity.getZ();
 
         matrixStack.translate(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
-        matrixStack.rotate(Vector3f.YP.rotationDegrees(180.0F - entity.rotationYaw));
+        matrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - entity.getYRot()));
         matrixStack.translate(0.0D, 0.0D, 0.4375D);
         matrixStack.scale(0.5F, 0.5F, 0.5F);
 
         ItemStack stack = new ItemStack(ModItems.ECLIPSED_CLOCK);
-        CompoundNBT tag = new CompoundNBT();
+        CompoundTag tag = new CompoundTag();
         tag.putInt("targetTime", entity.getTargetTime());
         stack.setTag(tag);
 
-        Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, 0);
 
-        matrixStack.pop();
+        matrixStack.popPose();
 
         if (entity.shouldDisplayTime()) {
             drawLabel(entity, -0.55D, matrixStack, buffer, packedLight);
-        } else if (this.renderManager.pointedEntity == entity) {
+        } else if (this.entityRenderDispatcher.crosshairPickEntity == entity) {
             // Also show the target time whenever this clock is the one under the crosshair, even without a
             // recent interaction - matches 1.12.2's separate renderName override.
-            double distanceSq = entity.getDistanceSq(Minecraft.getInstance().getRenderViewEntity());
-            float range = entity.isSneaking() ? 32.0F : 64.0F;
+            double distanceSq = entity.distanceToSqr(Minecraft.getInstance().getCameraEntity());
+            float range = entity.isShiftKeyDown() ? 32.0F : 64.0F;
 
             if (distanceSq < (double) (range * range)) {
                 drawLabel(entity, -1.0D, matrixStack, buffer, packedLight);
@@ -81,15 +81,15 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
         }
     }
 
-    private void drawLabel(EclipsedClockEntity entity, double yOffset, MatrixStack matrixStack, IRenderTypeBuffer buffer, int packedLight) {
-        matrixStack.push();
+    private void drawLabel(EclipsedClockEntity entity, double yOffset, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+        matrixStack.pushPose();
         matrixStack.translate(0.0D, yOffset, 0.0D);
-        this.renderName(entity, new StringTextComponent(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
-        matrixStack.pop();
+        this.renderNameTag(entity, new TextComponent(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
+        matrixStack.popPose();
     }
 
     @Override
-    public ResourceLocation getEntityTexture(EclipsedClockEntity entity) {
+    public ResourceLocation getTextureLocation(EclipsedClockEntity entity) {
         return null;
     }
 }

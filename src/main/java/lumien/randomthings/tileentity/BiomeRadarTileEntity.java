@@ -5,24 +5,23 @@ import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.PositionFilterItem;
 import lumien.randomthings.network.RTPacketHandler;
 import lumien.randomthings.network.messages.BiomeRadarAntennaMessage;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.particles.RedstoneParticleData;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Searches outward from its own position (an Archimedean-spiral column walk,
@@ -42,7 +41,7 @@ import net.minecraft.block.BlockState;
  * shape. The state machine, spiral search, and network sync are otherwise a
  * faithful port.
  */
-public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEntity {
+public class BiomeRadarTileEntity extends BlockEntity {
     private ItemStack currentCrystal = ItemStack.EMPTY;
 
     private boolean powered;
@@ -60,13 +59,12 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
         IDLE, SEARCHING, FINISHED
     }
 
-    public BiomeRadarTileEntity() {
-        super(ModTileEntityTypes.BIOME_RADAR);
+    public BiomeRadarTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.BIOME_RADAR, pos, state);
     }
 
-    @Override
     public void tick() {
-        if (!this.world.isRemote) {
+        if (!this.level.isClientSide) {
             testCounter++;
 
             // Neighbor-change notifications only reach directly-adjacent
@@ -83,7 +81,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
 
                 for (int i = 0; i < 5; i++) {
                     BlockPos testPos = getPos(searchCounter);
-                    Biome testBiome = this.world.getBiome(testPos);
+                    Biome testBiome = this.level.getBiome(testPos).value();
                     ResourceLocation registryName = biomeName(testBiome);
 
                     if (registryName == null) {
@@ -122,7 +120,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
                 }
 
                 if (searchCounter % 100 == 0 && changedColor) {
-                    RTPacketHandler.sendToAllNear(new BiomeRadarAntennaMessage(this.pos, antennaBiomes), this.world, this.pos, 64);
+                    RTPacketHandler.sendToAllNear(new BiomeRadarAntennaMessage(this.worldPosition, antennaBiomes), this.level, this.worldPosition, 64);
                 }
             }
         } else {
@@ -149,19 +147,19 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
                     spawnAntennaParticle(i, biome);
                 }
 
-                int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.pos);
-                this.world.addParticle(new RedstoneParticleData(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F), 1.0F), this.pos.getX() + 0.5, this.pos.getY() + 3.1, this.pos.getZ() + 0.5, 0, 0, 0);
+                int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.worldPosition);
+                this.level.addParticle(new DustParticleOptions(new com.mojang.math.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 3.1, this.worldPosition.getZ() + 0.5, 0, 0, 0);
             }
         }
     }
 
     private void spawnAntennaParticle(int i, Biome biome) {
-        int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.pos);
+        int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.worldPosition);
 
-        double x = i < 2 ? this.pos.getX() + 1.5 - i * 2 : this.pos.getX() + 0.5;
-        double z = i > 1 ? this.pos.getZ() + 1.5 - (i - 2) * 2 : this.pos.getZ() + 0.5;
+        double x = i < 2 ? this.worldPosition.getX() + 1.5 - i * 2 : this.worldPosition.getX() + 0.5;
+        double z = i > 1 ? this.worldPosition.getZ() + 1.5 - (i - 2) * 2 : this.worldPosition.getZ() + 0.5;
 
-        this.world.addParticle(new RedstoneParticleData(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F), 1.0F), x, this.pos.getY() + 4.1, z, 0, 0, 0);
+        this.level.addParticle(new DustParticleOptions(new com.mojang.math.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), x, this.worldPosition.getY() + 4.1, z, 0, 0, 0);
     }
 
     /**
@@ -175,8 +173,8 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
 
         ResourceLocation key = ForgeRegistries.BIOMES.getKey(biome);
 
-        if (key == null && this.world instanceof net.minecraft.world.server.ServerWorld) {
-            key = ((net.minecraft.world.server.ServerWorld) this.world).func_241828_r().getRegistry(net.minecraft.util.registry.Registry.BIOME_KEY).getKey(biome);
+        if (key == null && this.level instanceof net.minecraft.server.level.ServerLevel) {
+            key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getKey(biome);
         }
 
         return key;
@@ -221,14 +219,14 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
                 break;
         }
 
-        return new BlockPos(this.pos.getX() + x * 48, this.pos.getY(), this.pos.getZ() + z * 48);
+        return new BlockPos(this.worldPosition.getX() + x * 48, this.worldPosition.getY(), this.worldPosition.getZ() + z * 48);
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
 
-        compound.put("currentCrystal", currentCrystal.write(new CompoundNBT()));
+        compound.put("currentCrystal", currentCrystal.save(new CompoundTag()));
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("powered", powered);
@@ -246,14 +244,13 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
             }
         }
 
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
 
-        this.currentCrystal = ItemStack.read(compound.getCompound("currentCrystal"));
+        this.currentCrystal = ItemStack.of(compound.getCompound("currentCrystal"));
         this.state = STATE.values()[compound.getInt("state")];
         this.powered = compound.getBoolean("powered");
 
@@ -272,8 +269,8 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, getUpdateTag());
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     /**
@@ -288,8 +285,9 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
      * getUpdatePacket} above silently did nothing on arrival.
      */
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        this.read(this.getBlockState(), pkt.getNbtCompound());
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        // 1.18 delivers an empty update tag as null
+        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
     }
 
     /**
@@ -304,14 +302,14 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
      * client.
      */
     @Override
-    public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
     }
 
     private void syncTE() {
-        if (this.world != null) {
-            this.markDirty();
-            this.world.notifyBlockUpdate(this.pos, this.getBlockState(), this.getBlockState(), 3);
+        if (this.level != null) {
+            this.setChanged();
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
         }
     }
 
@@ -329,7 +327,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
     }
 
     public void neighborChanged(Block neighborBlock) {
-        boolean newPowered = this.world.getRedstonePowerFromNeighbors(this.pos) > 0;
+        boolean newPowered = this.level.getBestNeighborSignal(this.worldPosition) > 0;
         boolean changed = false;
 
         if (!this.powered && newPowered && this.state == STATE.IDLE && !this.currentCrystal.isEmpty() && isValid()) {
@@ -364,7 +362,7 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
         BlockPos foundPos = getPos(searchCounter);
         ItemStack positionFilter = new ItemStack(ModItems.POSITION_FILTER);
 
-        PositionFilterItem.setPosition(positionFilter, this.world.getDimensionKey().getLocation().toString(), foundPos);
+        PositionFilterItem.setPosition(positionFilter, this.level.dimension().location().toString(), foundPos);
 
         return positionFilter;
     }
@@ -372,21 +370,21 @@ public class BiomeRadarTileEntity extends TileEntity implements ITickableTileEnt
     private boolean isValid() {
         List<BlockPos> posToCheck = new ArrayList<>();
 
-        posToCheck.add(this.pos.offset(Direction.UP));
-        posToCheck.add(this.pos.offset(Direction.UP, 2));
+        posToCheck.add(this.worldPosition.relative(Direction.UP));
+        posToCheck.add(this.worldPosition.relative(Direction.UP, 2));
 
-        posToCheck.add(this.pos.add(1, 2, 0));
-        posToCheck.add(this.pos.add(-1, 2, 0));
-        posToCheck.add(this.pos.add(1, 3, 0));
-        posToCheck.add(this.pos.add(-1, 3, 0));
+        posToCheck.add(this.worldPosition.offset(1, 2, 0));
+        posToCheck.add(this.worldPosition.offset(-1, 2, 0));
+        posToCheck.add(this.worldPosition.offset(1, 3, 0));
+        posToCheck.add(this.worldPosition.offset(-1, 3, 0));
 
-        posToCheck.add(this.pos.add(0, 2, 1));
-        posToCheck.add(this.pos.add(0, 2, -1));
-        posToCheck.add(this.pos.add(0, 3, 1));
-        posToCheck.add(this.pos.add(0, 3, -1));
+        posToCheck.add(this.worldPosition.offset(0, 2, 1));
+        posToCheck.add(this.worldPosition.offset(0, 2, -1));
+        posToCheck.add(this.worldPosition.offset(0, 3, 1));
+        posToCheck.add(this.worldPosition.offset(0, 3, -1));
 
         for (BlockPos p : posToCheck) {
-            if (this.world.getBlockState(p).getBlock() != Blocks.IRON_BARS) {
+            if (this.level.getBlockState(p).getBlock() != Blocks.IRON_BARS) {
                 return false;
             }
         }

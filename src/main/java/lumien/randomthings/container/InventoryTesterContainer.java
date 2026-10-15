@@ -2,16 +2,16 @@ package lumien.randomthings.container;
 
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.InventoryTesterTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -19,18 +19,18 @@ import net.minecraftforge.items.SlotItemHandler;
 /**
  * InventoryTesterContainer
  */
-public class InventoryTesterContainer extends Container implements ISignalContainer
+public class InventoryTesterContainer extends AbstractContainerMenu implements ISignalContainer
 {
-	IWorldPosCallable pos;
+	ContainerLevelAccess pos;
 
-	public IntReferenceHolder invertSignal = IntReferenceHolder.single();
+	public DataSlot invertSignal = DataSlot.standalone();
 
-	public InventoryTesterContainer(int windowId, IInventory playerInventory, PacketBuffer extraData)
+	public InventoryTesterContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData)
 	{
-		this(windowId, (PlayerInventory) playerInventory, new ItemStackHandler(1), IWorldPosCallable.DUMMY);
+		this(windowId, (Inventory) playerInventory, new ItemStackHandler(1), ContainerLevelAccess.NULL);
 	}
 
-	public InventoryTesterContainer(int windowId, PlayerInventory playerInventory, IItemHandler itemHandler, IWorldPosCallable pos)
+	public InventoryTesterContainer(int windowId, Inventory playerInventory, IItemHandler itemHandler, ContainerLevelAccess pos)
 	{
 		super(ModContainerTypes.INVENTORY_TESTER, windowId);
 
@@ -51,20 +51,20 @@ public class InventoryTesterContainer extends Container implements ISignalContai
 			this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 112));
 		}
 
-		this.trackInt(invertSignal);
+		this.addDataSlot(invertSignal);
 	}
 
 	@Override
-	public boolean canInteractWith(PlayerEntity playerIn)
+	public boolean stillValid(Player playerIn)
 	{
-		return isWithinUsableDistance(this.pos, playerIn, ModBlocks.INVENTORY_TESTER);
+		return stillValid(this.pos, playerIn, ModBlocks.INVENTORY_TESTER);
 	}
 
 	@Override
-	public void detectAndSendChanges()
+	public void broadcastChanges()
 	{
-		this.pos.consume((world, pos) -> {
-			TileEntity te = world.getTileEntity(pos);
+		this.pos.execute((world, pos) -> {
+			BlockEntity te = world.getBlockEntity(pos);
 
 			if (te instanceof InventoryTesterTileEntity)
 			{
@@ -72,22 +72,22 @@ public class InventoryTesterContainer extends Container implements ISignalContai
 			}
 		});
 
-		super.detectAndSendChanges();
+		super.broadcastChanges();
 	}
 
 	@Override
-	public ItemStack transferStackInSlot(PlayerEntity playerIn, int index)
+	public ItemStack quickMoveStack(Player playerIn, int index)
 	{
 		return ItemStack.EMPTY;
 	}
 
 	@Override
-	public void handle(int id, PacketBuffer data)
+	public void handle(int id, FriendlyByteBuf data)
 	{
 		if (id == 0)
 		{
-			this.pos.consume((world, pos) -> {
-				TileEntity te = world.getTileEntity(pos);
+			this.pos.execute((world, pos) -> {
+				BlockEntity te = world.getBlockEntity(pos);
 
 				if (te instanceof InventoryTesterTileEntity)
 				{

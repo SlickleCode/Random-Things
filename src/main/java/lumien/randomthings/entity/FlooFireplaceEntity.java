@@ -1,12 +1,12 @@
 package lumien.randomthings.entity;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.IPacket;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A brief (260-tick), invisible marker entity a dropped {@link
@@ -24,14 +24,14 @@ import net.minecraftforge.fml.network.NetworkHooks;
 public class FlooFireplaceEntity extends Entity {
     private int age;
 
-    public FlooFireplaceEntity(EntityType<FlooFireplaceEntity> type, World world) {
+    public FlooFireplaceEntity(EntityType<FlooFireplaceEntity> type, Level world) {
         super(type, world);
     }
 
-    public FlooFireplaceEntity(World world, double x, double y, double z) {
+    public FlooFireplaceEntity(Level world, double x, double y, double z) {
         this(ModEntityTypes.FLOO_FIREPLACE, world);
 
-        this.setPosition(x, y, z);
+        this.setPos(x, y, z);
     }
 
     @Override
@@ -40,42 +40,42 @@ public class FlooFireplaceEntity extends Entity {
 
         age++;
 
-        if (this.world.isRemote) {
+        if (this.level.isClientSide) {
             if (age >= 7) {
                 spawnParticles();
             }
         } else if (age > 260) {
-            this.remove();
+            this.discard();
         }
     }
 
     private void spawnParticles() {
         for (float modX = -1; modX <= 1; modX += 0.2F) {
             for (float modZ = -1; modZ <= 1; modZ += 0.2F) {
-                double px = getPosX() + modX + (this.rand.nextFloat() * 0.2 - 0.1);
-                double pz = getPosZ() + modZ + (this.rand.nextFloat() * 0.1 - 0.05);
+                double px = getX() + modX + (this.random.nextFloat() * 0.2 - 0.1);
+                double pz = getZ() + modZ + (this.random.nextFloat() * 0.1 - 0.05);
 
-                this.world.addParticle(ParticleTypes.FLAME, px, getPosY() + 0.05, pz, 0, this.rand.nextDouble() * 0.01, 0);
+                this.level.addParticle(ParticleTypes.FLAME, px, getY() + 0.05, pz, 0, this.random.nextDouble() * 0.01, 0);
             }
         }
     }
 
     @Override
-    protected void registerData() {
+    protected void defineSynchedData() {
     }
 
     @Override
-    protected void readAdditional(CompoundNBT compound) {
+    protected void readAdditionalSaveData(CompoundTag compound) {
         this.age = compound.getInt("age");
     }
 
     @Override
-    protected void writeAdditional(CompoundNBT compound) {
+    protected void addAdditionalSaveData(CompoundTag compound) {
         compound.putInt("age", age);
     }
 
     @Override
-    public IPacket<?> createSpawnPacket() {
+    public Packet<?> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

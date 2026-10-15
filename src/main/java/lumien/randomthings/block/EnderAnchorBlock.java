@@ -1,5 +1,15 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -7,18 +17,18 @@ import javax.annotation.Nullable;
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.handler.AnchorChunkLoader;
 import lumien.randomthings.tileentity.EnderAnchorTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -27,35 +37,37 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  * {@link #onReplaced} releases the anchor's chunk-loading (see
  * {@link AnchorChunkLoader}).
  */
-public class EnderAnchorBlock extends Block {
+public class EnderAnchorBlock extends Block implements EntityBlock {
     public EnderAnchorBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(1.5F));
+        super(Block.Properties.of(Material.STONE).strength(1.5F));
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new EnderAnchorTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new EnderAnchorTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.ENDER_ANCHOR, (l, p, s2, be) -> be.tick());
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag flagIn) {
         if (RTConfig.ENDER_ANCHOR_CHUNKLOADING.get()) {
-            tooltip.add(new TranslationTextComponent("tooltip.randomthings.ender_anchor.chunkloading"));
+            tooltip.add(new TranslatableComponent("tooltip.randomthings.ender_anchor.chunkloading"));
         }
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (state.getBlock() != newState.getBlock() && worldIn instanceof ServerWorld) {
-            AnchorChunkLoader.unregister((ServerWorld) worldIn, pos);
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (state.getBlock() != newState.getBlock() && worldIn instanceof ServerLevel) {
+            AnchorChunkLoader.unregister((ServerLevel) worldIn, pos);
         }
 
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 }

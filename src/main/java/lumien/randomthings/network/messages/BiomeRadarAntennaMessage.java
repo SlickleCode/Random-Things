@@ -3,10 +3,10 @@ package lumien.randomthings.network.messages;
 import lumien.randomthings.network.IRTMessage;
 import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * Server -> nearby clients: the up-to-4 distinct biomes a
@@ -27,18 +27,18 @@ public class BiomeRadarAntennaMessage implements IRTMessage {
     }
 
     @Override
-    public void read(PacketBuffer pb) {
+    public void read(FriendlyByteBuf pb) {
         this.pos = pb.readBlockPos();
 
         int amount = pb.readInt();
 
         for (int i = 0; i < amount; i++) {
-            antennaBiomes[i] = pb.readString(32767);
+            antennaBiomes[i] = pb.readUtf(32767);
         }
     }
 
     @Override
-    public void write(PacketBuffer pb) {
+    public void write(FriendlyByteBuf pb) {
         pb.writeBlockPos(pos);
 
         int amount = 0;
@@ -53,7 +53,7 @@ public class BiomeRadarAntennaMessage implements IRTMessage {
 
         for (String antennaBiome : antennaBiomes) {
             if (antennaBiome != null) {
-                pb.writeString(antennaBiome);
+                pb.writeUtf(antennaBiome);
             }
         }
     }
@@ -61,11 +61,11 @@ public class BiomeRadarAntennaMessage implements IRTMessage {
     @Override
     public void handle(Context ctx) {
         ctx.enqueueWork(() -> {
-            if (Minecraft.getInstance().world == null) {
+            if (Minecraft.getInstance().level == null) {
                 return;
             }
 
-            TileEntity te = Minecraft.getInstance().world.getTileEntity(pos);
+            BlockEntity te = Minecraft.getInstance().level.getBlockEntity(pos);
 
             if (te instanceof BiomeRadarTileEntity) {
                 ((BiomeRadarTileEntity) te).setAntennaBiomes(antennaBiomes);

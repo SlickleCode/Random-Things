@@ -1,24 +1,34 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+
+import lumien.randomthings.util.Tickers;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+
 import lumien.randomthings.item.BiomeCrystalItem;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.lib.IRTBlockColor;
 import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IBlockDisplayReader;
-import net.minecraft.world.World;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Insert a {@link BiomeCrystalItem} and redstone-power it (with the iron-bars
@@ -28,40 +38,42 @@ import net.minecraft.util.ActionResultType;
  * {@link lumien.randomthings.item.PositionFilterItem} pointing at that spot.
  * Direct port of 1.12.2's {@code BlockBiomeRadar}.
  */
-public class BiomeRadarBlock extends Block implements IRTBlockColor {
+public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock {
     public BiomeRadarBlock() {
-        super(Block.Properties.create(Material.IRON).notSolid().hardnessAndResistance(5.0F));
+        super(Block.Properties.of(Material.METAL).noOcclusion().strength(5.0F));
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
+    {
+        return new BiomeRadarTileEntity(pos, state);
     }
 
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new BiomeRadarTileEntity();
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+    {
+        return Tickers.of(type, ModTileEntityTypes.BIOME_RADAR, (l, p, s2, be) -> be.tick());
     }
 
     @Override
-    public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            TileEntity te = worldIn.getTileEntity(pos);
+            BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof BiomeRadarTileEntity) {
                 ItemStack crystal = ((BiomeRadarTileEntity) te).getCurrentCrystal();
 
                 if (!crystal.isEmpty()) {
-                    Block.spawnAsEntity(worldIn, pos, crystal);
+                    Block.popResource(worldIn, pos, crystal);
                 }
             }
 
-            super.onReplaced(state, worldIn, pos, newState, isMoving);
+            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
     @Override
-    public int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex) {
+    public int colorMultiplier(BlockState state, BlockAndTintGetter worldIn, BlockPos pos, int tintIndex) {
         if (pos == null) {
             return 0xFFFFFF;
         }
@@ -71,8 +83,8 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
     }
 
     @Override
-    public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean isMoving) {
-        TileEntity te = worldIn.getTileEntity(pos);
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean isMoving) {
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof BiomeRadarTileEntity) {
             ((BiomeRadarTileEntity) te).neighborChanged(neighborBlock);
@@ -80,12 +92,12 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-        ItemStack equipped = player.getHeldItem(hand);
-        TileEntity te = worldIn.getTileEntity(pos);
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack equipped = player.getItemInHand(hand);
+        BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (!(te instanceof BiomeRadarTileEntity)) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
 
         BiomeRadarTileEntity biomeRadar = (BiomeRadarTileEntity) te;
@@ -93,40 +105,40 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
         if (biomeRadar.getState() == STATE.IDLE) {
             if (biomeRadar.getCurrentCrystal().isEmpty()) {
                 if (!equipped.isEmpty() && equipped.getItem() == ModItems.BIOME_CRYSTAL) {
-                    if (!worldIn.isRemote) {
+                    if (!worldIn.isClientSide) {
                         biomeRadar.setCrystal(equipped.copy());
                         equipped.shrink(1);
-                        worldIn.addBlockEvent(pos, this, 1037, 0);
+                        worldIn.blockEvent(pos, this, 1037, 0);
                     }
 
-                    return ActionResultType.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
             } else {
                 if (equipped.isEmpty()) {
-                    if (!worldIn.isRemote) {
+                    if (!worldIn.isClientSide) {
                         ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
 
-                        player.inventory.setInventorySlotContents(player.inventory.currentItem, currentCrystal);
+                        player.getInventory().setItem(player.getInventory().selected, currentCrystal);
                         biomeRadar.setCrystal(ItemStack.EMPTY);
-                        worldIn.addBlockEvent(pos, this, 1036, 0);
+                        worldIn.blockEvent(pos, this, 1036, 0);
                     }
 
-                    return ActionResultType.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
             }
         } else if (biomeRadar.getState() == STATE.FINISHED) {
             if (!equipped.isEmpty() && equipped.getItem() == Items.PAPER) {
-                if (!worldIn.isRemote) {
+                if (!worldIn.isClientSide) {
                     ItemStack positionFilter = biomeRadar.generatePositionFilter();
 
                     equipped.shrink(1);
-                    player.inventory.addItemStackToInventory(positionFilter);
+                    player.getInventory().add(positionFilter);
                 }
 
-                return ActionResultType.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
         }
 
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 }

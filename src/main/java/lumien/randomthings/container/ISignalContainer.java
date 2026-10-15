@@ -5,18 +5,18 @@ import java.util.function.Consumer;
 import io.netty.buffer.Unpooled;
 import lumien.randomthings.network.RTPacketHandler;
 import lumien.randomthings.network.messages.ContainerSignalMessage;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.FriendlyByteBuf;
 
 /**
  * ISignalContainer
  */
 public interface ISignalContainer
 {
-	public void handle(int id, PacketBuffer data);
+	public void handle(int id, FriendlyByteBuf data);
 
-	public default void send(int id, Consumer<PacketBuffer> consumer)
+	public default void send(int id, Consumer<FriendlyByteBuf> consumer)
 	{
-		PacketBuffer pb = new PacketBuffer(Unpooled.buffer());
+		FriendlyByteBuf pb = new FriendlyByteBuf(Unpooled.buffer());
 		consumer.accept(pb);
 		RTPacketHandler.sendToServer(new ContainerSignalMessage(id, pb));
 	}

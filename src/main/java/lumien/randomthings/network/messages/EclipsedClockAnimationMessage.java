@@ -3,10 +3,10 @@ package lumien.randomthings.network.messages;
 import lumien.randomthings.entity.EclipsedClockEntity;
 import lumien.randomthings.network.IRTMessage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkEvent.Context;
 
 /**
  * Server -> client: an {@link EclipsedClockEntity} just fast-forwarded the
@@ -24,25 +24,25 @@ public class EclipsedClockAnimationMessage implements IRTMessage {
     }
 
     @Override
-    public void read(PacketBuffer pb) {
+    public void read(FriendlyByteBuf pb) {
         this.entityId = pb.readInt();
     }
 
     @Override
-    public void write(PacketBuffer pb) {
+    public void write(FriendlyByteBuf pb) {
         pb.writeInt(entityId);
     }
 
     @Override
     public void handle(Context ctx) {
         ctx.enqueueWork(() -> {
-            World world = Minecraft.getInstance().world;
+            Level world = Minecraft.getInstance().level;
 
             if (world == null) {
                 return;
             }
 
-            Entity entity = world.getEntityByID(entityId);
+            Entity entity = world.getEntity(entityId);
 
             if (entity instanceof EclipsedClockEntity) {
                 ((EclipsedClockEntity) entity).triggerAnimation();

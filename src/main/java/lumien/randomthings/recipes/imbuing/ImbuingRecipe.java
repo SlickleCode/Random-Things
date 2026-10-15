@@ -1,6 +1,6 @@
 package lumien.randomthings.recipes.imbuing;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class ImbuingRecipe {
     }
 
     private static boolean contentEquals(ItemStack a, ItemStack b) {
-        return !a.isEmpty() && !b.isEmpty() && ItemStack.areItemsEqual(a, b) && ItemStack.areItemStackTagsEqual(a, b);
+        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSame(a, b) && ItemStack.tagMatches(a, b);
     }
 
     public ItemStack toImbue() {

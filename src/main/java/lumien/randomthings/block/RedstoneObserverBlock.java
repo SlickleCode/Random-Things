@@ -1,20 +1,22 @@
 package lumien.randomthings.block;
 
+import net.minecraft.world.level.block.EntityBlock;
+
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * A "remote redstone wire": right-click with a Redstone Tool to link it to
@@ -22,60 +24,53 @@ import net.minecraft.util.ActionResultType;
  * Right-clicking the block itself (without the tool) opens a read-only
  * status GUI showing the current target.
  */
-public class RedstoneObserverBlock extends Block
-{
+public class RedstoneObserverBlock extends Block implements EntityBlock {
 	public RedstoneObserverBlock()
 	{
-		super(Block.Properties.create(Material.ROCK).hardnessAndResistance(2.0F));
+		super(Block.Properties.of(Material.STONE).strength(2.0F));
 	}
 
 	@Override
-	public boolean hasTileEntity(BlockState state)
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
-		return true;
+	    return new RedstoneObserverTileEntity(pos, state);
 	}
 
 	@Override
-	public TileEntity createTileEntity(BlockState state, IBlockReader world)
-	{
-		return new RedstoneObserverTileEntity();
-	}
-
-	@Override
-	public boolean canProvidePower(BlockState state)
+	public boolean isSignalSource(BlockState state)
 	{
 		return true;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public int getWeakPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		TileEntity te = blockAccess.getTileEntity(pos);
+		BlockEntity te = blockAccess.getBlockEntity(pos);
 		return te instanceof RedstoneObserverTileEntity ? ((RedstoneObserverTileEntity) te).getWeakPower(side) : 0;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public int getStrongPower(BlockState blockState, IBlockReader blockAccess, BlockPos pos, Direction side)
+	public int getDirectSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side)
 	{
-		TileEntity te = blockAccess.getTileEntity(pos);
+		BlockEntity te = blockAccess.getBlockEntity(pos);
 		return te instanceof RedstoneObserverTileEntity ? ((RedstoneObserverTileEntity) te).getStrongPower(side) : 0;
 	}
 
 	@Override
-	public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
-		if (!worldIn.isRemote)
+		if (!worldIn.isClientSide)
 		{
-			TileEntity te = worldIn.getTileEntity(pos);
+			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof RedstoneObserverTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayerEntity) player, (RedstoneObserverTileEntity) te);
+				NetworkHooks.openGui((ServerPlayer) player, (RedstoneObserverTileEntity) te);
 			}
 		}
 
-		return ActionResultType.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 }

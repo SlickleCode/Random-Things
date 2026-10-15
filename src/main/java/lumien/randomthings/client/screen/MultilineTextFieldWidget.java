@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.client.gui.AbstractGui;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.client.gui.GuiComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
  * Minimal multi-line text box (1.14.4 has none): word-wrapped, fixed number of visible lines with
@@ -17,11 +17,16 @@ import com.mojang.blaze3d.matrix.MatrixStack;
  * delete and paste, and a hard character cap. Set {@link #setEditable(boolean)} to false for a
  * read-only display.
  */
-public class MultilineTextFieldWidget extends Widget
+public class MultilineTextFieldWidget extends AbstractWidget
 {
+	@Override
+	public void updateNarration(net.minecraft.client.gui.narration.NarrationElementOutput output)
+	{
+	}
+
 	private static final int LINE_HEIGHT = 10;
 
-	private final FontRenderer font;
+	private final Font font;
 	private final int maxLength;
 	private final int visibleLines;
 
@@ -33,9 +38,9 @@ public class MultilineTextFieldWidget extends Widget
 	private List<int[]> lines = new ArrayList<>();
 	private boolean dirty = true;
 
-	public MultilineTextFieldWidget(FontRenderer font, int x, int y, int width, int height, int maxLength)
+	public MultilineTextFieldWidget(Font font, int x, int y, int width, int height, int maxLength)
 	{
-		super(x, y, width, height, new StringTextComponent(""));
+		super(x, y, width, height, new TextComponent(""));
 
 		this.font = font;
 		this.maxLength = maxLength;
@@ -103,7 +108,7 @@ public class MultilineTextFieldWidget extends Widget
 				lastSpace = i;
 			}
 
-			if (i > start && this.font.getStringWidth(this.text.substring(start, i + 1)) > this.wrapWidth())
+			if (i > start && this.font.width(this.text.substring(start, i + 1)) > this.wrapWidth())
 			{
 				int brk = lastSpace > start ? lastSpace + 1 : i;
 				this.lines.add(new int[] { start, brk });
@@ -160,7 +165,7 @@ public class MultilineTextFieldWidget extends Widget
 
 		for (int i = line[0]; i <= line[1]; i++)
 		{
-			int diff = Math.abs(this.font.getStringWidth(this.text.substring(line[0], i)) - pixelX);
+			int diff = Math.abs(this.font.width(this.text.substring(line[0], i)) - pixelX);
 
 			if (diff < bestDiff)
 			{
@@ -216,7 +221,7 @@ public class MultilineTextFieldWidget extends Widget
 
 		if (Screen.isPaste(keyCode))
 		{
-			String clip = Minecraft.getInstance().keyboardListener.getClipboardString();
+			String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
 			StringBuilder cleaned = new StringBuilder();
 
 			for (char c : clip.toCharArray())
@@ -271,7 +276,7 @@ public class MultilineTextFieldWidget extends Widget
 
 				if (target >= 0 && target < this.lines.size())
 				{
-					int x = this.font.getStringWidth(this.text.substring(this.lines.get(line)[0], this.cursor));
+					int x = this.font.width(this.text.substring(this.lines.get(line)[0], this.cursor));
 					this.cursor = this.indexAtX(target, x);
 					this.scrollToCursor();
 				}
@@ -320,12 +325,12 @@ public class MultilineTextFieldWidget extends Widget
 	}
 
 	@Override
-	public void renderWidget(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
 	{
 		this.layout();
 
-		AbstractGui.fill(matrixStack, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
-		AbstractGui.fill(matrixStack, this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
+		GuiComponent.fill(matrixStack, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
+		GuiComponent.fill(matrixStack, this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
 
 		int color = this.editable ? 0xE0E0E0 : 0x909090;
 
@@ -334,7 +339,7 @@ public class MultilineTextFieldWidget extends Widget
 			int[] line = this.lines.get(l);
 			int lineY = this.y + 2 + (l - this.scroll) * LINE_HEIGHT;
 
-			this.font.drawStringWithShadow(matrixStack, this.text.substring(line[0], line[1]), this.x + 2, lineY, color);
+			this.font.drawShadow(matrixStack, this.text.substring(line[0], line[1]), this.x + 2, lineY, color);
 		}
 
 		if (this.isFocused() && (System.currentTimeMillis() / 500) % 2 == 0)
@@ -343,10 +348,10 @@ public class MultilineTextFieldWidget extends Widget
 
 			if (cl >= this.scroll && cl < this.scroll + this.visibleLines)
 			{
-				int cx = this.x + 2 + this.font.getStringWidth(this.text.substring(this.lines.get(cl)[0], this.cursor));
+				int cx = this.x + 2 + this.font.width(this.text.substring(this.lines.get(cl)[0], this.cursor));
 				int cy = this.y + 2 + (cl - this.scroll) * LINE_HEIGHT;
 
-				AbstractGui.fill(matrixStack, cx, cy - 1, cx + 1, cy + LINE_HEIGHT - 1, 0xFFD0D0D0);
+				GuiComponent.fill(matrixStack, cx, cy - 1, cx + 1, cy + LINE_HEIGHT - 1, 0xFFD0D0D0);
 			}
 		}
 	}

@@ -1,24 +1,24 @@
 package lumien.randomthings.block;
 
 import lumien.randomthings.container.DyeingMachineContainer;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.InteractionResult;
 
 /**
  * Direct port of 1.12.2's {@code BlockDyeingMachine}: a static, non-tile-entity
@@ -27,25 +27,25 @@ import net.minecraft.util.ActionResultType;
  */
 public class DyeingMachineBlock extends Block {
     public DyeingMachineBlock() {
-        super(Block.Properties.create(Material.WOOD).hardnessAndResistance(0.7F).sound(SoundType.WOOD));
+        super(Block.Properties.of(Material.WOOD).strength(0.7F).sound(SoundType.WOOD));
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (!worldIn.isRemote) {
-            NetworkHooks.openGui((ServerPlayerEntity) player, new INamedContainerProvider() {
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+        if (!worldIn.isClientSide) {
+            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
                 @Override
-                public Container createMenu(int windowId, PlayerInventory inv, PlayerEntity p) {
-                    return new DyeingMachineContainer(windowId, inv, IWorldPosCallable.of(worldIn, pos));
+                public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
+                    return new DyeingMachineContainer(windowId, inv, ContainerLevelAccess.create(worldIn, pos));
                 }
 
                 @Override
-                public ITextComponent getDisplayName() {
-                    return new TranslationTextComponent("block.randomthings.dyeing_machine");
+                public Component getDisplayName() {
+                    return new TranslatableComponent("block.randomthings.dyeing_machine");
                 }
             }, pos);
         }
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

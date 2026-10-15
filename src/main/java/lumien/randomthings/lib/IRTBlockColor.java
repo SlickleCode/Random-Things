@@ -1,8 +1,8 @@
 package lumien.randomthings.lib;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockDisplayReader;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 /**
  * Implemented by blocks that need a runtime tint (biome color, dye color,
@@ -12,5 +12,5 @@ import net.minecraft.world.IBlockDisplayReader;
  * rather than needing a bespoke registration per block.
  */
 public interface IRTBlockColor {
-    int colorMultiplier(BlockState state, IBlockDisplayReader worldIn, BlockPos pos, int tintIndex);
+    int colorMultiplier(BlockState state, BlockAndTintGetter worldIn, BlockPos pos, int tintIndex);
 }

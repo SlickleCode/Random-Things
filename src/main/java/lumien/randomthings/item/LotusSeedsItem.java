@@ -1,15 +1,15 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.PlantType;
 
@@ -19,40 +19,40 @@ public class LotusSeedsItem extends Item implements IPlantable {
     }
 
     @Override
-    public ActionResultType onItemUse(ItemUseContext context) {
-        if (context.getFace() != Direction.UP) {
-            return ActionResultType.FAIL;
+    public InteractionResult useOn(UseOnContext context) {
+        if (context.getClickedFace() != Direction.UP) {
+            return InteractionResult.FAIL;
         }
 
-        World world = context.getWorld();
-        BlockPos pos = context.getPos();
-        BlockPos above = pos.up();
-        ItemStack stack = context.getItem();
+        Level world = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        BlockPos above = pos.above();
+        ItemStack stack = context.getItemInHand();
 
-        if (context.getPlayer() != null && !context.getPlayer().canPlayerEdit(above, Direction.UP, stack) || !world.isAirBlock(above)) {
-            return ActionResultType.FAIL;
+        if (context.getPlayer() != null && !context.getPlayer().mayUseItemAt(above, Direction.UP, stack) || !world.isEmptyBlock(above)) {
+            return InteractionResult.FAIL;
         }
 
-        net.minecraft.block.BlockState groundState = world.getBlockState(pos);
+        net.minecraft.world.level.block.state.BlockState groundState = world.getBlockState(pos);
 
         if (!groundState.getBlock().canSustainPlant(groundState, world, pos, Direction.UP, this)) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        world.setBlockState(above, ModBlocks.LOTUS.getDefaultState());
-        world.playSound(null, pos, SoundType.PLANT.getPlaceSound(), SoundCategory.BLOCKS, 1.0F, 1.0F);
+        world.setBlockAndUpdate(above, ModBlocks.LOTUS.defaultBlockState());
+        world.playSound(null, pos, SoundType.GRASS.getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
         stack.shrink(1);
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public PlantType getPlantType(net.minecraft.world.IBlockReader world, BlockPos pos) {
+    public PlantType getPlantType(net.minecraft.world.level.BlockGetter world, BlockPos pos) {
         return PlantType.PLAINS;
     }
 
     @Override
-    public net.minecraft.block.BlockState getPlant(net.minecraft.world.IBlockReader world, BlockPos pos) {
-        return ModBlocks.LOTUS.getDefaultState();
+    public net.minecraft.world.level.block.state.BlockState getPlant(net.minecraft.world.level.BlockGetter world, BlockPos pos) {
+        return ModBlocks.LOTUS.defaultBlockState();
     }
 }
