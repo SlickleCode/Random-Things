@@ -20,9 +20,9 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 
 - **Port:** every wiki-documented feature is ported on both branches except the removed / will-not-migrate ones
   (`docs/project/scope-decisions.md`, `docs/project/wiki-feature-status.md`; the Precious Emerald and its rainbow glint are explicitly not ported).
-- **Testing sheet finished by the user:** 392 rows - 227 PASS, 40 DONE + 4 REMOVED (features dropped), 16 FIXED waiting for a retest,
-  105 never tested (mostly crafting-recipe rows the automated suite already covers; many are now tagged `verified by scripted playtest scenario`), **0 FAIL**.
-  Open items: `TESTING_CHECKLIST.md`. Visual retests that need your eyes: #389 (Biome Radar crystal), #390 (glint colours incl. worn armor), #387 (Glowing Mushroom in a real cave).
+- **Testing sheet finished by the user (2026-10-11), cleaned 2026-10-14:** 392 rows - 227 PASS, 44 DONE/REMOVED (features dropped), 16 FIXED, 105 never tested, **0 FAIL**.
+  90 of the 121 rows that were still open are now covered by the suites/scenarios and were removed from `TESTING_CHECKLIST.md` (`docs/testing/covered-by-tests.md` lists them with their
+  evidence); 31 open rows remain (#261, #389, and 29 never-tested ones) plus a short section D of visual/audio spot-checks (glints and dyes, Portkey glow, Fluid Display, Light Redirector, runes, Biome Radar).
 - **Automated:** client and dedicated-server suites 348 passed (1 environment-dependent skip), resource audit 0 failures, GUI click-through
   (buttons, text fields, slot tooltips), render-scene screenshots, 26 scripted in-game scenarios (`docs/testing/desktop-helper/`, `python -u scn.py all`), and the same
   suites/scenarios on a *production* (SRG-named) Forge server and client in `prod-test/` (all coremods verified). Everything is dev-only; see `docs/testing/README.md` and `docs/testing/test-inventory.md`.
@@ -36,7 +36,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 
 ## What to do next
 
-1. Check `TESTING_CHECKLIST.md` for `FAIL` rows, then the 16 `FIXED` retests; don't re-investigate a `FIXED` row without reading its entry in `docs/testing/fix-log/`.
+1. Check `TESTING_CHECKLIST.md` for `FAIL` rows, then the open rows (B, C) and the section D spot-checks; don't re-investigate a `FIXED` row without reading its entry in `docs/testing/fix-log/`.
 2. Remaining manual checks are the visual/audio ones and the online/two-player rows listed in `docs/testing/playtest-route-1.14.4.md` ("left for your eyes and ears").
 3. Otherwise **ask the user which area to tackle**. After every change: full `./gradlew build`, update the checklist + this file, leave uncommitted unless told to commit (mirror to `1.16.5` with `branch-mirroring`).
 4. Open design questions: `docs/migration/open-questions-backlog.md`.
