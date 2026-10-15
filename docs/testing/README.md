@@ -128,10 +128,11 @@ Verified 2026-10-12 on 1.14.4 (dev client): all 26 scenarios pass (see `prod-tes
 
 ### Switching branches
 
-`run/` is gitignored and shared by every branch. Before running the tests after switching to a different
-Minecraft version branch, delete the old test world and reports (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt
-run/screenshots/randomthings_debug`); a world saved by a newer version hangs an older client at load, and stale
-reports/screenshots can be mistaken for the new run's.
+Each version branch has its own worktree folder (`1.14.4/`, `1.16.5/` under the parent), and each folder has its own gitignored `run/`, so nothing is shared
+and nothing needs cleaning between versions: open the folder of the version you want to test. Only if you change the branch checked out inside a single
+folder, delete the old test world and reports first (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt
+run/screenshots/randomthings_debug run/saves/Scn_*`); a world saved by a newer version hangs an older client at load, and stale reports/screenshots can be
+mistaken for the new run's.
 
 ### Interactive use
 
