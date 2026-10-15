@@ -47,15 +47,9 @@ history) lives in `docs/project/` — put new detail there, not back in the root
 
 ## Working rules
 
-- **Ground-truth every uncertain 1.14.4/Forge API against the real mapped jar with `javap` before
-  writing code that uses it** — don't guess from training-data recall of Minecraft modding APIs. This
-  early Forge 1.14.4 build (28.2.26) has real gaps and renames versus later versions and versus what
-  most online guides assume, and this habit has repeatedly caught real bugs before they shipped (wrong
-  render-layer assumptions, nonexistent methods, APIs that exist but silently don't do what their name
-  implies — e.g. `FluidUtil.tryPickUpFluid` in this build has no real code path for a plain fluid
-  block at all). The mapped jar is at
-  `~/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.14.4-28.2.26_mapped_snapshot_20190819-1.14.3/forge-1.14.4-28.2.26_mapped_snapshot_20190819-1.14.3-recomp.jar`
-  (also has `-sources.jar` alongside it).
+- **Ground-truth every uncertain Minecraft/Forge API against the real mapped jar with `javap` before writing code that uses it** — never from
+  memory of modding guides (this repeatedly caught real bugs: wrong render-layer assumptions, nonexistent methods, APIs that silently do nothing).
+  Jar locations per version, SRG names and bytecode reading: the `mapping-lookup` skill.
 - **Match 1.12.2 behavior exactly by default**, including reading the actual original source via
   `git show origin/1.12.2:<path>` rather than assuming. When the user explicitly states a preference
   that diverges from the original, follow their call and flag the divergence plainly rather than
