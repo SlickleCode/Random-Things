@@ -14,15 +14,15 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | `main` | landing README only | |
 
 `source env/activate.sh` (pins JDK 8), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
-**Switching branches: clean the old test worlds first** (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run/screenshots/randomthings_debug`, see `CLAUDE.md`).
+**Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
-## Current state on this branch (`1.16.5`, 2026-10-12)
+## Current state on this branch (`1.16.5`, 2026-10-14)
 
 - **Port:** the 1.14.4 feature set runs on Forge 36.2.39 (MatrixStack rendering, code-registered Spectre dimension, worldgen features, coremods ported;
   plan and milestones in `docs/migration/plans/1.16.5-port-plan.md`). Everything under `docs/project/` was written for 1.14.4 and still applies except
   where the plan file says otherwise (e.g. `docs/project/api-gotchas-1.14.4.md` is 1.14.4-only).
-- **Automated:** client suite 348 passed / dedicated-server suite 348 passed (1 skip each), resource audit 0 failures, GUI click-through 0 failures with
-  17 slot tooltips verified (including both Sound Dampener screens), production (SRG) client and server verified earlier. See `docs/testing/`.
+- **Automated:** client suite 350 passed / dedicated-server suite 350 passed (1 skip each), resource audit 0 failures, GUI click-through 0 failures with
+  17 slot tooltips verified (including both Sound Dampener screens), production (SRG) client and server suites 349 passed (run before the Biome Radar test was added), 26 scripted scenarios on the dev client and the render set on the production client. See `docs/testing/`.
 - **Mirrored from `1.14.4` on 2026-10-12:** Sound Dampener slot-tooltip fix + the click test that guards it, imbue effect icon fix (#388), controlled test
   world (always day, no weather/mobs), Biome Radar crystal spinning inside the block (#389), `GlintColors` + its unit test, Portkey `hasEffect`
   assertions, dev `ParticleProbe`, and the documentation layout (root files short, detail under `docs/`).
@@ -34,10 +34,11 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 
 ## What to do next
 
-1. Run `SCN_MC=1.16 python -u scn.py all` end to end (needs ~15 min with Minecraft in front) and fix whatever differs on 1.16.
-2. Production-check (SRG names) the 1.16.5 jar again after any coremod change (`docs/testing/README.md`).
-3. Otherwise **ask the user which area to tackle**. After every change: full `./gradlew build`, update the checklist + this file, leave uncommitted.
-4. Open design questions: `docs/migration/open-questions-backlog.md`.
+1. **Manual pass by the user on this branch** (nobody has played 1.16.5 through; the checklist is the 1.14.4 sheet): rendering rows first (glass-like blocks and the 28 `notSolid()` blocks beside real neighbours, glints, dyes, Rune Base, Diaphanous Blocks), then worldgen in a normal world. Write a 1.16.5 playtest route listing only what the scripts do not cover.
+2. Add a `docs/project/` page for the 1.16 API gotchas learned so far (`notSolid`/`isSolid` culling, data-pack biomes via the world registry, string dimension tags, glint `RenderType` buffers); today they live only in the `mapping-lookup` skill.
+3. Add a scenario for every bug the manual pass turns up. Production-check (SRG names) after any coremod change (`prod-jar-check` skill).
+4. Otherwise **ask the user which area to tackle**. After every change: full `./gradlew build`, update the checklist + this file, leave uncommitted unless told to commit.
+5. Open design questions: `docs/migration/open-questions-backlog.md`.
 
 ## Where things are
 

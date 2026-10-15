@@ -115,10 +115,11 @@ It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the
 
 ### Switching branches
 
-`run/` is gitignored and shared by every branch. Before running the tests after switching to a different
-Minecraft version branch, delete the old test worlds and reports (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs
-run/randomthings_*.txt run/screenshots/randomthings_debug`); a world saved by another version hangs the client or stops the
-dedicated server at a confirmation prompt, and stale reports/screenshots can be mistaken for the new run's.
+Each version branch has its own worktree folder (`1.14.4/`, `1.16.5/` under the parent), and each folder has its own gitignored `run/`, so nothing is shared
+and nothing needs cleaning between versions: open the folder of the version you want to test. Only if you change the branch checked out inside a single
+folder, delete the old test world and reports first (`rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt
+run/screenshots/randomthings_debug run/saves/Scn_*`); a world saved by a newer version hangs an older client at load, and stale reports/screenshots can be
+mistaken for the new run's.
 
 ### Interactive use
 
