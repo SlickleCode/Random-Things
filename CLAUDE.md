@@ -18,18 +18,17 @@ project state from scratch; that file is kept current after every slice.
   to read the real original of any file).
 - `main` — landing-page README only, no code.
 
-## Switching branches: clean `run/`
+## One folder per version (git worktrees)
 
-Each branch's Minecraft version writes its own world format into the gitignored `run/` directory, and a
-newer-format world (e.g. `run/saves/RTAutoTest` from 1.16.5) makes an older client hang on load (and an old
-dedicated-server world stops the server at a "missing registries" confirmation, so the suite never runs).
-**Whenever you `git checkout` another version branch, clear the old state first** (not tracked, so safe):
+The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4`, `<parent>/1.16.5`); you
+are in one of them. Each has its own `run/`, `build/`, `prod-test/` and checked-out branch, so there is nothing to clean when changing versions:
+**open the other folder instead of running `git checkout`**. Use `git worktree list` to see them and `git -C <other-folder> ...` for the other branch.
+If you ever do switch the branch inside a folder, clear the old state first (a world from a newer version hangs an older client, an old server world
+stops the server at a registry confirmation):
 
 ```
-rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run/screenshots/randomthings_debug
+rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run/screenshots/randomthings_debug run/saves/Scn_*
 ```
-
-(delete any other test worlds in `run/saves` the same way; the autotest recreates them).
 
 ## Toolchain
 
