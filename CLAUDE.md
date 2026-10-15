@@ -91,3 +91,10 @@ attribution instructions for the current line to use.
   on dev classes, no references to dev classes from game code except the guarded `DevTools.init()` call, no config
   options for it. Use `RTDebug.log(...)` for diagnostics, never an unconditional `LOGGER.info` in gameplay code.
 - Before relying on any Forge event, find who posts it in the sources jar (`HarvestDropsEvent` is never posted).
+
+## Project skills (`.claude/skills/`)
+
+Procedures that were repeated by hand are packaged as skills - load them instead of re-deriving: `prod-jar-check` (verify the jar on a real SRG-named
+server/client), `scripted-playtest` (drive the real game with `desk.py`/`scn.py`; run or write scenarios), `mapping-lookup` (javap, dev vs SRG names per
+version), `coremod-patching` (writing/debugging JS transformers and their traps), `branch-mirroring` (switching version branches, cherry-picking, what to
+re-verify and re-document).
