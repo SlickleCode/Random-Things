@@ -1,32 +1,34 @@
 ---
 name: mapping-lookup
-description: Ground-truth Minecraft/Forge APIs and find dev (MCP) vs production (SRG func_/field_) names with javap and the mapping files, per Minecraft version. Use before writing code or a coremod against an API you are not certain of, and whenever a transformer must match a method by its SRG name.
+description: Ground-truth Minecraft 1.18.2 / Forge 40 APIs and find Mojang names vs production SRG ids (m_/f_) with javap and the helper scripts. Use before writing code or a coremod against an API you are not certain of, and whenever a transformer or reflection call must match a method/field by its SRG id.
 ---
 
-# Mapping and javap lookup
+# Mapping and javap lookup (1.18.2: official Mojang names)
 
 Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory - read the real jar.
 
-## Mapped jar (dev names), per version
-```
-~/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/<forge-version>_mapped_snapshot_<date>-<mc>/
-  1.14.4: forge-1.14.4-28.2.26_mapped_snapshot_20190819-1.14.3-recomp.jar   (+ -sources.jar)
-  1.16.5: forge-1.16.5-36.2.39_mapped_snapshot_20210309-1.16.5.jar          (use the one WITHOUT -launcher; there is no -sources next to it)
-```
-Locate it with `find ~/.gradle/caches/forge_gradle/minecraft_user_repo -name "*mapped_snapshot*.jar"`. Then:
-- Signatures: `javap -p -cp "$J" net.minecraft.client.renderer.ItemRenderer | grep -i glint`
-- Bytecode (needed for coremods): `javap -p -c -cp "$J" <class>` - read the real instruction shapes, local variable slots, constants.
-- Fields/inner classes: `'net.minecraft.block.AbstractBlock$Properties'` (quote the `$`).
+## Naming on this branch
+- Source, dev runtime and class names use **official Mojang names** (`net.minecraft.world.level.Level`, `BlockEntity`, `getBlockEntity`). Class names are the same in production; **methods and fields are SRG ids in production** (`m_46758_`, `f_58650_`).
+- A transformer or reflection call that matches a member by name must accept the Mojang name **and** the SRG id (`name === "isRainingAt" || name === "m_46758_"`), and match descriptors with the `net/minecraft/...` Mojang class names. `ObfuscationReflectionHelper.findField/findMethod` takes the SRG id only.
+- Avoid hand-matching names in injected bytecode: put the call in a Java static helper (`ClientAsmHandler`/`AsmHandler`) so the compiler/reobf maps the name; inject only `INVOKESTATIC` of your own class.
 
-## SRG names (production)
-- **Methods/fields -> SRG:** MCP zip, e.g. `~/.gradle/caches/forge_gradle/maven_downloader/de/oceanlabs/mcp/mcp_snapshot/<date>-<mc>/mcp_snapshot-<date>-<mc>.zip` -> `methods.csv` / `fields.csv` (`searge,name,...`). Read it with Python `zipfile` (no unzip needed). Only names that have an MCP name are in there; the rest are already `func_...` in dev too.
-- **Class/obf layout, signatures with obf types:** `~/.gradle/caches/forge_gradle/mcp_repo/de/oceanlabs/mcp/mcp_config/<mc>-<date>/joined/rename/config/joined.tsrg` (class blocks `obf net/minecraft/...`, members `obf desc func_xxx`). Find a class block with `grep -n " net/minecraft/client/renderer/ItemRenderer$"` then read the lines after it.
-- **Runtime reality (1.16 userdev):** methods that HAVE an MCP name show that name at dev runtime, methods without one keep `func_...`; production always has SRG. A transformer that matches by name must accept **both** (`name === "renderItem" || name === "func_229111_a_"`) and match descriptors using the `net/minecraft/...` class names.
-- **Avoid hand-matching names in bytecode you inject**: put the call in a small Java static helper (e.g. `ClientAsmHandler.setRenderingStackFromSlot(entity, slot)`) so the compiler/reobf maps the method name; inject only `INVOKESTATIC` of your own class. Injecting `INVOKEVIRTUAL ... func_184582_a` crashed the dev client with `NoSuchMethodError`.
+## Mapped jar (for javap)
+```
+~/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.18.2-40.3.12_mapped_official_1.18.2/forge-1.18.2-40.3.12_mapped_official_1.18.2.jar
+```
+- Signatures: `javap -p -cp "$J" net.minecraft.client.renderer.ItemRenderer | grep -i render`; quote `$` inner classes (`'net.minecraft.core.Holder$Reference'`).
+- Bytecode (coremods): `javap -p -c`. The branch helper `docs/migration/tools/jpm.py <class> <method> [regex]` prints one method's bytecode (optionally only matching lines) - use it instead of dumping whole classes.
+- There is **no vanilla source** (the `-sources.jar` next to Forge only holds Forge's own classes); bytecode is the ground truth.
 
-## Handy facts learned
-- 1.16: `BlockState.isSolid()` (default true) decides whether a neighbour's face is culled against a block; see-through blocks need `Block.Properties.notSolid()` (the render layer is separate, `RenderLayerSetup`).
-- 1.16: world biomes are data-pack instances; look names up through `((ServerWorld) world).func_241828_r().getRegistry(Registry.BIOME_KEY)`, not `ForgeRegistries.BIOMES`.
-- 1.16: dimensions in NBT are registry-key strings (`"minecraft:overworld"`), 1.14 uses int ids; attribute `generic.max_health` vs `generic.maxHealth`; structure names for `/locate` are lower case on 1.16.
-- Before relying on a Forge event, find who posts it in the sources jar (`HarvestDropsEvent` is never posted).
-- Check 1.12.2 behaviour with `git show origin/1.12.2:<path>` before "fixing" anything that looks wrong.
+## SRG ids
+- `python docs/migration/tools/lookup.py net.minecraft.world.level.Level.isRainingAt <more...>` prints the `m_`/`f_` id for a Mojang class+member (needs `client_mappings.txt` and `mcp_mappings.tsrg` in `~/.gradle/caches/forge_gradle/minecraft_repo/versions/1.18.2/`, present after the first build). Methods are matched by obf descriptor, so overloads resolve to one id; fields by name.
+- Mojang and SRG ids are stable for a member across 1.16 -> 1.18 only when vanilla did not refactor it; always re-check in the jar.
+
+## Handy facts learned (1.18.2)
+- `Biome` lookups return `Holder<Biome>` (`.value()`); world biomes are data-pack instances, resolve names through `level.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY)`.
+- `DimensionType`'s constructor is private: the Spectre type is `data/randomthings/dimension_type/spectre.json`. Registries are frozen once the server starts: swap `Holder.Reference.value` (SRG `f_205752_`) by reflection to replace an entry (Peace Candle pool).
+- Empty block-entity update tags arrive as `null` in `ClientboundBlockEntityDataPacket.getTag()`; `BlockEntity.getUpdateTag()` default is empty (override it to `saveWithoutMetadata()` for synced data).
+- `TickEvent.WorldTickEvent` fires for client levels too: guard `event.world.isClientSide` before casting to `ServerLevel`.
+- Shaders: a vertex format needs the matching shader (`POSITION_TEX_COLOR` -> `getPositionTexColorShader`), otherwise colours are silently ignored.
+- Generator steps are futures and `StructureFeatureManager`/`Blender` query chunks 7-8 chunks out; a hand-driven generation test needs a wide region and a no-structures manager (see `WorldgenTests`). Use `ConfiguredStructureFeature.generate` for real village starts.
+- Before relying on a Forge event, find who posts it; check 1.12.2 behaviour with `git show origin/1.12.2:<path>` before "fixing" anything that looks wrong.

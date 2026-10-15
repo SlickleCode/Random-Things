@@ -9,36 +9,31 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | Branch | What | Docs |
 | --- | --- | --- |
 | `1.14.4` | Forge 28.2.26 port, complete | this file, `docs/project/` |
-| `1.16.5` | Forge 36.2.39 port (this branch) | `docs/migration/plans/1.16.5-port-plan.md` |
+| `1.16.5` | Forge 36.2.39 port | `docs/migration/plans/1.16.5-port-plan.md` |
+| `1.18.2` | Forge 40.3.12 port (this branch, in progress) | `docs/migration/plans/1.18.2-port-plan.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 
 `source env/activate.sh` (pins JDK 8), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
 **Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
-## Current state on this branch (`1.16.5`, 2026-10-14)
+## Current state on this branch (`1.18.2`, 2026-10-15) - PORT IN PROGRESS
 
-- **Port:** the 1.14.4 feature set runs on Forge 36.2.39 (MatrixStack rendering, code-registered Spectre dimension, worldgen features, coremods ported;
-  plan and milestones in `docs/migration/plans/1.16.5-port-plan.md`). Everything under `docs/project/` was written for 1.14.4 and still applies except
-  where the plan file says otherwise (e.g. `docs/project/api-gotchas-1.14.4.md` is 1.14.4-only).
-- **Automated:** client suite 350 passed / dedicated-server suite 350 passed (1 skip each), resource audit 0 failures, GUI click-through 0 failures with
-  17 slot tooltips verified (including both Sound Dampener screens), production (SRG) client and server suites 349 passed (run before the Biome Radar test was added), 26 scripted scenarios on the dev client and the render set on the production client. See `docs/testing/`.
-- **Mirrored from `1.14.4` on 2026-10-12:** Sound Dampener slot-tooltip fix + the click test that guards it, imbue effect icon fix (#388), controlled test
-  world (always day, no weather/mobs), Biome Radar crystal spinning inside the block (#389), `GlintColors` + its unit test, Portkey `hasEffect`
-  assertions, dev `ParticleProbe`, and the documentation layout (root files short, detail under `docs/`).
-- **Also ported (2026-10-12):** enchant-glint colours (#390) via three coremods - `RenderTypeTransformer` (the seven glint `RenderType` getters return a tinted wrapper type, `TintedGlintRenderType`, for stacks with a custom colour), `ItemRendererTransformer` (captures the stack in `renderItem`), `ArmorLayerTransformer` (captures the worn stack) - because 1.16 glint types use `POSITION_TEX` (colour = GL colour at draw time) and each tinted type needs its own entry in the main buffer source's `fixedBuffers` (otherwise "BufferBuilder not started"). The scripted helper now drives the 1.16.5 menus (`SCN_MC=1.16`); dimension tags are registry strings there (`"minecraft:overworld"`), the max-health attribute is `generic.max_health`.
-- **Real 1.16.5 crash found by the scripted Biome Radar scenario:** `BiomeRadarTileEntity.tick` threw an NPE on the server (and never found its biome): a world's biomes are data-pack instances, not the `ForgeRegistries.BIOMES` ones, so `getKey` returned null and `==` never matched. It now resolves names through the world's own biome registry; guarded by `behavior.biome_radar.search_finds_the_crystals_biome_and_a_missing_biome_keeps_searching` (verified to fail without the fix).
-- **Verified on 1.16.5 (2026-10-12):** all 26 scripted scenarios pass on the dev client (`SCN_MC=1.16`); the production (SRG) client passes the render scenarios (Fluid Display, crafting, dyeing + glint, worn armor, Biome Radar, runes, falling blocks, Lazy/Reset, Remote edit), plus production server and client suites 349/0. The Ancient Furnace scenario needed a ring of ice spots on 1.16 (`/locatebiome` is approximate and biome edges are fuzzy); the furnace itself works (14 of 14 spots melted).
-- **Render fix found while doing it (reported by the user: Fluid Display neighbours showing holes):** 1.16 culls a neighbour's face against any block whose `BlockState.isSolid()` is true (default), independent of the render layer in `RenderLayerSetup`; the 1.14.4 `getRenderLayer()` overrides had no 1.16 equivalent, so every see-through/partial block (28 of them) now sets `Block.Properties.notSolid()`. Guarded by `behavior.render.see_through_blocks_are_not_solid_so_neighbours_keep_their_faces`.
-- **Checklist (reset 2026-10-14):** `TESTING_CHECKLIST.md` was rebuilt for this branch: every result is blank (nothing here has been tested by hand), rows covered by the suites/scenarios were removed (`docs/testing/covered-by-tests-1.16.5.md` lists them with their evidence), removed-feature rows dropped; 204 rows + a short visual/audio spot-check table remain.
+- **Branch:** cut from `1.16.5` (`c4a6a04`) on 2026-10-15; toolchain Forge 1.18.2-40.3.12 / ForgeGradle 5.1 / Gradle 7.4.2 / JDK 17 (`source env/activate.sh` finds `~/.jdks/temurin-17*`), official Mojang mappings. Plan, milestone status and every adaptation: `docs/migration/plans/1.18.2-port-plan.md`; the rename/conversion tools: `docs/migration/tools/README.md`.
+- **Compiles and `./gradlew build -x test` passes.** The dedicated server boots with the mod and the dev suite runs there: **349 passed / 0 failed / 2 skipped** (the same 2 environment skips as 1.16.5), including the Peace Candle church swap in 60 villages assembled through vanilla's own village start (29 churches, 11 of them Peace Candle).
+- **Client (first boot 2026-10-15):** starts, loads the flat test world and runs the suite hands-free: resource audit 0 failures (147 blocks, 241 items, 222 recipes), dev suite 348 passed / 2 failed (the village tests, fixed afterwards on the server) / 1 skipped. One real bug found and fixed: the boat world-tick listener cast `ClientLevel` to `ServerLevel` (1.18 posts `WorldTickEvent` on the client too).
+- **GUI click test (2026-10-15):** 28 GUIs, 37 clicks, 0 failures, 17 slot tooltips verified. **Render scenes:** all 26 run without errors (`run/screenshots/randomthings_debug/scenes`); compared side by side with the same scenes on 1.16.5 (blocks_0, rune_base, blazing_fire, diaphanous_near, biome_radar): identical except one regression, fixed - the Rune Base and Fluid Display renderers used the colour-less position/texture shader with a colour vertex format (runes were white); they now use `getPositionTexColorShader`. The black flat blocks in `blocks_0` are the same on 1.16.5 (not a bug). Also set shaders for the Redstone Observer line renderer (`rendertype_lines` + normals) and `RenderUtils` (colour shader), which had none - not seen on screen yet. Real bug found by the scenes: 1.18 delivers an empty block-entity update tag as null (`pkt.getTag()`), which crashed the Redstone Observer's `onDataPacket`; all 8 overrides now load an empty tag instead.
+- **Not done / not verified:** how everything the scenarios do not measure LOOKS (screens' layout, the Spectre sky), no manual pass. The 1.16.5 rows of `TESTING_CHECKLIST.md` are carried over and unverified on this branch.
+- **Scripted playtest on 1.18.2 (2026-10-15): all 26 scenarios pass** after adapting `scn.py` (`SCN_MC=1.18`; see skill `scripted-playtest`). It found two real bugs the suites had missed: `ItemRendererTransformer` targeted `ItemEntityRenderer` (a rename script had been applied twice; dye/glint tint never applied) and `DyeColor.getColorValue` (no 1.18 equivalent; `DyeUtil.rgb` rebuilds it) - fixed. New offline tool `docs/migration/tools/CoremodCheck.java` verifies every transformer applies.
+- **Production (SRG) check done 2026-10-15** (`prod-test/1.18.2`): server suite 349/0/2, client suite 350/0/1, 26 render scenes without errors - the 15 retargeted coremods and the SRG reflection ids work in the release jar.
+- Everything is uncommitted.
 
 ## What to do next
 
-1. **Manual pass by the user on this branch**: work through the rebuilt `TESTING_CHECKLIST.md`, rendering rows first (glass-like blocks and the 28 `notSolid()` blocks beside real neighbours, glints, dyes, Rune Base, Diaphanous Blocks), then worldgen in a normal world. Write a 1.16.5 playtest route listing only what the scripts do not cover.
-2. (done 2026-10-14) 1.16 API gotchas: `docs/project/api-gotchas-1.16.5.md`.
-3. Add a scenario for every bug the manual pass turns up. Production-check (SRG names) after any coremod change (`prod-jar-check` skill).
-4. Otherwise **ask the user which area to tackle**. After every change: full `./gradlew build`, update the checklist + this file, leave uncommitted unless told to commit.
-5. Open design questions: `docs/migration/open-questions-backlog.md`.
+1. **Boot the client** (needs the owner's go-ahead for an uninterrupted window): `RT_AUTOTEST=true RT_AUTOTEST_NO_GUIS=true RT_AUTOTEST_EXIT=true ./gradlew runClient`; fix whatever the first boot shows (model baking, screens, entity/block-entity renderers, the tinted glint render types, Spectre sky registration).
+2. Resource audit, GUI click-through, render scenes, scripted scenarios on the 1.18.2 client; (the production SRG jar check is done, see above).
+3. Re-run the client suite (village tests were fixed after the client run), then the manual pass.
+4. After every change: full `./gradlew build`, update the plan + this file, leave uncommitted unless told to commit.
 
 ## Where things are
 

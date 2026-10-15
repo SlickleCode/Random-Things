@@ -1,9 +1,9 @@
-# Random Things 1.16.5 - Testing Checklist
+# Random Things 1.18.2 - Testing Checklist
 
 Fill in **Result** with `Pass` or `Fail` (leave blank if untested) and a one-sentence note in **Feedback** (what you did, what happened vs. expected).
-Row numbers are the original sheet's, so references like "#158" still work. **Every result is blank: nothing on this branch has been tested by hand yet** (the 1.14.4 sheet was).
+Row numbers are the original sheet's, so references like "#158" still work. **Every result is blank: nothing on this branch has been tested by hand yet** (the 1.14.4 sheet was; sections 1-5 were carried over from 1.16.5 unchanged, section 6 is new for 1.18.2).
 
-This sheet lists only what the automated suites and scripted scenarios do **not** cover: 204 rows. The 140 rows they do cover are listed with their evidence in [`docs/testing/covered-by-tests-1.16.5.md`](docs/testing/covered-by-tests-1.16.5.md); the 44 rows for features that were removed on request are dropped. The full 1.14.4 sheet with its old results is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md); a suggested order for these checks (rendering rows first) is in `PORTING_PLAN.md` "What to do next".
+Sections 1-5 list what the automated suites did **not** cover on 1.16.5 (204 rows); the rows covered by the suites and by the scripted scenarios (all 26 re-run and passing on 1.18.2 on 2026-10-15) are listed with their evidence in [`docs/testing/covered-by-tests-1.18.2.md`](docs/testing/covered-by-tests-1.18.2.md); the 44 rows for features that were removed on request are dropped. The full 1.14.4 sheet with its old results is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md); a suggested order for these checks (rendering rows first) is in `PORTING_PLAN.md` "What to do next".
 
 ## 1. Icons, Trigger/Lapis/Quartz Glass, lamps (19) - check these first, they were the 1.14.4 priority fixes
 
@@ -238,6 +238,26 @@ This sheet lists only what the automated suites and scripted scenarios do **not*
 | 366 | Fluid Display — inventory/hand/dropped item renders as an isometric full cube (was a flat square of the block texture) |  |  |
 | 381 | Portkey item looks normal size in the inventory, in hand (both views), on the ground and in item frames (was tiny: it used block-style display scales) |  |  |
 | 383 | Dedicated server with a real client: Spectre dimension entry, exit back to the same overworld position, and unload |  |  |
+
+## 6. New for 1.18.2 (15)
+
+| # | Feature | Result | Feedback |
+|---|---|---|---|
+| N1 | Rune Base - pixels show their dye colours (not white) next to each other and connect |  | *Why:* regression found and fixed on 1.18.2 (wrong shader) |
+| N2 | Fluid Display - fluid renders with its colour |  | *Why:* same shader fix as the Rune Base |
+| N3 | Redstone Observer + Redstone Tool - red lines to the bound target are visible while holding the tool |  | *Why:* line renderer got a new shader; not seen yet |
+| N4 | Enchant glint tint - Dyeing Machine glint result, worn armor glint, Portkey/Spectre Key glint show the chosen colour |  | *Why:* shader-based glint types; only loaded, not seen |
+| N5 | Spectre dimension - sky/fog look, entering and leaving through the Spectre Core, room generation |  | *Why:* dimension type is now datapack JSON; effects via reflection |
+| N6 | Ancient Furnace - after the heat-up the biome colour of the area changes and the client sees it without relogging |  | *Why:* biomes are written per section palette; chunk resent |
+| N7 | Peace Candle - in a real plains village roughly a third of the churches contain a Peace Candle |  | *Why:* verified only on assembled villages in the suite |
+| N8 | Glowing Mushroom - in a normal world they appear in caves between y 0 and the surface (not in the deepslate layer) |  | *Why:* suite measures 4% of chunks, same as 1.16.5 |
+| N9 | Tools - Fertilized Dirt/Colored Grass mine fast with a shovel, Platforms/Block of Sticks with an axe |  | *Why:* now via mineable tags |
+| N10 | Portkey item renders (plain and camouflaged) in inventory, hand and on the ground |  | *Why:* new item render properties |
+| N11 | Diaphanous Block - breaking it shows particles of the displayed block; the see-through states render correctly |  | *Why:* break particles moved to IBlockRenderProperties |
+| N12 | Durability bars - Floo Pouch, Reinforced Ender Bucket and Summoning Pendulum show the right fill and colour |  | *Why:* bar API changed (0..13 width) |
+| N13 | Block entity data syncs live to the client without relogging: Observer target, Sound Dampener list, Biome Radar crystal, Redstone Interface |  | *Why:* empty update tags now arrive as null (one crash found) |
+| N14 | GUIs - every screen looks right (buttons, tooltips, scroll lists): spot-check the Chunk Analyzer, Sound Recorder, Block Destabilizer lists |  | *Why:* click test passes; layout not eyeballed |
+| N15 | World height - build/dig near y -64 and y 320 with the mod blocks; lighting sweep of the Spectre Illuminator still lights an area |  | *Why:* range changed from 0..255 |
 
 ## Visual / audio spot-checks that the scripts only measure
 
