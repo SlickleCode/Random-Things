@@ -1,5 +1,6 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.util.RandomSource;
 import lumien.randomthings.block.LotusBlock;
 import lumien.randomthings.block.ModBlocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -10,7 +11,6 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import net.minecraftforge.common.BiomeDictionary;
 
 import java.util.Random;
 import java.util.function.Function;
@@ -36,7 +36,7 @@ public class LotusFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel worldIn = context.level();
         BlockPos pos = context.origin();
-        Random rand = context.random();
+        RandomSource rand = context.random();
 
         if (!lumien.randomthings.config.RTConfig.LOTUS.get()) {
             return false;
@@ -48,7 +48,7 @@ public class LotusFeature extends Feature<NoneFeatureConfiguration> {
 
         Biome biome = worldIn.getBiome(pos).value();
 
-        if (!BiomeUtil.hasType(biome, BiomeDictionary.Type.SNOWY)) {
+        if (!BiomeUtil.hasType(biome, "SNOWY")) {
             return false;
         }
 

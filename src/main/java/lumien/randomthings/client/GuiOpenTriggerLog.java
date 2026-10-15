@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.RegUtil;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -66,7 +67,7 @@ public class GuiOpenTriggerLog
 	}
 
 	@SubscribeEvent
-	public static void onKey(InputEvent.KeyInputEvent event)
+	public static void onKey(InputEvent.Key event)
 	{
 		if (event.getAction() == 1)
 		{
@@ -75,7 +76,7 @@ public class GuiOpenTriggerLog
 	}
 
 	@SubscribeEvent
-	public static void onMouse(InputEvent.MouseInputEvent event)
+	public static void onMouse(InputEvent.MouseButton.Pre event)
 	{
 		if (event.getAction() == 1)
 		{
@@ -84,7 +85,7 @@ public class GuiOpenTriggerLog
 	}
 
 	@SubscribeEvent
-	public static void onGuiClick(ScreenEvent.MouseClickedEvent.Pre event)
+	public static void onGuiClick(ScreenEvent.MouseButtonPressed.Pre event)
 	{
 		record(button(event.getButton()) + " in " + event.getScreen().getClass().getSimpleName() + " at " + (int) event.getMouseX() + "," + (int) event.getMouseY());
 	}
@@ -92,27 +93,27 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
 	{
-		if (event.getWorld().isClientSide)
+		if (event.getLevel().isClientSide)
 		{
-			record("interact block " + event.getWorld().getBlockState(event.getPos()).getBlock().getRegistryName() + " at " + event.getPos().getX() + "," + event.getPos().getY() + "," + event.getPos().getZ() + " face " + event.getFace() + " with " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
+			record("interact block " + RegUtil.id(event.getLevel().getBlockState(event.getPos()).getBlock()) + " at " + event.getPos().getX() + "," + event.getPos().getY() + "," + event.getPos().getZ() + " face " + event.getFace() + " with " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onRightClickItem(PlayerInteractEvent.RightClickItem event)
 	{
-		if (event.getWorld().isClientSide)
+		if (event.getLevel().isClientSide)
 		{
-			record("use item " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
+			record("use item " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}
 	}
 
 	@SubscribeEvent
 	public static void onEntityInteract(PlayerInteractEvent.EntityInteract event)
 	{
-		if (event.getWorld().isClientSide)
+		if (event.getLevel().isClientSide)
 		{
-			record("interact entity " + event.getTarget().getType().getRegistryName() + " with " + event.getItemStack().getItem().getRegistryName() + " in " + event.getHand());
+			record("interact entity " + RegUtil.id(event.getTarget().getType()) + " with " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}
 	}
 }

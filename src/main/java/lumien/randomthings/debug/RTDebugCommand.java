@@ -26,7 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -83,7 +83,7 @@ public class RTDebugCommand
 
 									if (error != null)
 									{
-										context.getSource().sendFailure(new TextComponent("[rtdebug] " + error));
+										context.getSource().sendFailure(Component.literal("[rtdebug] " + error));
 										return 0;
 									}
 
@@ -141,11 +141,11 @@ public class RTDebugCommand
 
 		if (opened)
 		{
-			source.sendSuccess(new TextComponent("[rtdebug] " + id + ": GUI opened (" + how[0] + ")"), false);
+			source.sendSuccess(Component.literal("[rtdebug] " + id + ": GUI opened (" + how[0] + ")"), false);
 			return 1;
 		}
 
-		source.sendFailure(new TextComponent("[rtdebug] " + id + ": no GUI opened (" + how[0] + ")"));
+		source.sendFailure(Component.literal("[rtdebug] " + id + ": no GUI opened (" + how[0] + ")"));
 		return 0;
 	}
 
@@ -258,11 +258,11 @@ public class RTDebugCommand
 
 		if (error != null)
 		{
-			context.getSource().sendFailure(new TextComponent("[rtdebug] " + error));
+			context.getSource().sendFailure(Component.literal("[rtdebug] " + error));
 			return 0;
 		}
 
-		context.getSource().sendSuccess(new TextComponent("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
+		context.getSource().sendSuccess(Component.literal("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
 		return 1;
 	}
 
@@ -272,7 +272,7 @@ public class RTDebugCommand
 	{
 		if (run != null)
 		{
-			context.getSource().sendFailure(new TextComponent("[rtdebug] allguis already running"));
+			context.getSource().sendFailure(Component.literal("[rtdebug] allguis already running"));
 			return 0;
 		}
 
@@ -285,7 +285,7 @@ public class RTDebugCommand
 		allGuisFinished = false;
 		run = r;
 
-		context.getSource().sendSuccess(new TextComponent("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
+		context.getSource().sendSuccess(Component.literal("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
 		return 1;
 	}
 
@@ -335,7 +335,7 @@ public class RTDebugCommand
 			r.player.setItemInHand(InteractionHand.MAIN_HAND, r.originalHand);
 			String summary = "[rtdebug] allguis finished: " + r.opened + "/" + ALL_GUIS.length + " opened" + (r.failed.isEmpty() ? "" : ", NOT opened: " + r.failed);
 			RTDebug.log(summary);
-			r.player.sendMessage(new TextComponent(summary), net.minecraft.Util.NIL_UUID);
+			r.player.sendSystemMessage(Component.literal(summary));
 			run = null;
 			allGuisFinished = true;
 			return;

@@ -40,7 +40,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
@@ -68,7 +68,7 @@ final class RemainingBehaviorTests
 
 	private static ServerChatEvent chat(TestCtx c, String message)
 	{
-		ServerChatEvent event = new ServerChatEvent(c.player, message, new TextComponent("<test> " + message));
+		ServerChatEvent event = new ServerChatEvent.Submitted(c.player, message, Component.literal("<test> " + message), false);
 		MinecraftForge.EVENT_BUS.post(event);
 		return event;
 	}
@@ -173,7 +173,7 @@ final class RemainingBehaviorTests
 			for (String[] def : new String[][] { { home, "0" }, { away, "6" } })
 			{
 				ItemStack sign = new ItemStack(ModItems.FLOO_SIGN);
-				sign.setHoverName(new TextComponent(def[0]));
+				sign.setHoverName(Component.literal(def[0]));
 				c.player.setItemInHand(InteractionHand.MAIN_HAND, sign);
 				BlockPos brick = c.at(Integer.parseInt(def[1]), 1, 0);
 				ModItems.FLOO_SIGN.useOn(new UseOnContext(c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(brick), Direction.NORTH, brick, false)));
@@ -206,7 +206,7 @@ final class RemainingBehaviorTests
 
 			try
 			{
-				tryCatchFire = FireBlock.class.getDeclaredMethod("tryCatchFire", Level.class, BlockPos.class, int.class, Random.class, int.class, Direction.class);
+				tryCatchFire = FireBlock.class.getDeclaredMethod("tryCatchFire", Level.class, BlockPos.class, int.class, net.minecraft.util.RandomSource.class, int.class, Direction.class);
 				tryCatchFire.setAccessible(true);
 			}
 			catch (ReflectiveOperationException e)
@@ -215,7 +215,7 @@ final class RemainingBehaviorTests
 			}
 
 			BlockPos pos = c.at(0, 1, 0);
-			Random rnd = new Random(12345);
+			net.minecraft.util.RandomSource rnd = new net.minecraft.world.level.levelgen.LegacyRandomSource(12345);
 			int trials = 3000;
 			int vanilla = 0;
 			int blazing = 0;

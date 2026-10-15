@@ -15,7 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
@@ -52,16 +52,16 @@ public class EnderLetterItem extends Item {
         super.appendHoverText(stack, world, tooltip, flagIn);
 
         if (!stack.hasTag() || !stack.getTag().getBoolean("received")) {
-            tooltip.add(new TranslatableComponent("item.randomthings.ender_letter.how_to_send").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.randomthings.ender_letter.how_to_send").withStyle(ChatFormatting.GRAY));
         }
 
         if (stack.hasTag()) {
             if (stack.getTag().contains("sender")) {
-                tooltip.add(new TranslatableComponent("item.randomthings.ender_letter.sender", stack.getTag().getString("sender")));
+                tooltip.add(Component.translatable("item.randomthings.ender_letter.sender", stack.getTag().getString("sender")));
             }
 
             if (stack.getTag().contains("receiver")) {
-                tooltip.add(new TranslatableComponent("item.randomthings.ender_letter.receiver", stack.getTag().getString("receiver")));
+                tooltip.add(Component.translatable("item.randomthings.ender_letter.receiver", stack.getTag().getString("receiver")));
             }
         }
     }
@@ -76,10 +76,10 @@ public class EnderLetterItem extends Item {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
-            NetworkHooks.openGui((ServerPlayer) playerIn, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return new TranslatableComponent("item.randomthings.ender_letter");
+                    return Component.translatable("item.randomthings.ender_letter");
                 }
 
                 @Override

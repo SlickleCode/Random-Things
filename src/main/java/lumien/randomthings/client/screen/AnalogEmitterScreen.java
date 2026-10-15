@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * AnalogEmitterScreen
@@ -39,10 +39,10 @@ public class AnalogEmitterScreen extends AbstractContainerScreen<AnalogEmitterCo
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 20, 20, 20, new TextComponent("<"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 20, 20, 20, Component.literal("<"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(0));
 		}));
-		this.addRenderableWidget(new Button(this.leftPos + 55, this.topPos + 20, 20, 20, new TextComponent(">"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 55, this.topPos + 20, 20, 20, Component.literal(">"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(1));
 		}));
 	}

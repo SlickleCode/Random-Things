@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.RegUtil;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.world.level.block.state.BlockState;
@@ -78,7 +79,7 @@ public class DiaphanousBlockTileEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag compound) {
         super.saveAdditional(compound);
 
-        compound.putString("block", displayState.getBlock().getRegistryName().toString());
+        compound.putString("block", RegUtil.id(displayState.getBlock()).toString());
         compound.putBoolean("inverted", inverted);
 
     }

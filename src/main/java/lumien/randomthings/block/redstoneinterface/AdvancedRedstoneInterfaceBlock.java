@@ -81,7 +81,7 @@ public class AdvancedRedstoneInterfaceBlock extends Block implements EntityBlock
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof AdvancedRedstoneInterfaceTileEntity) {
-                NetworkHooks.openGui((ServerPlayer) player, (AdvancedRedstoneInterfaceTileEntity) te);
+                NetworkHooks.openScreen((ServerPlayer) player, (AdvancedRedstoneInterfaceTileEntity) te);
             }
         }
 

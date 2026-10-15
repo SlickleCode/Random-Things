@@ -8,7 +8,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.awt.*;
@@ -29,7 +29,7 @@ public class FlooPouchItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        tooltip.add(new TextComponent(getFlooCount(stack) + " / " + MAX_CHARGE));
+        tooltip.add(Component.literal(getFlooCount(stack) + " / " + MAX_CHARGE));
     }
 
     @Override

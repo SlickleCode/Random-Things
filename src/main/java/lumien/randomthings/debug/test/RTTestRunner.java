@@ -9,7 +9,7 @@ import java.util.List;
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.TickEvent;
 
@@ -235,7 +235,7 @@ public final class RTTestRunner
 
 		if (player != null)
 		{
-			player.sendMessage(new TextComponent("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"), net.minecraft.Util.NIL_UUID);
+			player.sendSystemMessage(Component.literal("[rtdebug] " + lines.get(0) + " - details in randomthings_tests.txt"));
 		}
 
 		finished = true;

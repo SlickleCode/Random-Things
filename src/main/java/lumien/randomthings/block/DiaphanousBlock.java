@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.util.RegUtil;
 import net.minecraft.world.level.block.EntityBlock;
 
 import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
@@ -138,7 +139,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
 
                 ItemStack drop = new ItemStack(this);
                 CompoundTag tag = new CompoundTag();
-                tag.putString("block", diaphanous.getDisplayState().getBlock().getRegistryName().toString());
+                tag.putString("block", RegUtil.id(diaphanous.getDisplayState().getBlock()).toString());
                 tag.putBoolean("inverted", diaphanous.isInverted());
                 drop.setTag(tag);
 
@@ -164,8 +165,8 @@ public class DiaphanousBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.IBlockRenderProperties> consumer) {
-        consumer.accept(new net.minecraftforge.client.IBlockRenderProperties() {
+    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientBlockExtensions> consumer) {
+        consumer.accept(new net.minecraftforge.client.extensions.common.IClientBlockExtensions() {
             @Override
             public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine manager) {
                 BlockEntity te = world.getBlockEntity(pos);

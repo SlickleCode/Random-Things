@@ -105,7 +105,7 @@ public class AnalogEmitterBlock extends Block implements EntityBlock {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof AnalogEmitterTileEntity) {
-                NetworkHooks.openGui((ServerPlayer) player, (AnalogEmitterTileEntity) te);
+                NetworkHooks.openScreen((ServerPlayer) player, (AnalogEmitterTileEntity) te);
             }
         }
 

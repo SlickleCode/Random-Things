@@ -12,7 +12,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class IdCardItem extends Item implements IEntityFilterItem {
         CompoundTag tag = stack.getTag();
 
         if (tag != null && tag.contains("name")) {
-            tooltip.add(new TextComponent(tag.getString("name")));
+            tooltip.add(Component.literal(tag.getString("name")));
         }
     }
 

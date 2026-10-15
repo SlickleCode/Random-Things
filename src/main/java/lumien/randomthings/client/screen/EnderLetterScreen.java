@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Direct port of 1.12.2's {@code GuiEnderLetter}: a 9-slot item tray plus a
@@ -50,7 +50,7 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
         ItemStack letterStack = this.minecraft.player.getMainHandItem();
         String receiver = letterStack.hasTag() ? letterStack.getTag().getString("receiver") : "";
 
-        this.receiverField = new EditBox(this.font, this.leftPos + 92, this.topPos + 5, 76, 10, new TextComponent(""));
+        this.receiverField = new EditBox(this.font, this.leftPos + 92, this.topPos + 5, 76, 10, Component.literal(""));
         this.receiverField.setMaxLength(64);
         this.receiverField.setEditable(!received);
         this.receiverField.setValue(receiver);

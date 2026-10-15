@@ -20,8 +20,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraftforge.event.level.BlockEvent.NeighborNotifyEvent;
 
 /**
  * A "remote redstone wire": mirrors the weak/strong power of a distant
@@ -67,7 +67,7 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 	{
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(loadedObservers))
 		{
-			if (observer.level == event.getWorld() && !observer.isRemoved() && observer.target != null && observer.target.equals(event.getPos()))
+			if (observer.level == event.getLevel() && !observer.isRemoved() && observer.target != null && observer.target.equals(event.getPos()))
 			{
 				observer.updateRedstoneState();
 			}
@@ -215,6 +215,6 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.redstone_observer");
+		return Component.translatable("block.randomthings.redstone_observer");
 	}
 }

@@ -84,9 +84,9 @@ public final class GuiClickTest
 		{
 			case START:
 				guis = RTDebugCommand.guiList();
-				mc.player.chat("/gamemode creative");
+				mc.player.commandUnsigned("gamemode creative");
 				// something in the player inventory, so every container GUI has a filled slot to hover
-				mc.player.chat("/give @s minecraft:stone 16");
+				mc.player.commandUnsigned("give @s minecraft:stone 16");
 				net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
@@ -186,7 +186,7 @@ public final class GuiClickTest
 	private static void openGui(Minecraft mc)
 	{
 		mc.player.closeContainer();
-		mc.player.chat("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+		mc.player.commandUnsigned("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 		phase = Phase.WAIT_OPEN;
 		openTimeout = 80;
 	}
@@ -297,7 +297,7 @@ public final class GuiClickTest
 				pendingFields = fields.size();
 			}));
 			steps.add(new Step(30, () -> {
-				mc.player.chat("/rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+				mc.player.commandUnsigned("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 				phase = Phase.WAIT_OPEN;
 				openTimeout = 80;
 			}));

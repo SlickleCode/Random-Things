@@ -103,7 +103,7 @@ public class IgniterBlock extends Block implements EntityBlock {
 
 			if (te instanceof IgniterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (IgniterTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (IgniterTileEntity) te);
 			}
 		}
 

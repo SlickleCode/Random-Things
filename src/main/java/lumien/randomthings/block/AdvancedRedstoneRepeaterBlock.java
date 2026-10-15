@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.EntityBlock;
 
 import java.util.Random;
@@ -54,7 +55,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements Enti
 
 			if (te instanceof AdvancedRedstoneRepeaterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (AdvancedRedstoneRepeaterTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (AdvancedRedstoneRepeaterTileEntity) te);
 			}
 		}
 
@@ -111,7 +112,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements Enti
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (this.isLocked(worldIn, pos, state))
 		{

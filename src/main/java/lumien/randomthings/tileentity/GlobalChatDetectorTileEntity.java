@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -184,6 +184,6 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.global_chat_detector");
+		return Component.translatable("block.randomthings.global_chat_detector");
 	}
 }

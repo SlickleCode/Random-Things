@@ -13,7 +13,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
@@ -88,6 +88,6 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("block.randomthings.ender_mailbox");
+        return Component.translatable("block.randomthings.ender_mailbox");
     }
 }

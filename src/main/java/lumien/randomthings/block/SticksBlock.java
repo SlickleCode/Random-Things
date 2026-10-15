@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -73,7 +74,7 @@ public class SticksBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
 	{
 		if (!worldIn.isClientSide)
 		{

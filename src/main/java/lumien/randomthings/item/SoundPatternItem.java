@@ -10,7 +10,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
         ResourceLocation sound = getSoundLocation(stack);
 
         if (sound != null) {
-            return new TextComponent(super.getName(stack).getString() + " <" + sound.getPath() + ">");
+            return Component.literal(super.getName(stack).getString() + " <" + sound.getPath() + ">");
         }
 
         return super.getName(stack);
@@ -66,7 +66,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
 
         ResourceLocation sound = getSoundLocation(stack);
 
-        tooltip.add(new TextComponent(sound != null ? sound.toString() : "<Empty>"));
+        tooltip.add(Component.literal(sound != null ? sound.toString() : "<Empty>"));
     }
 
     public static ResourceLocation getSoundLocation(ItemStack pattern) {

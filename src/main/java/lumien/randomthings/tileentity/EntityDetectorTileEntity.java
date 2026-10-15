@@ -23,7 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -257,6 +257,6 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.entity_detector");
+		return Component.translatable("block.randomthings.entity_detector");
 	}
 }

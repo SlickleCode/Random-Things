@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * NotificationInterfaceScreen
@@ -41,12 +41,12 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 	{
 		super.init();
 
-		this.titleField = new EditBox(this.font, this.leftPos + 34, this.topPos + 18, 130, 15, new TextComponent(""));
+		this.titleField = new EditBox(this.font, this.leftPos + 34, this.topPos + 18, 130, 15, Component.literal(""));
 		this.titleField.setMaxLength(64);
 		this.titleField.setValue(this.menu.getTitle());
 		this.addRenderableWidget(this.titleField);
 
-		this.descriptionField = new EditBox(this.font, this.leftPos + 34, this.topPos + 40, 130, 15, new TextComponent(""));
+		this.descriptionField = new EditBox(this.font, this.leftPos + 34, this.topPos + 40, 130, 15, Component.literal(""));
 		this.descriptionField.setMaxLength(256);
 		this.descriptionField.setValue(this.menu.getDescription());
 		this.addRenderableWidget(this.descriptionField);

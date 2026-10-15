@@ -92,7 +92,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
 
         ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(matrixStack, rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        this.renderList(matrixStack, mouseX, mouseY, partialTicks);
         ListClip.end();
 
         renderBorder(matrixStack);
@@ -158,7 +158,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     public class SoundNameEntry extends ObjectSelectionList.Entry<SoundNameEntry> {
     @Override
     public net.minecraft.network.chat.Component getNarration() {
-        return net.minecraft.network.chat.TextComponent.EMPTY;
+        return net.minecraft.network.chat.CommonComponents.EMPTY;
     }
 
         private final String sound;

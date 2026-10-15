@@ -82,4 +82,9 @@ public class AdvancedRedstoneRepeaterContainer extends AbstractContainerMenu imp
 			}
 		});
 	}
+
+    @Override
+    public net.minecraft.world.item.ItemStack quickMoveStack(net.minecraft.world.entity.player.Player player, int index) {
+        return net.minecraft.world.item.ItemStack.EMPTY;
+    }
 }

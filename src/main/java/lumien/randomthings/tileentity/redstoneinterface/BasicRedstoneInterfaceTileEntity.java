@@ -10,7 +10,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -105,6 +105,6 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("block.randomthings.basic_redstone_interface");
+        return Component.translatable("block.randomthings.basic_redstone_interface");
     }
 }

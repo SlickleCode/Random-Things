@@ -15,7 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvider
@@ -77,6 +77,6 @@ public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvide
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.online_detector");
+		return Component.translatable("block.randomthings.online_detector");
 	}
 }

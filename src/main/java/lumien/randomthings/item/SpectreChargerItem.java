@@ -13,7 +13,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -104,6 +104,6 @@ public class SpectreChargerItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flag) {
         String display = tier == Tier.GENESIS ? "Infinite" : Integer.toString(tier.rate);
-        tooltip.add(new TranslatableComponent("item.randomthings.spectre_charger.charge", display));
+        tooltip.add(Component.translatable("item.randomthings.spectre_charger.charge", display));
     }
 }

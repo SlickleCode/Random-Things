@@ -1,5 +1,6 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -38,7 +39,7 @@ public class GlowingMushroomFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel worldIn = context.level();
         BlockPos pos = context.origin();
-        Random rand = context.random();
+        RandomSource rand = context.random();
 
         if (!enabled.getAsBoolean()) {
             return false;

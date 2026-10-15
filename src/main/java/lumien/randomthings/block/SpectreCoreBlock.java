@@ -46,7 +46,7 @@ public class SpectreCoreBlock extends Block {
     public static final EnumProperty<CoreOrientation> ORIENTATION = EnumProperty.create("orientation", CoreOrientation.class);
 
     public SpectreCoreBlock() {
-        super(Block.Properties.of(Material.STONE).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noDrops());
+        super(Block.Properties.of(Material.STONE).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noLootTable());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(ORIENTATION, CoreOrientation.NW));
     }

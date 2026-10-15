@@ -13,7 +13,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -37,10 +37,10 @@ public class PortableSoundDampenerItem extends Item {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
-            NetworkHooks.openGui((ServerPlayer) playerIn, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
-                    return new TranslatableComponent("item.randomthings.portable_sound_dampener");
+                    return Component.translatable("item.randomthings.portable_sound_dampener");
                 }
 
                 @Override

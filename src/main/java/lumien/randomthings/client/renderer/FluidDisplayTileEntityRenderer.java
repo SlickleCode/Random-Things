@@ -66,11 +66,11 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
             sprite = Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(EMPTY_SPRITE);
             r = g = b = 1.0F;
         } else {
-            net.minecraftforge.fluids.FluidAttributes attributes = fluidStack.getFluid().getAttributes();
-            net.minecraft.resources.ResourceLocation spriteLocation = te.flowing() ? attributes.getFlowingTexture() : attributes.getStillTexture();
+            net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions attributes = net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions.of(fluidStack.getFluid());
+            net.minecraft.resources.ResourceLocation spriteLocation = te.flowing() ? attributes.getFlowingTexture(fluidStack) : attributes.getStillTexture(fluidStack);
 
             sprite = Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(spriteLocation);
-            int color = attributes.getColor(fluidStack);
+            int color = attributes.getTintColor(fluidStack);
             r = (color >> 16 & 0xFF) / 255F;
             g = (color >> 8 & 0xFF) / 255F;
             b = (color & 0xFF) / 255F;

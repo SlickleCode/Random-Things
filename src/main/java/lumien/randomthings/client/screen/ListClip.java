@@ -3,7 +3,7 @@ package lumien.randomthings.client.screen;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /** Small helper: clip drawing to a rectangle given in GUI-scaled coordinates (glScissor wants framebuffer pixels, origin bottom-left). */
 final class ListClip

@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * IgniterScreen
@@ -39,7 +39,7 @@ public class IgniterScreen extends AbstractContainerScreen<IgniterContainer>
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 4, 68, 20, new TextComponent(""), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 4, 68, 20, Component.literal(""), (button) -> {
 			this.menu.send(0, (pb) -> {
 			});
 		}));
@@ -62,7 +62,7 @@ public class IgniterScreen extends AbstractContainerScreen<IgniterContainer>
 	{
 
 		MODE mode = MODE.values()[this.menu.mode.get()];
-		ScreenWidgets.buttons(this).get(0).setMessage(new TextComponent(modeLabel(mode)));
+		ScreenWidgets.buttons(this).get(0).setMessage(Component.literal(modeLabel(mode)));
 
 	}
 

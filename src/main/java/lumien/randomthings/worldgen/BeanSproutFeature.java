@@ -1,5 +1,6 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.util.RandomSource;
 import lumien.randomthings.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
@@ -33,7 +34,7 @@ public class BeanSproutFeature extends Feature<NoneFeatureConfiguration> {
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel worldIn = context.level();
         BlockPos pos = context.origin();
-        Random rand = context.random();
+        RandomSource rand = context.random();
 
         if (pos.getY() <= worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight() - 1 || !worldIn.isEmptyBlock(pos)) {
             return false;

@@ -27,7 +27,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -416,6 +416,6 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.potion_vaporizer");
+		return Component.translatable("block.randomthings.potion_vaporizer");
 	}
 }

@@ -13,7 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 
@@ -150,7 +150,7 @@ public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISi
                 // No real item for this block (e.g. fire, fluids) - fall back to
                 // the block's own translated name, matching 1.12.2's
                 // getLocalizedName() fallback.
-                name = new TranslatableComponent(state.getBlock().getDescriptionId()).getString();
+                name = Component.translatable(state.getBlock().getDescriptionId()).getString();
                 br.stack = ItemStack.EMPTY;
             } else {
                 br.stack = new ItemStack(item);

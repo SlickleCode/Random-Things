@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 /**
@@ -42,15 +42,15 @@ public class PositionFilterItem extends Item
 		{
 			if (compound != null && compound.getBoolean("hasPosition"))
 			{
-				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
-				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
-				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
-				tooltip.add(new TranslatableComponent("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
+				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
+				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
+				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
+				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
 			}
 		}
 		else
 		{
-			tooltip.add(new TranslatableComponent("tooltip.randomthings.general.shift"));
+			tooltip.add(Component.translatable("tooltip.randomthings.general.shift"));
 		}
 	}
 

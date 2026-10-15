@@ -8,7 +8,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -70,18 +70,18 @@ public class PortkeyItem extends Item {
 
         if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get()) {
             // 1.12.2's HideCoordinates: only say whether a target is set, never where
-            tooltip.add(new TranslatableComponent(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
+            tooltip.add(Component.translatable(compound != null && compound.getBoolean("hasTarget") ? "tooltip.randomthings.portkey.set" : "tooltip.randomthings.portkey.notset"));
         } else if (Screen.hasShiftDown()) {
             if (compound != null && compound.getBoolean("hasTarget")) {
-                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.dimension", compound.getString("dimension")));
-                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.x", compound.getInt("targetX")));
-                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.y", compound.getInt("targetY")));
-                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.z", compound.getInt("targetZ")));
+                tooltip.add(Component.translatable("tooltip.randomthings.portkey.dimension", compound.getString("dimension")));
+                tooltip.add(Component.translatable("tooltip.randomthings.portkey.x", compound.getInt("targetX")));
+                tooltip.add(Component.translatable("tooltip.randomthings.portkey.y", compound.getInt("targetY")));
+                tooltip.add(Component.translatable("tooltip.randomthings.portkey.z", compound.getInt("targetZ")));
             } else {
-                tooltip.add(new TranslatableComponent("tooltip.randomthings.portkey.notset"));
+                tooltip.add(Component.translatable("tooltip.randomthings.portkey.notset"));
             }
         } else {
-            tooltip.add(new TranslatableComponent("tooltip.randomthings.general.shift"));
+            tooltip.add(Component.translatable("tooltip.randomthings.general.shift"));
         }
 
         super.appendHoverText(stack, world, tooltip, flag);
@@ -183,12 +183,12 @@ public class PortkeyItem extends Item {
     }
 
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.IItemRenderProperties> consumer) {
-        consumer.accept(new net.minecraftforge.client.IItemRenderProperties() {
+    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
+        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
             private lumien.randomthings.client.renderer.PortkeyItemRenderer renderer;
 
             @Override
-            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getItemStackRenderer() {
+            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new lumien.randomthings.client.renderer.PortkeyItemRenderer();
                 }

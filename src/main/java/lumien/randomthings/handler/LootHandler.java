@@ -1,5 +1,6 @@
 package lumien.randomthings.handler;
 
+import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class LootHandler
 	/** One pool that yields {@code item} with weight {@code chance} out of 100, else nothing. */
 	private static void addSingleItemWithChance(LootTable table, ItemLike item, int chance)
 	{
-		String itemName = item.asItem().getRegistryName().getPath();
+		String itemName = RegUtil.id(item.asItem()).getPath();
 
 		LootPool pool = LootPool.lootPool().name("randomthings:" + itemName).setRolls(net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(item).setWeight(chance))
 				.add(EmptyLootItem.emptyItem().setWeight(100 - chance)).build();

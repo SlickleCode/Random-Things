@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * OnlineDetectorScreen
@@ -39,7 +39,7 @@ public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetector
 	{
 		super.init();
 
-		this.usernameField = new EditBox(this.font, this.leftPos + 5, this.topPos + 26, 127, 20, new TextComponent(""));
+		this.usernameField = new EditBox(this.font, this.leftPos + 5, this.topPos + 26, 127, 20, Component.literal(""));
 		this.usernameField.setMaxLength(16);
 		this.usernameField.setValue(this.menu.getUsername());
 		this.lastSent = this.usernameField.getValue();

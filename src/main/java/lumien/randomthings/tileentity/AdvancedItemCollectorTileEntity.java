@@ -19,7 +19,7 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -212,6 +212,6 @@ public class AdvancedItemCollectorTileEntity extends BlockEntity implements Menu
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.advanced_item_collector");
+		return Component.translatable("block.randomthings.advanced_item_collector");
 	}
 }

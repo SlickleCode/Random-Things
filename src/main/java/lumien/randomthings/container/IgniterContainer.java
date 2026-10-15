@@ -69,4 +69,9 @@ public class IgniterContainer extends AbstractContainerMenu implements ISignalCo
 			});
 		}
 	}
+
+    @Override
+    public net.minecraft.world.item.ItemStack quickMoveStack(net.minecraft.world.entity.player.Player player, int index) {
+        return net.minecraft.world.item.ItemStack.EMPTY;
+    }
 }

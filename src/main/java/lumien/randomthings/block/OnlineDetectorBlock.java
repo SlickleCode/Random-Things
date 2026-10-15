@@ -92,7 +92,7 @@ public class OnlineDetectorBlock extends Block implements EntityBlock {
 			{
 				OnlineDetectorTileEntity odte = (OnlineDetectorTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayer) player, odte, buf -> {
+				NetworkHooks.openScreen((ServerPlayer) player, odte, buf -> {
 					buf.writeBlockPos(pos);
 					buf.writeUtf(odte.getUsername());
 				});

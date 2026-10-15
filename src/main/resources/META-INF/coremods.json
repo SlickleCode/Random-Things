@@ -1,5 +1,4 @@
 {
-	"VertexLighterFlat": "transformer/VertexLighterFlat.js",
 	"FireBlockTransformer": "transformer/FireBlockTransformer.js",
 	"SuperLubricentBootsTransformer": "transformer/SuperLubricentBootsTransformer.js",
 	"SpawnPlacementTransformer": "transformer/SpawnPlacementTransformer.js",

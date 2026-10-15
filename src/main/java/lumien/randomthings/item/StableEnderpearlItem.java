@@ -21,8 +21,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 
@@ -58,7 +58,7 @@ public class StableEnderpearlItem extends Item
 		if (compound != null)
 		{
 			String playerName = compound.getString("player-name");
-			tooltip.add(new TranslatableComponent("tooltip.randomthings.stable_enderpearl.boundto", playerName));
+			tooltip.add(Component.translatable("tooltip.randomthings.stable_enderpearl.boundto", playerName));
 		}
 	}
 
@@ -67,7 +67,7 @@ public class StableEnderpearlItem extends Item
 	 * callback Forge fired on the item type for every matching dropped
 	 * {@code EntityItem}. That hook doesn't exist on {@code Item} in this
 	 * Forge build - instead, {@code RandomThings} drives this from a
-	 * {@code TickEvent.WorldTickEvent} listener that scans
+	 * {@code TickEvent.LevelTickEvent} listener that scans
 	 * {@code ServerWorld.getEntities()} for dropped stacks of this item.
 	 */
 	public void tickDroppedPearl(ItemEntity entityItem)

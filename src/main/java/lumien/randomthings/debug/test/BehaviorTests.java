@@ -275,6 +275,12 @@ final class BehaviorTests
 
 	private static final class NoopContainer extends AbstractContainerMenu
 	{
+		@Override
+		public ItemStack quickMoveStack(Player player, int index)
+		{
+			return ItemStack.EMPTY;
+		}
+
 		NoopContainer()
 		{
 			super(null, 0);

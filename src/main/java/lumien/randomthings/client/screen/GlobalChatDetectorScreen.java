@@ -16,7 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * GlobalChatDetectorScreen
@@ -41,7 +41,7 @@ public class GlobalChatDetectorScreen extends AbstractContainerScreen<GlobalChat
 	{
 		super.init();
 
-		this.messageField = new EditBox(this.font, this.leftPos + 8, this.topPos + 20, 127, 15, new TextComponent(""));
+		this.messageField = new EditBox(this.font, this.leftPos + 8, this.topPos + 20, 127, 15, Component.literal(""));
 		this.messageField.setMaxLength(256);
 		this.messageField.setValue(this.menu.getChatMessage());
 		this.lastSent = this.messageField.getValue();
@@ -116,7 +116,7 @@ public class GlobalChatDetectorScreen extends AbstractContainerScreen<GlobalChat
 		if (ScreenWidgets.buttons(this).get(1).isHoveredOrFocused())
 		{
 			boolean consume = this.menu.consume.get() != 0;
-			this.renderTooltip(matrixStack, new TextComponent(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
+			this.renderTooltip(matrixStack, Component.literal(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
 		}
 
 	}

@@ -15,7 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -51,7 +51,7 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
                     stack.getTag().remove("recordList");
                 }
             } else if (!isRecording(stack)) {
-                NetworkHooks.openGui((ServerPlayer) playerIn, this);
+                NetworkHooks.openScreen((ServerPlayer) playerIn, this);
             }
         }
 
@@ -111,7 +111,7 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("item.randomthings.sound_recorder");
+        return Component.translatable("item.randomthings.sound_recorder");
     }
 
 	@Override

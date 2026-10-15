@@ -80,7 +80,7 @@ public class BlockDestabilizerBlock extends Block implements EntityBlock {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof BlockDestabilizerTileEntity) {
-                NetworkHooks.openGui((ServerPlayer) player, (BlockDestabilizerTileEntity) te);
+                NetworkHooks.openScreen((ServerPlayer) player, (BlockDestabilizerTileEntity) te);
             }
         }
 

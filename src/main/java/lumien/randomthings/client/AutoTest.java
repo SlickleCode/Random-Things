@@ -69,7 +69,7 @@ public class AutoTest
 
 					if (mc.getLevelSource().levelExists(WORLD))
 					{
-						mc.loadLevel(WORLD);
+						mc.createWorldOpenFlows().loadLevel(mc.screen, WORLD);
 					}
 					else
 					{
@@ -79,9 +79,9 @@ public class AutoTest
 						Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
 						Registry<net.minecraft.world.level.levelgen.structure.StructureSet> structureSets = registries.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
 						ChunkGenerator flat = new FlatLevelSource(structureSets, FlatLevelGeneratorSettings.getDefault(biomes, structureSets));
-						WorldGenSettings generatorSettings = new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, DimensionType.defaultDimensions(registries, 4242L), flat));
+						WorldGenSettings generatorSettings = new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 4242L).dimensions(), flat));
 						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DataPackConfig.DEFAULT);
-						mc.createLevel(WORLD, settings, registries, generatorSettings);
+						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, registries, generatorSettings);
 					}
 
 					state = State.LOADING;
@@ -152,8 +152,8 @@ public class AutoTest
 					RTDebug.log("AutoTest: resource audit done, {} failure(s)", audit.failures.size());
 
 					RTDebug.log("AutoTest: running /rtdebug test");
-					mc.player.chat("/gamemode creative");
-					mc.player.chat("/rtdebug test " + System.getProperty("randomthings.autotest.filter", "").trim());
+					mc.player.commandUnsigned("gamemode creative");
+					mc.player.commandUnsigned("rtdebug test " + System.getProperty("randomthings.autotest.filter", "").trim());
 
 					state = State.TESTING;
 					ticks = 0;
@@ -176,7 +176,7 @@ public class AutoTest
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.chat("/rtdebug allguis 40");
+					mc.player.commandUnsigned("rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;

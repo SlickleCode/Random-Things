@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionResult;
@@ -33,7 +33,7 @@ public class DyeingMachineBlock extends Block {
     @Override
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (!worldIn.isClientSide) {
-            NetworkHooks.openGui((ServerPlayer) player, new MenuProvider() {
+            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                     return new DyeingMachineContainer(windowId, inv, ContainerLevelAccess.create(worldIn, pos));
@@ -41,7 +41,7 @@ public class DyeingMachineBlock extends Block {
 
                 @Override
                 public Component getDisplayName() {
-                    return new TranslatableComponent("block.randomthings.dyeing_machine");
+                    return Component.translatable("block.randomthings.dyeing_machine");
                 }
             }, pos);
         }

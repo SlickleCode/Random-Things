@@ -1,5 +1,6 @@
 package lumien.randomthings.item.block;
 
+import lumien.randomthings.util.RegUtil;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.BlockItem;
@@ -29,13 +30,13 @@ public class DiaphanousBlockItem extends BlockItem {
 
     @Override
     public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        if (!this.allowdedIn(group)) {
+        if (!this.allowedIn(group)) {
             return;
         }
 
         ItemStack stack = new ItemStack(this);
         CompoundTag tag = new CompoundTag();
-        tag.putString("block", Blocks.STONE.getRegistryName().toString());
+        tag.putString("block", RegUtil.id(Blocks.STONE).toString());
         tag.putBoolean("inverted", false);
         stack.setTag(tag);
 
@@ -71,6 +72,6 @@ public class DiaphanousBlockItem extends BlockItem {
             }
         }
 
-        return new net.minecraft.network.chat.TextComponent("").append(name).append(" <").append(new ItemStack(displayBlock).getHoverName()).append(">");
+        return net.minecraft.network.chat.Component.literal("").append(name).append(" <").append(new ItemStack(displayBlock).getHoverName()).append(">");
     }
 }

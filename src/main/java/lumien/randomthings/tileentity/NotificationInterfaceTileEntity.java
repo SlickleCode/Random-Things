@@ -17,7 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -151,6 +151,6 @@ public class NotificationInterfaceTileEntity extends BlockEntity implements Menu
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.notification_interface");
+		return Component.translatable("block.randomthings.notification_interface");
 	}
 }

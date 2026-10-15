@@ -87,7 +87,7 @@ public class ChatDetectorBlock extends Block implements EntityBlock {
 			{
 				ChatDetectorTileEntity cte = (ChatDetectorTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayer) player, cte, buf -> {
+				NetworkHooks.openScreen((ServerPlayer) player, cte, buf -> {
 					buf.writeBlockPos(pos);
 					buf.writeUtf(cte.getChatMessage());
 				});

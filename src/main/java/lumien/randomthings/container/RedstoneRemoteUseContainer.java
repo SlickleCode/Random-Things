@@ -36,4 +36,9 @@ public class RedstoneRemoteUseContainer extends AbstractContainerMenu {
     public boolean stillValid(Player playerIn) {
         return !remoteStack.isEmpty() && remoteStack.getItem() == ModItems.REDSTONE_REMOTE && (playerIn.getMainHandItem() == remoteStack || playerIn.getOffhandItem() == remoteStack);
     }
+
+    @Override
+    public net.minecraft.world.item.ItemStack quickMoveStack(net.minecraft.world.entity.player.Player player, int index) {
+        return net.minecraft.world.item.ItemStack.EMPTY;
+    }
 }

@@ -18,7 +18,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidActionResult;
@@ -54,7 +54,7 @@ public class EnderBucketItem extends Item {
     }
 
     @Override
-    public int getItemStackLimit(ItemStack stack) {
+    public int getMaxStackSize(ItemStack stack) {
         return getContainedFluid(stack) != null ? 1 : 16;
     }
 
@@ -71,7 +71,7 @@ public class EnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return new TranslatableComponent(this.getDescriptionId(stack) + ".filled", contained.getFluid().getAttributes().getDisplayName(contained));
+        return Component.translatable(this.getDescriptionId(stack) + ".filled", contained.getDisplayName());
     }
 
     @Override

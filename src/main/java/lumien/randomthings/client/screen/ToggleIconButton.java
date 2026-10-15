@@ -11,7 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
@@ -30,7 +30,7 @@ public class ToggleIconButton extends Button implements TooltipButton
 
 	public ToggleIconButton(int x, int y, int width, int height, ResourceLocation texture, int u, int v, BooleanSupplier value, OnPress onPress)
 	{
-		super(x, y, width, height, new TextComponent(""), onPress);
+		super(x, y, width, height, Component.literal(""), onPress);
 
 		this.texture = texture;
 		this.u = u;

@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.RegUtil;
 import lumien.randomthings.item.block.DiaphanousBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -100,7 +101,7 @@ public class DiaphanousSetRecipe extends CustomRecipe {
         result.setCount(1);
 
         CompoundTag tag = result.getOrCreateTag();
-        tag.putString("block", targetBlock.getRegistryName().toString());
+        tag.putString("block", RegUtil.id(targetBlock).toString());
 
         if (!tag.contains("inverted")) {
             tag.putBoolean("inverted", false);

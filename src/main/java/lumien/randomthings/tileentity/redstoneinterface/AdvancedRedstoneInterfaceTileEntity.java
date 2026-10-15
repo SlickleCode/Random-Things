@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
@@ -142,6 +142,6 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("block.randomthings.advanced_redstone_interface");
+        return Component.translatable("block.randomthings.advanced_redstone_interface");
     }
 }

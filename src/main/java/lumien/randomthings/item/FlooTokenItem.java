@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
  * still target it while it lasts, since {@code FlooNetworkHandler} doesn't
  * care where a fireplace's TE came from). Direct port of 1.12.2's {@code
  * ItemFlooToken}; see {@code StableEnderpearlItem.tickDroppedPearl}'s javadoc
- * for why this is driven from a {@code TickEvent.WorldTickEvent} listener in
+ * for why this is driven from a {@code TickEvent.LevelTickEvent} listener in
  * {@code RandomThings.java} rather than an {@code Item.onEntityItemUpdate}
  * override - that hook doesn't exist on {@code Item} in this Forge build,
  * same finding as that item, and the same fix applies here.

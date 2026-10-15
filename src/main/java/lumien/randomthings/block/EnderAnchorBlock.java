@@ -25,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
@@ -58,7 +58,7 @@ public class EnderAnchorBlock extends Block implements EntityBlock {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag flagIn) {
         if (RTConfig.ENDER_ANCHOR_CHUNKLOADING.get()) {
-            tooltip.add(new TranslatableComponent("tooltip.randomthings.ender_anchor.chunkloading"));
+            tooltip.add(Component.translatable("tooltip.randomthings.ender_anchor.chunkloading"));
         }
     }
 

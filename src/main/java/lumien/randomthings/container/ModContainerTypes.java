@@ -2,126 +2,123 @@ package lumien.randomthings.container;
 
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
 
-@ObjectHolder("randomthings")
 public class ModContainerTypes {
-    @ObjectHolder("advanced_redstone_torch")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:advanced_redstone_torch")
     public static MenuType<AdvancedRedstoneTorchContainer> ADVANCED_REDSTONE_TORCH;
 
-    @ObjectHolder("analog_emitter")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:analog_emitter")
     public static MenuType<AnalogEmitterContainer> ANALOG_EMITTER;
 
-    @ObjectHolder("igniter")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:igniter")
     public static MenuType<IgniterContainer> IGNITER;
 
-    @ObjectHolder("online_detector")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:online_detector")
     public static MenuType<OnlineDetectorContainer> ONLINE_DETECTOR;
 
-    @ObjectHolder("advanced_redstone_repeater")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:advanced_redstone_repeater")
     public static MenuType<AdvancedRedstoneRepeaterContainer> ADVANCED_REDSTONE_REPEATER;
 
-    @ObjectHolder("iron_dropper")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:iron_dropper")
     public static MenuType<IronDropperContainer> IRON_DROPPER;
 
-    @ObjectHolder("inventory_tester")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:inventory_tester")
     public static MenuType<InventoryTesterContainer> INVENTORY_TESTER;
 
-    @ObjectHolder("chat_detector")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:chat_detector")
     public static MenuType<ChatDetectorContainer> CHAT_DETECTOR;
 
-    @ObjectHolder("redstone_observer")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:redstone_observer")
     public static MenuType<RedstoneObserverContainer> REDSTONE_OBSERVER;
 
-    @ObjectHolder("basic_redstone_interface")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:basic_redstone_interface")
     public static MenuType<BasicRedstoneInterfaceContainer> BASIC_REDSTONE_INTERFACE;
 
-    @ObjectHolder("advanced_redstone_interface")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:advanced_redstone_interface")
     public static MenuType<AdvancedRedstoneInterfaceContainer> ADVANCED_REDSTONE_INTERFACE;
 
-    @ObjectHolder("redstone_remote_edit")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:redstone_remote_edit")
     public static MenuType<RedstoneRemoteEditContainer> REDSTONE_REMOTE_EDIT;
 
-    @ObjectHolder("redstone_remote_use")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:redstone_remote_use")
     public static MenuType<RedstoneRemoteUseContainer> REDSTONE_REMOTE_USE;
 
-    @ObjectHolder("potion_vaporizer")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:potion_vaporizer")
     public static MenuType<PotionVaporizerContainer> POTION_VAPORIZER;
 
-    @ObjectHolder("entity_detector")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:entity_detector")
     public static MenuType<EntityDetectorContainer> ENTITY_DETECTOR;
 
-    @ObjectHolder("advanced_item_collector")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:advanced_item_collector")
     public static MenuType<AdvancedItemCollectorContainer> ADVANCED_ITEM_COLLECTOR;
 
-    @ObjectHolder("filtered_super_lubricent_platform")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:filtered_super_lubricent_platform")
     public static MenuType<FilteredSuperLubricentPlatformContainer> FILTERED_SUPER_LUBRICENT_PLATFORM;
 
-    @ObjectHolder("notification_interface")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:notification_interface")
     public static MenuType<NotificationInterfaceContainer> NOTIFICATION_INTERFACE;
 
-    @ObjectHolder("global_chat_detector")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:global_chat_detector")
     public static MenuType<GlobalChatDetectorContainer> GLOBAL_CHAT_DETECTOR;
 
-    @ObjectHolder("chunk_analyzer")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:chunk_analyzer")
     public static MenuType<ChunkAnalyzerContainer> CHUNK_ANALYZER;
 
-    @ObjectHolder("sound_recorder")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:sound_recorder")
     public static MenuType<SoundRecorderContainer> SOUND_RECORDER;
 
-    @ObjectHolder("sound_dampener")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:sound_dampener")
     public static MenuType<SoundDampenerContainer> SOUND_DAMPENER;
 
-    @ObjectHolder("portable_sound_dampener")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:portable_sound_dampener")
     public static MenuType<PortableSoundDampenerContainer> PORTABLE_SOUND_DAMPENER;
 
-    @ObjectHolder("imbuing_station")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:imbuing_station")
     public static MenuType<ImbuingStationContainer> IMBUING_STATION;
 
-    @ObjectHolder("ender_letter")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:ender_letter")
     public static MenuType<EnderLetterContainer> ENDER_LETTER;
 
-    @ObjectHolder("ender_mailbox")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:ender_mailbox")
     public static MenuType<EnderMailboxContainer> ENDER_MAILBOX;
 
-    @ObjectHolder("block_destabilizer")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:block_destabilizer")
     public static MenuType<BlockDestabilizerContainer> BLOCK_DESTABILIZER;
 
-    @ObjectHolder("dyeing_machine")
+    @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:dyeing_machine")
     public static MenuType<DyeingMachineContainer> DYEING_MACHINE;
 
-    public static void registerContainerTypes(Register<MenuType<?>> containerTypeRegistryEvent) {
-        IForgeRegistry<MenuType<?>> registry = containerTypeRegistryEvent.getRegistry();
+    public static void registerContainerTypes(IForgeRegistry<MenuType<?>> registry) {
 
-        registry.register(IForgeMenuType.create(AdvancedRedstoneTorchContainer::new).setRegistryName("advanced_redstone_torch"));
-        registry.register(IForgeMenuType.create(AnalogEmitterContainer::new).setRegistryName("analog_emitter"));
-        registry.register(IForgeMenuType.create(IgniterContainer::new).setRegistryName("igniter"));
-        registry.register(IForgeMenuType.create(OnlineDetectorContainer::new).setRegistryName("online_detector"));
-        registry.register(IForgeMenuType.create(AdvancedRedstoneRepeaterContainer::new).setRegistryName("advanced_redstone_repeater"));
-        registry.register(IForgeMenuType.create(IronDropperContainer::new).setRegistryName("iron_dropper"));
-        registry.register(IForgeMenuType.create(InventoryTesterContainer::new).setRegistryName("inventory_tester"));
-        registry.register(IForgeMenuType.create(ChatDetectorContainer::new).setRegistryName("chat_detector"));
-        registry.register(IForgeMenuType.create(RedstoneObserverContainer::new).setRegistryName("redstone_observer"));
-        registry.register(IForgeMenuType.create(BasicRedstoneInterfaceContainer::new).setRegistryName("basic_redstone_interface"));
-        registry.register(IForgeMenuType.create(AdvancedRedstoneInterfaceContainer::new).setRegistryName("advanced_redstone_interface"));
-        registry.register(IForgeMenuType.create(RedstoneRemoteEditContainer::new).setRegistryName("redstone_remote_edit"));
-        registry.register(IForgeMenuType.create(RedstoneRemoteUseContainer::new).setRegistryName("redstone_remote_use"));
-        registry.register(IForgeMenuType.create(PotionVaporizerContainer::new).setRegistryName("potion_vaporizer"));
-        registry.register(IForgeMenuType.create(EntityDetectorContainer::new).setRegistryName("entity_detector"));
-        registry.register(IForgeMenuType.create(AdvancedItemCollectorContainer::new).setRegistryName("advanced_item_collector"));
-        registry.register(IForgeMenuType.create(FilteredSuperLubricentPlatformContainer::new).setRegistryName("filtered_super_lubricent_platform"));
-        registry.register(IForgeMenuType.create(NotificationInterfaceContainer::new).setRegistryName("notification_interface"));
-        registry.register(IForgeMenuType.create(GlobalChatDetectorContainer::new).setRegistryName("global_chat_detector"));
-        registry.register(IForgeMenuType.create(ChunkAnalyzerContainer::new).setRegistryName("chunk_analyzer"));
-        registry.register(IForgeMenuType.create(SoundRecorderContainer::new).setRegistryName("sound_recorder"));
-        registry.register(IForgeMenuType.create(SoundDampenerContainer::new).setRegistryName("sound_dampener"));
-        registry.register(IForgeMenuType.create(PortableSoundDampenerContainer::new).setRegistryName("portable_sound_dampener"));
-        registry.register(IForgeMenuType.create(ImbuingStationContainer::new).setRegistryName("imbuing_station"));
-        registry.register(IForgeMenuType.create(EnderLetterContainer::new).setRegistryName("ender_letter"));
-        registry.register(IForgeMenuType.create(EnderMailboxContainer::new).setRegistryName("ender_mailbox"));
-        registry.register(IForgeMenuType.create(BlockDestabilizerContainer::new).setRegistryName("block_destabilizer"));
-        registry.register(IForgeMenuType.create(DyeingMachineContainer::new).setRegistryName("dyeing_machine"));
+        registry.register("advanced_redstone_torch", IForgeMenuType.create(AdvancedRedstoneTorchContainer::new));
+        registry.register("analog_emitter", IForgeMenuType.create(AnalogEmitterContainer::new));
+        registry.register("igniter", IForgeMenuType.create(IgniterContainer::new));
+        registry.register("online_detector", IForgeMenuType.create(OnlineDetectorContainer::new));
+        registry.register("advanced_redstone_repeater", IForgeMenuType.create(AdvancedRedstoneRepeaterContainer::new));
+        registry.register("iron_dropper", IForgeMenuType.create(IronDropperContainer::new));
+        registry.register("inventory_tester", IForgeMenuType.create(InventoryTesterContainer::new));
+        registry.register("chat_detector", IForgeMenuType.create(ChatDetectorContainer::new));
+        registry.register("redstone_observer", IForgeMenuType.create(RedstoneObserverContainer::new));
+        registry.register("basic_redstone_interface", IForgeMenuType.create(BasicRedstoneInterfaceContainer::new));
+        registry.register("advanced_redstone_interface", IForgeMenuType.create(AdvancedRedstoneInterfaceContainer::new));
+        registry.register("redstone_remote_edit", IForgeMenuType.create(RedstoneRemoteEditContainer::new));
+        registry.register("redstone_remote_use", IForgeMenuType.create(RedstoneRemoteUseContainer::new));
+        registry.register("potion_vaporizer", IForgeMenuType.create(PotionVaporizerContainer::new));
+        registry.register("entity_detector", IForgeMenuType.create(EntityDetectorContainer::new));
+        registry.register("advanced_item_collector", IForgeMenuType.create(AdvancedItemCollectorContainer::new));
+        registry.register("filtered_super_lubricent_platform", IForgeMenuType.create(FilteredSuperLubricentPlatformContainer::new));
+        registry.register("notification_interface", IForgeMenuType.create(NotificationInterfaceContainer::new));
+        registry.register("global_chat_detector", IForgeMenuType.create(GlobalChatDetectorContainer::new));
+        registry.register("chunk_analyzer", IForgeMenuType.create(ChunkAnalyzerContainer::new));
+        registry.register("sound_recorder", IForgeMenuType.create(SoundRecorderContainer::new));
+        registry.register("sound_dampener", IForgeMenuType.create(SoundDampenerContainer::new));
+        registry.register("portable_sound_dampener", IForgeMenuType.create(PortableSoundDampenerContainer::new));
+        registry.register("imbuing_station", IForgeMenuType.create(ImbuingStationContainer::new));
+        registry.register("ender_letter", IForgeMenuType.create(EnderLetterContainer::new));
+        registry.register("ender_mailbox", IForgeMenuType.create(EnderMailboxContainer::new));
+        registry.register("block_destabilizer", IForgeMenuType.create(BlockDestabilizerContainer::new));
+        registry.register("dyeing_machine", IForgeMenuType.create(DyeingMachineContainer::new));
     }
 }

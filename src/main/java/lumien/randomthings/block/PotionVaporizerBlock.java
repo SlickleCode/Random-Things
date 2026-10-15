@@ -76,7 +76,7 @@ public class PotionVaporizerBlock extends Block implements EntityBlock {
 
 			if (te instanceof PotionVaporizerTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (PotionVaporizerTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (PotionVaporizerTileEntity) te);
 			}
 		}
 

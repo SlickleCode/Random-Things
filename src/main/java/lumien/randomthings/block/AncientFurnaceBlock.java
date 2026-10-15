@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.EntityBlock;
 
 import lumien.randomthings.tileentity.ModTileEntityTypes;
@@ -106,7 +107,7 @@ public class AncientFurnaceBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void animateTick(BlockState state, Level worldIn, BlockPos pos, Random rand) {
+    public void animateTick(BlockState state, Level worldIn, BlockPos pos, RandomSource rand) {
         if (!state.getValue(HEATING)) {
             return;
         }

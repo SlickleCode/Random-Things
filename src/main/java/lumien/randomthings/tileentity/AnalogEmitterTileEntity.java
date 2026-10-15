@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 public class AnalogEmitterTileEntity extends BlockEntity implements MenuProvider
@@ -95,6 +95,6 @@ public class AnalogEmitterTileEntity extends BlockEntity implements MenuProvider
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.analog_emitter");
+		return Component.translatable("block.randomthings.analog_emitter");
 	}
 }

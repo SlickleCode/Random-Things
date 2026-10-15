@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 
 import lumien.randomthings.item.ModItems;
@@ -66,7 +67,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		int age = state.getValue(AGE);
 

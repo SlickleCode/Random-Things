@@ -80,7 +80,7 @@ public class FilteredSuperLubricentPlatformBlock extends SuperLubricentPlatformB
 
 			if (te instanceof FilteredSuperLubricentPlatformTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (FilteredSuperLubricentPlatformTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (FilteredSuperLubricentPlatformTileEntity) te);
 			}
 		}
 

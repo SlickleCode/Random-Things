@@ -18,7 +18,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 public class IgniterTileEntity extends BlockEntity implements MenuProvider
@@ -119,6 +119,6 @@ public class IgniterTileEntity extends BlockEntity implements MenuProvider
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.igniter");
+		return Component.translatable("block.randomthings.igniter");
 	}
 }

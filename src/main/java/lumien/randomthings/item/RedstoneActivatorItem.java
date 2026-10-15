@@ -14,7 +14,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
 
     @Override
     public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(new TranslatableComponent("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
+        tooltip.add(Component.translatable("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
     }
 
     @Override

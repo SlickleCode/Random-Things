@@ -15,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Port of 1.12.2's {@code GuiChunkAnalyzer}: a "Scan" button that asks the
@@ -50,7 +50,7 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
     protected void init() {
         super.init();
 
-        this.scanButton = this.addRenderableWidget(new Button(this.leftPos + 136, this.topPos + 5, 50, 14, new TextComponent("Scan"), (button) -> {
+        this.scanButton = this.addRenderableWidget(new Button(this.leftPos + 136, this.topPos + 5, 50, 14, Component.literal("Scan"), (button) -> {
             this.menu.send(0, (pb) -> {
             });
         }));

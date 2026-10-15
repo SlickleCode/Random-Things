@@ -46,7 +46,7 @@ public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderCo
     @Override
     protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
-        this.font.draw(matrixStack, new net.minecraft.network.chat.TranslatableComponent("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752);
+        this.font.draw(matrixStack, net.minecraft.network.chat.Component.translatable("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752);
     }
 
     @Override

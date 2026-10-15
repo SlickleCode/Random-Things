@@ -225,7 +225,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
     private static void setBiomeColumn(LevelChunk chunk, int x, int z, Holder<Biome> biome) {
         for (LevelChunkSection section : chunk.getSections()) {
             for (int cellY = 0; cellY < 4; cellY++) {
-                section.getBiomes().set((x >> 2) & 3, cellY, (z >> 2) & 3, biome);
+                ((net.minecraft.world.level.chunk.PalettedContainer<Holder<Biome>>) section.getBiomes()).set((x >> 2) & 3, cellY, (z >> 2) & 3, biome);
             }
         }
     }

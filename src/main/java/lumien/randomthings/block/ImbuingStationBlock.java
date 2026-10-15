@@ -53,7 +53,7 @@ public class ImbuingStationBlock extends Block implements EntityBlock {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof ImbuingStationTileEntity) {
-                NetworkHooks.openGui((ServerPlayer) player, (ImbuingStationTileEntity) te);
+                NetworkHooks.openScreen((ServerPlayer) player, (ImbuingStationTileEntity) te);
             }
         }
 

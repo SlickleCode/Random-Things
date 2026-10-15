@@ -20,8 +20,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class RunePatternItem extends Item {
         DyeColor[][] pattern = getPattern(stack);
 
         if (pattern == null) {
-            tooltip.add(new TranslatableComponent("tooltip.randomthings.general.empty"));
+            tooltip.add(Component.translatable("tooltip.randomthings.general.empty"));
             return;
         }
 
@@ -73,7 +73,7 @@ public class RunePatternItem extends Item {
         present.sort(Comparator.comparingInt((DyeColor c) -> amounts[c.getId()]).reversed());
 
         for (DyeColor color : present) {
-            tooltip.add(new TextComponent("- " + amounts[color.getId()] + "x " + color.getName()));
+            tooltip.add(Component.literal("- " + amounts[color.getId()] + "x " + color.getName()));
         }
     }
 

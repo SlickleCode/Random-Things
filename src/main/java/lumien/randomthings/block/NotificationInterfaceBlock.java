@@ -91,7 +91,7 @@ public class NotificationInterfaceBlock extends Block implements EntityBlock {
 			{
 				NotificationInterfaceTileEntity nite = (NotificationInterfaceTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayer) player, nite, buf -> {
+				NetworkHooks.openScreen((ServerPlayer) player, nite, buf -> {
 					buf.writeBlockPos(pos);
 					buf.writeUtf(nite.getTitle());
 					buf.writeUtf(nite.getDescription());

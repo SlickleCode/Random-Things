@@ -20,8 +20,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -75,16 +75,16 @@ public class SummoningPendulumItem extends Item {
 
             for (int i = 0; i < tagList.size(); i++) {
                 ResourceLocation entityLocation = new ResourceLocation(tagList.getCompound(i).getString("id"));
-                EntityType<?> type = ForgeRegistries.ENTITIES.getValue(entityLocation);
+                EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(entityLocation);
 
                 if (type != null) {
-                    tooltip.add(new TextComponent("- ").append(type.getDescription()));
+                    tooltip.add(Component.literal("- ").append(type.getDescription()));
                 }
             }
             return;
         }
 
-        tooltip.add(new TranslatableComponent(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
+        tooltip.add(Component.translatable(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
     }
 
     @Override

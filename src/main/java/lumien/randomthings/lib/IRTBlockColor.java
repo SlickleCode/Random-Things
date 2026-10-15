@@ -8,7 +8,7 @@ import net.minecraft.world.level.BlockAndTintGetter;
  * Implemented by blocks that need a runtime tint (biome color, dye color,
  * etc.) applied to one or more of their model's tinted quads. Wired up
  * generically to Forge's {@code IBlockColor}/{@code BlockColors} system by a
- * single {@code ColorHandlerEvent.Block} listener in {@code RandomThings}
+ * single {@code RegisterColorHandlersEvent.Block} listener in {@code RandomThings}
  * rather than needing a bespoke registration per block.
  */
 public interface IRTBlockColor {

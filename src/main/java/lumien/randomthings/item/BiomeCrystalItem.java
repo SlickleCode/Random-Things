@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.RegUtil;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.util.BiomeColorUtil;
 import net.minecraft.client.Minecraft;
@@ -9,11 +10,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.BiomeDictionary.Type;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         Biome biome = getBiome(stack);
 
         if (biome != null) {
-            name = new TextComponent(name.getString() + " (" + BiomeUtil.displayName(biome).getString() + ")");
+            name = Component.literal(name.getString() + " (" + BiomeUtil.displayName(biome).getString() + ")");
         }
 
         return name;
@@ -59,7 +58,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     public boolean isFoil(ItemStack stack) {
         Biome biome = getBiome(stack);
 
-        return biome != null && BiomeUtil.hasType(biome, Type.MAGICAL);
+        return biome != null && BiomeUtil.hasType(biome, "MAGICAL");
     }
 
     @Override
@@ -86,6 +85,6 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     public static void setBiome(ItemStack stack, Biome biome) {
         CompoundTag compound = stack.getOrCreateTag();
 
-        compound.putString("biomeName", biome.getRegistryName().toString());
+        compound.putString("biomeName", BiomeUtil.id(biome).toString());
     }
 }

@@ -14,7 +14,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
@@ -31,7 +31,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 	public SpriteStateButton(int x, int y, int width, int height, ResourceLocation texture, IntSupplier state, IntFunction<String> tooltip, OnPress onPress)
 	{
-		super(x, y, width, height, new TextComponent(""), onPress);
+		super(x, y, width, height, Component.literal(""), onPress);
 
 		this.texture = texture;
 		this.state = state;
@@ -68,7 +68,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 				if (text != null)
 				{
-					screen.renderTooltip(matrixStack, new TextComponent(text), mouseX - guiLeft, mouseY - guiTop);
+					screen.renderTooltip(matrixStack, Component.literal(text), mouseX - guiLeft, mouseY - guiTop);
 				}
 
 				return;

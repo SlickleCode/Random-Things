@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.EntityBlock;
 
 import lumien.randomthings.tileentity.ModTileEntityTypes;
@@ -36,7 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
@@ -80,7 +81,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void animateTick(BlockState state, Level worldIn, BlockPos pos, Random rand) {
+    public void animateTick(BlockState state, Level worldIn, BlockPos pos, RandomSource rand) {
         if (!state.getValue(ACTIVE)) {
             return;
         }
@@ -159,9 +160,9 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
 
             if (mailbox.getOwner() != null) {
                 if (mailbox.getOwner().equals(player.getUUID())) {
-                    net.minecraftforge.network.NetworkHooks.openGui((net.minecraft.server.level.ServerPlayer) player, mailbox, pos);
+                    net.minecraftforge.network.NetworkHooks.openScreen((net.minecraft.server.level.ServerPlayer) player, mailbox, pos);
                 } else {
-                    player.displayClientMessage(new TranslatableComponent("block.randomthings.ender_mailbox.owner").withStyle(ChatFormatting.RED), false);
+                    player.displayClientMessage(Component.translatable("block.randomthings.ender_mailbox.owner").withStyle(ChatFormatting.RED), false);
                 }
             }
         }
@@ -179,7 +180,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
         GameProfile profile = ((ServerLevel) worldIn).getServer().getProfileCache().get(compound.getString("receiver")).orElse(null);
 
         if (profile == null || profile.getId() == null) {
-            player.displayClientMessage(new TranslatableComponent("item.randomthings.ender_letter.no_player", compound.getString("receiver")).withStyle(ChatFormatting.DARK_PURPLE), false);
+            player.displayClientMessage(Component.translatable("item.randomthings.ender_letter.no_player", compound.getString("receiver")).withStyle(ChatFormatting.DARK_PURPLE), false);
             return;
         }
 
@@ -200,6 +201,6 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
             }
         }
 
-        player.displayClientMessage(new TranslatableComponent("item.randomthings.ender_letter.no_space").withStyle(ChatFormatting.DARK_PURPLE), false);
+        player.displayClientMessage(Component.translatable("item.randomthings.ender_letter.no_space").withStyle(ChatFormatting.DARK_PURPLE), false);
     }
 }

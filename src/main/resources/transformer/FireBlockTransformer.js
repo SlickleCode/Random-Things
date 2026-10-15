@@ -50,7 +50,7 @@ function initializeCoreMod() {
 
                         if (flammabilityCall === null && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/level/block/state/BlockState" && insn.name === "getFlammability") {
                             flammabilityCall = insn;
-                        } else if (insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "java/util/Random" && insn.name === "nextInt" && insn.desc === "(I)I") {
+                        } else if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/util/RandomSource" && insn.name === "nextInt" && insn.desc === "(I)I") {
                             nextIntCalls.push(insn);
                         }
                     }
@@ -102,14 +102,14 @@ function initializeCoreMod() {
                     for (var k = 0; k < cooldownInstructions.size(); k++) {
                         var cooldownInsn = cooldownInstructions.get(k);
 
-                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/world/level/block/FireBlock" && (cooldownInsn.name === "getFireTickDelay" || cooldownInsn.name === "m_53468_") && cooldownInsn.desc === "(Ljava/util/Random;)I") {
+                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/world/level/block/FireBlock" && (cooldownInsn.name === "getFireTickDelay" || cooldownInsn.name === "m_53468_") && cooldownInsn.desc === "(Lnet/minecraft/util/RandomSource;)I") {
                             var pushFire = new InsnList();
                             pushFire.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             cooldownInstructions.insertBefore(cooldownInsn, pushFire);
 
                             cooldownInsn.owner = "lumien/randomthings/asm/AsmHandler";
                             cooldownInsn.name = "fireTickCooldown";
-                            cooldownInsn.desc = "(Ljava/util/Random;Lnet/minecraft/world/level/block/FireBlock;)I";
+                            cooldownInsn.desc = "(Lnet/minecraft/util/RandomSource;Lnet/minecraft/world/level/block/FireBlock;)I";
                             k++;
                         }
                     }

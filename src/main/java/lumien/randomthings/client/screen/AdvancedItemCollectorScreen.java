@@ -14,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * AdvancedItemCollectorScreen
@@ -36,19 +36,19 @@ public class AdvancedItemCollectorScreen extends AbstractContainerScreen<Advance
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 20, 20, 20, new TextComponent("-"), (b) -> this.menu.send(0, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 20, 20, 20, Component.literal("-"), (b) -> this.menu.send(0, (pb) -> {
 		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 20, 20, 20, new TextComponent("+"), (b) -> this.menu.send(1, (pb) -> {
-		})));
-
-		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 45, 20, 20, new TextComponent("-"), (b) -> this.menu.send(2, (pb) -> {
-		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 45, 20, 20, new TextComponent("+"), (b) -> this.menu.send(3, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 20, 20, 20, Component.literal("+"), (b) -> this.menu.send(1, (pb) -> {
 		})));
 
-		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 70, 20, 20, new TextComponent("-"), (b) -> this.menu.send(4, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 45, 20, 20, Component.literal("-"), (b) -> this.menu.send(2, (pb) -> {
 		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 70, 20, 20, new TextComponent("+"), (b) -> this.menu.send(5, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 45, 20, 20, Component.literal("+"), (b) -> this.menu.send(3, (pb) -> {
+		})));
+
+		this.addRenderableWidget(new Button(this.leftPos + 29, this.topPos + 70, 20, 20, Component.literal("-"), (b) -> this.menu.send(4, (pb) -> {
+		})));
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 70, 20, 20, Component.literal("+"), (b) -> this.menu.send(5, (pb) -> {
 		})));
 	}
 

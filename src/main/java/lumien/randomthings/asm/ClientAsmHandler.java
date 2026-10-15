@@ -18,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraftforge.client.model.data.IModelData;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -87,7 +86,7 @@ public class ClientAsmHandler {
      * either way) when a redirect applies - see the transformer JS for the
      * exact bytecode that interprets this.
      */
-    public static int renderBlock(BlockRenderDispatcher dispatcher, BlockState state, BlockPos pos, BlockAndTintGetter world, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, Random rand) {
+    public static int renderBlock(BlockRenderDispatcher dispatcher, BlockState state, BlockPos pos, BlockAndTintGetter world, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, net.minecraft.util.RandomSource rand) {
         synchronized (LightRedirectorTileEntity.REDIRECTORS) {
             if (LightRedirectorTileEntity.REDIRECTORS.isEmpty()) {
                 return 2;
@@ -108,9 +107,10 @@ public class ClientAsmHandler {
             }
 
             BakedModel model = dispatcher.getBlockModel(switchedState);
-            boolean rendered = dispatcher.getModelRenderer().tesselateBlock(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getSeed(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, net.minecraftforge.client.model.data.EmptyModelData.INSTANCE);
+            dispatcher.getModelRenderer().tesselateBlock(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getSeed(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
 
-            return rendered ? 1 : 0;
+            // 1.19: tesselateBlock/renderBatched return void; the coremod protocol is reworked with the transformers (plan M5)
+            return 1;
         }
     }
 

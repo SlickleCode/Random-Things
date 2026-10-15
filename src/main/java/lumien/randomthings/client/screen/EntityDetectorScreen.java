@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * EntityDetectorScreen. The original's icon-sprite invert/strong-output
@@ -41,24 +41,24 @@ public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetector
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 25, 10, 10, new TextComponent("-"), (b) -> this.menu.send(0, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 25, 10, 10, Component.literal("-"), (b) -> this.menu.send(0, (pb) -> {
 		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 25, 10, 10, new TextComponent("+"), (b) -> this.menu.send(1, (pb) -> {
-		})));
-
-		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 45, 10, 10, new TextComponent("-"), (b) -> this.menu.send(2, (pb) -> {
-		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 45, 10, 10, new TextComponent("+"), (b) -> this.menu.send(3, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 25, 10, 10, Component.literal("+"), (b) -> this.menu.send(1, (pb) -> {
 		})));
 
-		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 65, 10, 10, new TextComponent("-"), (b) -> this.menu.send(4, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 45, 10, 10, Component.literal("-"), (b) -> this.menu.send(2, (pb) -> {
 		})));
-		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 65, 10, 10, new TextComponent("+"), (b) -> this.menu.send(5, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 45, 10, 10, Component.literal("+"), (b) -> this.menu.send(3, (pb) -> {
+		})));
+
+		this.addRenderableWidget(new Button(this.leftPos + 39, this.topPos + 65, 10, 10, Component.literal("-"), (b) -> this.menu.send(4, (pb) -> {
+		})));
+		this.addRenderableWidget(new Button(this.leftPos + 119, this.topPos + 65, 10, 10, Component.literal("+"), (b) -> this.menu.send(5, (pb) -> {
 		})));
 
 		// 1.12.2 layout: filter text button 70x16 at (20,95); the two 20x20 sprite toggles
 		// (invert at 92, strong output at 115, both y93) come from the GUI texture at (176,0)/(216,0)
-		this.addRenderableWidget(new Button(this.leftPos + 20, this.topPos + 95, 70, 16, new TextComponent(""), (b) -> this.menu.send(6, (pb) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 20, this.topPos + 95, 70, 16, Component.literal(""), (b) -> this.menu.send(6, (pb) -> {
 		})));
 
 		this.addRenderableWidget(new ToggleIconButton(this.leftPos + 92, this.topPos + 93, 20, 20, GUI_TEXTURES, 176, 0, () -> this.menu.invert.get() != 0, (b) -> this.menu.send(7, (pb) -> {
@@ -89,7 +89,7 @@ public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetector
 		this.font.draw(matrixStack, radiusZ, imageWidth / 2 - this.font.width(radiusZ) / 2 - 3, 66, 4210752);
 
 		FILTER filter = FILTER.values()[this.menu.filter.get()];
-		ScreenWidgets.buttons(this).get(6).setMessage(new TextComponent(filterLabel(filter)));
+		ScreenWidgets.buttons(this).get(6).setMessage(Component.literal(filterLabel(filter)));
 
 		SpriteStateButton.renderTooltips(matrixStack, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
 

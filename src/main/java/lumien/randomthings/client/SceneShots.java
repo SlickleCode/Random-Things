@@ -54,7 +54,7 @@ public final class SceneShots
 					ids.retainAll(java.util.Arrays.asList(only.split(",")));
 				}
 				mc.options.hideGui = true;
-				mc.player.chat("/gamemode creative");
+				mc.player.commandUnsigned("gamemode creative");
 				RTDebug.log("SceneShots: {} scenes", ids.size());
 				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_tundra" })
 				{
@@ -93,7 +93,7 @@ public final class SceneShots
 
 				if (!requested)
 				{
-					mc.player.chat("/rtdebug scene " + id);
+					mc.player.commandUnsigned("rtdebug scene " + id);
 					requested = true;
 					wait = RenderScenes.waitTicks(id);
 					return false;
@@ -163,7 +163,7 @@ public final class SceneShots
 
 		for (int i = 0; i < 2; i++)
 		{
-			net.minecraft.client.player.RemotePlayer other = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]));
+			net.minecraft.client.player.RemotePlayer other = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]), null);
 			other.setPos(mc.player.getX() + (i == 0 ? -1.2 : 1.2), y, mc.player.getZ() + 4.0);
 			other.setYRot(180.0F);
 			other.yHeadRot = 180.0F;

@@ -1,32 +1,29 @@
 package lumien.randomthings.potion;
 
 import net.minecraft.world.effect.MobEffect;
-import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
 
 import java.awt.*;
 
-@ObjectHolder("randomthings")
 public class ModEffects {
-    @ObjectHolder("imbue_fire")
+    @ObjectHolder(registryName = "minecraft:mob_effect", value = "randomthings:imbue_fire")
     public static MobEffect IMBUE_FIRE;
 
-    @ObjectHolder("imbue_poison")
+    @ObjectHolder(registryName = "minecraft:mob_effect", value = "randomthings:imbue_poison")
     public static MobEffect IMBUE_POISON;
 
-    @ObjectHolder("imbue_experience")
+    @ObjectHolder(registryName = "minecraft:mob_effect", value = "randomthings:imbue_experience")
     public static MobEffect IMBUE_EXPERIENCE;
 
-    @ObjectHolder("imbue_wither")
+    @ObjectHolder(registryName = "minecraft:mob_effect", value = "randomthings:imbue_wither")
     public static MobEffect IMBUE_WITHER;
 
-    public static void registerEffects(Register<MobEffect> effectRegistryEvent) {
-        IForgeRegistry<MobEffect> registry = effectRegistryEvent.getRegistry();
+    public static void registerEffects(IForgeRegistry<MobEffect> registry) {
 
-        registry.register(new ImbueEffect(Color.ORANGE.getRGB()).setRegistryName("imbue_fire"));
-        registry.register(new ImbueEffect(Color.GREEN.darker().getRGB()).setRegistryName("imbue_poison"));
-        registry.register(new ImbueEffect(Color.YELLOW.getRGB()).setRegistryName("imbue_experience"));
-        registry.register(new ImbueEffect(Color.BLACK.brighter().getRGB()).setRegistryName("imbue_wither"));
+        registry.register("imbue_fire", new ImbueEffect(Color.ORANGE.getRGB()));
+        registry.register("imbue_poison", new ImbueEffect(Color.GREEN.darker().getRGB()));
+        registry.register("imbue_experience", new ImbueEffect(Color.YELLOW.getRGB()));
+        registry.register("imbue_wither", new ImbueEffect(Color.BLACK.brighter().getRGB()));
     }
 }

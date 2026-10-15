@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -40,7 +40,7 @@ public class MultilineTextFieldWidget extends AbstractWidget
 
 	public MultilineTextFieldWidget(Font font, int x, int y, int width, int height, int maxLength)
 	{
-		super(x, y, width, height, new TextComponent(""));
+		super(x, y, width, height, Component.literal(""));
 
 		this.font = font;
 		this.maxLength = maxLength;

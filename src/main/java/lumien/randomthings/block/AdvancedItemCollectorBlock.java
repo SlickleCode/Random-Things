@@ -143,7 +143,7 @@ public class AdvancedItemCollectorBlock extends Block implements EntityBlock {
 
 			if (te instanceof AdvancedItemCollectorTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (AdvancedItemCollectorTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (AdvancedItemCollectorTileEntity) te);
 			}
 		}
 

@@ -171,8 +171,8 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    protected int getExperienceReward(Player player) {
-        return this.isChickenJockey() ? 10 : super.getExperienceReward(player);
+    public int getExperienceReward() {
+        return this.isChickenJockey() ? 10 : super.getExperienceReward();
     }
 
     @Override

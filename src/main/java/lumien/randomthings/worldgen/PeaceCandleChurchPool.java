@@ -1,5 +1,6 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.util.RandomSource;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import org.apache.logging.log4j.LogManager;
 
@@ -95,7 +96,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
     /** The {@code PeaceCandle} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
     public static java.util.function.BooleanSupplier enabled = () -> RTConfig.PEACE_CANDLE.get();
 
-    private static boolean shouldSwap(Random rand) {
+    private static boolean shouldSwap(RandomSource rand) {
         return enabled.getAsBoolean() && rand.nextInt(3) == 0;
     }
 
@@ -104,18 +105,18 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
     }
 
     @Override
-    public int getMaxSize(StructureManager templateManager) {
+    public int getMaxSize(StructureTemplateManager templateManager) {
         return vanilla.getMaxSize(templateManager);
     }
 
     @Override
-    public StructurePoolElement getRandomTemplate(Random rand) {
+    public StructurePoolElement getRandomTemplate(RandomSource rand) {
         StructurePoolElement piece = vanilla.getRandomTemplate(rand);
         return shouldSwap(rand) ? swap(piece) : piece;
     }
 
     @Override
-    public List<StructurePoolElement> getShuffledTemplates(Random rand) {
+    public List<StructurePoolElement> getShuffledTemplates(RandomSource rand) {
         List<StructurePoolElement> pieces = vanilla.getShuffledTemplates(rand);
 
         if (!shouldSwap(rand)) {

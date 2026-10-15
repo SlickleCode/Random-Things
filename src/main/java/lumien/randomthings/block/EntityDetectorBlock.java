@@ -105,7 +105,7 @@ public class EntityDetectorBlock extends Block implements EntityBlock {
 
 			if (te instanceof EntityDetectorTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (EntityDetectorTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (EntityDetectorTileEntity) te);
 			}
 		}
 

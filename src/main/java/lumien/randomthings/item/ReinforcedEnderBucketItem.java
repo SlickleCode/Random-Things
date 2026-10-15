@@ -18,7 +18,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidActionResult;
@@ -81,7 +81,7 @@ public class ReinforcedEnderBucketItem extends Item {
         FluidStack contained = getContainedFluid(stack);
 
         if (contained != null) {
-            return contained.getFluid().getAttributes().getColor(contained);
+            return net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions.of(contained.getFluid()).getTintColor(contained);
         }
 
         return super.getBarColor(stack);
@@ -95,7 +95,7 @@ public class ReinforcedEnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return new TranslatableComponent(this.getDescriptionId(stack) + ".filled", contained.getFluid().getAttributes().getDisplayName(contained));
+        return Component.translatable(this.getDescriptionId(stack) + ".filled", contained.getDisplayName());
     }
 
     @Override

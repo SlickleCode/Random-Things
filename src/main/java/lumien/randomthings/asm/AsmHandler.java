@@ -58,7 +58,7 @@ public class AsmHandler {
      * BlazingFireBlock}'s own class javadoc for the original derivation).
      */
     /** Replaces FireBlock's private static getTickCooldown(Random) - see FireBlockTransformer.js. */
-    public static int fireTickCooldown(Random rand, FireBlock fire) {
+    public static int fireTickCooldown(net.minecraft.util.RandomSource rand, FireBlock fire) {
         if (fire instanceof lumien.randomthings.block.BlazingFireBlock) {
             return 15;
         }

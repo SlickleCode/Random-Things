@@ -1,5 +1,5 @@
 modLoader="javafml" #mandatory
-loaderVersion="[36,)" #mandatory
+loaderVersion="[43,)" #mandatory
 license="All Rights Reserved"
 
 displayURL="https://www.curseforge.com/minecraft/mc-mods/random-things"

@@ -60,7 +60,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.util.*;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
@@ -70,14 +70,13 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.UseHoeEvent;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -111,7 +110,6 @@ public class RandomThings {
         MinecraftForge.EVENT_BUS.register(this);
 
         MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
-        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.worldgen.ModFeatures::onBiomeLoading);
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
@@ -126,18 +124,15 @@ public class RandomThings {
             lumien.randomthings.debug.DevTools.init();
         }
 
-        MinecraftForge.EVENT_BUS.addListener((UseHoeEvent event) -> {
-            UseOnContext context = event.getContext();
+        MinecraftForge.EVENT_BUS.addListener((BlockEvent.BlockToolModificationEvent event) -> {
+            if (event.getToolAction() != net.minecraftforge.common.ToolActions.HOE_TILL) {
+                return;
+            }
 
-            Level world = context.getLevel();
-            BlockPos pos = context.getClickedPos();
-            BlockState state = world.getBlockState(pos);
+            BlockState state = event.getState();
 
             if (state.getBlock() == ModBlocks.FERTILIZED_DIRT && !state.getValue(FertilizedDirtBlock.TILLED)) {
-                event.setResult(Result.ALLOW);
-                world.setBlockAndUpdate(pos, state.setValue(FertilizedDirtBlock.TILLED, true));
-                Player playerentity = context.getPlayer();
-                world.playSound(playerentity, pos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+                event.setFinalState(state.setValue(FertilizedDirtBlock.TILLED, true));
             }
         });
 
@@ -153,10 +148,10 @@ public class RandomThings {
                 return;
             }
 
-            Level world = event.getWorld();
+            Level world = event.getLevel();
             BlockPos pos = event.getPos();
             BlockState targetState = world.getBlockState(pos);
-            Player player = event.getPlayer();
+            Player player = event.getEntity();
 
             if (targetState.getBlock() == Blocks.SLIME_BLOCK) {
                 player.swing(event.getHand());
@@ -189,7 +184,7 @@ public class RandomThings {
         // the clicked block, and activates the first match found (button checked
         // before lever, matching the original's ordering).
         MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
-            Level world = event.getWorld();
+            Level world = event.getLevel();
 
             if (world.isClientSide || event.getHand() != InteractionHand.MAIN_HAND) {
                 return;
@@ -219,7 +214,7 @@ public class RandomThings {
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
         MinecraftForge.EVENT_BUS.addListener((LivingHurtEvent event) -> {
-            if (event.isCanceled() || event.getEntityLiving().level.isClientSide || !(event.getSource() instanceof EntityDamageSource) || event.getSource() instanceof IndirectEntityDamageSource) {
+            if (event.isCanceled() || event.getEntity().level.isClientSide || !(event.getSource() instanceof EntityDamageSource) || event.getSource() instanceof IndirectEntityDamageSource) {
                 return;
             }
 
@@ -232,11 +227,11 @@ public class RandomThings {
             LivingEntity attacker = (LivingEntity) damageSource.getEntity();
 
             if (attacker.hasEffect(ModEffects.IMBUE_FIRE)) {
-                event.getEntityLiving().setSecondsOnFire(10);
+                event.getEntity().setSecondsOnFire(10);
             } else if (attacker.hasEffect(ModEffects.IMBUE_WITHER)) {
-                event.getEntityLiving().addEffect(new MobEffectInstance(MobEffects.WITHER, 5 * 20, 1));
+                event.getEntity().addEffect(new MobEffectInstance(MobEffects.WITHER, 5 * 20, 1));
             } else if (attacker.hasEffect(ModEffects.IMBUE_POISON)) {
-                event.getEntityLiving().addEffect(new MobEffectInstance(MobEffects.POISON, 10 * 20, 1));
+                event.getEntity().addEffect(new MobEffectInstance(MobEffects.POISON, 10 * 20, 1));
             }
         });
 
@@ -262,8 +257,8 @@ public class RandomThings {
         // would accelerate without limit on ordinary ground. Same condition
         // (worn + not sneaking) as bootsMaxSlip itself, and the same cap the
         // blocks use, per user direction.
-        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
-            LivingEntity entity = event.getEntityLiving();
+        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingTickEvent event) -> {
+            LivingEntity entity = event.getEntity();
 
             if (!entity.isOnGround()) {
                 return;
@@ -317,12 +312,12 @@ public class RandomThings {
         // unmodified - it's now a pure backstop for sustained real paddle
         // input climbing toward the limit, not compensating for anything
         // growing on its own anymore.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.world).getEntities(EntityType.BOAT, e -> true)) {
+            for (Entity entity : ((ServerLevel) event.level).getEntities(EntityType.BOAT, e -> true)) {
                 if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
                     SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
@@ -333,12 +328,12 @@ public class RandomThings {
         // non-creative player standing outside their own SpectreCube room back to their
         // own spawn tile (or fully back home if they don't have a cube at all). Direct
         // port of 1.12.2's RTEventHandler#livingUpdate's Spectre-dimension branch.
-        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingUpdateEvent event) -> {
-            if (event.getEntityLiving().level.isClientSide || !(event.getEntityLiving() instanceof ServerPlayer)) {
+        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingTickEvent event) -> {
+            if (event.getEntity().level.isClientSide || !(event.getEntity() instanceof ServerPlayer)) {
                 return;
             }
 
-            ServerPlayer player = (ServerPlayer) event.getEntityLiving();
+            ServerPlayer player = (ServerPlayer) event.getEntity();
 
             if (lumien.randomthings.handler.ModDimensions.isSpectre(player.level)) {
                 lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.getServer());
@@ -353,34 +348,34 @@ public class RandomThings {
         // StableEnderpearlItem.tickDroppedPearl for why this lives here instead of
         // on the item itself (Item.onEntityItemUpdate doesn't exist in this Forge
         // build).
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
         });
 
         // Drives FlooTokenItem's on-the-ground-long-enough-to-spawn-a-fireplace
         // countdown - same "no Item.onEntityItemUpdate hook in this Forge build"
         // finding as StableEnderpearlItem above, same fix.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
         });
 
         // Drives PortkeyItem's "sitting on the ground, priming" countdown - same
         // "no Item.onEntityItemUpdate hook in this Forge build" finding as
         // StableEnderpearlItem/FlooTokenItem above, same fix.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.world).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
         });
 
         // Teleports whoever picks up a primed, bound PortkeyItem to its target
@@ -402,7 +397,7 @@ public class RandomThings {
                 return;
             }
 
-            Player player = event.getPlayer();
+            Player player = event.getEntity();
 
             if (!(player instanceof ServerPlayer) || !player.level.dimension().location().toString().equals(compound.getString("dimension"))) {
                 return;
@@ -449,12 +444,12 @@ public class RandomThings {
         // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
         // inventory only - Baubles isn't present in this port).
         MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGHEST, (net.minecraftforge.event.entity.player.PlayerEvent.Clone event) -> {
-            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getPlayer() instanceof net.minecraftforge.common.util.FakePlayer || event.getPlayer().level.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
+            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getEntity() instanceof net.minecraftforge.common.util.FakePlayer || event.getEntity().level.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
                 return;
             }
 
             Player oldPlayer = event.getOriginal();
-            Player newPlayer = event.getPlayer();
+            Player newPlayer = event.getEntity();
 
             for (int i = 0; i < oldPlayer.getInventory().getContainerSize(); i++) {
                 ItemStack stack = oldPlayer.getInventory().getItem(i);
@@ -490,12 +485,12 @@ public class RandomThings {
         // (same chance formula, same FakePlayer exclusion so things like
         // Advanced Item Collector's fake-player harvesting never trigger it).
         MinecraftForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
-            if (event.getEntityLiving().level.isClientSide) {
+            if (event.getEntity().level.isClientSide) {
                 return;
             }
 
-            if (event.getEntityLiving() instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) {
-                RTWorldInformationHandler.get(event.getEntityLiving().getServer()).setEnderDragonDefeated(true);
+            if (event.getEntity() instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) {
+                RTWorldInformationHandler.get(event.getEntity().getServer()).setEnderDragonDefeated(true);
             }
 
             if (event.getSource().getEntity() == null || event.getSource().getEntity() instanceof net.minecraftforge.common.util.FakePlayer || !(event.getSource().getEntity() instanceof Player) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
@@ -504,15 +499,15 @@ public class RandomThings {
 
             double chance = lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_NORMAL.get();
 
-            RTWorldInformationHandler worldInfo = RTWorldInformationHandler.get(event.getEntityLiving().getServer());
+            RTWorldInformationHandler worldInfo = RTWorldInformationHandler.get(event.getEntity().getServer());
 
             if (worldInfo.isDragonDefeated()) {
                 chance += lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_END_INCREASE.get();
             }
 
-            Level spiritWorld = event.getEntityLiving().level;
+            Level spiritWorld = event.getEntity().level;
 
-            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntityLiving().blockPosition()) && !spiritWorld.isDay()) {
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && !spiritWorld.isDay()) {
                 float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
@@ -555,12 +550,12 @@ public class RandomThings {
         // server or client (WorldTickEvent fires for both, unlike ServerTickEvent) -
         // see that class's own javadoc for why this is spread out instead of done
         // all at once.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(event.world);
+            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(event.level);
         });
 
         MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
@@ -571,13 +566,13 @@ public class RandomThings {
             boolean consumed = false;
 
             for (ChatDetectorTileEntity detector : WeakSets.snapshot(ChatDetectorTileEntity.detectors)) {
-                if (detector.checkMessage(event.getPlayer(), event.getMessage())) {
+                if (detector.checkMessage(event.getPlayer(), event.getRawText())) {
                     consumed = true;
                 }
             }
 
             for (GlobalChatDetectorTileEntity detector : WeakSets.snapshot(GlobalChatDetectorTileEntity.detectors)) {
-                if (detector.checkMessage(event.getPlayer(), event.getMessage())) {
+                if (detector.checkMessage(event.getPlayer(), event.getRawText())) {
                     consumed = true;
                 }
             }
@@ -593,12 +588,12 @@ public class RandomThings {
         // same "no Item.onEntityItemUpdate hook" WorldTickEvent precedent used for
         // StableEnderpearlItem/FlooTokenItem/PortkeyItem above, just per-world state
         // instead of per-entity.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.world.isClientSide) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
                 return;
             }
 
-            lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(event.world).tick(event.world);
+            lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(event.level).tick(event.level);
         });
 
         // Slime Cube's spawn-ALLOW and Lapis Lamp's spawn-prevention used to live here as
@@ -628,11 +623,11 @@ public class RandomThings {
         // to exactly 0 is what actually stops every particle from spawning - shouldHideParticles
         // is left set too, in case anything else ever reads it, but it was never the real switch.
         MinecraftForge.EVENT_BUS.addListener((PotionColorCalculationEvent event) -> {
-            if (!(event.getEntityLiving() instanceof Player)) {
+            if (!(event.getEntity() instanceof Player)) {
                 return;
             }
 
-            ItemStack helmet = event.getEntityLiving().getItemBySlot(EquipmentSlot.HEAD);
+            ItemStack helmet = event.getEntity().getItemBySlot(EquipmentSlot.HEAD);
 
             if (helmet.getItem() == ModItems.MAGIC_HOOD) {
                 event.shouldHideParticles(true);
@@ -653,7 +648,7 @@ public class RandomThings {
         // Hood state actually changes, letting the very next tick's already-correct vanilla
         // logic (and the listener above) do the real work.
         MinecraftForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
-            if (event.getEntityLiving().level.isClientSide || event.getSlot() != EquipmentSlot.HEAD) {
+            if (event.getEntity().level.isClientSide || event.getSlot() != EquipmentSlot.HEAD) {
                 return;
             }
 
@@ -661,7 +656,7 @@ public class RandomThings {
             boolean hasHood = event.getTo().getItem() == ModItems.MAGIC_HOOD;
 
             if (hadHood != hasHood) {
-                lumien.randomthings.util.PotionMetadataUtil.forceRecalculation(event.getEntityLiving());
+                lumien.randomthings.util.PotionMetadataUtil.forceRecalculation(event.getEntity());
             }
         });
 
@@ -733,7 +728,7 @@ public class RandomThings {
         ItemStack heldFlooPowder = player.getMainHandItem();
 
         if (!player.level.getEntitiesOfClass(FlooFireplaceEntity.class, player.getBoundingBox().inflate(0.5)).isEmpty()) {
-            FlooNetworkHandler.get(player.level).teleport(player.level, null, null, player, event.getMessage());
+            FlooNetworkHandler.get(player.level).teleport(player.level, null, null, player, event.getRawText());
             event.setCanceled(true);
             return true;
         }
@@ -770,7 +765,7 @@ public class RandomThings {
         }
 
         FlooBrickTileEntity masterBrick = (FlooBrickTileEntity) masterTe;
-        boolean success = networkHandler.teleport(player.level, masterBrick.getBlockPos(), masterBrick, player, event.getMessage());
+        boolean success = networkHandler.teleport(player.level, masterBrick.getBlockPos(), masterBrick, player, event.getRawText());
 
         if (success && !player.getAbilities().instabuild) {
             if (hasFlooInHand) {
@@ -787,55 +782,30 @@ public class RandomThings {
     @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class RegistryEvents {
         @SubscribeEvent
-        public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-            ModBlocks.registerBlocks(blockRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onItemsRegistry(final RegistryEvent.Register<Item> itemRegistryEvent) {
-            ModItems.initItemGroup();
-
-            ModItems.registerItems(itemRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onTileEntityTypesRegistry(final RegistryEvent.Register<BlockEntityType<?>> tileEntityTypeRegistryEvent) {
-            ModTileEntityTypes.registerTypes(tileEntityTypeRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onContainerTypesRegistry(final RegistryEvent.Register<MenuType<?>> containerTypeRegistryEvent) {
-            ModContainerTypes.registerContainerTypes(containerTypeRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onRecipeSerializersRegistry(final RegistryEvent.Register<RecipeSerializer<?>> recipeSerializerRegistryEvent) {
-            ModRecipeSerializers.registerRecipeSerializers(recipeSerializerRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onLootModifierSerializersRegistry(final RegistryEvent.Register<net.minecraftforge.common.loot.GlobalLootModifierSerializer<?>> event) {
-            event.getRegistry().register(new lumien.randomthings.handler.MagneticLootModifier.Serializer().setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "magnetic")));
-        }
-
-        @SubscribeEvent
-        public static void onEffectsRegistry(final RegistryEvent.Register<MobEffect> effectRegistryEvent) {
-            ModEffects.registerEffects(effectRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onEnchantmentsRegistry(final RegistryEvent.Register<net.minecraft.world.item.enchantment.Enchantment> enchantmentRegistryEvent) {
-            lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(enchantmentRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onEntityTypesRegistry(final RegistryEvent.Register<EntityType<?>> entityTypeRegistryEvent) {
-            ModEntityTypes.registerEntityTypes(entityTypeRegistryEvent);
-        }
-
-        @SubscribeEvent
-        public static void onFeaturesRegistry(final RegistryEvent.Register<Feature<?>> featureRegistryEvent) {
-            ModFeatures.registerFeatures(featureRegistryEvent);
+        public static void onRegister(final RegisterEvent event) {
+            var key = event.getRegistryKey();
+            if (key.equals(ForgeRegistries.Keys.BLOCKS)) {
+                ModBlocks.registerBlocks(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.ITEMS)) {
+                ModItems.initItemGroup();
+                ModItems.registerItems(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.BLOCK_ENTITY_TYPES)) {
+                ModTileEntityTypes.registerTypes(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.MENU_TYPES)) {
+                ModContainerTypes.registerContainerTypes(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.RECIPE_SERIALIZERS)) {
+                ModRecipeSerializers.registerRecipeSerializers(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
+                event.register(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, new ResourceLocation(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
+            } else if (key.equals(ForgeRegistries.Keys.MOB_EFFECTS)) {
+                ModEffects.registerEffects(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.ENCHANTMENTS)) {
+                lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.ENTITY_TYPES)) {
+                ModEntityTypes.registerEntityTypes(event.getForgeRegistry());
+            } else if (key.equals(ForgeRegistries.Keys.FEATURES)) {
+                ModFeatures.registerFeatures(event.getForgeRegistry());
+            }
         }
     }
 }

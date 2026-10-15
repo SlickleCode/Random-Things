@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -75,6 +75,6 @@ public class AdvancedRedstoneRepeaterTileEntity extends BlockEntity implements M
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.advanced_redstone_repeater");
+		return Component.translatable("block.randomthings.advanced_redstone_repeater");
 	}
 }

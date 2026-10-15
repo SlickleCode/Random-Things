@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 
 import lumien.randomthings.lib.IRTBlockColor;
@@ -64,7 +65,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 	@Override
 	public net.minecraft.network.chat.MutableComponent getName()
 	{
-		return new net.minecraft.network.chat.TranslatableComponent("block.randomthings.colored_grass.white");
+		return net.minecraft.network.chat.Component.translatable("block.randomthings.colored_grass.white");
 	}
 
 	@Override
@@ -75,7 +76,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 
 	/** Port of 1.12.2's {@code updateTick}: reverts to dirt when smothered, otherwise spreads its color to nearby dirt. */
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (worldIn.isClientSide)
 		{

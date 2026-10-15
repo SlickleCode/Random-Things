@@ -23,7 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Ported from 1.12.2's {@code TileEntityBlockDestabilizer}: BFS flood-fills
@@ -327,6 +327,6 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("block.randomthings.block_destabilizer");
+        return Component.translatable("block.randomthings.block_destabilizer");
     }
 }

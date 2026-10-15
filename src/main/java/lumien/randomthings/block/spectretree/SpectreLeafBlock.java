@@ -1,5 +1,6 @@
 package lumien.randomthings.block.spectretree;
 
+import net.minecraft.util.RandomSource;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -32,7 +33,7 @@ public class SpectreLeafBlock extends LeavesBlock
 	}
 
 	@Override
-	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random)
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
 	{
 		super.randomTick(state, worldIn, pos, random);
 

@@ -15,10 +15,10 @@ import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.NoiseColumn;
-import net.minecraft.world.level.StructureFeatureManager;
+import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.BiomeSource;
-import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -46,22 +46,12 @@ public class SpectreChunkGenerator extends ChunkGenerator {
         return CODEC;
     }
 
-    @Override
-    public ChunkGenerator withSeed(long seed) {
-        return this;
+            @Override
+    public void applyCarvers(WorldGenRegion region, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk, GenerationStep.Carving step) {
     }
 
     @Override
-    public Climate.Sampler climateSampler() {
-        return Climate.empty();
-    }
-
-    @Override
-    public void applyCarvers(WorldGenRegion region, long seed, BiomeManager biomeManager, StructureFeatureManager structureManager, ChunkAccess chunk, GenerationStep.Carving step) {
-    }
-
-    @Override
-    public void buildSurface(WorldGenRegion region, StructureFeatureManager structureManager, ChunkAccess chunk) {
+    public void buildSurface(WorldGenRegion region, StructureManager structureManager, RandomState randomState, ChunkAccess chunk) {
     }
 
     @Override
@@ -74,7 +64,7 @@ public class SpectreChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, StructureFeatureManager structureManager, ChunkAccess chunk) {
+    public CompletableFuture<ChunkAccess> fillFromNoise(Executor executor, Blender blender, RandomState randomState, StructureManager structureManager, ChunkAccess chunk) {
         return CompletableFuture.completedFuture(chunk);
     }
 
@@ -89,16 +79,16 @@ public class SpectreChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public int getBaseHeight(int x, int z, Heightmap.Types heightmapType, LevelHeightAccessor level) {
+    public int getBaseHeight(int x, int z, Heightmap.Types heightmapType, LevelHeightAccessor level, RandomState randomState) {
         return 0;
     }
 
     @Override
-    public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor level) {
+    public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor level, RandomState randomState) {
         return new NoiseColumn(level.getMinBuildHeight(), new BlockState[0]);
     }
 
     @Override
-    public void addDebugScreenInfo(List<String> info, BlockPos pos) {
+    public void addDebugScreenInfo(List<String> info, RandomState randomState, BlockPos pos) {
     }
 }

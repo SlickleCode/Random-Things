@@ -17,7 +17,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Draws an {@link EclipsedClockEntity} as its own held-item model, hung flat
@@ -84,7 +84,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
     private void drawLabel(EclipsedClockEntity entity, double yOffset, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         matrixStack.pushPose();
         matrixStack.translate(0.0D, yOffset, 0.0D);
-        this.renderNameTag(entity, new TextComponent(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
+        this.renderNameTag(entity, Component.literal(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
         matrixStack.popPose();
     }
 

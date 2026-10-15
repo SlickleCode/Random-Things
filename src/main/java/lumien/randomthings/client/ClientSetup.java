@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.RegUtil;
 import net.minecraft.sounds.SoundSource;
 
 import net.minecraft.world.item.BlockItem;
@@ -51,7 +52,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.util.*;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
@@ -60,18 +61,16 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.client.event.ColorHandlerEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.RenderLevelLastEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.UseHoeEvent;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.Event.Result;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -111,7 +110,7 @@ public class ClientSetup {
             ItemStack stack = event.getItemStack();
 
             if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
-                event.getToolTip().add(1, new TranslatableComponent("tooltip.randomthings.spectre_anchor.item").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
+                event.getToolTip().add(1, Component.translatable("tooltip.randomthings.spectre_anchor.item").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
             }
         });
 
@@ -218,8 +217,8 @@ public class ClientSetup {
      * plain, uncamouflaged Portkey appearance from inside its own {@code
      * ItemStackTileEntityRenderer} without recursing back into itself).
      */
-    private static void registerModels(final net.minecraftforge.client.event.ModelRegistryEvent event) {
-        net.minecraftforge.client.model.ForgeModelBakery.addSpecialModel(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
+    private static void registerModels(final net.minecraftforge.client.event.ModelEvent.RegisterAdditional event) {
+        event.register(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
     }
 
     /**
@@ -299,9 +298,9 @@ public class ClientSetup {
      * never need their own {@code ColorHandlerEvent} listener.
      */
     @SubscribeEvent
-    public static void onBlockColorHandler(final ColorHandlerEvent.Block event) {
+    public static void onBlockColorHandler(final RegisterColorHandlersEvent.Block event) {
         for (Block block : ForgeRegistries.BLOCKS.getValues()) {
-            if (block instanceof IRTBlockColor && block.getRegistryName() != null && ModConstants.MOD_ID.equals(block.getRegistryName().getNamespace())) {
+            if (block instanceof IRTBlockColor && RegUtil.id(block) != null && ModConstants.MOD_ID.equals(RegUtil.id(block).getNamespace())) {
                 event.getBlockColors().register((state, worldIn, pos, tintIndex) -> ((IRTBlockColor) block).colorMultiplier(state, worldIn, pos, tintIndex), block);
             }
         }
@@ -314,9 +313,9 @@ public class ClientSetup {
      * 1.12.2 behavior of {@code ItemBlockColored}.
      */
     @SubscribeEvent
-    public static void onItemColorHandler(final ColorHandlerEvent.Item event) {
+    public static void onItemColorHandler(final RegisterColorHandlersEvent.Item event) {
         for (Item item : ForgeRegistries.ITEMS.getValues()) {
-            if (item instanceof BlockItem && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace())) {
+            if (item instanceof BlockItem && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
                 Block block = ((BlockItem) item).getBlock();
 
                 if (block instanceof IRTBlockColor) {
@@ -345,9 +344,9 @@ public class ClientSetup {
      * itself from its own stored biome rather than from a block.
      */
     @SubscribeEvent
-    public static void onPlainItemColorHandler(final ColorHandlerEvent.Item event) {
+    public static void onPlainItemColorHandler(final RegisterColorHandlersEvent.Item event) {
         for (Item item : ForgeRegistries.ITEMS.getValues()) {
-            if (item instanceof IRTItemColor && item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace())) {
+            if (item instanceof IRTItemColor && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
                 event.getItemColors().register((stack, tintIndex) -> ((IRTItemColor) item).getColorFromItemstack(stack, tintIndex), item);
             }
         }

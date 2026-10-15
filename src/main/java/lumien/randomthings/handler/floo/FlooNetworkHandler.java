@@ -9,7 +9,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -96,7 +96,7 @@ public class FlooNetworkHandler extends SavedData {
         }
 
         if (targetFirePlace.getLastKnownPosition().equals(originPos)) {
-            player.sendMessage(new TranslatableComponent("floo.info.same"), net.minecraft.Util.NIL_UUID);
+            player.sendSystemMessage(Component.translatable("floo.info.same"));
             return false;
         }
 
@@ -110,7 +110,7 @@ public class FlooNetworkHandler extends SavedData {
             BlockPos teleportTarget = targetPos.above();
             player.connection.teleport(teleportTarget.getX() + 0.5, teleportTarget.getY(), teleportTarget.getZ() + 0.5, tpFacing.toYRot(), 0);
 
-            player.sendMessage(new TranslatableComponent("floo.info.teleport", targetFirePlace.getName()), net.minecraft.Util.NIL_UUID);
+            player.sendSystemMessage(Component.translatable("floo.info.teleport", targetFirePlace.getName()));
 
             if (originPos != null && originTE != null) {
                 spawnFlameBurst((ServerLevel) player.level, originPos, originTE.getChildren());

@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -144,6 +144,6 @@ public class InventoryTesterTileEntity extends BlockEntity implements MenuProvid
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.inventory_tester");
+		return Component.translatable("block.randomthings.inventory_tester");
 	}
 }

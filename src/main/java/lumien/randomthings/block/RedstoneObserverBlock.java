@@ -67,7 +67,7 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 
 			if (te instanceof RedstoneObserverTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (RedstoneObserverTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (RedstoneObserverTileEntity) te);
 			}
 		}
 

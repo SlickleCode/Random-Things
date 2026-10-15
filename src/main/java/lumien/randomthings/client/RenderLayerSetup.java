@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.RegUtil;
 import lumien.randomthings.block.StainedBrickBlock;
 import lumien.randomthings.block.AdvancedItemCollectorBlock;
 import lumien.randomthings.block.BeanStalkBlock;
@@ -43,7 +44,7 @@ public class RenderLayerSetup
     {
         for (Block block : ForgeRegistries.BLOCKS.getValues())
         {
-            if (!"randomthings".equals(block.getRegistryName().getNamespace()))
+            if (!"randomthings".equals(RegUtil.id(block).getNamespace()))
             {
                 continue;
             }

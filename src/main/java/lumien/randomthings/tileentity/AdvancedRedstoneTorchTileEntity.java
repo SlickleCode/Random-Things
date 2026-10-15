@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements MenuProvider
@@ -59,7 +59,7 @@ public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements Menu
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.advanced_redstone_torch");
+		return Component.translatable("block.randomthings.advanced_redstone_torch");
 	}
 
 	public void setSignalStrengthGreen(int newValue)

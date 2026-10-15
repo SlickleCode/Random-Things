@@ -14,14 +14,14 @@ apply plugin: 'maven-publish'
 
 version = '5.0'
 group = 'lumien.randomthings'
-archivesBaseName = 'RandomThings-MC1.18.2'
+archivesBaseName = 'RandomThings-MC1.19.2'
 
 tasks.withType(JavaCompile) { options.compilerArgs << '-Xmaxerrs' << '10000' }
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 
 minecraft {
-    mappings channel: 'official', version: '1.18.2'
+    mappings channel: 'official', version: '1.19.2'
     
     // accessTransformer = file('build/resources/main/META-INF/accesstransformer.cfg')
 
@@ -97,7 +97,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.3.12'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.5.2'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

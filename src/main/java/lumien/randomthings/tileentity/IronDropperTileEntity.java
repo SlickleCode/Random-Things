@@ -19,7 +19,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -321,6 +321,6 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 	@Override
 	public Component getDisplayName()
 	{
-		return new TranslatableComponent("block.randomthings.iron_dropper");
+		return Component.translatable("block.randomthings.iron_dropper");
 	}
 }

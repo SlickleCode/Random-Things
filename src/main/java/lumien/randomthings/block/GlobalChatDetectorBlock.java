@@ -99,7 +99,7 @@ public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 			{
 				GlobalChatDetectorTileEntity gcte = (GlobalChatDetectorTileEntity) te;
 
-				NetworkHooks.openGui((ServerPlayer) player, gcte, buf -> {
+				NetworkHooks.openScreen((ServerPlayer) player, gcte, buf -> {
 					buf.writeBlockPos(pos);
 					buf.writeUtf(gcte.getChatMessage());
 				});

@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * AdvancedRedstoneRepeaterScreen
@@ -39,17 +39,17 @@ public class AdvancedRedstoneRepeaterScreen extends AbstractContainerScreen<Adva
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 15, 10, 10, new TextComponent("-"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 15, 10, 10, Component.literal("-"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(-1));
 		}));
-		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 15, 10, 10, new TextComponent("+"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 15, 10, 10, Component.literal("+"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(1));
 		}));
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 39, 10, 10, new TextComponent("-"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 39, 10, 10, Component.literal("-"), (button) -> {
 			this.menu.send(1, (pb) -> pb.writeInt(-1));
 		}));
-		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 39, 10, 10, new TextComponent("+"), (button) -> {
+		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 39, 10, 10, Component.literal("+"), (button) -> {
 			this.menu.send(1, (pb) -> pb.writeInt(1));
 		}));
 	}

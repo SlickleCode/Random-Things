@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.RegUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -92,7 +93,7 @@ public class ResourceAudit
 	{
 		for (Block block : ForgeRegistries.BLOCKS)
 		{
-			ResourceLocation id = block.getRegistryName();
+			ResourceLocation id = RegUtil.id(block);
 
 			if (id == null || !ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -143,7 +144,7 @@ public class ResourceAudit
 	{
 		for (Item item : ForgeRegistries.ITEMS)
 		{
-			ResourceLocation id = item.getRegistryName();
+			ResourceLocation id = RegUtil.id(item);
 
 			if (id == null || !ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -322,7 +323,7 @@ public class ResourceAudit
 		{
 			ResourceLocation tid = new ResourceLocation(tex);
 
-			if (!assets.hasResource(new ResourceLocation(tid.getNamespace(), "textures/" + tid.getPath() + ".png")))
+			if (assets.getResource(new ResourceLocation(tid.getNamespace(), "textures/" + tid.getPath() + ".png")).isEmpty())
 			{
 				failures.add("[texture] " + owner + " (" + model + "): missing texture " + tex);
 			}
@@ -351,7 +352,7 @@ public class ResourceAudit
 	/** Runs the game's own model deserializer: catches schema mistakes (e.g. scalar where an array is required) that valid-JSON checks miss. */
 	private void verifyParses(ResourceLocation file)
 	{
-		try (Resource resource = assets.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
+		try (BufferedReader reader = assets.getResource(file).orElseThrow().openAsReader())
 		{
 			BlockModel.fromStream(reader);
 		}
@@ -420,7 +421,7 @@ public class ResourceAudit
 		}
 
 		// every recipe file must have been accepted by the RecipeManager (a parse failure silently drops it)
-		for (ResourceLocation file : data.listResources("recipes", s -> s.endsWith(".json")))
+		for (ResourceLocation file : data.listResources("recipes", s -> s.getPath().endsWith(".json")).keySet())
 		{
 			if (!ModConstants.MOD_ID.equals(file.getNamespace()))
 			{
@@ -438,7 +439,7 @@ public class ResourceAudit
 
 		for (Item item : ForgeRegistries.ITEMS)
 		{
-			ResourceLocation id = item.getRegistryName();
+			ResourceLocation id = RegUtil.id(item);
 
 			if (id != null && ModConstants.MOD_ID.equals(id.getNamespace()) && !produced.contains(item) && !NO_RECIPE_EXPECTED.contains(id.getPath()))
 			{
@@ -472,7 +473,7 @@ public class ResourceAudit
 
 	private static JsonObject readJson(ResourceManager manager, ResourceLocation file)
 	{
-		try (Resource resource = manager.getResource(file); BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)))
+		try (BufferedReader reader = manager.getResource(file).orElseThrow().openAsReader())
 		{
 			return new JsonParser().parse(reader).getAsJsonObject();
 		}

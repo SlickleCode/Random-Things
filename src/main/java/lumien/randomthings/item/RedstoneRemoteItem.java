@@ -13,7 +13,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 
@@ -36,7 +36,7 @@ public class RedstoneRemoteItem extends Item {
 
         if (!worldIn.isClientSide) {
             if (playerIn.isShiftKeyDown()) {
-                NetworkHooks.openGui((ServerPlayer) playerIn, new MenuProvider() {
+                NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
                     @Override
                     public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                         return new RedstoneRemoteEditContainer(windowId, inv);
@@ -44,11 +44,11 @@ public class RedstoneRemoteItem extends Item {
 
                     @Override
                     public Component getDisplayName() {
-                        return new TranslatableComponent("item.randomthings.redstone_remote");
+                        return Component.translatable("item.randomthings.redstone_remote");
                     }
                 });
             } else {
-                NetworkHooks.openGui((ServerPlayer) playerIn, new MenuProvider() {
+                NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
                     @Override
                     public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                         return new RedstoneRemoteUseContainer(windowId, inv);
@@ -56,7 +56,7 @@ public class RedstoneRemoteItem extends Item {
 
                     @Override
                     public Component getDisplayName() {
-                        return new TranslatableComponent("item.randomthings.redstone_remote");
+                        return Component.translatable("item.randomthings.redstone_remote");
                     }
                 });
             }

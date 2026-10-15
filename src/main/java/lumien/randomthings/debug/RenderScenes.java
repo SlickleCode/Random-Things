@@ -1,5 +1,6 @@
 package lumien.randomthings.debug;
 
+import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,13 +70,13 @@ public final class RenderScenes
 
 		for (Block block : ForgeRegistries.BLOCKS.getValues())
 		{
-			if (ModConstants.MOD_ID.equals(block.getRegistryName().getNamespace()))
+			if (ModConstants.MOD_ID.equals(RegUtil.id(block).getNamespace()))
 			{
 				blocks.add(block);
 			}
 		}
 
-		Collections.sort(blocks, Comparator.comparing(b -> b.getRegistryName().getPath()));
+		Collections.sort(blocks, Comparator.comparing(b -> RegUtil.id(b).getPath()));
 		return blocks;
 	}
 

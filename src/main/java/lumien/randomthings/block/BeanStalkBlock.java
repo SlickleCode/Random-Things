@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 
 import net.minecraft.world.level.block.Block;
@@ -69,7 +70,7 @@ public class BeanStalkBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (worldIn.isClientSide)
 		{

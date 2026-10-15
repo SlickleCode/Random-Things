@@ -53,7 +53,7 @@ import net.minecraft.world.phys.Vec3;
  * equivalent exists.
  */
 public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<DiaphanousBlockTileEntity> {
-    private final Random random = new Random();
+    private final net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create();
 
     public DiaphanousBlockTileEntityRenderer(BlockEntityRendererProvider.Context context) {
     }

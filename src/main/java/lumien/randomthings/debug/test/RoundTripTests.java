@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,27 +50,27 @@ final class RoundTripTests
 	{
 		List<RTTest> tests = new ArrayList<>();
 
-		for (BlockEntityType<?> type : ForgeRegistries.BLOCK_ENTITIES)
+		for (BlockEntityType<?> type : ForgeRegistries.BLOCK_ENTITY_TYPES)
 		{
-			if (type.getRegistryName() != null && ModConstants.MOD_ID.equals(type.getRegistryName().getNamespace()))
+			if (RegUtil.id(type) != null && ModConstants.MOD_ID.equals(RegUtil.id(type).getNamespace()))
 			{
-				tests.add(RTTest.named("nbt.tile_entity." + type.getRegistryName().getPath()).run(c -> tileEntity(c, type)));
+				tests.add(RTTest.named("nbt.tile_entity." + RegUtil.id(type).getPath()).run(c -> tileEntity(c, type)));
 			}
 		}
 
-		for (EntityType<?> type : ForgeRegistries.ENTITIES)
+		for (EntityType<?> type : ForgeRegistries.ENTITY_TYPES)
 		{
-			if (type.getRegistryName() != null && ModConstants.MOD_ID.equals(type.getRegistryName().getNamespace()))
+			if (RegUtil.id(type) != null && ModConstants.MOD_ID.equals(RegUtil.id(type).getNamespace()))
 			{
-				tests.add(RTTest.named("nbt.entity." + type.getRegistryName().getPath()).run(c -> entity(c, type)));
+				tests.add(RTTest.named("nbt.entity." + RegUtil.id(type).getPath()).run(c -> entity(c, type)));
 			}
 		}
 
 		for (Item item : ForgeRegistries.ITEMS)
 		{
-			if (item.getRegistryName() != null && ModConstants.MOD_ID.equals(item.getRegistryName().getNamespace()))
+			if (RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace()))
 			{
-				tests.add(RTTest.named("nbt.item." + item.getRegistryName().getPath()).run(c -> item(c, item)));
+				tests.add(RTTest.named("nbt.item." + RegUtil.id(item).getPath()).run(c -> item(c, item)));
 			}
 		}
 
@@ -84,7 +85,7 @@ final class RoundTripTests
 
 		for (Block candidate : ForgeRegistries.BLOCKS)
 		{
-			if (candidate.getRegistryName() != null && ModConstants.MOD_ID.equals(candidate.getRegistryName().getNamespace()) && type.isValid(candidate.defaultBlockState()))
+			if (RegUtil.id(candidate) != null && ModConstants.MOD_ID.equals(RegUtil.id(candidate).getNamespace()) && type.isValid(candidate.defaultBlockState()))
 			{
 				block = candidate;
 				break;
@@ -103,7 +104,7 @@ final class RoundTripTests
 
 		if (original == null)
 		{
-			throw new TestCtx.Failure("placing " + block.getRegistryName() + " created no tile entity");
+			throw new TestCtx.Failure("placing " + RegUtil.id(block) + " created no tile entity");
 		}
 
 		int populated = populate(original, BLOCK_SIDES);
@@ -242,7 +243,7 @@ final class RoundTripTests
 				for (int tank = 0; tank < fluids.getTanks(); tank++)
 				{
 					FluidStack fluid = fluids.getFluidInTank(tank);
-					ResourceLocation id = fluid.isEmpty() ? null : fluid.getFluid().getRegistryName();
+					ResourceLocation id = fluid.isEmpty() ? null : RegUtil.id(fluid.getFluid());
 					sb.append("fluid[").append(side).append(',').append(tank).append("]=").append(id).append('x').append(fluid.getAmount()).append(';');
 				}
 			}

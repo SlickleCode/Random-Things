@@ -142,7 +142,7 @@ public class InventoryTesterBlock extends Block implements EntityBlock {
 
 			if (te instanceof InventoryTesterTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (InventoryTesterTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (InventoryTesterTileEntity) te);
 			}
 		}
 

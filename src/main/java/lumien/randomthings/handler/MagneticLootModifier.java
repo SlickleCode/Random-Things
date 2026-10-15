@@ -1,9 +1,9 @@
 package lumien.randomthings.handler;
 
-import java.util.Collections;
-import java.util.List;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.enchantment.ModEnchantments;
@@ -11,11 +11,9 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
 import net.minecraftforge.common.loot.LootModifier;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -35,7 +33,7 @@ public class MagneticLootModifier extends LootModifier
 	}
 
 	@Override
-	protected List<ItemStack> doApply(List<ItemStack> generatedLoot, LootContext context)
+	protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context)
 	{
 		// block loot with a harvester has both parameters; entity / chest / fishing loot lacks the tool
 		if (!context.hasParam(LootContextParams.TOOL) || !context.hasParam(LootContextParams.THIS_ENTITY) || !RTConfig.MAGNETIC_ENCHANTMENT.get())
@@ -56,21 +54,14 @@ public class MagneticLootModifier extends LootModifier
 			ItemHandlerHelper.giveItemToPlayer((Player) harvester, drop);
 		}
 
-		return Collections.emptyList();
+		return new ObjectArrayList<>();
 	}
 
-	public static class Serializer extends GlobalLootModifierSerializer<MagneticLootModifier>
-	{
-		@Override
-		public MagneticLootModifier read(ResourceLocation location, JsonObject object, LootItemCondition[] conditions)
-		{
-			return new MagneticLootModifier(conditions);
-		}
+	public static final Codec<MagneticLootModifier> CODEC = RecordCodecBuilder.create(inst -> codecStart(inst).apply(inst, MagneticLootModifier::new));
 
-		@Override
-		public JsonObject write(MagneticLootModifier instance)
-		{
-			return this.makeConditions(instance.conditions);
-		}
+	@Override
+	public Codec<? extends net.minecraftforge.common.loot.IGlobalLootModifier> codec()
+	{
+		return CODEC;
 	}
 }

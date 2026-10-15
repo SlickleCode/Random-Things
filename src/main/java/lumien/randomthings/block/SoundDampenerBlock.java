@@ -62,7 +62,7 @@ public class SoundDampenerBlock extends Block implements EntityBlock {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof SoundDampenerTileEntity) {
-                NetworkHooks.openGui((ServerPlayer) player, (SoundDampenerTileEntity) te);
+                NetworkHooks.openScreen((ServerPlayer) player, (SoundDampenerTileEntity) te);
             }
         }
 

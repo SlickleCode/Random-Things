@@ -5,144 +5,141 @@ import lumien.randomthings.block.ModBlocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
 
-@ObjectHolder("randomthings")
 public class ModTileEntityTypes
 {
-	@ObjectHolder("advanced_redstone_torch")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:advanced_redstone_torch")
 	public static BlockEntityType<AdvancedRedstoneTorchTileEntity> ADVANCED_REDSTONE_TORCH;
 
-	@ObjectHolder("analog_emitter")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:analog_emitter")
 	public static BlockEntityType<AnalogEmitterTileEntity> ANALOG_EMITTER;
 
-	@ObjectHolder("igniter")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:igniter")
 	public static BlockEntityType<IgniterTileEntity> IGNITER;
 
-	@ObjectHolder("online_detector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:online_detector")
 	public static BlockEntityType<OnlineDetectorTileEntity> ONLINE_DETECTOR;
 
-	@ObjectHolder("item_collector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:item_collector")
 	public static BlockEntityType<ItemCollectorTileEntity> ITEM_COLLECTOR;
 
-	@ObjectHolder("advanced_redstone_repeater")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:advanced_redstone_repeater")
 	public static BlockEntityType<AdvancedRedstoneRepeaterTileEntity> ADVANCED_REDSTONE_REPEATER;
 
-	@ObjectHolder("iron_dropper")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:iron_dropper")
 	public static BlockEntityType<IronDropperTileEntity> IRON_DROPPER;
 
-	@ObjectHolder("player_interface")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:player_interface")
 	public static BlockEntityType<PlayerInterfaceTileEntity> PLAYER_INTERFACE;
 
-	@ObjectHolder("inventory_tester")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:inventory_tester")
 	public static BlockEntityType<InventoryTesterTileEntity> INVENTORY_TESTER;
 
 
-	@ObjectHolder("chat_detector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:chat_detector")
 	public static BlockEntityType<ChatDetectorTileEntity> CHAT_DETECTOR;
 
-	@ObjectHolder("redstone_observer")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:redstone_observer")
 	public static BlockEntityType<RedstoneObserverTileEntity> REDSTONE_OBSERVER;
 
-	@ObjectHolder("basic_redstone_interface")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:basic_redstone_interface")
 	public static BlockEntityType<lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity> BASIC_REDSTONE_INTERFACE;
 
-	@ObjectHolder("advanced_redstone_interface")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:advanced_redstone_interface")
 	public static BlockEntityType<lumien.randomthings.tileentity.redstoneinterface.AdvancedRedstoneInterfaceTileEntity> ADVANCED_REDSTONE_INTERFACE;
 
-	@ObjectHolder("potion_vaporizer")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:potion_vaporizer")
 	public static BlockEntityType<PotionVaporizerTileEntity> POTION_VAPORIZER;
 
-	@ObjectHolder("entity_detector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:entity_detector")
 	public static BlockEntityType<EntityDetectorTileEntity> ENTITY_DETECTOR;
 
-	@ObjectHolder("slime_cube")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:slime_cube")
 	public static BlockEntityType<SlimeCubeTileEntity> SLIME_CUBE;
 
-	@ObjectHolder("advanced_item_collector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:advanced_item_collector")
 	public static BlockEntityType<AdvancedItemCollectorTileEntity> ADVANCED_ITEM_COLLECTOR;
 
-	@ObjectHolder("filtered_super_lubricent_platform")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:filtered_super_lubricent_platform")
 	public static BlockEntityType<FilteredSuperLubricentPlatformTileEntity> FILTERED_SUPER_LUBRICENT_PLATFORM;
 
-	@ObjectHolder("notification_interface")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:notification_interface")
 	public static BlockEntityType<NotificationInterfaceTileEntity> NOTIFICATION_INTERFACE;
 
-	@ObjectHolder("global_chat_detector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:global_chat_detector")
 	public static BlockEntityType<GlobalChatDetectorTileEntity> GLOBAL_CHAT_DETECTOR;
 
-	@ObjectHolder("biome_radar")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:biome_radar")
 	public static BlockEntityType<BiomeRadarTileEntity> BIOME_RADAR;
 
-	@ObjectHolder("sound_box")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:sound_box")
 	public static BlockEntityType<SoundBoxTileEntity> SOUND_BOX;
 
-	@ObjectHolder("sound_dampener")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:sound_dampener")
 	public static BlockEntityType<SoundDampenerTileEntity> SOUND_DAMPENER;
 
-	@ObjectHolder("rune_base")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:rune_base")
 	public static BlockEntityType<RuneBaseTileEntity> RUNE_BASE;
 
-	@ObjectHolder("imbuing_station")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:imbuing_station")
 	public static BlockEntityType<ImbuingStationTileEntity> IMBUING_STATION;
 
-	@ObjectHolder("floo_brick")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:floo_brick")
 	public static BlockEntityType<FlooBrickTileEntity> FLOO_BRICK;
 
-	@ObjectHolder("ender_mailbox")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:ender_mailbox")
 	public static BlockEntityType<EnderMailboxTileEntity> ENDER_MAILBOX;
 
-	@ObjectHolder("fluid_display")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:fluid_display")
 	public static BlockEntityType<FluidDisplayTileEntity> FLUID_DISPLAY;
 
-	@ObjectHolder("creative_player_interface")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:creative_player_interface")
 	public static BlockEntityType<CreativePlayerInterfaceTileEntity> CREATIVE_PLAYER_INTERFACE;
 
-	@ObjectHolder("ender_bridge")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:ender_bridge")
 	public static BlockEntityType<EnderBridgeTileEntity> ENDER_BRIDGE;
 
-	@ObjectHolder("prismarine_ender_bridge")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:prismarine_ender_bridge")
 	public static BlockEntityType<PrismarineEnderBridgeTileEntity> PRISMARINE_ENDER_BRIDGE;
 
-	@ObjectHolder("ender_anchor")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:ender_anchor")
 	public static BlockEntityType<EnderAnchorTileEntity> ENDER_ANCHOR;
 
-	@ObjectHolder("rain_shield")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:rain_shield")
 	public static BlockEntityType<RainShieldTileEntity> RAIN_SHIELD;
 
-	@ObjectHolder("peace_candle")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:peace_candle")
 	public static BlockEntityType<PeaceCandleTileEntity> PEACE_CANDLE;
 
-	@ObjectHolder("ancient_furnace")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:ancient_furnace")
 	public static BlockEntityType<AncientFurnaceTileEntity> ANCIENT_FURNACE;
 
-	@ObjectHolder("block_breaker")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:block_breaker")
 	public static BlockEntityType<BlockBreakerTileEntity> BLOCK_BREAKER;
 
-	@ObjectHolder("block_destabilizer")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:block_destabilizer")
 	public static BlockEntityType<BlockDestabilizerTileEntity> BLOCK_DESTABILIZER;
 
-	@ObjectHolder("spectre_energy_injector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:spectre_energy_injector")
 	public static BlockEntityType<SpectreEnergyInjectorTileEntity> SPECTRE_ENERGY_INJECTOR;
 
-	@ObjectHolder("spectre_coil")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:spectre_coil")
 	public static BlockEntityType<SpectreCoilTileEntity> SPECTRE_COIL;
 
-	@ObjectHolder("spectre_lens")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:spectre_lens")
 	public static BlockEntityType<SpectreLensTileEntity> SPECTRE_LENS;
 
-	@ObjectHolder("light_redirector")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:light_redirector")
 	public static BlockEntityType<LightRedirectorTileEntity> LIGHT_REDIRECTOR;
 
-	@ObjectHolder("diaphanous_block")
+	@ObjectHolder(registryName = "minecraft:block_entity_type", value = "randomthings:diaphanous_block")
 	public static BlockEntityType<DiaphanousBlockTileEntity> DIAPHANOUS_BLOCK;
 
 
-	public static void registerTypes(RegistryEvent.Register<BlockEntityType<?>> typeRegistryEvent)
+	public static void registerTypes(IForgeRegistry<BlockEntityType<?>> registry)
 	{
-		IForgeRegistry<BlockEntityType<?>> registry = typeRegistryEvent.getRegistry();
 
 		registerSimple(registry, "advanced_redstone_torch", AdvancedRedstoneTorchTileEntity::new, ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH);
 		registerSimple(registry, "analog_emitter", AnalogEmitterTileEntity::new, ModBlocks.ANALOG_EMITTER);
@@ -192,6 +189,6 @@ public class ModTileEntityTypes
 
 	private static void registerSimple(IForgeRegistry<BlockEntityType<?>> registry, String name, BlockEntityType.BlockEntitySupplier<? extends BlockEntity> factoryIn, Block... validBlocks)
 	{
-		registry.register(BlockEntityType.Builder.of(factoryIn, validBlocks).build(null).setRegistryName(name));
+		registry.register(name, BlockEntityType.Builder.of(factoryIn, validBlocks).build(null));
 	}
 }

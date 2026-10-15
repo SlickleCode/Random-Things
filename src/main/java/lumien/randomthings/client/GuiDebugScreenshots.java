@@ -12,7 +12,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Screenshot;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Debug feature ({@code debug.DebugGuiScreenshots}): screenshots every Random Things GUI a few
@@ -29,7 +29,7 @@ public class GuiDebugScreenshots
 	private static boolean shot;
 
 	@SubscribeEvent
-	public static void onDrawScreen(ScreenEvent.DrawScreenEvent.Post event)
+	public static void onDrawScreen(ScreenEvent.Render.Post event)
 	{
 		Screen screen = event.getScreen();
 

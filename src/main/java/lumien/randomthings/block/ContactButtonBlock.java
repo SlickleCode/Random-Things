@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
@@ -72,7 +73,7 @@ public class ContactButtonBlock extends Block {
     }
 
     @Override
-    public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand) {
+    public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand) {
         if (!worldIn.isClientSide && state.getValue(POWERED)) {
             worldIn.setBlockAndUpdate(pos, state.setValue(POWERED, false));
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));

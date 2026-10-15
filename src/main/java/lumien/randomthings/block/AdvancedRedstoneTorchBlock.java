@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.EntityBlock;
 
 import java.util.List;
@@ -80,7 +81,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 			if (tileentity instanceof AdvancedRedstoneTorchTileEntity)
 			{
 				AdvancedRedstoneTorchTileEntity art = (AdvancedRedstoneTorchTileEntity) tileentity;
-				NetworkHooks.openGui((ServerPlayer) player, art);
+				NetworkHooks.openScreen((ServerPlayer) player, art);
 			}
 
 			return InteractionResult.SUCCESS;
@@ -138,12 +139,12 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 		return worldIn.hasSignal(pos.below(), Direction.DOWN);
 	}
 
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random random)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
 	{
 		update(state, worldIn, pos, random, this.shouldBeGreen(worldIn, pos, state));
 	}
 
-	public static void update(BlockState state, Level worldIn, BlockPos pos, Random p_196527_3_, boolean p_196527_4_)
+	public static void update(BlockState state, Level worldIn, BlockPos pos, RandomSource p_196527_3_, boolean p_196527_4_)
 	{
 		List<AdvancedRedstoneTorchBlock.Toggle> list = BURNED_TORCHES.get(worldIn);
 
@@ -201,7 +202,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(new com.mojang.math.Vector3f(0.0F, 1.0F, 0.0F), 1.0F);
 
 	@OnlyIn(Dist.CLIENT)
-	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, Random rand)
+	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (stateIn.getValue(COLOR_PROPERTY) == COLOR.RED)
 		{

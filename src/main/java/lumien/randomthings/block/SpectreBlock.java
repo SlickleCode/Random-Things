@@ -14,6 +14,6 @@ public class SpectreBlock extends Block
 {
 	public SpectreBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noDrops());
+		super(Block.Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noLootTable());
 	}
 }

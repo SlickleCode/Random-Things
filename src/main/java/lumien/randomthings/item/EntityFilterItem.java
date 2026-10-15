@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
         if (filterType.isPresent()) {
             tooltip.add(filterType.get().getDescription());
         } else {
-            tooltip.add(new TranslatableComponent("tooltip.randomthings.entity_filter.invalid_entity"));
+            tooltip.add(Component.translatable("tooltip.randomthings.entity_filter.invalid_entity"));
         }
     }
 

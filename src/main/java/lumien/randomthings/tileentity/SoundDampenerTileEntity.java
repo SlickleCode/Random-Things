@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashSet;
@@ -143,6 +143,6 @@ public class SoundDampenerTileEntity extends BlockEntity implements MenuProvider
 
     @Override
     public Component getDisplayName() {
-        return new TranslatableComponent("block.randomthings.sound_dampener");
+        return Component.translatable("block.randomthings.sound_dampener");
     }
 }

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": "randomthings:bean_sprout",
+  "step": "vegetal_decoration"
+}

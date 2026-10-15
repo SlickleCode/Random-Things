@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Queue;
@@ -142,7 +143,7 @@ public class TriggerGlassBlock extends Block
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (!worldIn.isClientSide && state.getValue(TRIGGERED))
 		{

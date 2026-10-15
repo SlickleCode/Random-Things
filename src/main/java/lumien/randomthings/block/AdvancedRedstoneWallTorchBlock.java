@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 
 import javax.annotation.Nullable;
@@ -79,7 +80,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	 * Called periodically clientside on blocks near the player to show effects (like furnace fire particles). Note that this method is unrelated to {@link randomTick} and {@link #needsRandomTick}, and will always be called regardless of whether the block can receive random update ticks
 	 */
 	@OnlyIn(Dist.CLIENT)
-	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, Random rand)
+	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (stateIn.getValue(COLOR_PROPERTY) == COLOR.RED)
 		{

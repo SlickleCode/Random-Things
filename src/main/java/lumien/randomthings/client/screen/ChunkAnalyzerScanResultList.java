@@ -10,7 +10,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 /**
  * Scrollable list of scan results (icon, count, block name), one row per
@@ -67,7 +67,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
         // GuiScanResultList glScissor'd the same way) - otherwise they draw over the title,
         // the Scan button and below the GUI (reported 2026-10-03).
         ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(matrixStack, rowLeft, rowTop, mouseX, mouseY, partialTicks);
+        this.renderList(matrixStack, mouseX, mouseY, partialTicks);
         ListClip.end();
 
         renderScrollbar(matrixStack);
@@ -103,7 +103,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
     public static class ResultEntry extends ObjectSelectionList.Entry<ResultEntry> {
     @Override
     public net.minecraft.network.chat.Component getNarration() {
-        return net.minecraft.network.chat.TextComponent.EMPTY;
+        return net.minecraft.network.chat.CommonComponents.EMPTY;
     }
 
         private final ItemStack stack;

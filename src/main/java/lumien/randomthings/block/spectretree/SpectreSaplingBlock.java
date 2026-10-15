@@ -1,5 +1,6 @@
 package lumien.randomthings.block.spectretree;
 
+import net.minecraft.util.RandomSource;
 import java.util.Random;
 
 import lumien.randomthings.block.ModBlocks;
@@ -54,7 +55,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	}
 
 	@Override
-	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (!worldIn.isClientSide)
 		{
@@ -72,13 +73,13 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	}
 
 	@Override
-	public boolean isBonemealSuccess(Level worldIn, Random rand, BlockPos pos, BlockState state)
+	public boolean isBonemealSuccess(Level worldIn, RandomSource rand, BlockPos pos, BlockState state)
 	{
 		return true;
 	}
 
 	@Override
-	public void performBonemeal(ServerLevel worldIn, Random rand, BlockPos pos, BlockState state)
+	public void performBonemeal(ServerLevel worldIn, RandomSource rand, BlockPos pos, BlockState state)
 	{
 		if (state.getValue(STAGE) == 0)
 		{
@@ -90,7 +91,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 		}
 	}
 
-	private void generateTree(Level worldIn, BlockPos pos, Random rand)
+	private void generateTree(Level worldIn, BlockPos pos, RandomSource rand)
 	{
 		int height = 4 + rand.nextInt(3);
 

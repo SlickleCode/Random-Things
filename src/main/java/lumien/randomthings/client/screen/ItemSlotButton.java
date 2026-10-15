@@ -10,7 +10,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
@@ -27,7 +27,7 @@ public class ItemSlotButton extends Button implements TooltipButton
 
 	public ItemSlotButton(int x, int y, ItemStack stack, String tooltip, OnPress onPress)
 	{
-		super(x, y, 18, 18, new TextComponent(""), onPress);
+		super(x, y, 18, 18, Component.literal(""), onPress);
 
 		this.stack = stack;
 		this.tooltip = tooltip;

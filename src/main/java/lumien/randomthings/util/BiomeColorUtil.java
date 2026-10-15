@@ -6,8 +6,6 @@ import com.google.common.cache.CacheBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.BiomeDictionary.Type;
 
 import java.awt.*;
 import java.util.Set;
@@ -77,7 +75,7 @@ public class BiomeColorUtil {
             return biomeColorCache.get(biome, new Callable<Integer>() {
                 @Override
                 public Integer call() throws Exception {
-                    Set<Type> types = BiomeUtil.types(biome);
+                    Set<String> types = BiomeUtil.types(biome);
 
                     Color foliageColor = new Color(biome.getFoliageColor());
                     Color waterColorMultiplier = new Color(biome.getWaterColor());
@@ -85,8 +83,8 @@ public class BiomeColorUtil {
 
                     Color colorResult = blend(blend(foliageColor, waterColorMultiplier, 0.5f), grassColor, 0.5f);
 
-                    for (Type t : types) {
-                        switch (t.getName()) {
+                    for (String t : types) {
+                        switch (t) {
                             case "BEACH":
                                 colorResult = new Color(Math.min(255, (int) (colorResult.getRed() * 1.35f)), Math.min(255, (int) (colorResult.getGreen() * 1.3f)), Math.min(255, (int) (colorResult.getBlue() * 1.1f)));
                                 break;

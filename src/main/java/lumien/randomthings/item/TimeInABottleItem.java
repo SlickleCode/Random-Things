@@ -15,7 +15,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -71,7 +71,7 @@ public class TimeInABottleItem extends Item {
         int minutes = (storedSeconds % 3600) / 60;
         int seconds = storedSeconds % 60;
 
-        tooltip.add(new TranslatableComponent("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
+        tooltip.add(Component.translatable("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
     }
 
     @Override
@@ -169,7 +169,7 @@ public class TimeInABottleItem extends Item {
 
                     world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, pitch);
                 } else if (player != null) {
-                    player.displayClientMessage(new TranslatableComponent("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
+                    player.displayClientMessage(Component.translatable("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
                 }
             }
         } else {
@@ -188,7 +188,7 @@ public class TimeInABottleItem extends Item {
                 world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, 0.749154F);
                 world.addFreshEntity(n);
             } else if (player != null) {
-                player.displayClientMessage(new TranslatableComponent("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
+                player.displayClientMessage(Component.translatable("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
             }
         }
 

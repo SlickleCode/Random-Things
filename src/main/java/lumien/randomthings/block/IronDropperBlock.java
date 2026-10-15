@@ -113,7 +113,7 @@ public class IronDropperBlock extends Block implements EntityBlock {
 
 			if (te instanceof IronDropperTileEntity)
 			{
-				NetworkHooks.openGui((ServerPlayer) player, (IronDropperTileEntity) te);
+				NetworkHooks.openScreen((ServerPlayer) player, (IronDropperTileEntity) te);
 			}
 		}
 
