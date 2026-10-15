@@ -7,14 +7,14 @@ import com.google.gson.JsonObject;
 
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.enchantment.ModEnchantments;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootParameters;
-import net.minecraft.loot.conditions.ILootCondition;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
 import net.minecraftforge.common.loot.LootModifier;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -29,7 +29,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
  */
 public class MagneticLootModifier extends LootModifier
 {
-	public MagneticLootModifier(ILootCondition[] conditions)
+	public MagneticLootModifier(LootItemCondition[] conditions)
 	{
 		super(conditions);
 	}
@@ -38,22 +38,22 @@ public class MagneticLootModifier extends LootModifier
 	protected List<ItemStack> doApply(List<ItemStack> generatedLoot, LootContext context)
 	{
 		// block loot with a harvester has both parameters; entity / chest / fishing loot lacks the tool
-		if (!context.has(LootParameters.TOOL) || !context.has(LootParameters.THIS_ENTITY) || !RTConfig.MAGNETIC_ENCHANTMENT.get())
+		if (!context.hasParam(LootContextParams.TOOL) || !context.hasParam(LootContextParams.THIS_ENTITY) || !RTConfig.MAGNETIC_ENCHANTMENT.get())
 		{
 			return generatedLoot;
 		}
 
-		Entity harvester = context.get(LootParameters.THIS_ENTITY);
-		ItemStack tool = context.get(LootParameters.TOOL);
+		Entity harvester = context.getParamOrNull(LootContextParams.THIS_ENTITY);
+		ItemStack tool = context.getParamOrNull(LootContextParams.TOOL);
 
-		if (!(harvester instanceof PlayerEntity) || tool == null || EnchantmentHelper.getEnchantmentLevel(ModEnchantments.MAGNETIC, tool) <= 0)
+		if (!(harvester instanceof Player) || tool == null || EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.MAGNETIC, tool) <= 0)
 		{
 			return generatedLoot;
 		}
 
 		for (ItemStack drop : generatedLoot)
 		{
-			ItemHandlerHelper.giveItemToPlayer((PlayerEntity) harvester, drop);
+			ItemHandlerHelper.giveItemToPlayer((Player) harvester, drop);
 		}
 
 		return Collections.emptyList();
@@ -62,7 +62,7 @@ public class MagneticLootModifier extends LootModifier
 	public static class Serializer extends GlobalLootModifierSerializer<MagneticLootModifier>
 	{
 		@Override
-		public MagneticLootModifier read(ResourceLocation location, JsonObject object, ILootCondition[] conditions)
+		public MagneticLootModifier read(ResourceLocation location, JsonObject object, LootItemCondition[] conditions)
 		{
 			return new MagneticLootModifier(conditions);
 		}

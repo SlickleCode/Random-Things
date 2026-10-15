@@ -2,19 +2,20 @@ package lumien.randomthings.worldgen;
 
 import lumien.randomthings.block.LotusBlock;
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.common.BiomeDictionary;
 
 import java.util.Random;
 import java.util.function.Function;
 import com.mojang.serialization.Codec;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.level.WorldGenLevel;
 import lumien.randomthings.util.BiomeUtil;
 
 /**
@@ -26,22 +27,26 @@ import lumien.randomthings.util.BiomeUtil;
  * Placement.CHANCE_HEIGHTMAP} + {@code ChanceConfig(10)} in {@code
  * RandomThings#setupCommon}.
  */
-public class LotusFeature extends Feature<NoFeatureConfig> {
-    public LotusFeature(Codec<NoFeatureConfig> codec) {
+public class LotusFeature extends Feature<NoneFeatureConfiguration> {
+    public LotusFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
     }
 
     @Override
-    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+        WorldGenLevel worldIn = context.level();
+        BlockPos pos = context.origin();
+        Random rand = context.random();
+
         if (!lumien.randomthings.config.RTConfig.LOTUS.get()) {
             return false;
         }
 
-        if (pos.getY() < 0) {
+        if (pos.getY() < worldIn.getMinBuildHeight()) {
             return false;
         }
 
-        Biome biome = worldIn.getBiome(pos);
+        Biome biome = worldIn.getBiome(pos).value();
 
         if (!BiomeUtil.hasType(biome, BiomeDictionary.Type.SNOWY)) {
             return false;
@@ -53,13 +58,13 @@ public class LotusFeature extends Feature<NoFeatureConfig> {
             return false;
         }
 
-        BlockState placeState = ModBlocks.LOTUS.getDefaultState().with(LotusBlock.AGE, rand.nextInt(4));
+        BlockState placeState = ModBlocks.LOTUS.defaultBlockState().setValue(LotusBlock.AGE, rand.nextInt(4));
 
-        if (!placeState.isValidPosition(worldIn, pos)) {
+        if (!placeState.canSurvive(worldIn, pos)) {
             return false;
         }
 
-        worldIn.setBlockState(pos, placeState, 2);
+        worldIn.setBlock(pos, placeState, 2);
         return true;
     }
 }

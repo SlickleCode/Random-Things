@@ -1,21 +1,25 @@
 package lumien.randomthings.worldgen;
 
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.registries.ObjectHolder;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.placement.Placement;
-import net.minecraft.world.gen.placement.NoPlacementConfig;
-import net.minecraft.world.gen.placement.ChanceConfig;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.WorldGenRegistries;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.data.BuiltinRegistries;
+import java.util.List;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.placement.BiomeFilter;
+import net.minecraft.world.level.levelgen.placement.HeightmapPlacement;
+import net.minecraft.world.level.levelgen.placement.InSquarePlacement;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
+import net.minecraft.world.level.levelgen.placement.RarityFilter;
+import net.minecraft.resources.ResourceLocation;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraftforge.event.world.BiomeLoadingEvent;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.level.levelgen.GenerationStep;
 
 /**
  * This port's worldgen {@link Feature} registrations - the counterpart to
@@ -45,52 +49,49 @@ public class ModFeatures {
     public static AncientFurnaceFeature ANCIENT_FURNACE;
 
     public static void registerFeatures(Register<Feature<?>> featureRegistryEvent) {
-        featureRegistryEvent.getRegistry().register(new BeanSproutFeature(NoFeatureConfig.CODEC).setRegistryName("bean_sprout"));
-        featureRegistryEvent.getRegistry().register(new LotusFeature(NoFeatureConfig.CODEC).setRegistryName("lotus"));
-        featureRegistryEvent.getRegistry().register(new AncientFurnaceFeature(NoFeatureConfig.CODEC).setRegistryName("ancient_furnace"));
-        featureRegistryEvent.getRegistry().register(new GlowingMushroomFeature(NoFeatureConfig.CODEC).setRegistryName("glowing_mushroom"));
+        featureRegistryEvent.getRegistry().register(new BeanSproutFeature(NoneFeatureConfiguration.CODEC).setRegistryName("bean_sprout"));
+        featureRegistryEvent.getRegistry().register(new LotusFeature(NoneFeatureConfiguration.CODEC).setRegistryName("lotus"));
+        featureRegistryEvent.getRegistry().register(new AncientFurnaceFeature(NoneFeatureConfiguration.CODEC).setRegistryName("ancient_furnace"));
+        featureRegistryEvent.getRegistry().register(new GlowingMushroomFeature(NoneFeatureConfiguration.CODEC).setRegistryName("glowing_mushroom"));
     }
 
-    private static ConfiguredFeature<?, ?> BEAN_SPROUT_CONFIGURED;
-    private static ConfiguredFeature<?, ?> LOTUS_CONFIGURED;
-    private static ConfiguredFeature<?, ?> ANCIENT_FURNACE_CONFIGURED;
-    private static ConfiguredFeature<?, ?> GLOWING_MUSHROOM_CONFIGURED;
+    private static Holder<PlacedFeature> BEAN_SPROUT_PLACED;
+    private static Holder<PlacedFeature> LOTUS_PLACED;
+    private static Holder<PlacedFeature> ANCIENT_FURNACE_PLACED;
+    private static Holder<PlacedFeature> GLOWING_MUSHROOM_PLACED;
 
     /**
-     * 1.16 biome features are {@code ConfiguredFeature}s that must be registered (biomes are serialized by registry
-     * reference). The old {@code Placement.CHANCE_HEIGHTMAP} is now "with 1/n probability, at a random column of the
-     * chunk, on the heightmap" - the three placements below applied from the last one to the first. Each feature's own
-     * {@code generate} still does the per-attempt biome/temperature gating, as in 1.14.4. Call from
-     * {@code FMLCommonSetupEvent.enqueueWork} (after the feature registry event).
+     * 1.18 biome features are {@code PlacedFeature}s (a configured feature plus placement modifiers) that must be
+     * registered (biomes are serialized by registry reference). The old 1.16 "chance, then square, then heightmap"
+     * decorator chain is now {@code RarityFilter} (1 in n chunks), {@code InSquarePlacement} (random column in the
+     * chunk) and {@code HeightmapPlacement}. Each feature's own {@code place} still does the per-attempt
+     * biome/temperature gating. Call from {@code FMLCommonSetupEvent.enqueueWork} (after the feature registry event).
      */
     public static void registerConfiguredFeatures() {
-        BEAN_SPROUT_CONFIGURED = register("bean_sprout", chance(BEAN_SPROUT, 2));
-        LOTUS_CONFIGURED = register("lotus", chance(LOTUS, 10));
-        ANCIENT_FURNACE_CONFIGURED = register("ancient_furnace", chance(ANCIENT_FURNACE, 400));
-        GLOWING_MUSHROOM_CONFIGURED = register("glowing_mushroom", chance(GLOWING_MUSHROOM, 4));
+        BEAN_SPROUT_PLACED = placed("bean_sprout", BEAN_SPROUT, 2);
+        LOTUS_PLACED = placed("lotus", LOTUS, 10);
+        ANCIENT_FURNACE_PLACED = placed("ancient_furnace", ANCIENT_FURNACE, 400);
+        GLOWING_MUSHROOM_PLACED = placed("glowing_mushroom", GLOWING_MUSHROOM, 4);
     }
 
-    private static ConfiguredFeature<?, ?> chance(Feature<NoFeatureConfig> feature, int chance) {
-        return feature.withConfiguration(NoFeatureConfig.INSTANCE)
-                .withPlacement(Placement.HEIGHTMAP.configure(NoPlacementConfig.INSTANCE))
-                .withPlacement(Placement.SQUARE.configure(NoPlacementConfig.INSTANCE))
-                .withPlacement(Placement.CHANCE.configure(new ChanceConfig(chance)));
-    }
+    private static Holder<PlacedFeature> placed(String name, Feature<NoneFeatureConfiguration> feature, int chance) {
+        ResourceLocation id = new ResourceLocation(ModConstants.MOD_ID, name);
+        Holder<ConfiguredFeature<?, ?>> configured = BuiltinRegistries.register(BuiltinRegistries.CONFIGURED_FEATURE, id, new ConfiguredFeature<>(feature, NoneFeatureConfiguration.INSTANCE));
 
-    private static ConfiguredFeature<?, ?> register(String name, ConfiguredFeature<?, ?> configured) {
-        return Registry.register(WorldGenRegistries.CONFIGURED_FEATURE, new ResourceLocation(ModConstants.MOD_ID, name), configured);
+        return BuiltinRegistries.register(BuiltinRegistries.PLACED_FEATURE, id, new PlacedFeature(configured,
+                List.of(RarityFilter.onAverageOnceEvery(chance), InSquarePlacement.spread(), HeightmapPlacement.onHeightmap(Heightmap.Types.MOTION_BLOCKING), BiomeFilter.biome())));
     }
 
     /** Injects this port's natural-surface features into every overworld-style biome (nether/end biomes cannot host them). */
     public static void onBiomeLoading(BiomeLoadingEvent event) {
-        if (event.getCategory() == Biome.Category.NETHER || event.getCategory() == Biome.Category.THEEND || event.getCategory() == Biome.Category.NONE || BEAN_SPROUT_CONFIGURED == null) {
+        if (event.getCategory() == Biome.BiomeCategory.NETHER || event.getCategory() == Biome.BiomeCategory.THEEND || event.getCategory() == Biome.BiomeCategory.NONE || BEAN_SPROUT_PLACED == null) {
             return;
         }
 
         BiomeGenerationSettingsBuilder generation = event.getGeneration();
-        generation.withFeature(GenerationStage.Decoration.VEGETAL_DECORATION, BEAN_SPROUT_CONFIGURED);
-        generation.withFeature(GenerationStage.Decoration.VEGETAL_DECORATION, LOTUS_CONFIGURED);
-        generation.withFeature(GenerationStage.Decoration.LOCAL_MODIFICATIONS, ANCIENT_FURNACE_CONFIGURED);
-        generation.withFeature(GenerationStage.Decoration.UNDERGROUND_DECORATION, GLOWING_MUSHROOM_CONFIGURED);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, BEAN_SPROUT_PLACED);
+        generation.addFeature(GenerationStep.Decoration.VEGETAL_DECORATION, LOTUS_PLACED);
+        generation.addFeature(GenerationStep.Decoration.LOCAL_MODIFICATIONS, ANCIENT_FURNACE_PLACED);
+        generation.addFeature(GenerationStep.Decoration.UNDERGROUND_DECORATION, GLOWING_MUSHROOM_PLACED);
     }
 }

@@ -2,24 +2,24 @@ package lumien.randomthings.block;
 
 import java.util.Random;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.Material;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 
 public class GlowingMushroomBlock extends Block
 {
-	protected static final VoxelShape SHAPE = Block.makeCuboidShape(4.8, 0, 4.8, 11.2, 6.4, 11.2);
+	protected static final VoxelShape SHAPE = Block.box(4.8, 0, 4.8, 11.2, 6.4, 11.2);
 
 	/**
 	 * Light the mushroom gives off. Must stay below 13: the survival rule ({@link #canBlockStay}) rejects light of 13+ at the
@@ -30,43 +30,43 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.create(Material.PLANTS).notSolid().hardnessAndResistance(0.0F).setLightLevel(state -> GLOW_LEVEL).sound(SoundType.PLANT).tickRandomly().doesNotBlockMovement());
+		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
 	}
 
 	@Override
-	public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
 		return SHAPE;
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+	public VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
 	{
-		return VoxelShapes.empty();
+		return Shapes.empty();
 	}
 
 	@Override
-	public boolean isValidPosition(BlockState state, IWorldReader worldIn, BlockPos pos)
+	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
 		return canBlockStay(worldIn, pos);
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
 	{
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos, isMoving);
 		this.checkAndDropBlock(worldIn, pos, state);
 	}
 
 	@Override
-	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand)
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, Random rand)
 	{
 		if (rand.nextInt(20) == 0)
 		{
 			int remainingBudget = 5;
 
-			for (BlockPos p : BlockPos.getAllInBoxMutable(pos.add(-4, -1, -4), pos.add(4, 1, 4)))
+			for (BlockPos p : BlockPos.betweenClosed(pos.offset(-4, -1, -4), pos.offset(4, 1, 4)))
 			{
 				if (worldIn.getBlockState(p).getBlock() == this)
 				{
@@ -81,29 +81,29 @@ public class GlowingMushroomBlock extends Block
 
 			for (int k = 0; k < 4; ++k)
 			{
-				BlockPos next = candidate.add(rand.nextInt(3) - 1, rand.nextInt(2) - rand.nextInt(2), rand.nextInt(3) - 1);
+				BlockPos next = candidate.offset(rand.nextInt(3) - 1, rand.nextInt(2) - rand.nextInt(2), rand.nextInt(3) - 1);
 
-				if (worldIn.isAirBlock(next) && canBlockStay(worldIn, next))
+				if (worldIn.isEmptyBlock(next) && canBlockStay(worldIn, next))
 				{
 					candidate = next;
 				}
 			}
 
-			if (candidate != pos && worldIn.isAirBlock(candidate) && canBlockStay(worldIn, candidate))
+			if (candidate != pos && worldIn.isEmptyBlock(candidate) && canBlockStay(worldIn, candidate))
 			{
-				worldIn.setBlockState(candidate, this.getDefaultState(), 2);
+				worldIn.setBlock(candidate, this.defaultBlockState(), 2);
 			}
 		}
 
 		this.checkAndDropBlock(worldIn, pos, state);
 	}
 
-	protected void checkAndDropBlock(World worldIn, BlockPos pos, BlockState state)
+	protected void checkAndDropBlock(Level worldIn, BlockPos pos, BlockState state)
 	{
 		if (!canBlockStay(worldIn, pos))
 		{
-			spawnDrops(state, worldIn, pos);
-			worldIn.setBlockState(pos, Blocks.AIR.getDefaultState(), 3);
+			dropResources(state, worldIn, pos);
+			worldIn.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
 		}
 	}
 
@@ -112,32 +112,32 @@ public class GlowingMushroomBlock extends Block
 	 * generated have no light data (the 1.16 light engine reports full sky light there), so the light rule rejected every position
 	 * and no patch ever generated; generation already requires "no sky access" separately.
 	 */
-	public static boolean canGrowDuringWorldgen(IWorldReader worldIn, BlockPos pos)
+	public static boolean canGrowDuringWorldgen(LevelReader worldIn, BlockPos pos)
 	{
-		if (pos.getY() < 0 || pos.getY() >= 256)
+		if (pos.getY() < worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight())
 		{
 			return false;
 		}
 
-		BlockState soil = worldIn.getBlockState(pos.down());
+		BlockState soil = worldIn.getBlockState(pos.below());
 		return soil.getBlock() == Blocks.MYCELIUM || canSustainBush(soil);
 	}
 
-	public static boolean canBlockStay(IWorldReader worldIn, BlockPos pos)
+	public static boolean canBlockStay(LevelReader worldIn, BlockPos pos)
 	{
-		if (pos.getY() < 0 || pos.getY() >= 256)
+		if (pos.getY() < worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight())
 		{
 			return false;
 		}
 
-		BlockState soil = worldIn.getBlockState(pos.down());
+		BlockState soil = worldIn.getBlockState(pos.below());
 
 		if (soil.getBlock() == Blocks.MYCELIUM)
 		{
 			return true;
 		}
 
-		return worldIn.getLightSubtracted(pos, 0) < 13 && canSustainBush(soil);
+		return worldIn.getRawBrightness(pos, 0) < 13 && canSustainBush(soil);
 	}
 
 	protected static boolean canSustainBush(BlockState state)

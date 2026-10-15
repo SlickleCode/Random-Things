@@ -1,8 +1,8 @@
 package lumien.randomthings.handler.floo;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.BlockPos;
 
 import java.util.UUID;
 
@@ -29,32 +29,32 @@ public class FlooFireplace {
         this.lastKnownPosition = position;
     }
 
-    public void write(CompoundNBT compound) {
+    public void write(CompoundTag compound) {
         if (creatorPlayerUUID != null) {
-            compound.put("creatorPlayerUUID", NBTUtil.func_240626_a_(creatorPlayerUUID));
+            compound.put("creatorPlayerUUID", NbtUtils.createUUID(creatorPlayerUUID));
         }
 
-        compound.put("masterUUID", NBTUtil.func_240626_a_(masterUUID));
+        compound.put("masterUUID", NbtUtils.createUUID(masterUUID));
 
         if (name != null) {
             compound.putString("name", name);
         }
 
-        compound.put("position", NBTUtil.writeBlockPos(lastKnownPosition));
+        compound.put("position", NbtUtils.writeBlockPos(lastKnownPosition));
     }
 
-    public void read(CompoundNBT compound) {
+    public void read(CompoundTag compound) {
         if (compound.contains("creatorPlayerUUID")) {
-            this.creatorPlayerUUID = NBTUtil.readUniqueId(compound.getCompound("creatorPlayerUUID"));
+            this.creatorPlayerUUID = NbtUtils.loadUUID(compound.getCompound("creatorPlayerUUID"));
         }
 
-        this.masterUUID = NBTUtil.readUniqueId(compound.getCompound("masterUUID"));
+        this.masterUUID = NbtUtils.loadUUID(compound.getCompound("masterUUID"));
 
         if (compound.contains("name")) {
             this.name = compound.getString("name");
         }
 
-        this.lastKnownPosition = NBTUtil.readBlockPos(compound.getCompound("position"));
+        this.lastKnownPosition = NbtUtils.readBlockPos(compound.getCompound("position"));
     }
 
     public String getName() {

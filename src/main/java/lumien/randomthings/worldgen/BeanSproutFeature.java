@@ -1,16 +1,17 @@
 package lumien.randomthings.worldgen;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 import java.util.Random;
 import java.util.function.Function;
 import com.mojang.serialization.Codec;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.level.WorldGenLevel;
 import lumien.randomthings.util.BiomeUtil;
 
 /**
@@ -23,22 +24,26 @@ import lumien.randomthings.util.BiomeUtil;
  * the {@code Placement} decorator's job in 1.14.4 - this class only needs
  * the final per-position validity check.
  */
-public class BeanSproutFeature extends Feature<NoFeatureConfig> {
-    public BeanSproutFeature(Codec<NoFeatureConfig> codec) {
+public class BeanSproutFeature extends Feature<NoneFeatureConfiguration> {
+    public BeanSproutFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
     }
 
     @Override
-    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
-        if (pos.getY() <= 0 || pos.getY() >= 255 || !worldIn.isAirBlock(pos)) {
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+        WorldGenLevel worldIn = context.level();
+        BlockPos pos = context.origin();
+        Random rand = context.random();
+
+        if (pos.getY() <= worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight() - 1 || !worldIn.isEmptyBlock(pos)) {
             return false;
         }
 
-        if (!ModBlocks.BEAN_SPROUT.getDefaultState().isValidPosition(worldIn, pos)) {
+        if (!ModBlocks.BEAN_SPROUT.defaultBlockState().canSurvive(worldIn, pos)) {
             return false;
         }
 
-        worldIn.setBlockState(pos, ModBlocks.BEAN_SPROUT.getDefaultState(), 2);
+        worldIn.setBlock(pos, ModBlocks.BEAN_SPROUT.defaultBlockState(), 2);
         return true;
     }
 }

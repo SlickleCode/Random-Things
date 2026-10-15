@@ -1,7 +1,7 @@
 package lumien.randomthings.handler.redstonesignal;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 
 /**
  * A single timed "phantom" redstone signal - see {@link RedstoneSignalHandler}
@@ -40,7 +40,7 @@ public class RedstoneSignal {
         return redstoneStrength;
     }
 
-    public void write(CompoundNBT compound) {
+    public void write(CompoundTag compound) {
         compound.putInt("x", position.getX());
         compound.putInt("y", position.getY());
         compound.putInt("z", position.getZ());
@@ -49,7 +49,7 @@ public class RedstoneSignal {
         compound.putInt("age", age);
     }
 
-    public void read(CompoundNBT compound) {
+    public void read(CompoundTag compound) {
         this.position = new BlockPos(compound.getInt("x"), compound.getInt("y"), compound.getInt("z"));
         this.redstoneStrength = compound.getInt("redstoneStrength");
         this.duration = compound.getInt("duration");

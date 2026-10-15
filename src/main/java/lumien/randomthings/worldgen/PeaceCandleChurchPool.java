@@ -9,13 +9,15 @@ import com.mojang.serialization.Lifecycle;
 
 import lumien.randomthings.config.RTConfig;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.MutableRegistry;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPattern;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPiece;
-import net.minecraft.world.gen.feature.template.TemplateManager;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Holder;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import org.apache.logging.log4j.LogManager;
 
 /**
@@ -38,44 +40,57 @@ import org.apache.logging.log4j.LogManager;
  * Only the plains pool is wrapped, since the template is cobblestone-styled like the plains church;
  * the other biomes' churches and the zombie-village pools are untouched.
  */
-public class PeaceCandleChurchPool extends JigsawPattern {
+public class PeaceCandleChurchPool extends StructureTemplatePool {
     private static final ResourceLocation HOUSES = new ResourceLocation("village/plains/houses");
 
     /** The vanilla plains church template, matched on its piece description (the template name is not otherwise readable). */
     private static final String VANILLA_CHURCH = "village/plains/houses/plains_temple_4";
 
     // RIGID matches what the vanilla plains village registers the houses pool with.
-    private static final JigsawPiece PEACE_CANDLE_CHURCH = JigsawPiece.func_242859_b("randomthings:peace_candle_church").apply(JigsawPattern.PlacementBehaviour.RIGID);
+    // The piece's (empty) processor list must be this world's own registry holder, otherwise the jigsaw assembler
+    // rejects the piece as "not valid in current registry set"; hence one instance per installed pool, not a constant.
+    private final StructurePoolElement peaceCandleChurch;
 
-    private final JigsawPattern vanilla;
+    private final StructureTemplatePool vanilla;
 
-    private PeaceCandleChurchPool(JigsawPattern vanilla) {
-        super(vanilla.getName(), vanilla.getFallback(), java.util.Collections.<Pair<JigsawPiece, Integer>>emptyList());
+    private PeaceCandleChurchPool(StructureTemplatePool vanilla, StructurePoolElement peaceCandleChurch) {
+        super(vanilla.getName(), vanilla.getFallback(), java.util.Collections.<Pair<StructurePoolElement, Integer>>emptyList());
         this.vanilla = vanilla;
+        this.peaceCandleChurch = peaceCandleChurch;
     }
 
     /**
      * Wraps the vanilla plains houses pool in this world's dynamic registry (1.16 loads jigsaw pools as data, so the
-     * 1.14.4 static-registry replacement is gone). Called from {@code FMLServerAboutToStartEvent}, which fires once
+     * 1.14.4 static-registry replacement is gone). Called from {@code ServerAboutToStartEvent}, which fires once
      * per world load, so it is safe to call repeatedly.
      */
     public static void install(MinecraftServer server) {
-        Registry<JigsawPattern> registry = server.getDynamicRegistries().getRegistry(Registry.JIGSAW_POOL_KEY);
-        JigsawPattern vanilla = registry.getOrDefault(HOUSES);
+        Registry<StructureTemplatePool> registry = server.registryAccess().registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY);
+        Holder<StructureTemplatePool> holder = registry.getHolder(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, HOUSES)).orElse(null);
+
+        if (holder == null) {
+            LogManager.getLogger().warn("Vanilla pool {} not found, Peace Candle churches won't generate", HOUSES);
+            return;
+        }
+
+        StructureTemplatePool vanilla = holder.value();
 
         if (vanilla instanceof PeaceCandleChurchPool) {
             return;
         }
 
-        if (vanilla == null) {
-            LogManager.getLogger().warn("Vanilla pool {} not found, Peace Candle churches won't generate", HOUSES);
-            return;
-        }
+        try {
+            // the pool registry is frozen by the time the server starts, so the holder's value is swapped in place instead
+            Holder<StructureProcessorList> noProcessors = server.registryAccess().registryOrThrow(Registry.PROCESSOR_LIST_REGISTRY).getHolderOrThrow(ResourceKey.create(Registry.PROCESSOR_LIST_REGISTRY, new ResourceLocation("empty")));
+            StructurePoolElement church = StructurePoolElement.single("randomthings:peace_candle_church", noProcessors).apply(StructureTemplatePool.Projection.RIGID);
 
-        if (registry instanceof MutableRegistry) {
-            ((MutableRegistry<JigsawPattern>) registry).register(RegistryKey.getOrCreateKey(Registry.JIGSAW_POOL_KEY, HOUSES), new PeaceCandleChurchPool(vanilla), Lifecycle.stable());
+            HOLDER_VALUE.set(holder, new PeaceCandleChurchPool(vanilla, church));
+        } catch (IllegalAccessException e) {
+            LogManager.getLogger().error("Could not install the Peace Candle church pool", e);
         }
     }
+
+    private static final java.lang.reflect.Field HOLDER_VALUE = ObfuscationReflectionHelper.findField(Holder.Reference.class, "f_205752_");
 
     /** The {@code PeaceCandle} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
     public static java.util.function.BooleanSupplier enabled = () -> RTConfig.PEACE_CANDLE.get();
@@ -84,34 +99,34 @@ public class PeaceCandleChurchPool extends JigsawPattern {
         return enabled.getAsBoolean() && rand.nextInt(3) == 0;
     }
 
-    private static JigsawPiece swap(JigsawPiece piece) {
-        return piece.toString().contains(VANILLA_CHURCH) ? PEACE_CANDLE_CHURCH : piece;
+    private StructurePoolElement swap(StructurePoolElement piece) {
+        return piece.toString().contains(VANILLA_CHURCH) ? peaceCandleChurch : piece;
     }
 
     @Override
-    public int getMaxSize(TemplateManager templateManager) {
+    public int getMaxSize(StructureManager templateManager) {
         return vanilla.getMaxSize(templateManager);
     }
 
     @Override
-    public JigsawPiece getRandomPiece(Random rand) {
-        JigsawPiece piece = vanilla.getRandomPiece(rand);
+    public StructurePoolElement getRandomTemplate(Random rand) {
+        StructurePoolElement piece = vanilla.getRandomTemplate(rand);
         return shouldSwap(rand) ? swap(piece) : piece;
     }
 
     @Override
-    public List<JigsawPiece> getShuffledPieces(Random rand) {
-        List<JigsawPiece> pieces = vanilla.getShuffledPieces(rand);
+    public List<StructurePoolElement> getShuffledTemplates(Random rand) {
+        List<StructurePoolElement> pieces = vanilla.getShuffledTemplates(rand);
 
         if (!shouldSwap(rand)) {
             return pieces;
         }
 
-        return pieces.stream().map(PeaceCandleChurchPool::swap).collect(Collectors.toList());
+        return pieces.stream().map(this::swap).collect(Collectors.toList());
     }
 
     @Override
-    public int getNumberOfPieces() {
-        return vanilla.getNumberOfPieces();
+    public int size() {
+        return vanilla.size();
     }
 }

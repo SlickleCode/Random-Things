@@ -7,22 +7,21 @@ import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.item.BiomeCrystalItem;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.loot.ConstantRange;
-import net.minecraft.loot.EmptyLootEntry;
-import net.minecraft.loot.ItemLootEntry;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.LootFunction;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.LootTable;
-import net.minecraft.loot.conditions.ILootCondition;
-import net.minecraft.loot.conditions.RandomChance;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraft.loot.LootFunctionType;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.core.Registry;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonDeserializationContext;
 
@@ -72,24 +71,24 @@ public class LootHandler
 
 		if (RTConfig.BIOME_CRYSTAL.get() && name.getNamespace().equals("minecraft") && name.getPath().startsWith("chests/"))
 		{
-			LootPool crystalPool = LootPool.builder().name("randomthings:biome_crystal").rolls(ConstantRange.of(1)).acceptCondition(RandomChance.builder(0.2F))
-					.addEntry(ItemLootEntry.builder(ModItems.BIOME_CRYSTAL).acceptFunction(() -> new RandomBiomeFunction())).build();
+			LootPool crystalPool = LootPool.lootPool().name("randomthings:biome_crystal").setRolls(net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(1.0F)).when(LootItemRandomChanceCondition.randomChance(0.2F))
+					.add(LootItem.lootTableItem(ModItems.BIOME_CRYSTAL).apply(() -> new RandomBiomeFunction())).build();
 			table.addPool(crystalPool);
 		}
 	}
 
 	/** One pool that yields {@code item} with weight {@code chance} out of 100, else nothing. */
-	private static void addSingleItemWithChance(LootTable table, IItemProvider item, int chance)
+	private static void addSingleItemWithChance(LootTable table, ItemLike item, int chance)
 	{
 		String itemName = item.asItem().getRegistryName().getPath();
 
-		LootPool pool = LootPool.builder().name("randomthings:" + itemName).rolls(ConstantRange.of(1)).addEntry(ItemLootEntry.builder(item).weight(chance))
-				.addEntry(EmptyLootEntry.func_216167_a().weight(100 - chance)).build();
+		LootPool pool = LootPool.lootPool().name("randomthings:" + itemName).setRolls(net.minecraft.world.level.storage.loot.providers.number.ConstantValue.exactly(1.0F)).add(LootItem.lootTableItem(item).setWeight(chance))
+				.add(EmptyLootItem.emptyItem().setWeight(100 - chance)).build();
 		table.addPool(pool);
 	}
 
 	/** 1.16 loot functions carry a registered type; this one is only ever added in code, so it has no JSON form. */
-	public static final LootFunctionType RANDOM_BIOME_TYPE = new LootFunctionType(new RandomBiomeFunction.Serializer());
+	public static final LootItemFunctionType RANDOM_BIOME_TYPE = new LootItemFunctionType(new RandomBiomeFunction.Serializer());
 
 	public static void registerFunctionTypes()
 	{
@@ -97,30 +96,30 @@ public class LootHandler
 	}
 
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */
-	private static class RandomBiomeFunction extends LootFunction
+	private static class RandomBiomeFunction extends LootItemConditionalFunction
 	{
 		protected RandomBiomeFunction()
 		{
-			super(new ILootCondition[0]);
+			super(new LootItemCondition[0]);
 		}
 
 		@Override
-		public LootFunctionType getFunctionType()
+		public LootItemFunctionType getType()
 		{
 			return RANDOM_BIOME_TYPE;
 		}
 
-		static class Serializer extends LootFunction.Serializer<RandomBiomeFunction>
+		static class Serializer extends LootItemConditionalFunction.Serializer<RandomBiomeFunction>
 		{
 			@Override
-			public RandomBiomeFunction deserialize(JsonObject object, JsonDeserializationContext context, ILootCondition[] conditions)
+			public RandomBiomeFunction deserialize(JsonObject object, JsonDeserializationContext context, LootItemCondition[] conditions)
 			{
 				return new RandomBiomeFunction();
 			}
 		}
 
 		@Override
-		protected ItemStack doApply(ItemStack stack, LootContext context)
+		protected ItemStack run(ItemStack stack, LootContext context)
 		{
 			List<ResourceLocation> biomes = new ArrayList<>(ForgeRegistries.BIOMES.getKeys());
 			BiomeCrystalItem.setBiome(stack, ForgeRegistries.BIOMES.getValue(biomes.get(context.getRandom().nextInt(biomes.size()))));

@@ -1,14 +1,14 @@
 package lumien.randomthings.handler.redstonesignal;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,32 +30,37 @@ import java.util.List;
  * already has the right {@code World} instance in hand (see {@link RedstoneSignal}'s
  * javadoc).
  */
-public class RedstoneSignalHandler extends WorldSavedData {
+public class RedstoneSignalHandler extends SavedData {
     private static final String ID = "randomthings_redstone_signals";
 
     private final List<RedstoneSignal> signals = new ArrayList<>();
 
     public RedstoneSignalHandler() {
-        super(ID);
     }
 
-    public static RedstoneSignalHandler get(World world) {
-        return ((ServerWorld) world).getSavedData().getOrCreate(RedstoneSignalHandler::new, ID);
+    public static RedstoneSignalHandler loadFrom(CompoundTag nbt) {
+        RedstoneSignalHandler data = new RedstoneSignalHandler();
+        data.readData(nbt);
+        return data;
     }
 
-    public synchronized boolean addSignal(World world, BlockPos pos, int duration, int strength) {
-        if (!world.isBlockLoaded(pos)) {
+    public static RedstoneSignalHandler get(Level world) {
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(RedstoneSignalHandler::loadFrom, RedstoneSignalHandler::new, ID);
+    }
+
+    public synchronized boolean addSignal(Level world, BlockPos pos, int duration, int strength) {
+        if (!world.hasChunkAt(pos)) {
             return false;
         }
 
         signals.add(new RedstoneSignal(pos, duration, strength));
-        this.markDirty();
+        this.setDirty();
 
         updatePosition(world, pos);
         return true;
     }
 
-    public synchronized void tick(World world) {
+    public synchronized void tick(Level world) {
         boolean changed = false;
 
         Iterator<RedstoneSignal> iterator = signals.iterator();
@@ -63,7 +68,7 @@ public class RedstoneSignalHandler extends WorldSavedData {
         while (iterator.hasNext()) {
             RedstoneSignal signal = iterator.next();
 
-            if (world.isBlockLoaded(signal.getPosition()) && signal.tick()) {
+            if (world.hasChunkAt(signal.getPosition()) && signal.tick()) {
                 iterator.remove();
                 changed = true;
 
@@ -72,12 +77,12 @@ public class RedstoneSignalHandler extends WorldSavedData {
         }
 
         if (changed) {
-            this.markDirty();
+            this.setDirty();
         }
     }
 
-    public synchronized int getStrongPower(World world, BlockPos pos, Direction facing) {
-        BlockPos source = pos.offset(facing.getOpposite());
+    public synchronized int getStrongPower(Level world, BlockPos pos, Direction facing) {
+        BlockPos source = pos.relative(facing.getOpposite());
 
         int strongest = 0;
 
@@ -90,15 +95,14 @@ public class RedstoneSignalHandler extends WorldSavedData {
         return strongest;
     }
 
-    private static void updatePosition(World world, BlockPos pos) {
+    private static void updatePosition(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
         state.neighborChanged(world, pos, Blocks.REDSTONE_BLOCK, pos, false);
-        world.notifyNeighborsOfStateChange(pos, Blocks.REDSTONE_BLOCK);
+        world.updateNeighborsAt(pos, Blocks.REDSTONE_BLOCK);
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
-        ListNBT signalList = nbt.getList("signals", 10);
+    public void readData(CompoundTag nbt) {
+        ListTag signalList = nbt.getList("signals", 10);
 
         for (int i = 0; i < signalList.size(); i++) {
             RedstoneSignal signal = new RedstoneSignal();
@@ -108,11 +112,11 @@ public class RedstoneSignalHandler extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT signalList = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag signalList = new ListTag();
 
         for (RedstoneSignal signal : signals) {
-            CompoundNBT signalCompound = new CompoundNBT();
+            CompoundTag signalCompound = new CompoundTag();
             signal.write(signalCompound);
             signalList.add(signalCompound);
         }

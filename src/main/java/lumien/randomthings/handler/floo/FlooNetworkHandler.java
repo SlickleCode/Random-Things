@@ -1,18 +1,18 @@
 package lumien.randomthings.handler.floo;
 
 import lumien.randomthings.tileentity.FlooBrickTileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,17 +41,22 @@ import java.util.UUID;
  * burst stands in for the original's bespoke Floo-flame particle.</li>
  * </ul>
  */
-public class FlooNetworkHandler extends WorldSavedData {
+public class FlooNetworkHandler extends SavedData {
     private static final String ID = "randomthings_floo_handler";
 
     private final List<FlooFireplace> firePlaces = new ArrayList<>();
 
     public FlooNetworkHandler() {
-        super(ID);
     }
 
-    public static FlooNetworkHandler get(World world) {
-        return ((ServerWorld) world).getSavedData().getOrCreate(FlooNetworkHandler::new, ID);
+    public static FlooNetworkHandler loadFrom(CompoundTag nbt) {
+        FlooNetworkHandler data = new FlooNetworkHandler();
+        data.readData(nbt);
+        return data;
+    }
+
+    public static FlooNetworkHandler get(Level world) {
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(FlooNetworkHandler::loadFrom, FlooNetworkHandler::new, ID);
     }
 
     public String getNameFromUUID(UUID uuid) {
@@ -66,10 +71,10 @@ public class FlooNetworkHandler extends WorldSavedData {
 
     public void addFirePlace(UUID creatorPlayerUUID, UUID masterUUID, String name, BlockPos currentPos) {
         firePlaces.add(new FlooFireplace(creatorPlayerUUID, masterUUID, name, currentPos));
-        this.markDirty();
+        this.setDirty();
     }
 
-    public boolean teleport(World world, BlockPos originPos, FlooBrickTileEntity originTE, ServerPlayerEntity player, String enteredDestination) {
+    public boolean teleport(Level world, BlockPos originPos, FlooBrickTileEntity originTE, ServerPlayer player, String enteredDestination) {
         FlooFireplace targetFirePlace = null;
         int closest = Integer.MAX_VALUE;
 
@@ -91,38 +96,38 @@ public class FlooNetworkHandler extends WorldSavedData {
         }
 
         if (targetFirePlace.getLastKnownPosition().equals(originPos)) {
-            player.sendMessage(new TranslationTextComponent("floo.info.same"), net.minecraft.util.Util.DUMMY_UUID);
+            player.sendMessage(new TranslatableComponent("floo.info.same"), net.minecraft.Util.NIL_UUID);
             return false;
         }
 
         BlockPos targetPos = targetFirePlace.getLastKnownPosition();
-        TileEntity te = world.getTileEntity(targetPos);
+        BlockEntity te = world.getBlockEntity(targetPos);
 
         if (te instanceof FlooBrickTileEntity && ((FlooBrickTileEntity) te).isMaster()) {
             FlooBrickTileEntity targetTE =  (FlooBrickTileEntity) te;
             Direction tpFacing = targetTE.getFacing();
 
-            BlockPos teleportTarget = targetPos.up();
-            player.connection.setPlayerLocation(teleportTarget.getX() + 0.5, teleportTarget.getY(), teleportTarget.getZ() + 0.5, tpFacing.getHorizontalAngle(), 0);
+            BlockPos teleportTarget = targetPos.above();
+            player.connection.teleport(teleportTarget.getX() + 0.5, teleportTarget.getY(), teleportTarget.getZ() + 0.5, tpFacing.toYRot(), 0);
 
-            player.sendMessage(new TranslationTextComponent("floo.info.teleport", targetFirePlace.getName()), net.minecraft.util.Util.DUMMY_UUID);
+            player.sendMessage(new TranslatableComponent("floo.info.teleport", targetFirePlace.getName()), net.minecraft.Util.NIL_UUID);
 
             if (originPos != null && originTE != null) {
-                spawnFlameBurst((ServerWorld) player.world, originPos, originTE.getChildren());
+                spawnFlameBurst((ServerLevel) player.level, originPos, originTE.getChildren());
             }
 
-            spawnFlameBurst((ServerWorld) player.world, targetPos, targetTE.getChildren());
+            spawnFlameBurst((ServerLevel) player.level, targetPos, targetTE.getChildren());
 
             return true;
         }
 
         firePlaces.remove(targetFirePlace);
-        this.markDirty();
+        this.setDirty();
 
         return teleport(world, originPos, originTE, player, enteredDestination);
     }
 
-    private static void spawnFlameBurst(ServerWorld world, BlockPos center, List<BlockPos> children) {
+    private static void spawnFlameBurst(ServerLevel world, BlockPos center, List<BlockPos> children) {
         spawnFlameBurst(world, center);
 
         for (BlockPos child : children) {
@@ -130,15 +135,14 @@ public class FlooNetworkHandler extends WorldSavedData {
         }
     }
 
-    private static void spawnFlameBurst(ServerWorld world, BlockPos pos) {
+    private static void spawnFlameBurst(ServerLevel world, BlockPos pos) {
         // Raised from +0.6 (just above the brick) to +1.2 (roughly waist height on a standing
         // player) per user request - more visible at a glance than a burst hugging the floor.
-        world.spawnParticle(ParticleTypes.FLAME, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 8, 0.3, 0.3, 0.3, 0.02);
+        world.sendParticles(ParticleTypes.FLAME, pos.getX() + 0.5, pos.getY() + 1.2, pos.getZ() + 0.5, 8, 0.3, 0.3, 0.3, 0.02);
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
-        ListNBT firePlaceTags = nbt.getList("firePlaces", 10);
+    public void readData(CompoundTag nbt) {
+        ListTag firePlaceTags = nbt.getList("firePlaces", 10);
 
         for (int i = 0; i < firePlaceTags.size(); i++) {
             FlooFireplace firePlace = new FlooFireplace();
@@ -148,11 +152,11 @@ public class FlooNetworkHandler extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT firePlaceTags = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag firePlaceTags = new ListTag();
 
         for (FlooFireplace firePlace : firePlaces) {
-            CompoundNBT firePlaceCompound = new CompoundNBT();
+            CompoundTag firePlaceCompound = new CompoundTag();
             firePlace.write(firePlaceCompound);
             firePlaceTags.add(firePlaceCompound);
         }
@@ -162,14 +166,14 @@ public class FlooNetworkHandler extends WorldSavedData {
         return compound;
     }
 
-    public boolean createFireplace(UUID uuid, String name, PlayerEntity player, BlockPos pos, List<BlockPos> brickList) {
+    public boolean createFireplace(UUID uuid, String name, Player player, BlockPos pos, List<BlockPos> brickList) {
         for (FlooFireplace firePlace : firePlaces) {
             if (brickList.contains(firePlace.getLastKnownPosition()) || (name != null && name.equalsIgnoreCase(firePlace.getName()))) {
                 return false;
             }
         }
 
-        addFirePlace(player.getUniqueID(), uuid, name, pos);
+        addFirePlace(player.getUUID(), uuid, name, pos);
 
         return true;
     }
@@ -196,13 +200,13 @@ public class FlooNetworkHandler extends WorldSavedData {
             }
         }
 
-        this.markDirty();
+        this.setDirty();
     }
 
-    public TileEntity getFirePlaceTE(World world, UUID uuid) {
+    public BlockEntity getFirePlaceTE(Level world, UUID uuid) {
         for (FlooFireplace firePlace : firePlaces) {
             if (firePlace.getMasterUUID().equals(uuid)) {
-                return world.getTileEntity(firePlace.getLastKnownPosition());
+                return world.getBlockEntity(firePlace.getLastKnownPosition());
             }
         }
 

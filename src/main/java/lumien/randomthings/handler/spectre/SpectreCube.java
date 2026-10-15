@@ -1,11 +1,11 @@
 package lumien.randomthings.handler.spectre;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.UUID;
 
@@ -43,17 +43,17 @@ public class SpectreCube {
         this.spawnBlock = new BlockPos(position * 16 + 8, 0, 8);
     }
 
-    public static SpectreCube readFrom(CompoundNBT compound) {
+    public static SpectreCube readFrom(CompoundTag compound) {
         SpectreCube cube = new SpectreCube();
-        cube.owner = compound.getUniqueId("owner");
+        cube.owner = compound.getUUID("owner");
         cube.position = compound.getInt("position");
         cube.height = compound.getInt("height");
         cube.spawnBlock = new BlockPos(compound.getInt("spawnBlockX"), compound.getInt("spawnBlockY"), compound.getInt("spawnBlockZ"));
         return cube;
     }
 
-    public void writeTo(CompoundNBT compound) {
-        compound.putUniqueId("owner", owner);
+    public void writeTo(CompoundTag compound) {
+        compound.putUUID("owner", owner);
         compound.putInt("position", position);
         compound.putInt("height", height);
         compound.putInt("spawnBlockX", spawnBlock.getX());
@@ -77,14 +77,14 @@ public class SpectreCube {
         return spawnBlock;
     }
 
-    public void generate(World world) {
+    public void generate(Level world) {
         BlockPos corner = new BlockPos(position * 16, 0, 0);
 
         BlockPos pos1 = corner;
-        BlockPos pos2 = corner.add(15, height + 1, 15);
+        BlockPos pos2 = corner.offset(15, height + 1, 15);
 
-        generateCube(world, pos1, pos2, ModBlocks.SPECTRE_BLOCK.getDefaultState(), 3);
-        generateCore(world, pos1.add(7, 0, 7));
+        generateCube(world, pos1, pos2, ModBlocks.SPECTRE_BLOCK.defaultBlockState(), 3);
+        generateCore(world, pos1.offset(7, 0, 7));
     }
 
     /**
@@ -96,16 +96,16 @@ public class SpectreCube {
      * exact arrangement, setting the correct orientation once up front is
      * equivalent and avoids porting that neighbor-scanning hack.
      */
-    private static void generateCore(World world, BlockPos nw) {
-        BlockState core = ModBlocks.SPECTRE_CORE.getDefaultState();
+    private static void generateCore(Level world, BlockPos nw) {
+        BlockState core = ModBlocks.SPECTRE_CORE.defaultBlockState();
 
-        world.setBlockState(nw, core.with(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.NW), 3);
-        world.setBlockState(nw.add(1, 0, 0), core.with(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.NE), 3);
-        world.setBlockState(nw.add(0, 0, 1), core.with(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.SW), 3);
-        world.setBlockState(nw.add(1, 0, 1), core.with(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.ES), 3);
+        world.setBlock(nw, core.setValue(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.NW), 3);
+        world.setBlock(nw.offset(1, 0, 0), core.setValue(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.NE), 3);
+        world.setBlock(nw.offset(0, 0, 1), core.setValue(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.SW), 3);
+        world.setBlock(nw.offset(1, 0, 1), core.setValue(lumien.randomthings.block.SpectreCoreBlock.ORIENTATION, lumien.randomthings.block.SpectreCoreBlock.CoreOrientation.ES), 3);
     }
 
-    public int increaseHeight(int amount, World world) {
+    public int increaseHeight(int amount, Level world) {
         int heightLeft = 255 - (height + 1);
 
         int newHeight;
@@ -125,18 +125,18 @@ public class SpectreCube {
         return change;
     }
 
-    private void changeHeight(int newHeight, World world) {
+    private void changeHeight(int newHeight, Level world) {
         BlockPos corner = new BlockPos(position * 16, 0, 0);
 
         BlockPos pos1 = corner;
-        BlockPos pos2 = corner.add(15, height + 1, 15);
+        BlockPos pos2 = corner.offset(15, height + 1, 15);
 
-        generateCube(world, pos1, pos2, Blocks.AIR.getDefaultState(), 2);
+        generateCube(world, pos1, pos2, Blocks.AIR.defaultBlockState(), 2);
         this.height = newHeight;
         generate(world);
     }
 
-    private static void generateCube(World world, BlockPos pos1, BlockPos pos2, BlockState state, int flag) {
+    private static void generateCube(Level world, BlockPos pos1, BlockPos pos2, BlockState state, int flag) {
         int minX = Math.min(pos1.getX(), pos2.getX());
         int minY = Math.min(pos1.getY(), pos2.getY());
         int minZ = Math.min(pos1.getZ(), pos2.getZ());
@@ -149,7 +149,7 @@ public class SpectreCube {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     if (x == minX || y == minY || z == minZ || x == maxX || y == maxY || z == maxZ) {
-                        world.setBlockState(new BlockPos(x, y, z), state, flag);
+                        world.setBlock(new BlockPos(x, y, z), state, flag);
                     }
                 }
             }

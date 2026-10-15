@@ -4,16 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.potion.Effect;
-import net.minecraft.potion.EffectInstance;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.storage.WorldSavedData;
-import net.minecraft.world.World;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.Level;
 
 /**
  * Ported from 1.12.2's {@code SpectreLensHandler} - tracks which players have an active Spectre Lens
@@ -25,43 +25,48 @@ import net.minecraft.world.World;
  *
  * <p>Deliberately kept the original's cross-dimension scoping (1.12.2's {@code getPerWorldStorage()},
  * unlike {@code SpectreCoilHandler}'s deliberately-preserved per-dimension one) - the overworld's own
- * {@code DimensionSavedDataManager}, fetched via {@code server.getWorld(World.OVERWORLD)}
+ * {@code DimensionSavedDataManager}, fetched via {@code server.getLevel(World.OVERWORLD)}
  * regardless of which dimension the call site is actually in, matching {@code World.getPerWorldStorage()}'s
  * original semantics exactly.
  */
-public class SpectreLensHandler extends WorldSavedData {
+public class SpectreLensHandler extends SavedData {
     private static final String ID = "randomthings_spectre_lens_handler";
 
     private final Map<UUID, LensEntry> lensEntries = new HashMap<>();
 
     public SpectreLensHandler() {
-        super(ID);
+    }
+
+    public static SpectreLensHandler loadFrom(CompoundTag nbt) {
+        SpectreLensHandler data = new SpectreLensHandler();
+        data.readData(nbt);
+        return data;
     }
 
     public static SpectreLensHandler get(MinecraftServer server) {
-        return server.getWorld(World.OVERWORLD).getSavedData().getOrCreate(SpectreLensHandler::new, ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(SpectreLensHandler::loadFrom, SpectreLensHandler::new, ID);
     }
 
     public void removeLens(UUID uuid) {
         if (lensEntries.remove(uuid) != null) {
-            markDirty();
+            setDirty();
         }
     }
 
-    public void addLens(UUID uuid, int levels, Effect primary, Effect secondary) {
+    public void addLens(UUID uuid, int levels, MobEffect primary, MobEffect secondary) {
         lensEntries.put(uuid, new LensEntry(levels, primary, secondary));
-        markDirty();
+        setDirty();
     }
 
     public void tick(MinecraftServer server) {
-        if (server.getTickCounter() % 60 != 0) {
+        if (server.getTickCount() % 60 != 0) {
             return;
         }
 
         PlayerList playerList = server.getPlayerList();
 
         for (Map.Entry<UUID, LensEntry> entry : lensEntries.entrySet()) {
-            ServerPlayerEntity player = playerList.getPlayerByUUID(entry.getKey());
+            ServerPlayer player = playerList.getPlayer(entry.getKey());
 
             if (player == null) {
                 continue;
@@ -71,33 +76,32 @@ public class SpectreLensHandler extends WorldSavedData {
             int amplifier = lens.primary != null && lens.primary == lens.secondary ? 1 : 0;
 
             if (lens.primary != null) {
-                player.addPotionEffect(new EffectInstance(lens.primary, 20 * 10, amplifier, true, true));
+                player.addEffect(new MobEffectInstance(lens.primary, 20 * 10, amplifier, true, true));
             }
 
             if (lens.secondary != null && lens.secondary != lens.primary) {
-                player.addPotionEffect(new EffectInstance(lens.secondary, 20 * 10, amplifier, true, true));
+                player.addEffect(new MobEffectInstance(lens.secondary, 20 * 10, amplifier, true, true));
             }
         }
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
+    public void readData(CompoundTag nbt) {
         lensEntries.clear();
 
-        ListNBT list = nbt.getList("lensEntries", 10);
+        ListTag list = nbt.getList("lensEntries", 10);
         for (int i = 0; i < list.size(); i++) {
-            CompoundNBT entryTag = list.getCompound(i);
-            lensEntries.put(entryTag.getUniqueId("uuid"), LensEntry.read(entryTag));
+            CompoundTag entryTag = list.getCompound(i);
+            lensEntries.put(entryTag.getUUID("uuid"), LensEntry.read(entryTag));
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT list = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag list = new ListTag();
 
         for (Map.Entry<UUID, LensEntry> entry : lensEntries.entrySet()) {
-            CompoundNBT entryTag = entry.getValue().write();
-            entryTag.putUniqueId("uuid", entry.getKey());
+            CompoundTag entryTag = entry.getValue().write();
+            entryTag.putUUID("uuid", entry.getKey());
             list.add(entryTag);
         }
 
@@ -107,28 +111,28 @@ public class SpectreLensHandler extends WorldSavedData {
 
     private static class LensEntry {
         final int levels;
-        final Effect primary;
-        final Effect secondary;
+        final MobEffect primary;
+        final MobEffect secondary;
 
-        LensEntry(int levels, Effect primary, Effect secondary) {
+        LensEntry(int levels, MobEffect primary, MobEffect secondary) {
             this.levels = levels;
             this.primary = primary;
             this.secondary = secondary;
         }
 
-        CompoundNBT write() {
-            CompoundNBT tag = new CompoundNBT();
+        CompoundTag write() {
+            CompoundTag tag = new CompoundTag();
             tag.putInt("levels", levels);
-            tag.putInt("primary", primary != null ? Effect.getId(primary) : -1);
-            tag.putInt("secondary", secondary != null ? Effect.getId(secondary) : -1);
+            tag.putInt("primary", primary != null ? MobEffect.getId(primary) : -1);
+            tag.putInt("secondary", secondary != null ? MobEffect.getId(secondary) : -1);
             return tag;
         }
 
-        static LensEntry read(CompoundNBT tag) {
+        static LensEntry read(CompoundTag tag) {
             int primaryId = tag.getInt("primary");
             int secondaryId = tag.getInt("secondary");
 
-            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? Effect.get(primaryId) : null, secondaryId >= 0 ? Effect.get(secondaryId) : null);
+            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? MobEffect.byId(primaryId) : null, secondaryId >= 0 ? MobEffect.byId(secondaryId) : null);
         }
     }
 }

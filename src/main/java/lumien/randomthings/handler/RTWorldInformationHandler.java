@@ -1,10 +1,10 @@
 package lumien.randomthings.handler;
 
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.storage.WorldSavedData;
-import net.minecraft.world.World;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.Level;
 
 /**
  * A single persistent, world-global (not per-dimension - always resolved
@@ -17,19 +17,24 @@ import net.minecraft.world.World;
  * {@code DimensionSavedDataManager} the same way {@link
  * lumien.randomthings.handler.spectrelens.SpectreLensHandler} already was
  * ({@code world.getMapStorage()} became {@code
- * server.getWorld(World.OVERWORLD).getSavedData()}).
+ * server.getLevel(World.OVERWORLD).getSavedData()}).
  */
-public class RTWorldInformationHandler extends WorldSavedData {
+public class RTWorldInformationHandler extends SavedData {
     private static final String ID = "randomthings_world_info";
 
     private boolean enderDragonDefeated;
 
     public RTWorldInformationHandler() {
-        super(ID);
+    }
+
+    public static RTWorldInformationHandler loadFrom(CompoundTag nbt) {
+        RTWorldInformationHandler data = new RTWorldInformationHandler();
+        data.readData(nbt);
+        return data;
     }
 
     public static RTWorldInformationHandler get(MinecraftServer server) {
-        return server.getWorld(World.OVERWORLD).getSavedData().getOrCreate(RTWorldInformationHandler::new, ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(RTWorldInformationHandler::loadFrom, RTWorldInformationHandler::new, ID);
     }
 
     public boolean isDragonDefeated() {
@@ -39,17 +44,16 @@ public class RTWorldInformationHandler extends WorldSavedData {
     public void setEnderDragonDefeated(boolean defeated) {
         if (defeated != enderDragonDefeated) {
             enderDragonDefeated = defeated;
-            markDirty();
+            setDirty();
         }
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
+    public void readData(CompoundTag nbt) {
         enderDragonDefeated = nbt.getBoolean("enderDragonDefeated");
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundTag save(CompoundTag compound) {
         compound.putBoolean("enderDragonDefeated", enderDragonDefeated);
         return compound;
     }

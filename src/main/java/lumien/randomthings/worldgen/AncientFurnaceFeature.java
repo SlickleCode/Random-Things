@@ -1,17 +1,18 @@
 package lumien.randomthings.worldgen;
 
 import lumien.randomthings.block.ModBlocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 import java.util.Random;
 import java.util.function.Function;
 import com.mojang.serialization.Codec;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.level.WorldGenLevel;
 import lumien.randomthings.util.BiomeUtil;
 
 /**
@@ -24,30 +25,34 @@ import lumien.randomthings.util.BiomeUtil;
  * per-attempt-gating division of labor this file's now-removed Pitcher Plant
  * counterpart used for its own (opposite) warm-biome restriction.
  */
-public class AncientFurnaceFeature extends Feature<NoFeatureConfig> {
-    public AncientFurnaceFeature(Codec<NoFeatureConfig> codec) {
+public class AncientFurnaceFeature extends Feature<NoneFeatureConfiguration> {
+    public AncientFurnaceFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
     }
 
     @Override
-    public boolean generate(ISeedReader worldIn, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
+        WorldGenLevel worldIn = context.level();
+        BlockPos pos = context.origin();
+        Random rand = context.random();
+
         if (!lumien.randomthings.config.RTConfig.ANCIENT_FURNACE.get()) {
             return false;
         }
 
-        BlockPos ground = pos.down();
+        BlockPos ground = pos.below();
 
-        if (ground.getY() <= 0 || ground.getY() >= 255) {
+        if (ground.getY() <= worldIn.getMinBuildHeight() || ground.getY() >= worldIn.getMaxBuildHeight() - 1) {
             return false;
         }
 
-        Biome biome = worldIn.getBiome(ground);
+        Biome biome = worldIn.getBiome(ground).value();
 
-        if (biome.getTemperature(ground) >= 0.15F) {
+        if (biome.warmEnoughToRain(ground)) {
             return false;
         }
 
-        if (worldIn.isAirBlock(ground) || worldIn.getBlockState(ground).getMaterial().isLiquid()) {
+        if (worldIn.isEmptyBlock(ground) || worldIn.getBlockState(ground).getMaterial().isLiquid()) {
             return false;
         }
 
@@ -55,7 +60,7 @@ public class AncientFurnaceFeature extends Feature<NoFeatureConfig> {
             return false;
         }
 
-        worldIn.setBlockState(ground, ModBlocks.ANCIENT_FURNACE.getDefaultState(), 2);
+        worldIn.setBlock(ground, ModBlocks.ANCIENT_FURNACE.defaultBlockState(), 2);
         return true;
     }
 }

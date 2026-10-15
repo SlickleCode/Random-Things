@@ -2,10 +2,10 @@ package lumien.randomthings.handler.spectre;
 
 import java.util.function.Function;
 
-import net.minecraft.block.PortalInfo;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.portal.PortalInfo;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.ITeleporter;
 
 /**
@@ -19,8 +19,8 @@ public class SpectreTeleporter implements ITeleporter {
     public static final SpectreTeleporter INSTANCE = new SpectreTeleporter();
 
     @Override
-    public PortalInfo getPortalInfo(Entity entity, ServerWorld destWorld, Function<ServerWorld, PortalInfo> defaultPortalInfo) {
-        return new PortalInfo(new Vector3d(8.5D, 1.0D, 8.5D), Vector3d.ZERO, entity.rotationYaw, entity.rotationPitch);
+    public PortalInfo getPortalInfo(Entity entity, ServerLevel destWorld, Function<ServerLevel, PortalInfo> defaultPortalInfo) {
+        return new PortalInfo(new Vec3(8.5D, 1.0D, 8.5D), Vec3.ZERO, entity.getYRot(), entity.getXRot());
     }
 
     @Override

@@ -1,22 +1,22 @@
 package lumien.randomthings.handler.spectre;
 
 import lumien.randomthings.handler.ModDimensions;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
 
 /**
  * Direct port of 1.12.2's {@code SpectreHandler}, restructured onto 1.14.4's
@@ -28,27 +28,32 @@ import net.minecraft.util.registry.Registry;
  * static access, which doesn't exist in this Forge version; every call site
  * already has a player or world handy to get one from.
  */
-public class SpectreHandler extends WorldSavedData {
+public class SpectreHandler extends SavedData {
     private static final String ID = "randomthings_spectre_handler";
 
     private final Map<UUID, SpectreCube> cubes = new HashMap<>();
     private int positionCounter;
 
     public SpectreHandler() {
-        super(ID);
+    }
+
+    public static SpectreHandler loadFrom(CompoundTag nbt) {
+        SpectreHandler data = new SpectreHandler();
+        data.readData(nbt);
+        return data;
     }
 
     public static SpectreHandler getInstance(MinecraftServer server) {
-        ServerWorld world = ModDimensions.getSpectreWorld(server);
+        ServerLevel world = ModDimensions.getSpectreWorld(server);
 
         if (world == null) {
             return null;
         }
 
-        return world.getSavedData().getOrCreate(SpectreHandler::new, ID);
+        return world.getDataStorage().computeIfAbsent(SpectreHandler::loadFrom, SpectreHandler::new, ID);
     }
 
-    public ServerWorld getWorld() {
+    public ServerLevel getWorld() {
         return ModDimensions.getSpectreWorld(ServerLifecycleHooks.getCurrentServer());
     }
 
@@ -59,7 +64,7 @@ public class SpectreHandler extends WorldSavedData {
      * matched the first cube: every later cube was "not found" and {@link #checkPosition} pinned its owner to the spawn
      * tile (found by the behavior test {@code behavior.spectre.*}).
      */
-    public SpectreCube getSpectreCubeFromPos(World world, BlockPos pos) {
+    public SpectreCube getSpectreCubeFromPos(Level world, BlockPos pos) {
         if (!ModDimensions.isSpectre(world) || pos.getZ() > 16 || pos.getZ() < 0) {
             return null;
         }
@@ -79,12 +84,12 @@ public class SpectreHandler extends WorldSavedData {
         return null;
     }
 
-    public void teleportPlayerToSpectreCube(ServerPlayerEntity player) {
-        CompoundNBT persistentData = player.getPersistentData();
-        persistentData.putDouble("spectrePosX", player.getPosX());
-        persistentData.putDouble("spectrePosY", player.getPosY());
-        persistentData.putDouble("spectrePosZ", player.getPosZ());
-        persistentData.putString("spectreDimension", player.world.getDimensionKey().getLocation().toString());
+    public void teleportPlayerToSpectreCube(ServerPlayer player) {
+        CompoundTag persistentData = player.getPersistentData();
+        persistentData.putDouble("spectrePosX", player.getX());
+        persistentData.putDouble("spectrePosY", player.getY());
+        persistentData.putDouble("spectrePosZ", player.getZ());
+        persistentData.putString("spectreDimension", player.level.dimension().location().toString());
 
         UUID uuid = player.getGameProfile().getId();
         SpectreCube spectreCube = cubes.get(uuid);
@@ -95,17 +100,17 @@ public class SpectreHandler extends WorldSavedData {
 
         BlockPos spawn = spectreCube.getSpawnBlock();
 
-        ServerWorld spectreWorld = getWorld();
+        ServerLevel spectreWorld = getWorld();
 
-        if (!ModDimensions.isSpectre(player.world) && spectreWorld != null) {
+        if (!ModDimensions.isSpectre(player.level) && spectreWorld != null) {
             player.changeDimension(spectreWorld, SpectreTeleporter.INSTANCE);
         }
 
-        player.connection.setPlayerLocation(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
+        player.connection.teleport(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.getYRot(), player.getXRot());
     }
 
-    public void teleportPlayerBack(ServerPlayerEntity player) {
-        CompoundNBT persistentData = player.getPersistentData();
+    public void teleportPlayerBack(ServerPlayer player) {
+        CompoundTag persistentData = player.getPersistentData();
 
         if (!persistentData.contains("spectrePosX")) {
             return;
@@ -115,33 +120,33 @@ public class SpectreHandler extends WorldSavedData {
         double spectrePosY = persistentData.getDouble("spectrePosY");
         double spectrePosZ = persistentData.getDouble("spectrePosZ");
         MinecraftServer server = player.getServer();
-        ServerWorld destination = null;
+        ServerLevel destination = null;
 
         if (persistentData.contains("spectreDimension", 8)) {
-            destination = server.getWorld(RegistryKey.getOrCreateKey(Registry.WORLD_KEY, new ResourceLocation(persistentData.getString("spectreDimension"))));
+            destination = server.getLevel(ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(persistentData.getString("spectreDimension"))));
         }
 
         if (destination == null) {
-            destination = server.getWorld(World.OVERWORLD);
+            destination = server.getLevel(Level.OVERWORLD);
         }
 
-        if (player.world != destination) {
+        if (player.level != destination) {
             player.changeDimension(destination, SpectreTeleporter.INSTANCE);
         }
 
-        player.connection.setPlayerLocation(spectrePosX, spectrePosY, spectrePosZ, player.rotationYaw, player.rotationPitch);
+        player.connection.teleport(spectrePosX, spectrePosY, spectrePosZ, player.getYRot(), player.getXRot());
 
-        while (!player.world.hasNoCollisions(player, player.getBoundingBox()) && player.getPosY() < 256.0D) {
-            player.setPosition(player.getPosX(), player.getPosY() + 1.0D, player.getPosZ());
+        while (!player.level.noCollision(player, player.getBoundingBox()) && player.getY() < 256.0D) {
+            player.setPos(player.getX(), player.getY() + 1.0D, player.getZ());
         }
 
-        player.connection.captureCurrentPosition();
+        player.connection.resetPosition();
     }
 
-    public void checkPosition(ServerPlayerEntity player) {
-        SpectreCube cube = getSpectreCubeFromPos(player.world, player.getPosition());
+    public void checkPosition(ServerPlayer player) {
+        SpectreCube cube = getSpectreCubeFromPos(player.level, player.blockPosition());
 
-        if (player.abilities.isCreativeMode || (cube != null && cube.getOwner().equals(player.getGameProfile().getId()))) {
+        if (player.getAbilities().instabuild || (cube != null && cube.getOwner().equals(player.getGameProfile().getId()))) {
             return;
         }
 
@@ -149,7 +154,7 @@ public class SpectreHandler extends WorldSavedData {
 
         if (playerCube != null) {
             BlockPos spawn = playerCube.getSpawnBlock();
-            player.connection.setPlayerLocation(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.rotationYaw, player.rotationPitch);
+            player.connection.teleport(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.getYRot(), player.getXRot());
         } else {
             teleportPlayerBack(player);
         }
@@ -161,13 +166,12 @@ public class SpectreHandler extends WorldSavedData {
 
         cube.generate(getWorld());
         cubes.put(uuid, cube);
-        this.markDirty();
+        this.setDirty();
         return cube;
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
-        ListNBT cubeTags = nbt.getList("cubes", 10);
+    public void readData(CompoundTag nbt) {
+        ListTag cubeTags = nbt.getList("cubes", 10);
 
         for (int i = 0; i < cubeTags.size(); i++) {
             SpectreCube cube = SpectreCube.readFrom(cubeTags.getCompound(i));
@@ -178,11 +182,11 @@ public class SpectreHandler extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT cubeTags = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag cubeTags = new ListTag();
 
         for (SpectreCube cube : cubes.values()) {
-            CompoundNBT cubeCompound = new CompoundNBT();
+            CompoundTag cubeCompound = new CompoundTag();
             cube.writeTo(cubeCompound);
             cubeTags.add(cubeCompound);
         }

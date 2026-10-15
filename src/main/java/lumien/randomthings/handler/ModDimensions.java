@@ -2,27 +2,23 @@ package lumien.randomthings.handler;
 
 import lumien.randomthings.handler.spectre.SpectreChunkGenerator;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import java.util.Optional;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import com.mojang.serialization.Lifecycle;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.registry.MutableRegistry;
-import net.minecraft.util.registry.SimpleRegistry;
-import net.minecraft.world.Dimension;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.biome.provider.SingleBiomeProvider;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import lumien.randomthings.handler.spectre.SpectreDimensionType;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.biome.FixedBiomeSource;
+import net.minecraft.world.level.levelgen.structure.StructureSet;
 
 /**
  * The Spectre dimension (ported from 1.12.2's {@code ModDimensions}). 1.16 made dimensions data: a dimension type
- * (here {@link SpectreDimensionType}), a dimension (our chunk generator over a fixed {@code the_void} biome) and a
+ * (here the datapack file {@code dimension_type/spectre.json}), a dimension (our chunk generator over a fixed {@code the_void} biome) and a
  * client-side sky/fog look ({@code effects}, registered in {@code ClientSetup}) replace 1.14.4's
  * {@code ModDimension} / {@code RegisterDimensionsEvent} / {@code DimensionManager} / {@code Dimension} subclass.
  * <p>
@@ -33,43 +29,40 @@ import lumien.randomthings.handler.spectre.SpectreDimensionType;
  */
 public class ModDimensions {
     public static final ResourceLocation SPECTRE_ID = new ResourceLocation("randomthings", "spectre");
-    public static final RegistryKey<World> SPECTRE_WORLD = RegistryKey.getOrCreateKey(Registry.WORLD_KEY, SPECTRE_ID);
-    public static final RegistryKey<DimensionType> SPECTRE_TYPE = RegistryKey.getOrCreateKey(Registry.DIMENSION_TYPE_KEY, SPECTRE_ID);
-    public static final RegistryKey<Dimension> SPECTRE_DIMENSION = RegistryKey.getOrCreateKey(Registry.DIMENSION_KEY, SPECTRE_ID);
+    public static final ResourceKey<Level> SPECTRE_WORLD = ResourceKey.create(Registry.DIMENSION_REGISTRY, SPECTRE_ID);
+    public static final ResourceKey<DimensionType> SPECTRE_TYPE = ResourceKey.create(Registry.DIMENSION_TYPE_REGISTRY, SPECTRE_ID);
+    public static final ResourceKey<LevelStem> SPECTRE_DIMENSION = ResourceKey.create(Registry.LEVEL_STEM_REGISTRY, SPECTRE_ID);
 
-    /** Run once at mod setup, before any world is created or loaded. */
+    /**
+     * Run once at mod setup, before any world is created or loaded. The dimension type itself is plain datapack JSON
+     * ({@code data/randomthings/dimension_type/spectre.json}, {@code DimensionType}'s constructor is private since 1.18);
+     * only the chunk generator codec has to be registered from code.
+     */
     public static void registerBuiltin() {
-        Registry.register(Registry.CHUNK_GENERATOR_CODEC, SPECTRE_ID, SpectreChunkGenerator.CODEC);
-
-        DynamicRegistries.Impl builtin = ObfuscationReflectionHelper.getPrivateValue(DynamicRegistries.class, null, "field_243600_c");
-        Optional<MutableRegistry<DimensionType>> types = builtin.func_230521_a_(Registry.DIMENSION_TYPE_KEY);
-
-        if (types.isPresent() && !types.get().getOptional(SPECTRE_ID).isPresent()) {
-            types.get().register(SPECTRE_TYPE, new SpectreDimensionType(), Lifecycle.stable());
-        }
+        Registry.register(Registry.CHUNK_GENERATOR, SPECTRE_ID, SpectreChunkGenerator.CODEC);
     }
 
     /** Adds the Spectre dimension to this world's dimension list if it is not there yet (new worlds, and old worlds on first load). */
     public static void addToServer(MinecraftServer server) {
-        SimpleRegistry<Dimension> dimensions = server.getServerConfiguration().getDimensionGeneratorSettings().func_236224_e_();
+        MappedRegistry<LevelStem> dimensions = (MappedRegistry<LevelStem>) server.getWorldData().worldGenSettings().dimensions();
 
         if (dimensions.getOptional(SPECTRE_ID).isPresent()) {
             return;
         }
 
-        Registry<DimensionType> types = server.getDynamicRegistries().getRegistry(Registry.DIMENSION_TYPE_KEY);
-        Registry<Biome> biomes = server.getDynamicRegistries().getRegistry(Registry.BIOME_KEY);
-        DimensionType type = types.getOrThrow(SPECTRE_TYPE);
+        Registry<DimensionType> types = server.registryAccess().registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
+        Registry<Biome> biomes = server.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        Registry<StructureSet> structureSets = server.registryAccess().registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
 
-        dimensions.register(SPECTRE_DIMENSION, new Dimension(() -> type, new SpectreChunkGenerator(new SingleBiomeProvider(biomes.getOrThrow(Biomes.THE_VOID)))), Lifecycle.stable());
+        dimensions.register(SPECTRE_DIMENSION, new LevelStem(types.getHolderOrThrow(SPECTRE_TYPE), new SpectreChunkGenerator(structureSets, new FixedBiomeSource(biomes.getHolderOrThrow(Biomes.THE_VOID)))), Lifecycle.stable());
     }
 
-    public static boolean isSpectre(World world) {
-        return world != null && SPECTRE_WORLD.equals(world.getDimensionKey());
+    public static boolean isSpectre(Level world) {
+        return world != null && SPECTRE_WORLD.equals(world.dimension());
     }
 
     /** The loaded Spectre world. */
-    public static ServerWorld getSpectreWorld(MinecraftServer server) {
-        return server == null ? null : server.getWorld(SPECTRE_WORLD);
+    public static ServerLevel getSpectreWorld(MinecraftServer server) {
+        return server == null ? null : server.getLevel(SPECTRE_WORLD);
     }
 }

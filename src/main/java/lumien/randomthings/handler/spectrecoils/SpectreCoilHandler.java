@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.energy.IEnergyStorage;
 
 /**
@@ -24,7 +24,7 @@ import net.minecraftforge.energy.IEnergyStorage;
  * pulling it in, matching 1.12.2 exactly. Flagging this only because it's a real behavioral choice, not
  * because it looked like a bug.
  */
-public class SpectreCoilHandler extends WorldSavedData {
+public class SpectreCoilHandler extends SavedData {
     private static final String ID = "randomthings_spectre_coil_handler";
 
     private static final int MAX_ENERGY = 1000000;
@@ -32,11 +32,16 @@ public class SpectreCoilHandler extends WorldSavedData {
     private final Map<UUID, Integer> coilEntries = new HashMap<>();
 
     public SpectreCoilHandler() {
-        super(ID);
     }
 
-    public static SpectreCoilHandler get(World world) {
-        return ((ServerWorld) world).getSavedData().getOrCreate(SpectreCoilHandler::new, ID);
+    public static SpectreCoilHandler loadFrom(CompoundTag nbt) {
+        SpectreCoilHandler data = new SpectreCoilHandler();
+        data.readData(nbt);
+        return data;
+    }
+
+    public static SpectreCoilHandler get(Level world) {
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(SpectreCoilHandler::loadFrom, SpectreCoilHandler::new, ID);
     }
 
     /** Receive-only - used by the Spectre Energy Injector block (external machines push energy in). */
@@ -49,7 +54,7 @@ public class SpectreCoilHandler extends WorldSavedData {
 
                 if (!simulate && newEnergy != currentEnergy) {
                     coilEntries.put(owner, newEnergy);
-                    markDirty();
+                    setDirty();
                 }
 
                 return newEnergy - currentEnergy;
@@ -92,7 +97,7 @@ public class SpectreCoilHandler extends WorldSavedData {
 
                 if (!simulate && newEnergy != currentEnergy) {
                     coilEntries.put(owner, newEnergy);
-                    markDirty();
+                    setDirty();
                 }
 
                 return newEnergy - currentEnergy;
@@ -105,7 +110,7 @@ public class SpectreCoilHandler extends WorldSavedData {
 
                 if (!simulate && newEnergy != currentEnergy) {
                     coilEntries.put(owner, newEnergy);
-                    markDirty();
+                    setDirty();
                 }
 
                 return currentEnergy - newEnergy;
@@ -133,24 +138,23 @@ public class SpectreCoilHandler extends WorldSavedData {
         };
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
+    public void readData(CompoundTag nbt) {
         coilEntries.clear();
 
-        ListNBT list = nbt.getList("coilEntries", 10);
+        ListTag list = nbt.getList("coilEntries", 10);
         for (int i = 0; i < list.size(); i++) {
-            CompoundNBT entry = list.getCompound(i);
-            coilEntries.put(entry.getUniqueId("uuid"), entry.getInt("energy"));
+            CompoundTag entry = list.getCompound(i);
+            coilEntries.put(entry.getUUID("uuid"), entry.getInt("energy"));
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT list = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag list = new ListTag();
 
         for (Map.Entry<UUID, Integer> entry : coilEntries.entrySet()) {
-            CompoundNBT entryCompound = new CompoundNBT();
-            entryCompound.putUniqueId("uuid", entry.getKey());
+            CompoundTag entryCompound = new CompoundTag();
+            entryCompound.putUUID("uuid", entry.getKey());
             entryCompound.putInt("energy", entry.getValue());
             list.add(entryCompound);
         }

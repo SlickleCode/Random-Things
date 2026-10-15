@@ -1,29 +1,29 @@
 package lumien.randomthings.tileentity;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.network.play.server.SChunkDataPacket;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.Explosion;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.core.Holder;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.server.level.ServerLevel;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.biome.BiomeContainer;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Registry;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityAncientFurnace} heating/explosion
@@ -75,7 +75,7 @@ import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
  * currently tracking it - the same packet vanilla's own {@code ChunkManager
  * #sendChunkData} sends when a chunk first loads for a player.
  */
-public class AncientFurnaceTileEntity extends TileEntity implements ITickableTileEntity {
+public class AncientFurnaceTileEntity extends BlockEntity {
     /** ~56 blocks, the radius of a circle with area 10000 (the wiki's own default). */
     private static final int RADIUS = 56;
     private static final int HEATING_DURATION = 20 * 60 * 5;
@@ -99,42 +99,41 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
      * MUTATED_BIRCH_FOREST}->{@code TALL_BIRCH_FOREST}, {@code
      * MUTATED_BIRCH_FOREST_HILLS}->{@code TALL_BIRCH_HILLS}).
      */
-    private static final Map<RegistryKey<Biome>, RegistryKey<Biome>> COLD_TO_WARM = buildConversionMap();
+    private static final Map<ResourceKey<Biome>, ResourceKey<Biome>> COLD_TO_WARM = buildConversionMap();
 
-    private static Map<RegistryKey<Biome>, RegistryKey<Biome>> buildConversionMap() {
-        Map<RegistryKey<Biome>, RegistryKey<Biome>> map = new HashMap<>();
+    private static Map<ResourceKey<Biome>, ResourceKey<Biome>> buildConversionMap() {
+        Map<ResourceKey<Biome>, ResourceKey<Biome>> map = new HashMap<>();
+        // 1.18 removed the *_HILLS / *_MOUNTAINS biome variants and renamed the cold ones; the closest warm counterparts
         map.put(Biomes.TAIGA, Biomes.FOREST);
         map.put(Biomes.FROZEN_OCEAN, Biomes.OCEAN);
+        map.put(Biomes.DEEP_FROZEN_OCEAN, Biomes.DEEP_OCEAN);
         map.put(Biomes.FROZEN_RIVER, Biomes.RIVER);
-        map.put(Biomes.SNOWY_TUNDRA, Biomes.PLAINS);
-        map.put(Biomes.SNOWY_MOUNTAINS, Biomes.WOODED_HILLS);
-        map.put(Biomes.TAIGA_HILLS, Biomes.WOODED_HILLS);
+        map.put(Biomes.SNOWY_PLAINS, Biomes.PLAINS);
+        map.put(Biomes.SNOWY_SLOPES, Biomes.MEADOW);
+        map.put(Biomes.GROVE, Biomes.FOREST);
         map.put(Biomes.SNOWY_BEACH, Biomes.BEACH);
         map.put(Biomes.SNOWY_TAIGA, Biomes.BIRCH_FOREST);
-        map.put(Biomes.SNOWY_TAIGA_HILLS, Biomes.BIRCH_FOREST_HILLS);
-        map.put(Biomes.GIANT_TREE_TAIGA_HILLS, Biomes.BIRCH_FOREST_HILLS);
-        map.put(Biomes.TAIGA_MOUNTAINS, Biomes.TALL_BIRCH_FOREST);
+        map.put(Biomes.OLD_GROWTH_PINE_TAIGA, Biomes.OLD_GROWTH_BIRCH_FOREST);
+        map.put(Biomes.OLD_GROWTH_SPRUCE_TAIGA, Biomes.OLD_GROWTH_BIRCH_FOREST);
         map.put(Biomes.ICE_SPIKES, Biomes.FLOWER_FOREST);
-        map.put(Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.TALL_BIRCH_HILLS);
         return map;
     }
 
     private boolean heating;
     private int ticks;
 
-    public AncientFurnaceTileEntity() {
-        super(ModTileEntityTypes.ANCIENT_FURNACE);
+    public AncientFurnaceTileEntity(BlockPos pos, BlockState state) {
+        super(ModTileEntityTypes.ANCIENT_FURNACE, pos, state);
     }
 
     public void startHeating() {
         this.heating = true;
         this.ticks = 0;
-        this.markDirty();
+        this.setChanged();
     }
 
-    @Override
     public void tick() {
-        if (this.world == null || this.world.isRemote || !this.heating) {
+        if (this.level == null || this.level.isClientSide || !this.heating) {
             return;
         }
 
@@ -142,21 +141,21 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
 
         if (this.ticks >= HEATING_DURATION) {
             this.heating = false;
-            finish(this.world, this.pos);
+            finish(this.level, this.worldPosition);
         }
     }
 
-    private static void finish(World world, BlockPos center) {
+    private static void finish(Level world, BlockPos center) {
         warmSurroundings(world, center);
         world.removeBlock(center, false);
-        world.createExplosion(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5, 4.0F, Explosion.Mode.BREAK);
+        world.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5, 4.0F, Explosion.BlockInteraction.BREAK);
     }
 
-    private static void warmSurroundings(World world, BlockPos center) {
+    private static void warmSurroundings(Level world, BlockPos center) {
         int cx = center.getX();
         int cz = center.getZ();
 
-        Set<Chunk> touchedChunks = new HashSet<>();
+        Set<LevelChunk> touchedChunks = new HashSet<>();
 
         for (int dx = -RADIUS; dx <= RADIUS; dx++) {
             for (int dz = -RADIUS; dz <= RADIUS; dz++) {
@@ -166,36 +165,36 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
 
                 int x = cx + dx;
                 int z = cz + dz;
-                BlockPos columnPos = new BlockPos(x, 0, z);
+                BlockPos columnPos = new BlockPos(x, world.getMinBuildHeight(), z);
 
-                if (!world.isBlockLoaded(columnPos)) {
+                if (!world.hasChunkAt(columnPos)) {
                     continue;
                 }
 
-                Registry<Biome> biomeRegistry = world.func_241828_r().getRegistry(Registry.BIOME_KEY);
-                RegistryKey<Biome> coldKey = biomeRegistry.getOptionalKey(world.getBiome(columnPos)).orElse(null);
-                RegistryKey<Biome> warmKey = coldKey == null ? null : COLD_TO_WARM.get(coldKey);
-                Biome warmBiome = warmKey == null ? null : biomeRegistry.getValueForKey(warmKey);
+                Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+                ResourceKey<Biome> coldKey = world.getBiome(columnPos).unwrapKey().orElse(null);
+                ResourceKey<Biome> warmKey = coldKey == null ? null : COLD_TO_WARM.get(coldKey);
+                Holder<Biome> warmBiome = warmKey == null ? null : biomeRegistry.getHolder(warmKey).orElse(null);
 
                 if (warmBiome == null) {
                     continue;
                 }
 
-                Chunk chunk = world.getChunkAt(columnPos);
+                LevelChunk chunk = world.getChunkAt(columnPos);
                 setBiomeColumn(chunk, x, z, warmBiome);
-                chunk.markDirty();
+                chunk.setUnsaved(true);
                 touchedChunks.add(chunk);
 
-                int top = world.getHeight(Heightmap.Type.MOTION_BLOCKING, x, z);
+                int top = world.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
 
-                for (int y = Math.min(top + 2, 255); y >= Math.max(top - 4, 0); y--) {
+                for (int y = Math.min(top + 2, world.getMaxBuildHeight() - 1); y >= Math.max(top - 4, world.getMinBuildHeight()); y--) {
                     BlockPos p = new BlockPos(x, y, z);
                     Block block = world.getBlockState(p).getBlock();
 
                     if (block == Blocks.SNOW || block == Blocks.SNOW_BLOCK) {
-                        world.setBlockState(p, Blocks.AIR.getDefaultState(), 2);
+                        world.setBlock(p, Blocks.AIR.defaultBlockState(), 2);
                     } else if (block == Blocks.ICE || block == Blocks.PACKED_ICE || block == Blocks.BLUE_ICE || block == Blocks.FROSTED_ICE) {
-                        world.setBlockState(p, Blocks.WATER.getDefaultState(), 2);
+                        world.setBlock(p, Blocks.WATER.defaultBlockState(), 2);
                     }
                 }
             }
@@ -219,52 +218,43 @@ public class AncientFurnaceTileEntity extends TileEntity implements ITickableTil
      * #sendChunkData} uses when a chunk first loads for a player, just
      * invoked directly since that method itself is private.
      */
-    private static final java.lang.reflect.Field BIOME_ARRAY = ObfuscationReflectionHelper.findField(BiomeContainer.class, "field_227054_f_");
-
     /**
-     * 1.16 stores biomes per 4x4x4 cell ({@code BiomeContainer.biomes}, private final), not per block column as in
-     * 1.14.4, so the whole column of the cell is rewritten: the conversion is effectively quantized to 4x4 blocks.
+     * 1.18 stores biomes per 4x4x4 cell in each chunk section's paletted container (no more flat per-chunk array), so
+     * the whole column of the cell is rewritten in every section: the conversion is quantized to 4x4 blocks horizontally.
      */
-    private static void setBiomeColumn(Chunk chunk, int x, int z, Biome biome) {
-        try {
-            Biome[] biomes = (Biome[]) BIOME_ARRAY.get(chunk.getBiomes());
-            int cellX = (x >> 2) & BiomeContainer.HORIZONTAL_MASK;
-            int cellZ = (z >> 2) & BiomeContainer.HORIZONTAL_MASK;
-
-            for (int cellY = 0; cellY <= BiomeContainer.VERTICAL_MASK; cellY++) {
-                biomes[cellY << 4 | cellZ << 2 | cellX] = biome;
+    private static void setBiomeColumn(LevelChunk chunk, int x, int z, Holder<Biome> biome) {
+        for (LevelChunkSection section : chunk.getSections()) {
+            for (int cellY = 0; cellY < 4; cellY++) {
+                section.getBiomes().set((x >> 2) & 3, cellY, (z >> 2) & 3, biome);
             }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private static void resyncBiomesToClients(World world, Set<Chunk> touchedChunks) {
-        if (!(world instanceof ServerWorld) || touchedChunks.isEmpty()) {
+    private static void resyncBiomesToClients(Level world, Set<LevelChunk> touchedChunks) {
+        if (!(world instanceof ServerLevel) || touchedChunks.isEmpty()) {
             return;
         }
 
-        ServerWorld serverWorld = (ServerWorld) world;
+        ServerLevel serverWorld = (ServerLevel) world;
 
-        for (Chunk chunk : touchedChunks) {
-            SChunkDataPacket packet = new SChunkDataPacket(chunk, 65535);
+        for (LevelChunk chunk : touchedChunks) {
+            ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, serverWorld.getChunkSource().getLightEngine(), null, null, true);
 
-            serverWorld.getChunkProvider().chunkManager.getTrackingPlayers(chunk.getPos(), false)
-                    .forEach(player -> player.connection.sendPacket(packet));
+            serverWorld.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false)
+                    .forEach(player -> player.connection.send(packet));
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    protected void saveAdditional(CompoundTag compound) {
+        super.saveAdditional(compound);
         compound.putBoolean("heating", heating);
         compound.putInt("ticks", ticks);
-        return compound;
     }
 
     @Override
-    public void read(BlockState tileState, CompoundNBT compound) {
-        super.read(tileState, compound);
+    public void load(CompoundTag compound) {
+        super.load(compound);
         this.heating = compound.getBoolean("heating");
         this.ticks = compound.getInt("ticks");
     }

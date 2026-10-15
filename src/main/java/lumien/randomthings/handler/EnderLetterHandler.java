@@ -1,12 +1,12 @@
 package lumien.randomthings.handler;
 
 import lumien.randomthings.item.ModItems;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.WorldSavedData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.HashMap;
@@ -23,22 +23,27 @@ import java.util.UUID;
  * standard capability-based inventory, restricted to {@code ItemEnderLetter}
  * stacks only, matching the original's own {@code isItemValidForSlot}).
  */
-public class EnderLetterHandler extends WorldSavedData {
+public class EnderLetterHandler extends SavedData {
     private static final String ID = "randomthings_ender_letters";
 
     private final Map<UUID, ItemStackHandler> inventoryMap = new HashMap<>();
 
     public EnderLetterHandler() {
-        super(ID);
     }
 
-    public static EnderLetterHandler get(World world) {
-        return ((ServerWorld) world).getSavedData().getOrCreate(EnderLetterHandler::new, ID);
+    public static EnderLetterHandler loadFrom(CompoundTag nbt) {
+        EnderLetterHandler data = new EnderLetterHandler();
+        data.readData(nbt);
+        return data;
+    }
+
+    public static EnderLetterHandler get(Level world) {
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(EnderLetterHandler::loadFrom, EnderLetterHandler::new, ID);
     }
 
     public ItemStackHandler getOrCreateInventoryForPlayer(UUID playerUUID) {
         return inventoryMap.computeIfAbsent(playerUUID, uuid -> {
-            markDirty();
+            setDirty();
             return newMailboxHandler();
         });
     }
@@ -72,17 +77,16 @@ public class EnderLetterHandler extends WorldSavedData {
 
             @Override
             protected void onContentsChanged(int slot) {
-                markDirty();
+                setDirty();
             }
         };
     }
 
-    @Override
-    public void read(CompoundNBT nbt) {
-        ListNBT entryList = nbt.getList("entryList", 10);
+    public void readData(CompoundTag nbt) {
+        ListTag entryList = nbt.getList("entryList", 10);
 
         for (int i = 0; i < entryList.size(); i++) {
-            CompoundNBT entryCompound = entryList.getCompound(i);
+            CompoundTag entryCompound = entryList.getCompound(i);
             UUID uuid = UUID.fromString(entryCompound.getString("uuid"));
 
             ItemStackHandler handler = newMailboxHandler();
@@ -93,11 +97,11 @@ public class EnderLetterHandler extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        ListNBT entryList = new ListNBT();
+    public CompoundTag save(CompoundTag compound) {
+        ListTag entryList = new ListTag();
 
         for (Map.Entry<UUID, ItemStackHandler> entry : inventoryMap.entrySet()) {
-            CompoundNBT entryCompound = new CompoundNBT();
+            CompoundTag entryCompound = new CompoundTag();
             entryCompound.putString("uuid", entry.getKey().toString());
             entryCompound.put("inventory", entry.getValue().serializeNBT());
             entryList.add(entryCompound);
