@@ -10,6 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
  * unit-tested on both sides; {@code ClientAsmHandler} feeds it the stack the renderer is drawing.
  * Priority: fixed tints of Redstone Tool / Spectre Key / Portkey, then the stack's {@code enchantmentColor} tag (Dyeing Machine), then the Spectre
  * Sword and Escape Rope tints, otherwise vanilla's colour.
+ * The 1.12.2 Precious Emerald's animated rainbow glint is deliberately not ported (the item itself is out of scope, see {@code docs/project/scope-decisions.md}).
  */
 public final class GlintColors {
     public static final int VANILLA = -8372020;

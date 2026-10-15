@@ -577,6 +577,8 @@ already shipped (kept, per explicit user decision) and what's simply skipped goi
   registrations, assets, lang entries) per explicit user decision.
 
 **Not started, and will not be started (undocumented):**
+- **Precious Emerald** (`ItemIngredient.PRECIOUS_EMERALD`, 2026-10-14 user decision: not to be ported) - only used to trigger the Festival system below, and carries the
+  animated rainbow enchant glint that is the one 1.12.2 glint colour (`enchantmentColorHook`) not reproduced in `GlintColors`.
 - **Festival system** (`handler/festival/*`, triggered by feeding a villager `ItemIngredient
   .PRECIOUS_EMERALD`) — no wiki page.
 - **Player Soul / Revive Circle** (`EntitySoul`, `EntityReviveCircle`) — a death-marker/revival
