@@ -1,11 +1,10 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
-        jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -15,14 +14,14 @@ apply plugin: 'maven-publish'
 
 version = '5.0'
 group = 'lumien.randomthings'
-archivesBaseName = 'RandomThings-MC1.16.5'
+archivesBaseName = 'RandomThings-MC1.18.2'
 
 tasks.withType(JavaCompile) { options.compilerArgs << '-Xmaxerrs' << '10000' }
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 
 minecraft {
-    mappings channel: 'snapshot', version: '20210309-1.16.5'
+    mappings channel: 'official', version: '1.18.2'
     
     // accessTransformer = file('build/resources/main/META-INF/accesstransformer.cfg')
 
@@ -98,7 +97,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.3.12'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
