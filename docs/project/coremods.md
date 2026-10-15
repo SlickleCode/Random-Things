@@ -22,7 +22,8 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `WorldRedstonePowerTransformer` / `WorldReaderStrongPowerTransformer` | `World.getRedstonePower` / `IWorldReader.getStrongPower` | Wireless Redstone Interface signals |
 | `TeleporterTransformer` | `Teleporter.makePortal` | Skip portal carving for the Spectre dimension |
 | `BlockRendererDispatcherTransformer` | block render dispatch | Light Redirector "periscope" |
-| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer | Dyeing Machine recolor |
+| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer; (1.16.5) also capture the stack being drawn in `renderItem` / `BipedArmorLayer.func_241739_a_` | Dyeing Machine recolor; enchant-glint colour |
+| `RenderTypeTransformer` (1.16.5 only) | the seven glint `RenderType` getters return `ClientAsmHandler.tintGlint(type)` (tinted wrapper type for stacks with a custom glint colour) | Dyeing Machine glint result, Redstone Tool, Spectre Key/Sword, Portkey, Escape Rope |
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a
