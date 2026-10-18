@@ -264,7 +264,7 @@ public final class RenderScenes
 			}
 			case "biome_radar":
 			{
-				String[] biomes = { "minecraft:plains", "minecraft:desert", "minecraft:snowy_tundra" };
+				String[] biomes = { "minecraft:plains", "minecraft:desert", "minecraft:snowy_plains" };
 
 				for (int i = 0; i < biomes.length; i++)
 				{
@@ -382,7 +382,7 @@ public final class RenderScenes
 				for (int i = 0; i < 3; i++)
 				{
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, ForgeRegistries.BIOMES.getValue(new ResourceLocation(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_tundra"))));
+					BiomeCrystalItem.setBiome(crystal, ForgeRegistries.BIOMES.getValue(new ResourceLocation(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
 					groundItem(world, crystal, x0 + 9 + i, y0 + 0.3, z0 + 4.5);
 				}
 

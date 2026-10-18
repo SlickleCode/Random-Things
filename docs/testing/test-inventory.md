@@ -93,6 +93,16 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `worldgen.peace_candle.real_village_assemblies_contain_the_church_about_a_third_of_the_time`
 - `worldgen.peace_candle.assembler_builds_no_peace_candle_churches_with_the_config_off`
 - `worldgen.peace_candle.church_piece_places_a_working_peace_candle`
+- `worldgen.bean_sprout.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.lotus.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.ancient_furnace.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.bean_sprout.places_on_air_above_farmland_but_not_on_stone_or_into_a_solid_block`
+- `worldgen.lotus.snowy_biome_check_and_refuses_in_a_non_snowy_biome`
+- `worldgen.ancient_furnace.generates_only_in_cold_biomes_on_solid_ground`
+- `worldgen.ancient_furnace.heating_converts_cold_biomes_melts_snow_and_ice_and_leaves_warm_biomes_alone`
+- `worldgen.ancient_furnace.client_sees_the_biome_change_after_heating (client run only)`
+- `worldgen.spectre.dimension_uses_the_void_generator_and_a_256_tall_zero_based_height`
+- `worldgen.spectre.a_generated_chunk_far_from_the_cubes_is_empty_air`
 
 ## World generation tests (`worldgen.*`, deterministic)
 

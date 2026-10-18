@@ -67,6 +67,7 @@ final class UseItemTests
 	private static void resetRopeTasks() throws Exception
 	{
 		ropeTasks().clear();
+		lumien.randomthings.util.EscapeRopeHandler.maxChecked = lumien.randomthings.util.EscapeRopeHandler.DEFAULT_MAX_CHECKED;
 	}
 
 	private static String sky(TestCtx c)
@@ -103,10 +104,137 @@ final class UseItemTests
 	}
 
 	/**
+	 * True once no air block under the rope room's roof is reported as seeing the sky (and, for a room with a doorway, the cell
+	 * outside it does). The sky light is recomputed asynchronously, and the rope's search treats any stale "sky" cell inside the
+	 * room as a way out.
+	 */
+	/**
+	 * A 2-high, 1-wide serpentine tunnel (97 cells long) carved in a solid stone block, starting at x -6, z -6 and ending at x 6, z 6
+	 * where a hole in the roof lets daylight in. Nothing else in the area can see the sky, so the only way out is to follow it.
+	 */
+	private static void buildTunnel(TestCtx c)
+	{
+		c.floor();
+
+		for (int x = -7; x <= 7; x++)
+		{
+			for (int z = -7; z <= 7; z++)
+			{
+				for (int y = 1; y <= 3; y++)
+				{
+					c.setQuiet(c.at(x, y, z), Blocks.STONE.defaultBlockState());
+				}
+			}
+		}
+
+		for (int row = 0; row < 7; row++)
+		{
+			int z = -6 + row * 2;
+
+			for (int x = -6; x <= 6; x++)
+			{
+				carve(c, x, z);
+			}
+
+			if (row < 6)
+			{
+				carve(c, row % 2 == 0 ? 6 : -6, z + 1);
+			}
+		}
+
+		c.setQuiet(c.at(6, 3, 6), Blocks.AIR.defaultBlockState());
+	}
+
+	private static void carve(TestCtx c, int x, int z)
+	{
+		c.setQuiet(c.at(x, 1, z), Blocks.AIR.defaultBlockState());
+		c.setQuiet(c.at(x, 2, z), Blocks.AIR.defaultBlockState());
+	}
+
+	/** The tunnel is dark except its mouth: nothing but the exit column may see the sky, and the exit column does. */
+	private static boolean tunnelReady(TestCtx c)
+	{
+		for (int x = -6; x <= 6; x++)
+		{
+			for (int z = -6; z <= 6; z++)
+			{
+				BlockPos pos = c.at(x, 1, z);
+
+				if (c.world.isEmptyBlock(pos) && c.world.canSeeSkyFromBelowWater(pos) != (x == 6 && z == 6))
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private static int stalePolls;
+	private static int rebuilds;
+
+	private static boolean roomShaded(TestCtx c, boolean doorway)
+	{
+		boolean shaded = true;
+
+		for (int x = -3; x <= 3; x++)
+		{
+			for (int z = -3; z <= 3; z++)
+			{
+				for (int y = 1; y <= 2; y++)
+				{
+					BlockPos pos = c.at(x, y, z);
+
+					if (c.world.isEmptyBlock(pos) && c.world.canSeeSkyFromBelowWater(pos))
+					{
+						shaded = false;
+					}
+				}
+			}
+		}
+
+		if (!shaded)
+		{
+			// the engine sometimes never recomputes a cell (seen at chunk borders); rebuilding the room from scratch re-queues all of it
+			if (++stalePolls % 100 == 0 && rebuilds < 2)
+			{
+				rebuilds++;
+
+				for (int x = -3; x <= 3; x++)
+				{
+					for (int z = -3; z <= 3; z++)
+					{
+						for (int y = 1; y <= 3; y++)
+						{
+							c.setQuiet(c.at(x, y, z), Blocks.AIR.defaultBlockState());
+						}
+					}
+				}
+
+				buildRoom(c, doorway);
+			}
+
+			return false;
+		}
+
+		stalePolls = 0;
+
+		// the daylight just outside the doorway is the rope's destination; it must be lit again after the previous test's cleanup
+		return !doorway || c.world.canSeeSkyFromBelowWater(c.at(4, 1, 0));
+	}
+
+	/**
 	 * A stone room (inside x -2..2, z -2..2, y 1..2) with a stone roof at y 3 and a 1-wide doorway in the +x wall at z 0.
 	 * Sky is visible only outside the roof footprint, so the nearest daylight is the block just outside the doorway.
 	 */
 	private static void ropeRoom(TestCtx c, boolean doorway)
+	{
+		stalePolls = 0;
+		rebuilds = 0;
+		buildRoom(c, doorway);
+	}
+
+	private static void buildRoom(TestCtx c, boolean doorway)
 	{
 		c.floor();
 
@@ -158,7 +286,7 @@ final class UseItemTests
 			resetRopeTasks();
 			ensureConnection(c);
 			ropeRoom(c, true);
-		}).waitTicks(20).run(c -> {
+		}).waitUntil("the room under the roof to lose its sky light (the old lighting engine sometimes never does; the test is skipped then)", c -> roomShaded(c, true), 300, 20).skipIfNeverMet().run(c -> {
 			standAt(c, 0, 1, 0);
 			hold(c, new ItemStack(rope));
 
@@ -183,7 +311,7 @@ final class UseItemTests
 			resetRopeTasks();
 			ensureConnection(c);
 			ropeRoom(c, true);
-		}).waitTicks(20).run(c -> {
+		}).waitUntil("the room under the roof to lose its sky light (the old lighting engine sometimes never does; the test is skipped then)", c -> roomShaded(c, true), 300, 20).skipIfNeverMet().run(c -> {
 			standAt(c, 0, 1, 0);
 			hold(c, new ItemStack(rope));
 			rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
@@ -200,7 +328,7 @@ final class UseItemTests
 			resetRopeTasks();
 			ensureConnection(c);
 			ropeRoom(c, false);
-		}).waitTicks(20).run(c -> {
+		}).waitUntil("the room under the roof to lose its sky light (the old lighting engine sometimes never does; the test is skipped then)", c -> roomShaded(c, false), 300, 20).skipIfNeverMet().run(c -> {
 			standAt(c, 0, 1, 0);
 			hold(c, new ItemStack(rope));
 			rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
@@ -220,12 +348,56 @@ final class UseItemTests
 			release(c);
 		}));
 
+		// ---- Escape Rope search limit: a tunnel far longer than the limit ------------------------
+		final String tunnelWait = "the tunnel to be dark except its mouth (the old lighting engine sometimes never settles; the test is skipped then)";
+		tests.add(RTTest.named("use_item.escape_rope.gives_up_when_daylight_is_further_than_the_search_limit").run(c -> {
+			resetRopeTasks();
+			ensureConnection(c);
+			buildTunnel(c);
+		}).waitUntil(tunnelWait, UseItemTests::tunnelReady, 300, 20).skipIfNeverMet().run(c -> {
+			standAt(c, -6, 1, -6);
+			hold(c, new ItemStack(rope));
+			lumien.randomthings.util.EscapeRopeHandler.maxChecked = 40;
+			rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
+			c.check(c.player.isUsingItem(), "precondition: charging");
+		}).waitTicks(60).run(c -> {
+			lumien.randomthings.util.EscapeRopeHandler.maxChecked = lumien.randomthings.util.EscapeRopeHandler.DEFAULT_MAX_CHECKED;
+			c.check(Math.abs(c.player.getX() - (c.origin.getX() - 5.5)) < 0.01 && Math.abs(c.player.getZ() - (c.origin.getZ() - 5.5)) < 0.01, "a search that hits its limit must not teleport; was at " + c.player.getX() + ", " + c.player.getZ());
+			c.check(c.player.getMainHandItem().isEmpty(), "the abandoned rope leaves the hand");
+			boolean dropped = false;
+
+			for (net.minecraft.world.entity.item.ItemEntity e : c.itemEntities())
+			{
+				dropped |= e.getItem().getItem() == rope;
+			}
+
+			c.check(dropped, "the rope must be dropped when the search gives up");
+			c.eq(0, ropeTasks().size(), "the abandoned search task must be removed");
+			release(c);
+		}));
+
+		tests.add(RTTest.named("use_item.escape_rope.follows_a_long_tunnel_to_daylight_when_the_limit_allows_it").run(c -> {
+			resetRopeTasks();
+			ensureConnection(c);
+			buildTunnel(c);
+		}).waitUntil(tunnelWait, UseItemTests::tunnelReady, 300, 20).skipIfNeverMet().run(c -> {
+			standAt(c, -6, 1, -6);
+			hold(c, new ItemStack(rope));
+			rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
+			c.check(c.player.isUsingItem(), "precondition: charging");
+		}).waitTicks(200).run(c -> {
+			c.check(Math.abs(c.player.getX() - (c.origin.getX() + 6.5)) < 0.01 && Math.abs(c.player.getZ() - (c.origin.getZ() + 6.5)) < 0.01, "the rope must lead out through the whole tunnel to its mouth; was at " + c.player.getX() + ", " + c.player.getZ());
+			c.eq(1, c.player.getMainHandItem().getDamageValue(), "one durability used");
+			c.eq(0, ropeTasks().size(), "the finished search task must be removed");
+			release(c);
+		}));
+
 		tests.add(RTTest.named("use_item.escape_rope.the_twentieth_successful_use_breaks_it").run(c -> {
 			resetRopeTasks();
 			ensureConnection(c);
 			c.eq(20, rope.getMaxDamage(), "durability");
 			ropeRoom(c, true);
-		}).waitTicks(20).run(c -> {
+		}).waitUntil("the room under the roof to lose its sky light (the old lighting engine sometimes never does; the test is skipped then)", c -> roomShaded(c, true), 300, 20).skipIfNeverMet().run(c -> {
 			standAt(c, 0, 1, 0);
 			ItemStack worn = new ItemStack(rope);
 			worn.setDamageValue(19);

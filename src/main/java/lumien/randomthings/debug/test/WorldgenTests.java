@@ -1,6 +1,7 @@
 package lumien.randomthings.debug.test;
 
 import java.util.HashMap;
+import net.minecraft.world.level.block.Block;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.world.level.levelgen.feature.ConfiguredStructureFeature;
@@ -417,6 +418,47 @@ final class WorldgenTests
 		return new int[] { vanilla, peace, count };
 	}
 
+	/** Writes {@code biome} into every biome cell of the chunks around the test origin. */
+	private static void paintBiome(TestCtx c, Holder<Biome> biome)
+	{
+		for (int cx = (c.origin.getX() - 24) >> 4; cx <= (c.origin.getX() + 24) >> 4; cx++)
+		{
+			for (int cz = (c.origin.getZ() - 24) >> 4; cz <= (c.origin.getZ() + 24) >> 4; cz++)
+			{
+				net.minecraft.world.level.chunk.LevelChunk chunk = c.world.getChunk(cx, cz);
+
+				for (net.minecraft.world.level.chunk.LevelChunkSection section : chunk.getSections())
+				{
+					net.minecraft.world.level.chunk.PalettedContainer<Holder<Biome>> cells = (net.minecraft.world.level.chunk.PalettedContainer<Holder<Biome>>) section.getBiomes();
+
+					for (int x = 0; x < 4; x++)
+					{
+						for (int y = 0; y < 4; y++)
+						{
+							for (int z = 0; z < 4; z++)
+							{
+								cells.set(x, y, z, biome);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/** Sends the chunks around the test origin to the real player again, like a fresh chunk load (biomes travel with the chunk). */
+	private static void resendAround(TestCtx c)
+	{
+		for (int cx = (c.origin.getX() - 24) >> 4; cx <= (c.origin.getX() + 24) >> 4; cx++)
+		{
+			for (int cz = (c.origin.getZ() - 24) >> 4; cz <= (c.origin.getZ() + 24) >> 4; cz++)
+			{
+				net.minecraft.world.level.chunk.LevelChunk chunk = c.world.getChunk(cx, cz);
+				c.player.connection.send(new net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket(chunk, c.world.getChunkSource().getLightEngine(), null, null, true));
+			}
+		}
+	}
+
 	static List<RTTest> create()
 	{
 		List<RTTest> tests = new ArrayList<>();
@@ -789,6 +831,273 @@ final class WorldgenTests
 			c.eq(1, candles, "the church holds exactly one Peace Candle");
 			c.check(found != null, "the Peace Candle block must have its tile entity");
 			c.check(registered, "the placed candle must be in the active registry that blocks monster spawns");
+		}));
+
+		// ---- Other natural features (registration, placement rules) ---------------------------
+		String[][] natural = { { "bean_sprout", "2", "VEGETAL_DECORATION" }, { "lotus", "10", "VEGETAL_DECORATION" }, { "ancient_furnace", "400", "LOCAL_MODIFICATIONS" } };
+
+		for (String[] spec : natural)
+		{
+			tests.add(RTTest.named("worldgen." + spec[0] + ".is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity").run(c -> {
+				Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+				int step = GenerationStep.Decoration.valueOf(spec[2]).ordinal();
+				int overworldStyle = 0;
+
+				for (Biome biome : biomes)
+				{
+					boolean found = false;
+					String json = "";
+					List<HolderSet<PlacedFeature>> stages = biome.getGenerationSettings().features();
+
+					for (int i = 0; i < stages.size(); i++)
+					{
+						for (Holder<PlacedFeature> holder : stages.get(i))
+						{
+							String encoded = PlacedFeature.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, holder.value()).result().map(Object::toString).orElse("");
+
+							if (encoded.contains("randomthings:" + spec[0]))
+							{
+								c.eq(step, i, spec[0] + " must be in its own decoration step in " + biomes.getKey(biome));
+								found = true;
+								json = encoded;
+							}
+						}
+					}
+
+					Biome.BiomeCategory category = Biome.getBiomeCategory(biomes.getHolderOrThrow(biomes.getResourceKey(biome).get()));
+					boolean overworld = category != Biome.BiomeCategory.NETHER && category != Biome.BiomeCategory.THEEND && category != Biome.BiomeCategory.NONE;
+
+					if (overworld)
+					{
+						overworldStyle++;
+						c.check(found, spec[0] + " must be decorated into " + biomes.getKey(biome));
+						c.check(json.contains("\"chance\":" + spec[1]) && json.contains("minecraft:heightmap") && json.contains("minecraft:in_square"), biomes.getKey(biome) + ": " + spec[0] + " placement must be 1 in " + spec[1] + " chunks, random column, on the heightmap");
+					}
+					else
+					{
+						c.check(!found, spec[0] + " must not be decorated into " + biomes.getKey(biome));
+					}
+				}
+
+				c.check(overworldStyle > 40, "expected the full vanilla biome list, saw " + overworldStyle);
+			}));
+		}
+
+		tests.add(RTTest.named("worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block").run(c -> {
+			BlockPos pos = c.at(2, 1, 2);
+			Block[] soils = { Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.FARMLAND };
+
+			for (Block soil : soils)
+			{
+				c.world.setBlock(pos.below(), soil.defaultBlockState(), 18);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				boolean placed = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(1), pos);
+				Block block = c.world.getBlockState(pos).getBlock();
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				c.check(placed && block == ModBlocks.BEAN_SPROUT, "a sprout must be placed on " + soil);
+			}
+
+			c.world.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+			c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+			boolean stone = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(1), pos);
+			c.world.setBlock(pos.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+			c.world.setBlock(pos, Blocks.STONE.defaultBlockState(), 18);
+			boolean solid = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(1), pos);
+			c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+			c.check(!stone, "a sprout must not be placed on stone");
+			c.check(!solid, "a sprout must not replace a solid block");
+		}));
+
+		tests.add(RTTest.named("worldgen.lotus.snowy_biome_check_and_refuses_in_a_non_snowy_biome").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			c.check(lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.SNOWY_PLAINS), net.minecraftforge.common.BiomeDictionary.Type.SNOWY), "snowy_plains must count as SNOWY");
+			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.PLAINS), net.minecraftforge.common.BiomeDictionary.Type.SNOWY), "plains must not count as SNOWY");
+			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.DESERT), net.minecraftforge.common.BiomeDictionary.Type.SNOWY), "desert must not count as SNOWY");
+			BlockPos pos = c.at(2, 1, 2);
+
+			if (!lumien.randomthings.util.BiomeUtil.hasType(c.world.getBiome(pos).value(), net.minecraftforge.common.BiomeDictionary.Type.SNOWY))
+			{
+				c.world.setBlock(pos.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				boolean placed = ModFeatures.LOTUS.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new Random(1), pos);
+				c.check(!placed, "a lotus must not generate in a non-snowy biome");
+			}
+		}));
+
+		// the test world is warm, so the area is repainted with a cold biome (and restored afterwards); the feature reads the biome through
+		// the level's biome manager, which blends the neighbouring cells, hence the whole surrounding chunks are painted
+		tests.add(RTTest.named("worldgen.ancient_furnace.generates_only_in_cold_biomes_on_solid_ground").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			BlockPos pos = c.at(2, 1, 2);
+			Holder<Biome> original = c.world.getBiome(pos);
+			Holder<Biome> cold = biomes.getHolderOrThrow(Biomes.SNOWY_PLAINS);
+			c.check(original.value().warmEnoughToRain(pos.below()), "the flat test world is expected to be warm (got " + original.unwrapKey().map(Object::toString).orElse("?") + ")");
+			ServerLevel w = c.world;
+			Random random = new Random(1);
+
+			try
+			{
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace in a warm biome");
+				c.eq(Blocks.STONE, w.getBlockState(pos.below()).getBlock(), "the ground must be untouched in a warm biome");
+
+				paintBiome(c, cold);
+				c.check(!w.getBiome(pos).value().warmEnoughToRain(pos.below()), "the painted biome must read back as cold");
+
+				w.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace over air");
+				w.setBlock(pos.below(), Blocks.WATER.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace into water");
+
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+				c.check(ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "a furnace must generate on stone in a cold biome");
+				c.eq(ModBlocks.ANCIENT_FURNACE, w.getBlockState(pos.below()).getBlock(), "the furnace replaces the ground block");
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "an existing furnace is not replaced again");
+			}
+			finally
+			{
+				paintBiome(c, original);
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+			}
+		}));
+
+		// the heat-up's finish (warm the surroundings, then explode) is split: only the warming is run, the explosion would wreck the test area
+		tests.add(RTTest.named("worldgen.ancient_furnace.heating_converts_cold_biomes_melts_snow_and_ice_and_leaves_warm_biomes_alone").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Holder<Biome> original = c.world.getBiome(c.at(2, 1, 2));
+			BlockPos snow = c.at(2, 1, 2);
+			BlockPos ice = c.at(4, 1, 2);
+			ServerLevel w = c.world;
+			java.lang.reflect.Method warm;
+
+			try
+			{
+				warm = lumien.randomthings.tileentity.AncientFurnaceTileEntity.class.getDeclaredMethod("warmSurroundings", net.minecraft.world.level.Level.class, BlockPos.class);
+				warm.setAccessible(true);
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Skip("cannot reach warmSurroundings: " + e);
+			}
+
+			try
+			{
+				// a warm (unconvertible) area first: neither the biome nor the snow may change
+				w.setBlock(snow, Blocks.SNOW_BLOCK.defaultBlockState(), 18);
+				warm.invoke(null, w, c.at(0, 1, 0));
+				c.eq(original.unwrapKey().get(), w.getBiome(snow).unwrapKey().get(), "a warm biome is not converted");
+				c.eq(Blocks.SNOW_BLOCK, w.getBlockState(snow).getBlock(), "snow in a biome without a warm counterpart stays");
+
+				// then a snowy area: biome becomes plains, snow disappears, ice melts
+				paintBiome(c, biomes.getHolderOrThrow(Biomes.SNOWY_PLAINS));
+				w.setBlock(ice, Blocks.PACKED_ICE.defaultBlockState(), 18);
+				warm.invoke(null, w, c.at(0, 1, 0));
+				c.eq(Biomes.PLAINS, w.getBiome(snow).unwrapKey().get(), "snowy plains must become plains");
+				c.eq(Biomes.PLAINS, w.getBiome(ice).unwrapKey().get(), "the whole radius is converted");
+				c.eq(Blocks.AIR, w.getBlockState(snow).getBlock(), "snow blocks are removed");
+				c.eq(Blocks.WATER, w.getBlockState(ice).getBlock(), "packed ice becomes water");
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Failure("warmSurroundings threw: " + e.getCause());
+			}
+			finally
+			{
+				paintBiome(c, original);
+				w.setBlock(snow, Blocks.AIR.defaultBlockState(), 18);
+				w.setBlock(ice, Blocks.AIR.defaultBlockState(), 18);
+			}
+		}));
+
+		// client side of the heat-up: the server rewrites the biome, the client only learns about it from the chunk resend (checklist N6)
+		final java.lang.reflect.Method[] warmClient = new java.lang.reflect.Method[1];
+		final Holder<?>[] originalClient = new Holder<?>[1];
+		tests.add(RTTest.named("worldgen.ancient_furnace.client_sees_the_biome_change_after_heating").run(c -> {
+			if (net.minecraftforge.fml.loading.FMLEnvironment.dist != net.minecraftforge.api.distmarker.Dist.CLIENT)
+			{
+				throw new TestCtx.Skip("needs a client run (the dedicated server has no client to look at)");
+			}
+
+			try
+			{
+				warmClient[0] = lumien.randomthings.tileentity.AncientFurnaceTileEntity.class.getDeclaredMethod("warmSurroundings", net.minecraft.world.level.Level.class, BlockPos.class);
+				warmClient[0].setAccessible(true);
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Skip("cannot reach warmSurroundings: " + e);
+			}
+
+			originalClient[0] = c.world.getBiome(c.at(2, 1, 2));
+			paintBiome(c, c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.SNOWY_PLAINS));
+			resendAround(c);
+		}).waitTicks(20).run(c -> {
+			if (warmClient[0] == null)
+			{
+				return;
+			}
+
+			c.eq(Biomes.SNOWY_PLAINS, ClientProbe.biomeAt(c.at(2, 1, 2)), "precondition: the client must show the repainted biome after the resend");
+
+			try
+			{
+				warmClient[0].invoke(null, c.world, c.at(0, 1, 0));
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Failure("warmSurroundings threw: " + e.getCause());
+			}
+		}).waitTicks(20).run(c -> {
+			if (warmClient[0] == null)
+			{
+				return;
+			}
+
+			ResourceKey<Biome> client = ClientProbe.biomeAt(c.at(2, 1, 2));
+			@SuppressWarnings("unchecked")
+			Holder<Biome> original = (Holder<Biome>) originalClient[0];
+			paintBiome(c, original);
+			resendAround(c);
+			c.eq(Biomes.PLAINS, client, "the client must see the converted biome without relogging");
+		}));
+
+		// ---- Spectre dimension generator -------------------------------------------------------
+		tests.add(RTTest.named("worldgen.spectre.dimension_uses_the_void_generator_and_a_256_tall_zero_based_height").run(c -> {
+			lumien.randomthings.handler.spectre.SpectreHandler handler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerLevel spectre = handler.getWorld();
+			c.check(spectre.getChunkSource().getGenerator() instanceof lumien.randomthings.handler.spectre.SpectreChunkGenerator, "the Spectre dimension must use SpectreChunkGenerator, got " + spectre.getChunkSource().getGenerator().getClass());
+			c.eq(0, spectre.getMinBuildHeight(), "Spectre min build height");
+			c.eq(256, spectre.getHeight(), "Spectre height");
+			c.check(!spectre.dimensionType().hasSkyLight() && !spectre.dimensionType().hasCeiling(), "no skylight, no ceiling");
+		}));
+
+		tests.add(RTTest.named("worldgen.spectre.a_generated_chunk_far_from_the_cubes_is_empty_air").run(c -> {
+			lumien.randomthings.handler.spectre.SpectreHandler handler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerLevel spectre = handler.getWorld();
+			ChunkAccess chunk = spectre.getChunk(5000, 5000);
+
+			for (int x = 0; x < 16; x += 5)
+			{
+				for (int z = 0; z < 16; z += 5)
+				{
+					for (int y = 0; y < 256; y += 17)
+					{
+						c.check(chunk.getBlockState(new BlockPos(x, y, z)).isAir(), "void chunk must be air at " + x + "," + y + "," + z);
+					}
+				}
+			}
 		}));
 
 		return tests;

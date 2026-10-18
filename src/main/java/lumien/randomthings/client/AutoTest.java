@@ -58,6 +58,12 @@ public class AutoTest
 		Minecraft mc = Minecraft.getInstance();
 		ticks++;
 
+		if (!Boolean.getBoolean("randomthings.autotest.sound"))
+		{
+			// runtime only (the saved options are untouched): the unattended run is otherwise noisy
+			mc.getSoundManager().updateSourceVolume(net.minecraft.sounds.SoundSource.MASTER, 0.0F);
+		}
+
 		switch (state)
 		{
 			case MENU:

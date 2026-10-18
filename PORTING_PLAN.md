@@ -27,6 +27,8 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Scripted playtest on 1.18.2 (2026-10-15): all 26 scenarios pass** after adapting `scn.py` (`SCN_MC=1.18`; see skill `scripted-playtest`). It found two real bugs the suites had missed: `ItemRendererTransformer` targeted `ItemEntityRenderer` (a rename script had been applied twice; dye/glint tint never applied) and `DyeColor.getColorValue` (no 1.18 equivalent; `DyeUtil.rgb` rebuilds it) - fixed. New offline tool `docs/migration/tools/CoremodCheck.java` verifies every transformer applies.
 - **Production (SRG) check done 2026-10-15** (`prod-test/1.18.2`): server suite 349/0/2, client suite 350/0/1, 26 render scenes without errors - the 15 retargeted coremods and the SRG reflection ids work in the release jar.
 - Everything is uncommitted.
+- 2026-10-17: Ancient Furnace heating melted snow/ice in only ~1 in 16 columns (a 4x4 biome cell converted on its first column hid the other 15 from the cold check); fixed in `AncientFurnaceTileEntity.warmSurroundings` (classify all columns, then write). New worldgen tests (feature registration, bean sprout/lotus/furnace rules, heating, client biome resync via `ClientProbe`, Spectre generator); `worldgen.*` 22/0/0 on the client, server suite 373/0/3.
+- 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
 
 ## What to do next
 
