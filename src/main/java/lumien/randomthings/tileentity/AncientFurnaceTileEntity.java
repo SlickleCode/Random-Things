@@ -18,7 +18,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.resources.ResourceKey;
@@ -156,6 +158,12 @@ public class AncientFurnaceTileEntity extends BlockEntity {
         int cz = center.getZ();
 
         Set<LevelChunk> touchedChunks = new HashSet<>();
+        Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+
+        // Every column is classified before any biome is written: a biome cell is 4x4 blocks wide, so writing one column
+        // converts its 15 neighbours too, and they would otherwise look already warm and keep their snow and ice.
+        List<BlockPos> columns = new ArrayList<>();
+        List<Holder<Biome>> warmBiomes = new ArrayList<>();
 
         for (int dx = -RADIUS; dx <= RADIUS; dx++) {
             for (int dz = -RADIUS; dz <= RADIUS; dz++) {
@@ -163,39 +171,42 @@ public class AncientFurnaceTileEntity extends BlockEntity {
                     continue;
                 }
 
-                int x = cx + dx;
-                int z = cz + dz;
-                BlockPos columnPos = new BlockPos(x, world.getMinBuildHeight(), z);
+                BlockPos columnPos = new BlockPos(cx + dx, world.getMinBuildHeight(), cz + dz);
 
                 if (!world.hasChunkAt(columnPos)) {
                     continue;
                 }
 
-                Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
                 ResourceKey<Biome> coldKey = world.getBiome(columnPos).unwrapKey().orElse(null);
                 ResourceKey<Biome> warmKey = coldKey == null ? null : COLD_TO_WARM.get(coldKey);
                 Holder<Biome> warmBiome = warmKey == null ? null : biomeRegistry.getHolder(warmKey).orElse(null);
 
-                if (warmBiome == null) {
-                    continue;
+                if (warmBiome != null) {
+                    columns.add(columnPos);
+                    warmBiomes.add(warmBiome);
                 }
+            }
+        }
 
-                LevelChunk chunk = world.getChunkAt(columnPos);
-                setBiomeColumn(chunk, x, z, warmBiome);
-                chunk.setUnsaved(true);
-                touchedChunks.add(chunk);
+        for (int i = 0; i < columns.size(); i++) {
+            BlockPos columnPos = columns.get(i);
+            int x = columnPos.getX();
+            int z = columnPos.getZ();
+            LevelChunk chunk = world.getChunkAt(columnPos);
+            setBiomeColumn(chunk, x, z, warmBiomes.get(i));
+            chunk.setUnsaved(true);
+            touchedChunks.add(chunk);
 
-                int top = world.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+            int top = world.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
 
-                for (int y = Math.min(top + 2, world.getMaxBuildHeight() - 1); y >= Math.max(top - 4, world.getMinBuildHeight()); y--) {
-                    BlockPos p = new BlockPos(x, y, z);
-                    Block block = world.getBlockState(p).getBlock();
+            for (int y = Math.min(top + 2, world.getMaxBuildHeight() - 1); y >= Math.max(top - 4, world.getMinBuildHeight()); y--) {
+                BlockPos p = new BlockPos(x, y, z);
+                Block block = world.getBlockState(p).getBlock();
 
-                    if (block == Blocks.SNOW || block == Blocks.SNOW_BLOCK) {
-                        world.setBlock(p, Blocks.AIR.defaultBlockState(), 2);
-                    } else if (block == Blocks.ICE || block == Blocks.PACKED_ICE || block == Blocks.BLUE_ICE || block == Blocks.FROSTED_ICE) {
-                        world.setBlock(p, Blocks.WATER.defaultBlockState(), 2);
-                    }
+                if (block == Blocks.SNOW || block == Blocks.SNOW_BLOCK) {
+                    world.setBlock(p, Blocks.AIR.defaultBlockState(), 2);
+                } else if (block == Blocks.ICE || block == Blocks.PACKED_ICE || block == Blocks.BLUE_ICE || block == Blocks.FROSTED_ICE) {
+                    world.setBlock(p, Blocks.WATER.defaultBlockState(), 2);
                 }
             }
         }

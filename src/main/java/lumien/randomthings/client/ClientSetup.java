@@ -96,6 +96,7 @@ public class ClientSetup {
     public static void init() {
         net.minecraftforge.eventbus.api.IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(ClientSetup::setupClient);
+        modBus.addListener(ClientSetup::registerDimensionEffects);
         modBus.addListener(ClientSetup::registerRenderers);
         modBus.addListener(ClientSetup::registerModels);
         modBus.addListener(ClientSetup::onBlockColorHandler);
@@ -182,14 +183,17 @@ public class ClientSetup {
         event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.SPIRIT, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
     }
 
+    /**
+     * The Spectre dimension type names this id as its sky/fog "effects". Forge 43 resolves effects through its own registry
+     * (the vanilla static map is no longer consulted), so a hand-made entry in the vanilla map left the Spectre cubes with the
+     * overworld's night sky and no bright lightmap.
+     */
+    private static void registerDimensionEffects(final net.minecraftforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
+        event.register(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
+    }
+
     private static void setupClient(final FMLClientSetupEvent event) {
         RenderLayerSetup.apply();
-
-        event.enqueueWork(() -> {
-            // the Spectre dimension type names this id as its sky/fog "effects"
-            it.unimi.dsi.fastutil.objects.Object2ObjectMap<ResourceLocation, net.minecraft.client.renderer.DimensionSpecialEffects> renderInfos = net.minecraftforge.fml.util.ObfuscationReflectionHelper.getPrivateValue(net.minecraft.client.renderer.DimensionSpecialEffects.class, null, "f_108857_");
-            renderInfos.put(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
-        });
 
         event.enqueueWork(() -> {
             for (net.minecraft.world.item.Item item : net.minecraftforge.registries.ForgeRegistries.ITEMS.getValues()) {

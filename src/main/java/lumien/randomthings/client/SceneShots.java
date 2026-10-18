@@ -56,7 +56,7 @@ public final class SceneShots
 				mc.options.hideGui = true;
 				mc.player.commandUnsigned("gamemode creative");
 				RTDebug.log("SceneShots: {} scenes", ids.size());
-				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_tundra" })
+				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_plains" })
 				{
 					net.minecraft.world.level.biome.Biome biome = net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation(b));
 					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.blockPosition())), biome);

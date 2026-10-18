@@ -102,7 +102,7 @@ function initializeCoreMod() {
                     for (var k = 0; k < cooldownInstructions.size(); k++) {
                         var cooldownInsn = cooldownInstructions.get(k);
 
-                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/world/level/block/FireBlock" && (cooldownInsn.name === "getFireTickDelay" || cooldownInsn.name === "m_53468_") && cooldownInsn.desc === "(Lnet/minecraft/util/RandomSource;)I") {
+                        if (cooldownInsn.getOpcode && cooldownInsn.getOpcode() === Opcodes.INVOKESTATIC && cooldownInsn.owner === "net/minecraft/world/level/block/FireBlock" && (cooldownInsn.name === "getFireTickDelay" || cooldownInsn.name === "m_221148_") && cooldownInsn.desc === "(Lnet/minecraft/util/RandomSource;)I") {
                             var pushFire = new InsnList();
                             pushFire.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             cooldownInstructions.insertBefore(cooldownInsn, pushFire);

@@ -36,6 +36,13 @@ public class BeanSproutBlock extends CropBlock
 	}
 
 	@Override
+	protected boolean mayPlaceOn(BlockState state, net.minecraft.world.level.BlockGetter level, BlockPos pos)
+	{
+		// 1.12.2's sprout was a plain-type plant (grass, dirt, farmland); CropBlock alone would only allow farmland
+		return state.is(net.minecraft.world.level.block.Blocks.GRASS_BLOCK) || state.is(net.minecraft.world.level.block.Blocks.DIRT) || state.is(net.minecraft.world.level.block.Blocks.COARSE_DIRT) || state.is(net.minecraft.world.level.block.Blocks.PODZOL) || state.is(net.minecraft.world.level.block.Blocks.FARMLAND);
+	}
+
+	@Override
 	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
 	{
 		if (this.isMaxAge(state))

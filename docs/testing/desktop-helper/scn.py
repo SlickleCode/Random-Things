@@ -130,9 +130,10 @@ def item_cmd(slot, item):
 SCENARIOS = {}
 WORLD_KIND = {}
 _MCV = os.environ.get('SCN_MC') or '1.14'
-MC18 = _MCV.startswith('1.18')                    # SCN_MC=1.18 drives the 1.18.2 menus
+MC18 = _MCV.startswith('1.18') or _MCV.startswith('1.19')   # SCN_MC=1.18 drives the 1.18.2 menus; 1.19.2 has the same create-world screen and commands
 MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT conventions: registry-string dimensions, generic.max_health, /locatebiome
 DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
+MC19 = _MCV.startswith('1.19')                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
 SNOWY_BIOME = 'minecraft:snowy_plains' if MC18 else 'minecraft:snowy_tundra'     # renamed in 1.18
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
@@ -276,7 +277,7 @@ def imbue_effects(g):
     spawn_dummy(g, 'pig')
     hits(g, 1)
     out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 19b', '#177: Poison Imbue: a direct hit poisons the target')
+    g.expect_chat(out, r'Id: 19b?(?![0-9])', '#177: Poison Imbue: a direct hit poisons the target')
     g.expect_chat(out, r'Amplifier: 1b', '#177: ... at amplifier 1 (level II)')
     # --- Wither imbue: Wither II (effect id 20)
     g.cmd('effect clear @s')
@@ -284,7 +285,7 @@ def imbue_effects(g):
     spawn_dummy(g)
     hits(g, 1)
     out = g.cmd('data get entity @e[type=minecraft:spider,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 20b', '#178: Wither Imbue: a direct hit withers the target')
+    g.expect_chat(out, r'Id: 20b?(?![0-9])', '#178: Wither Imbue: a direct hit withers the target')
     g.expect_chat(out, r'Amplifier: 1b', '#178: ... at amplifier 1 (level II)')
     # --- Experience imbue: double XP on a kill
     g.cmd('effect clear @s')
@@ -1348,7 +1349,7 @@ def ancient_furnace(g):
     The 5-minute heating time is skipped by setting the block entity's counter to 10 ticks before the end."""
     arena_default(g)
     before = g.mark()
-    g.cmd('locatebiome %s' % SNOWY_BIOME if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
+    g.cmd(('locate biome %s' if MC19 else 'locatebiome %s') % SNOWY_BIOME if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
     text = ''
     for _ in range(40):                       # the search generates chunks: can take a while
         g.wait(3)
@@ -1398,6 +1399,35 @@ def ancient_furnace(g):
     g.cmd('forceload remove all')
 
 
+@scenario
+def fresh_world_worldgen(g):
+    """A (flat: the test runner refuses other worlds) world created through the Create World screen gets the mod's biome modifiers on first load: the worldgen tests (registration in every biome, real terrain
+    generation) run in it and none may fail or skip. The autotest's own fresh world cannot show this (it skips them because its registries are the built-in copy)."""
+    g.wait(8)                                 # the client lags re-meshing after the arena fill; typed text is lost while the chat screen is still opening
+    before = g.mark()
+    out = g.cmd('rtdebug test worldgen', 2.0)
+    if not any('running' in l for l in out):              # a command typed while the chat screen was still opening can arrive garbled: retry once
+        out = g.cmd('rtdebug test worldgen', 2.0)
+    g.check(any('running' in l for l in out), 'the worldgen tests started', ' '.join(out)[:200])
+    g.shot('fresh_world_worldgen_started')
+    text = ''
+    for _ in range(120):                      # real terrain generation tests take a while
+        g.wait(3)
+        text = g.new_log(before)
+        if 'Random Things in-game tests:' in text or 'no tests match' in text:
+            break
+    m = re.search(r'Random Things in-game tests: (\d+) passed, (\d+) failed, (\d+) skipped', text)
+    if not m:
+        g.shot('fresh_world_worldgen_noreport')
+        g.check(False, 'worldgen tests did not report', text[-300:])
+        return
+    passed, failed, skipped = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    g.check(passed >= 15 and failed == 0 and skipped == 0, 'worldgen.* tests all pass in a world created through the UI (none skipped for missing biome modifiers)', '%d passed, %d failed, %d skipped' % (passed, failed, skipped))
+    for line in text.splitlines():
+        if 'Tests: SKIP' in line or 'Tests: FAIL' in line:
+            g.note(line.split('Tests: ', 1)[-1][:200])
+
+
 @scenario(world='default')
 def glowing_mushroom_cave(g):
     """#387: a Glowing Mushroom placed in a sealed dark room stays (it used to drop itself) and spreads to dark neighbouring spots."""
@@ -1441,7 +1471,7 @@ def prune_scenario_worlds():
                 shutil.rmtree(os.path.join(SAVES, d), ignore_errors=True)
 
 
-def is_dark(x, y, limit=40):
+def is_dark(x, y, limit=40):   # the black text boxes are (0,0,0); the dirt background of the loading screens is about (30,21,15)
     r, gg, b = desk.pixel('Minecraft', x, y)
     return max(r, gg, b) < limit
 
@@ -1449,10 +1479,24 @@ def is_dark(x, y, limit=40):
 def require_screen(g, what, x, y):
     """Refuse to click on until a black text box (search/name field) is visible at (x, y)."""
     for _ in range(40):
-        if is_dark(x, y):
+        if is_dark(x, y, 12):
             return
         desk.sleep(0.5)
     raise desk.Abort('expected the %s screen but it never appeared' % what)
+
+
+def confirm_experimental(g):
+    """1.19.2 asks "Warning! These settings are using experimental features ... Do you wish to proceed?" after Create New World
+    (Yes at (265,295), No at (585,295) on the 854x480 client): click Yes when both buttons are showing with the dark gap between them."""
+    def gray(x, y):
+        r, gg, b = desk.pixel('Minecraft', x, y)
+        return 90 < r < 200 and abs(r - gg) < 12 and abs(gg - b) < 12
+    if gray(265, 285) and gray(585, 285) and is_dark(425, 295, 60):
+        g.note('experimental-features prompt: clicking Yes')
+        g.click(265, 295)
+        g.wait(1.0)
+        return True
+    return False
 
 
 def new_world(g, world, kind='flat'):
@@ -1465,7 +1509,7 @@ def new_world(g, world, kind='flat'):
     g.click(584, 395)                          # Create New World
     require_screen(g, 'create world', 300, 139)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', world)
-    if MC16:                                   # 1.16 create-world screen: game mode at (266,219); picking Creative also turns cheats ON
+    if MC16 and (not MC18 or MC19):            # 1.16 and 1.19.2 create-world screen: game mode at (266,219); picking Creative also turns cheats ON
         g.click(266, 219); g.wait(0.6); g.click(266, 219); g.wait(0.6)      # slow click pairs are needed on the production client
         g.click(586, 389)                      # More World Options
     else:
@@ -1477,11 +1521,18 @@ def new_world(g, world, kind='flat'):
         g.click(584, 219)                      # World Type: Default -> Superflat
     g.wait(0.5)
     g.shot('create_options')
+    if MC19:
+        g.click(586, 389); g.wait(1.0)         # Done: 1.19.2 only applies the world type/seed from the options page when it is closed (Create from there made a default world)
     g.click(266, 443)                          # Create New World
+    g.wait(1.5)
+    if MC18:
+        confirm_experimental(g)
     for attempt in range(60):                  # wait until the in-game chat works
         if not desk.find_window('Minecraft'):
             raise desk.Abort('the Minecraft window is gone')
         g.wait(2)
+        if MC18 and confirm_experimental(g):
+            continue
         before = g._log_size()
         try:
             out = g.cmd('say ready', 0.6)
@@ -1515,7 +1566,7 @@ def controlled_setup(g):
 def leave_world(g, world):
     g.key('escape'); g.wait(0.8)
     g.shot('pause_menu')
-    g.click(426, 347)                          # Save and Quit to Title
+    g.click(426, 395 if MC19 else 347)         # Save and Quit to Title (1.19.2's pause menu has Give Feedback/Report Bugs and Mods rows)
     g.wait(5)
     shutil.rmtree(os.path.join(SAVES, world), ignore_errors=True)
     g.note('world %s deleted' % world)

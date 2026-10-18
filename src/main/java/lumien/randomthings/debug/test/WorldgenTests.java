@@ -1,6 +1,13 @@
 package lumien.randomthings.debug.test;
 
 import java.util.HashMap;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.presets.WorldPresets;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
@@ -169,12 +176,289 @@ final class WorldgenTests
 		return seeds;
 	}
 
+	/**
+	 * Generates a real vanilla-overworld patch of 7x7 chunks (terrain, surface, caves - the same steps {@code ChunkStatus} runs) and
+	 * decorates the inner 5x5 chunks with the real decorator, so every registered feature - ours included - gets its normal chance.
+	 * Nothing is written to the test world. Returns {mushrooms, inner chunks that received mushrooms, mushrooms at or above the surface}.
+	 */
+	private static int[] generateTerrainAndCount(TestCtx c, int chunkX, int chunkZ)
+	{
+		ServerLevel world = c.world;
+		RegistryAccess registries = world.registryAccess();
+		Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
+		long seed = world.getSeed();
+		NoiseBasedChunkGenerator generator = (NoiseBasedChunkGenerator) WorldPresets.createNormalWorldFromPreset(registries, seed).overworld();
+		RandomState randomState = RandomState.create(generator.generatorSettings().value(), registries.registryOrThrow(Registry.NOISE_REGISTRY), seed);
+		StructureManager featureManager = NoStructures.of(world);
+		Executor sameThread = Runnable::run;
+		// 9x9 chunks: the outer ring only exists so every generated chunk has its 3x3 neighbourhood (structure references, carvers)
+		final int size = 9;
+		ProtoChunk[][] grid = new ProtoChunk[size][size];
+		// 1.18 runs the generator steps as futures; they are driven synchronously here, in the same order ChunkStatus runs them.
+		// Everything sees the world only through regions over the grid: the world's own structure manager would block on the
+		// server thread's chunk source from the generator's worker threads (this runs on the server thread) and deadlock.
+		for (int z = 0; z < size; z++)
+		{
+			for (int x = 0; x < size; x++)
+			{
+				grid[z][x] = new ProtoChunk(new ChunkPos(chunkX + x, chunkZ + z), UpgradeData.EMPTY, world, biomes, null);
+				grid[z][x].setStatus(ChunkStatus.STRUCTURE_REFERENCES);
+			}
+		}
+		// Surface building (blending data up to 7 chunks out) and the carver pass (every chunk within 8) need a much wider region than
+		// the patch itself: the missing chunks are blank placeholders, the patch chunks are the real ones.
+		final int wide = 8;
+		Map<Long, ProtoChunk> placeholders = new HashMap<>();
+		for (int z = 1; z < size - 1; z++)
+		{
+			for (int x = 1; x < size - 1; x++)
+			{
+				WorldGenRegion region = new WorldGenRegion(world, neighbourhood(grid, x, z), ChunkStatus.STRUCTURE_REFERENCES, 0);
+				StructureManager regionManager = featureManager.forWorldGenRegion(region);
+				generator.createBiomes(biomes, sameThread, randomState, Blender.empty(), regionManager, grid[z][x]).join();
+				generator.fillFromNoise(sameThread, Blender.empty(), randomState, regionManager, grid[z][x]).join();
+			}
+		}
+		for (int z = 1; z < size - 1; z++)
+		{
+			for (int x = 1; x < size - 1; x++)
+			{
+				WorldGenRegion surfaceRegion = new WorldGenRegion(world, square(grid, x, z, wide, chunkX, chunkZ, placeholders, world, biomes), ChunkStatus.SURFACE, 0);
+				generator.buildSurface(surfaceRegion, featureManager.forWorldGenRegion(surfaceRegion), randomState, grid[z][x]);
+			}
+		}
+		for (int z = 1; z < size - 1; z++)
+		{
+			for (int x = 1; x < size - 1; x++)
+			{
+				WorldGenRegion carveRegion = new WorldGenRegion(world, square(grid, x, z, wide, chunkX, chunkZ, placeholders, world, biomes), ChunkStatus.CARVERS, 0);
+				StructureManager regionManager = featureManager.forWorldGenRegion(carveRegion);
+				generator.applyCarvers(carveRegion, seed, randomState, carveRegion.getBiomeManager(), regionManager, grid[z][x], GenerationStep.Carving.AIR);
+				generator.applyCarvers(carveRegion, seed, randomState, carveRegion.getBiomeManager(), regionManager, grid[z][x], GenerationStep.Carving.LIQUID);
+			}
+		}
+		for (ProtoChunk[] row : grid)
+		{
+			for (ProtoChunk primer : row)
+			{
+				primer.setStatus(ChunkStatus.LIQUID_CARVERS);
+				Heightmap.primeHeightmaps(primer, EnumSet.of(Heightmap.Types.MOTION_BLOCKING, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Heightmap.Types.OCEAN_FLOOR, Heightmap.Types.WORLD_SURFACE));
+			}
+		}
+		for (int z = 2; z < size - 2; z++)
+		{
+			for (int x = 2; x < size - 2; x++)
+			{
+				WorldGenRegion region = new WorldGenRegion(world, neighbourhood(grid, x, z), ChunkStatus.FEATURES, 1);
+				generator.applyBiomeDecoration(region, grid[z][x], featureManager.forWorldGenRegion(region));
+			}
+		}
+		int mushrooms = 0;
+		int chunksWithMushrooms = 0;
+		int exposed = 0;
+		for (int z = 2; z < size - 2; z++)
+		{
+			for (int x = 2; x < size - 2; x++)
+			{
+				ProtoChunk primer = grid[z][x];
+				int here = 0;
+				for (int bx = 0; bx < 16; bx++)
+				{
+					for (int bz = 0; bz < 16; bz++)
+					{
+						int surface = primer.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz);
+						for (int y = primer.getMinBuildHeight() + 1; y < primer.getMaxBuildHeight() - 1; y++)
+						{
+							if (primer.getBlockState(new BlockPos(bx, y, bz)).getBlock() == ModBlocks.GLOWING_MUSHROOM)
+							{
+								here++;
+								if (y >= surface)
+								{
+									exposed++;
+								}
+							}
+						}
+					}
+				}
+				mushrooms += here;
+				if (here > 0)
+				{
+					chunksWithMushrooms++;
+				}
+			}
+		}
+		return new int[] { mushrooms, chunksWithMushrooms, exposed };
+	}
+	/** The (2r+1)^2 chunks around grid chunk (x, z): patch chunks where the patch has them, blank placeholders elsewhere. */
+	private static List<ChunkAccess> square(ProtoChunk[][] grid, int x, int z, int radius, int originX, int originZ, Map<Long, ProtoChunk> placeholders, ServerLevel world, Registry<Biome> biomes)
+	{
+		List<ChunkAccess> chunks = new ArrayList<>();
+		for (int dz = -radius; dz <= radius; dz++)
+		{
+			for (int dx = -radius; dx <= radius; dx++)
+			{
+				int gx = x + dx;
+				int gz = z + dz;
+				if (gx >= 0 && gz >= 0 && gx < grid.length && gz < grid.length)
+				{
+					chunks.add(grid[gz][gx]);
+				}
+				else
+				{
+					ChunkPos pos = new ChunkPos(originX + gx, originZ + gz);
+					chunks.add(placeholders.computeIfAbsent(pos.toLong(), key -> new ProtoChunk(pos, UpgradeData.EMPTY, world, biomes, null)));
+				}
+			}
+		}
+		return chunks;
+	}
+	private static List<ChunkAccess> neighbourhood(ProtoChunk[][] grid, int x, int z)
+	{
+		List<ChunkAccess> neighbours = new ArrayList<>();
+		for (int dz = -1; dz <= 1; dz++)
+		{
+			for (int dx = -1; dx <= 1; dx++)
+			{
+				neighbours.add(grid[z + dz][x + dx]);
+			}
+		}
+		return neighbours;
+	}
+
+	private static StructureTemplatePool housesPool(TestCtx c)
+	{
+		return c.world.registryAccess().registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).get(HOUSES);
+	}
+	private static StructureTemplatePool vanillaHouses(StructureTemplatePool wrapper) throws Exception
+	{
+		Field field = wrapper.getClass().getDeclaredField("vanilla");
+		field.setAccessible(true);
+		return (StructureTemplatePool) field.get(wrapper);
+	}
+	private static List<String> names(List<StructurePoolElement> pieces)
+	{
+		List<String> out = new ArrayList<>();
+		for (StructurePoolElement piece : pieces)
+		{
+			out.add(piece.toString());
+		}
+		return out;
+	}
+	private static boolean isVanillaChurch(String name)
+	{
+		return name.contains(VANILLA_CHURCH);
+	}
+	private static boolean isPeaceChurch(String name)
+	{
+		return name.contains(PEACE_CHURCH);
+	}
+	/** Assembles {@code count} plains villages with the real village start (the code a new world runs) and returns {vanilla churches, Peace Candle churches, villages}. */
+	private static int[] assembleVillages(TestCtx c, int count)
+	{
+		RegistryAccess registries = c.world.registryAccess();
+		StructureTemplateManager templates = c.world.getStructureManager();
+		Holder<StructureTemplatePool> centers = registries.registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).getHolderOrThrow(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("village/plains/town_centers")));
+		ChunkGenerator generator = c.world.getChunkSource().getGenerator();
+		int vanilla = 0;
+		int peace = 0;
+		for (int i = 0; i < count; i++)
+		{
+			ChunkPos chunkPos = new ChunkPos(i * 11, i * 17);
+			Structure village = registries.registryOrThrow(Registry.STRUCTURE_REGISTRY).get(new ResourceLocation("village_plains"));
+			// vanilla's own village start (a hand-built JigsawPlacement call in this harness produced streets but never any house)
+			net.minecraft.world.level.levelgen.structure.StructureStart start = village.generate(registries, generator, generator.getBiomeSource(), c.world.getChunkSource().randomState(), templates, c.world.getSeed(), chunkPos, 0, c.world, biome -> true);
+			for (StructurePiece piece : start.getPieces())
+			{
+				if (piece instanceof PoolElementStructurePiece)
+				{
+					String name = ((PoolElementStructurePiece) piece).getElement().toString();
+					if (isVanillaChurch(name))
+					{
+						vanilla++;
+					}
+					else if (isPeaceChurch(name))
+					{
+						peace++;
+					}
+				}
+			}
+		}
+		return new int[] { vanilla, peace, count };
+	}
+
+	/** Writes {@code biome} into every biome cell of the chunks around the test origin. */
+	private static void paintBiome(TestCtx c, Holder<Biome> biome)
+	{
+		for (int cx = (c.origin.getX() - 24) >> 4; cx <= (c.origin.getX() + 24) >> 4; cx++)
+		{
+			for (int cz = (c.origin.getZ() - 24) >> 4; cz <= (c.origin.getZ() + 24) >> 4; cz++)
+			{
+				net.minecraft.world.level.chunk.LevelChunk chunk = c.world.getChunk(cx, cz);
+
+				for (net.minecraft.world.level.chunk.LevelChunkSection section : chunk.getSections())
+				{
+					net.minecraft.world.level.chunk.PalettedContainer<Holder<Biome>> cells = (net.minecraft.world.level.chunk.PalettedContainer<Holder<Biome>>) section.getBiomes();
+
+					for (int x = 0; x < 4; x++)
+					{
+						for (int y = 0; y < 4; y++)
+						{
+							for (int z = 0; z < 4; z++)
+							{
+								cells.set(x, y, z, biome);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/** Sends the chunks around the test origin to the real player again, like a fresh chunk load (biomes travel with the chunk). */
+	private static void resendAround(TestCtx c)
+	{
+		for (int cx = (c.origin.getX() - 24) >> 4; cx <= (c.origin.getX() + 24) >> 4; cx++)
+		{
+			for (int cz = (c.origin.getZ() - 24) >> 4; cz <= (c.origin.getZ() + 24) >> 4; cz++)
+			{
+				net.minecraft.world.level.chunk.LevelChunk chunk = c.world.getChunk(cx, cz);
+				c.player.connection.send(new net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket(chunk, c.world.getChunkSource().getLightEngine(), null, null, true));
+			}
+		}
+	}
+
+	/**
+	 * A world the autotest creates fresh on the client is built from the built-in registries, so datapack biome modifiers never ran
+	 * for it (every later run reopens the saved world and has them); the registration checks are meaningless there.
+	 */
+	private static void skipWithoutBiomeModifiers(TestCtx c)
+	{
+		Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+
+		for (Biome biome : biomes)
+		{
+			for (HolderSet<PlacedFeature> stage : biome.getGenerationSettings().features())
+			{
+				for (Holder<PlacedFeature> holder : stage)
+				{
+					if (PlacedFeature.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, holder.value()).result().map(Object::toString).orElse("").contains("randomthings:"))
+					{
+						return;
+					}
+				}
+			}
+		}
+
+		throw new TestCtx.Skip("no biome has any Random Things feature: this world was created from the built-in registries, the biome modifiers only apply to datapack-loaded worlds");
+	}
+
 	static List<RTTest> create()
 	{
 		List<RTTest> tests = new ArrayList<>();
 
 		// ---- Glowing Mushroom ----------------------------------------------------------------
 		tests.add(RTTest.named("worldgen.glowing_mushroom.is_registered_in_every_overworld_biome_with_the_original_rarity").run(c -> {
+				skipWithoutBiomeModifiers(c);
 			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
 			int overworldStyle = 0;
 
@@ -328,6 +612,532 @@ final class WorldgenTests
 			c.check(count > 1, "a lone Glowing Mushroom must spread to neighbouring dark spots after many random ticks (got " + count + ")");
 		}));
 
+
+
+		tests.add(RTTest.named("worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground").run(c -> {
+			skipWithoutBiomeModifiers(c);
+			int mushrooms = 0;
+			int chunks = 0;
+			int exposed = 0;
+			int areas = 12;
+			final int[] calls = new int[1];
+			BooleanSupplier before = GlowingMushroomFeature.enabled;
+			GlowingMushroomFeature.enabled = () -> {
+				calls[0]++;
+				return before.getAsBoolean();
+			};
+			for (int area = 0; area < areas; area++)
+			{
+				int[] result;
+				try
+				{
+					result = generateTerrainAndCount(c, 400 + area * 37, -300 - area * 41);
+				}
+				catch (RuntimeException e)
+				{
+					Throwable root = e;
+					while (root.getCause() != null)
+					{
+						root = root.getCause();
+					}
+					StackTraceElement[] trace = root.getStackTrace();
+					throw new TestCtx.Failure("terrain generation failed: " + root + " at " + java.util.Arrays.stream(trace).filter(t -> !t.getClassName().startsWith("java.")).limit(10).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining(" / ")));
+				}
+				mushrooms += result[0];
+				chunks += result[1];
+				exposed += result[2];
+			}
+			GlowingMushroomFeature.enabled = before;
+			RTDebug.log("worldgen test: the patch feature was asked to generate {} times", calls[0]);
+			RTDebug.log("worldgen test: real terrain generation, {} areas of 5x5 decorated chunks: {} Glowing Mushrooms in {} chunks, {} not under a roof", areas, mushrooms, chunks, exposed);
+			c.check(mushrooms > 0, "real terrain generation must place Glowing Mushrooms underground (found none in " + areas * 25 + " chunks)");
+			c.check(chunks >= 2, "mushroom patches must show up in several chunks (got " + chunks + ")");
+		}));
+
+
+		// ---- Peace Candle church -------------------------------------------------------------
+		tests.add(RTTest.named("worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper").run(c -> {
+			StructureTemplatePool pool = housesPool(c);
+			c.check(pool != null, "village/plains/houses must be in the world's pool registry");
+			c.eq("PeaceCandleChurchPool", pool.getClass().getSimpleName(), "the plains houses pool must be wrapped");
+			c.check(vanillaHouses(pool) != pool, "the wrapper must keep the vanilla pool");
+			StructureTemplate church = c.world.getStructureManager().get(new ResourceLocation("randomthings:peace_candle_church")).orElse(null);
+			StructureTemplate vanillaChurch = c.world.getStructureManager().get(new ResourceLocation("minecraft:village/plains/houses/plains_temple_4")).orElse(null);
+			c.check(church != null && vanillaChurch != null, "both church templates must load");
+			c.eq(vanillaChurch.getSize().getX(), church.getSize().getX(), "church width");
+			c.eq(vanillaChurch.getSize().getZ(), church.getSize().getZ(), "church depth");
+			c.check(church.getSize().getY() >= vanillaChurch.getSize().getY(), "the Peace Candle church is at least as tall as the vanilla one (" + church.getSize() + " vs " + vanillaChurch.getSize() + ")");
+		}));
+		tests.add(RTTest.named("worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches").run(c -> {
+			StructureTemplatePool wrapper = housesPool(c);
+			StructureTemplatePool vanilla = vanillaHouses(wrapper);
+			int vanillaWithChurch = 0;
+			int swapped = 0;
+			for (int seed = 0; seed < 3000; seed++)
+			{
+				List<String> plain = names(vanilla.getShuffledTemplates(RandomSource.create(seed)));
+				List<String> wrapped = names(wrapper.getShuffledTemplates(RandomSource.create(seed)));
+				c.eq(plain.size(), wrapped.size(), "the swap must not change the number of candidates");
+				boolean hasChurch = false;
+				for (String name : plain)
+				{
+					hasChurch |= isVanillaChurch(name);
+				}
+				if (hasChurch)
+				{
+					vanillaWithChurch++;
+					boolean anyPeace = false;
+					for (String name : wrapped)
+					{
+						anyPeace |= isPeaceChurch(name);
+					}
+					if (anyPeace)
+					{
+						swapped++;
+						for (int i = 0; i < plain.size(); i++)
+						{
+							if (isVanillaChurch(plain.get(i)))
+							{
+								c.check(isPeaceChurch(wrapped.get(i)), "a swap must replace every church entry");
+							}
+							else
+							{
+								c.eq(plain.get(i), wrapped.get(i), "a swap must leave every other entry alone");
+							}
+						}
+					}
+					else
+					{
+						c.eq(plain, wrapped, "an unswapped roll must equal the vanilla roll");
+					}
+				}
+				else
+				{
+					c.eq(plain, wrapped, "lists without the church are never changed");
+				}
+			}
+			RTDebug.log("worldgen test: pool swapped {} of {} church candidate lists ({})", swapped, vanillaWithChurch, swapped / (double) vanillaWithChurch);
+			c.check(vanillaWithChurch > 500, "the vanilla pool must offer the church often (got " + vanillaWithChurch + ")");
+			double share = swapped / (double) vanillaWithChurch;
+			c.check(share > 0.28 && share < 0.39, "about a third of church candidates must be Peace Candle churches (got " + swapped + "/" + vanillaWithChurch + " = " + share + ")");
+		}));
+		tests.add(RTTest.named("worldgen.peace_candle.config_switch_stops_the_swap").run(c -> {
+			StructureTemplatePool wrapper = housesPool(c);
+			BooleanSupplier before = PeaceCandleChurchPool.enabled;
+			int swapped = 0;
+			try
+			{
+				PeaceCandleChurchPool.enabled = () -> false;
+				for (int seed = 0; seed < 1000; seed++)
+				{
+					for (String name : names(wrapper.getShuffledTemplates(RandomSource.create(seed))))
+					{
+						if (isPeaceChurch(name))
+						{
+							swapped++;
+						}
+					}
+				}
+			}
+			finally
+			{
+				PeaceCandleChurchPool.enabled = before;
+			}
+			c.eq(0, swapped, "Peace Candle churches with PeaceCandle = false");
+		}));
+		tests.add(RTTest.named("worldgen.peace_candle.real_village_assemblies_contain_the_church_about_a_third_of_the_time").run(c -> {
+			int[] result = assembleVillages(c, 60);
+			int vanilla = result[0];
+			int peace = result[1];
+			int churches = vanilla + peace;
+			RTDebug.log("worldgen test: 60 assembled plains villages hold {} churches: {} vanilla, {} Peace Candle", churches, vanilla, peace);
+			c.check(churches >= 20, "60 plains villages must contain plenty of churches (got " + churches + ")");
+			c.check(peace > 0 && vanilla > 0, "both church kinds must show up (vanilla " + vanilla + ", Peace Candle " + peace + ")");
+			double share = peace / (double) churches;
+			c.check(share > 0.12 && share < 0.60, "Peace Candle share of churches should be near a third (got " + peace + "/" + churches + " = " + share + ")");
+		}));
+		tests.add(RTTest.named("worldgen.peace_candle.assembler_builds_no_peace_candle_churches_with_the_config_off").run(c -> {
+			BooleanSupplier before = PeaceCandleChurchPool.enabled;
+			int[] result;
+			try
+			{
+				PeaceCandleChurchPool.enabled = () -> false;
+				result = assembleVillages(c, 40);
+			}
+			finally
+			{
+				PeaceCandleChurchPool.enabled = before;
+			}
+			c.eq(0, result[1], "Peace Candle churches in villages with PeaceCandle = false");
+			c.check(result[0] > 0, "vanilla churches still generate (got " + result[0] + ")");
+		}));
+		tests.add(RTTest.named("worldgen.peace_candle.church_piece_places_a_working_peace_candle").run(c -> {
+			SinglePoolElement piece = StructurePoolElement.single("randomthings:peace_candle_church").apply(StructureTemplatePool.Projection.RIGID);
+			StructureTemplateManager templates = c.world.getStructureManager();
+			BlockPos base = new BlockPos(c.origin.getX() - 4, CAVE_Y, c.origin.getZ() - 4);
+			BoundingBox box = piece.getBoundingBox(templates, base, Rotation.NONE);
+			boolean placed = piece.place(templates, c.world, c.world.structureManager(), c.world.getChunkSource().getGenerator(), base, base, Rotation.NONE, box, RandomSource.create(1), false);
+			c.check(placed, "the church piece must place");
+			int candles = 0;
+			PeaceCandleTileEntity found = null;
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(box.minX(), box.minY(), box.minZ()), new BlockPos(box.maxX(), box.maxY(), box.maxZ())))
+			{
+				if (c.world.getBlockState(pos).getBlock() == ModBlocks.PEACE_CANDLE)
+				{
+					candles++;
+					if (c.world.getBlockEntity(pos) instanceof PeaceCandleTileEntity)
+					{
+						found = (PeaceCandleTileEntity) c.world.getBlockEntity(pos);
+					}
+				}
+			}
+			boolean registered = found != null && PeaceCandleTileEntity.candles.contains(found);
+			for (BlockPos pos : BlockPos.betweenClosed(new BlockPos(box.minX() - 1, box.minY() - 1, box.minZ() - 1), new BlockPos(box.maxX() + 1, box.maxY() + 1, box.maxZ() + 1)))
+			{
+				c.world.removeBlockEntity(pos);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+			}
+			c.eq(1, candles, "the church holds exactly one Peace Candle");
+			c.check(found != null, "the Peace Candle block must have its tile entity");
+			c.check(registered, "the placed candle must be in the active registry that blocks monster spawns");
+		}));
+
+		// ---- Other natural features (registration, placement rules) ---------------------------
+		String[][] natural = { { "bean_sprout", "2", "VEGETAL_DECORATION" }, { "lotus", "10", "VEGETAL_DECORATION" }, { "ancient_furnace", "400", "LOCAL_MODIFICATIONS" } };
+
+		for (String[] spec : natural)
+		{
+			tests.add(RTTest.named("worldgen." + spec[0] + ".is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity").run(c -> {
+				skipWithoutBiomeModifiers(c);
+				Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+				int step = GenerationStep.Decoration.valueOf(spec[2]).ordinal();
+				int overworldStyle = 0;
+
+				for (Biome biome : biomes)
+				{
+					boolean found = false;
+					String json = "";
+					List<HolderSet<PlacedFeature>> stages = biome.getGenerationSettings().features();
+
+					for (int i = 0; i < stages.size(); i++)
+					{
+						for (Holder<PlacedFeature> holder : stages.get(i))
+						{
+							String encoded = PlacedFeature.DIRECT_CODEC.encodeStart(JsonOps.INSTANCE, holder.value()).result().map(Object::toString).orElse("");
+
+							if (encoded.contains("randomthings:" + spec[0]))
+							{
+								c.eq(step, i, spec[0] + " must be in its own decoration step in " + biomes.getKey(biome));
+								found = true;
+								json = encoded;
+							}
+						}
+					}
+
+					boolean overworld = biomes.getHolderOrThrow(biomes.getResourceKey(biome).get()).is(net.minecraft.tags.BiomeTags.IS_OVERWORLD);
+
+					if (overworld)
+					{
+						overworldStyle++;
+						c.check(found, spec[0] + " must be decorated into " + biomes.getKey(biome));
+						c.check(json.contains("\"chance\":" + spec[1]) && json.contains("minecraft:heightmap") && json.contains("minecraft:in_square"), biomes.getKey(biome) + ": " + spec[0] + " placement must be 1 in " + spec[1] + " chunks, random column, on the heightmap");
+					}
+					else
+					{
+						c.check(!found, spec[0] + " must not be decorated into " + biomes.getKey(biome));
+					}
+				}
+
+				c.check(overworldStyle > 40, "expected the full vanilla biome list, saw " + overworldStyle);
+			}));
+		}
+
+		tests.add(RTTest.named("worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block").run(c -> {
+			BlockPos pos = c.at(2, 1, 2);
+			Block[] soils = { Blocks.GRASS_BLOCK, Blocks.DIRT, Blocks.FARMLAND };
+
+			for (Block soil : soils)
+			{
+				c.world.setBlock(pos.below(), soil.defaultBlockState(), 18);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				boolean placed = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new LegacyRandomSource(1), pos);
+				Block block = c.world.getBlockState(pos).getBlock();
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				c.check(placed && block == ModBlocks.BEAN_SPROUT, "a sprout must be placed on " + soil);
+			}
+
+			c.world.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+			c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+			boolean stone = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new LegacyRandomSource(1), pos);
+			c.world.setBlock(pos.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+			c.world.setBlock(pos, Blocks.STONE.defaultBlockState(), 18);
+			boolean solid = ModFeatures.BEAN_SPROUT.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new LegacyRandomSource(1), pos);
+			c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+			c.check(!stone, "a sprout must not be placed on stone");
+			c.check(!solid, "a sprout must not replace a solid block");
+		}));
+
+		tests.add(RTTest.named("worldgen.lotus.snowy_biome_check_and_refuses_in_a_non_snowy_biome").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			c.check(lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.SNOWY_PLAINS), "SNOWY"), "snowy_plains must count as SNOWY");
+			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.PLAINS), "SNOWY"), "plains must not count as SNOWY");
+			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.DESERT), "SNOWY"), "desert must not count as SNOWY");
+			BlockPos pos = c.at(2, 1, 2);
+
+			if (!lumien.randomthings.util.BiomeUtil.hasType(c.world.getBiome(pos).value(), "SNOWY"))
+			{
+				c.world.setBlock(pos.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 18);
+				c.world.setBlock(pos, Blocks.AIR.defaultBlockState(), 18);
+				boolean placed = ModFeatures.LOTUS.place(NoneFeatureConfiguration.INSTANCE, c.world, c.world.getChunkSource().getGenerator(), new LegacyRandomSource(1), pos);
+				c.check(!placed, "a lotus must not generate in a non-snowy biome");
+			}
+		}));
+
+		// the test world is warm, so the area is repainted with a cold biome (and restored afterwards); the feature reads the biome through
+		// the level's biome manager, which blends the neighbouring cells, hence the whole surrounding chunks are painted
+		tests.add(RTTest.named("worldgen.ancient_furnace.generates_only_in_cold_biomes_on_solid_ground").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			BlockPos pos = c.at(2, 1, 2);
+			Holder<Biome> original = c.world.getBiome(pos);
+			Holder<Biome> cold = biomes.getHolderOrThrow(Biomes.SNOWY_PLAINS);
+			c.check(original.value().warmEnoughToRain(pos.below()), "the flat test world is expected to be warm (got " + original.unwrapKey().map(Object::toString).orElse("?") + ")");
+			ServerLevel w = c.world;
+			RandomSource random = new LegacyRandomSource(1);
+
+			try
+			{
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace in a warm biome");
+				c.eq(Blocks.STONE, w.getBlockState(pos.below()).getBlock(), "the ground must be untouched in a warm biome");
+
+				paintBiome(c, cold);
+				c.check(!w.getBiome(pos).value().warmEnoughToRain(pos.below()), "the painted biome must read back as cold");
+
+				w.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace over air");
+				w.setBlock(pos.below(), Blocks.WATER.defaultBlockState(), 18);
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "no furnace into water");
+
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+				c.check(ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "a furnace must generate on stone in a cold biome");
+				c.eq(ModBlocks.ANCIENT_FURNACE, w.getBlockState(pos.below()).getBlock(), "the furnace replaces the ground block");
+				c.check(!ModFeatures.ANCIENT_FURNACE.place(NoneFeatureConfiguration.INSTANCE, w, w.getChunkSource().getGenerator(), random, pos), "an existing furnace is not replaced again");
+			}
+			finally
+			{
+				paintBiome(c, original);
+				w.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 18);
+			}
+		}));
+
+		// the heat-up's finish (warm the surroundings, then explode) is split: only the warming is run, the explosion would wreck the test area
+		tests.add(RTTest.named("worldgen.ancient_furnace.heating_converts_cold_biomes_melts_snow_and_ice_and_leaves_warm_biomes_alone").run(c -> {
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Holder<Biome> original = c.world.getBiome(c.at(2, 1, 2));
+			BlockPos snow = c.at(2, 1, 2);
+			BlockPos ice = c.at(4, 1, 2);
+			ServerLevel w = c.world;
+			java.lang.reflect.Method warm;
+
+			try
+			{
+				warm = lumien.randomthings.tileentity.AncientFurnaceTileEntity.class.getDeclaredMethod("warmSurroundings", net.minecraft.world.level.Level.class, BlockPos.class);
+				warm.setAccessible(true);
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Skip("cannot reach warmSurroundings: " + e);
+			}
+
+			try
+			{
+				// a warm (unconvertible) area first: neither the biome nor the snow may change
+				w.setBlock(snow, Blocks.SNOW_BLOCK.defaultBlockState(), 18);
+				warm.invoke(null, w, c.at(0, 1, 0));
+				c.eq(original.unwrapKey().get(), w.getBiome(snow).unwrapKey().get(), "a warm biome is not converted");
+				c.eq(Blocks.SNOW_BLOCK, w.getBlockState(snow).getBlock(), "snow in a biome without a warm counterpart stays");
+
+				// then a snowy area: biome becomes plains, snow disappears, ice melts
+				paintBiome(c, biomes.getHolderOrThrow(Biomes.SNOWY_PLAINS));
+				w.setBlock(ice, Blocks.PACKED_ICE.defaultBlockState(), 18);
+				warm.invoke(null, w, c.at(0, 1, 0));
+				c.eq(Biomes.PLAINS, w.getBiome(snow).unwrapKey().get(), "snowy plains must become plains");
+				c.eq(Biomes.PLAINS, w.getBiome(ice).unwrapKey().get(), "the whole radius is converted");
+				c.eq(Blocks.AIR, w.getBlockState(snow).getBlock(), "snow blocks are removed");
+				c.eq(Blocks.WATER, w.getBlockState(ice).getBlock(), "packed ice becomes water");
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Failure("warmSurroundings threw: " + e.getCause());
+			}
+			finally
+			{
+				paintBiome(c, original);
+				w.setBlock(snow, Blocks.AIR.defaultBlockState(), 18);
+				w.setBlock(ice, Blocks.AIR.defaultBlockState(), 18);
+			}
+		}));
+
+		// client side of the heat-up: the server rewrites the biome, the client only learns about it from the chunk resend (checklist N6)
+		final java.lang.reflect.Method[] warmClient = new java.lang.reflect.Method[1];
+		final Holder<?>[] originalClient = new Holder<?>[1];
+		tests.add(RTTest.named("worldgen.ancient_furnace.client_sees_the_biome_change_after_heating").run(c -> {
+			if (net.minecraftforge.fml.loading.FMLEnvironment.dist != net.minecraftforge.api.distmarker.Dist.CLIENT)
+			{
+				throw new TestCtx.Skip("needs a client run (the dedicated server has no client to look at)");
+			}
+
+			try
+			{
+				warmClient[0] = lumien.randomthings.tileentity.AncientFurnaceTileEntity.class.getDeclaredMethod("warmSurroundings", net.minecraft.world.level.Level.class, BlockPos.class);
+				warmClient[0].setAccessible(true);
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Skip("cannot reach warmSurroundings: " + e);
+			}
+
+			originalClient[0] = c.world.getBiome(c.at(2, 1, 2));
+			paintBiome(c, c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.SNOWY_PLAINS));
+			resendAround(c);
+		}).waitTicks(20).run(c -> {
+			if (warmClient[0] == null)
+			{
+				return;
+			}
+
+			c.eq(Biomes.SNOWY_PLAINS, ClientProbe.biomeAt(c.at(2, 1, 2)), "precondition: the client must show the repainted biome after the resend");
+
+			try
+			{
+				warmClient[0].invoke(null, c.world, c.at(0, 1, 0));
+			}
+			catch (ReflectiveOperationException e)
+			{
+				throw new TestCtx.Failure("warmSurroundings threw: " + e.getCause());
+			}
+		}).waitTicks(20).run(c -> {
+			if (warmClient[0] == null)
+			{
+				return;
+			}
+
+			ResourceKey<Biome> client = ClientProbe.biomeAt(c.at(2, 1, 2));
+			@SuppressWarnings("unchecked")
+			Holder<Biome> original = (Holder<Biome>) originalClient[0];
+			paintBiome(c, original);
+			resendAround(c);
+			c.eq(Biomes.PLAINS, client, "the client must see the converted biome without relogging");
+		}));
+
+		// ---- Spectre dimension generator -------------------------------------------------------
+		tests.add(RTTest.named("worldgen.spectre.dimension_uses_the_void_generator_and_a_256_tall_zero_based_height").run(c -> {
+			lumien.randomthings.handler.spectre.SpectreHandler handler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerLevel spectre = handler.getWorld();
+			c.check(spectre.getChunkSource().getGenerator() instanceof lumien.randomthings.handler.spectre.SpectreChunkGenerator, "the Spectre dimension must use SpectreChunkGenerator, got " + spectre.getChunkSource().getGenerator().getClass());
+			c.eq(0, spectre.getMinBuildHeight(), "Spectre min build height");
+			c.eq(256, spectre.getHeight(), "Spectre height");
+			c.check(!spectre.dimensionType().hasSkyLight() && !spectre.dimensionType().hasCeiling(), "no skylight, no ceiling");
+		}));
+
+		tests.add(RTTest.named("worldgen.spectre.a_generated_chunk_far_from_the_cubes_is_empty_air").run(c -> {
+			lumien.randomthings.handler.spectre.SpectreHandler handler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerLevel spectre = handler.getWorld();
+			ChunkAccess chunk = spectre.getChunk(5000, 5000);
+
+			for (int x = 0; x < 16; x += 5)
+			{
+				for (int z = 0; z < 16; z += 5)
+				{
+					for (int y = 0; y < 256; y += 17)
+					{
+						c.check(chunk.getBlockState(new BlockPos(x, y, z)).isAir(), "void chunk must be air at " + x + "," + y + "," + z);
+					}
+				}
+			}
+		}));
+
 		return tests;
+	}
+
+	/**
+	 * A structure manager that knows no structures. The generator asks it about structure starts in a wide chunk range around
+	 * every chunk it generates; this test only has a small patch of chunks in hand, so the answer is "none" instead of a
+	 * region lookup out of bounds (the real one would also block on the server thread's own chunk source).
+	 */
+	private static class NoStructures extends StructureManager
+	{
+		private final ServerLevel world;
+
+		private NoStructures(ServerLevel world, net.minecraft.world.level.LevelAccessor level)
+		{
+			super(level, world.getServer().getWorldData().worldGenSettings(), null);
+			this.world = world;
+		}
+
+		static NoStructures of(ServerLevel world)
+		{
+			return new NoStructures(world, world);
+		}
+
+		@Override
+		public StructureManager forWorldGenRegion(WorldGenRegion region)
+		{
+			return new NoStructures(world, region);
+		}
+
+		@Override
+		public List<StructureStart> startsForStructure(ChunkPos pos, java.util.function.Predicate<Structure> predicate)
+		{
+			return Collections.emptyList();
+		}
+
+		@Override
+		public List<StructureStart> startsForStructure(net.minecraft.core.SectionPos pos, Structure structure)
+		{
+			return Collections.emptyList();
+		}
+
+		@Override
+		public boolean hasAnyStructureAt(BlockPos pos)
+		{
+			return false;
+		}
+
+		@Override
+		public Map<Structure, it.unimi.dsi.fastutil.longs.LongSet> getAllStructuresAt(BlockPos pos)
+		{
+			return Collections.emptyMap();
+		}
+
+		@Override
+		public StructureStart getStructureAt(BlockPos pos, Structure structure)
+		{
+			return StructureStart.INVALID_START;
+		}
+
+		@Override
+		public StructureStart getStructureWithPieceAt(BlockPos pos, Structure structure)
+		{
+			return StructureStart.INVALID_START;
+		}
+
+		@Override
+		public net.minecraft.world.level.levelgen.structure.StructureCheckResult checkStructurePresence(ChunkPos pos, Structure structure, boolean skipKnown)
+		{
+			return net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT;
+		}
 	}
 }

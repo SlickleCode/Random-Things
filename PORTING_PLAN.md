@@ -11,7 +11,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | `1.14.4` | Forge 28.2.26 port, complete | this file, `docs/project/` |
 | `1.16.5` | Forge 36.2.39 port | `docs/migration/plans/1.16.5-port-plan.md` |
 | `1.18.2` | Forge 40.3.12 port (complete) | `docs/migration/plans/1.18.2-port-plan.md` |
-| `1.19.2` | Forge 43.5.2 port, IN PROGRESS (M0-M1 done; server suite 357/0/2; client not booted) | `docs/migration/plans/1.19.2-port-plan.md` |
+| `1.19.2` | Forge 43.5.2 port, IN PROGRESS (M0-M2 done; server suite 375/0/3; client suite 377/0/1; GUI click test and production (SRG) server/client suites pass) | `docs/migration/plans/1.19.2-port-plan.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 
@@ -22,10 +22,11 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 
 - **Branch:** cut from `1.18.2` (`2a69d65`); toolchain Forge 1.19.2-43.5.2 / ForgeGradle 5.1 / Gradle 7.4.2 / JDK 17, Mojang names. Plan and milestones: `docs/migration/plans/1.19.2-port-plan.md`. M0 (toolchain) and M1 (mechanical API moves) done: `./gradlew build -x test` passes. The dedicated server boots and the dev suite passes 357/0/2 (2026-10-15); client, worldgen/Peace Candle tests and chat features are open - see the plan's "Known gaps"; test/status text below the 1.18.2 history is carried over.
 - Everything is uncommitted.
+- 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
 
 ## What to do next
 
-1. M2-M6 in order (worldgen, chat, rendering/client, coremods, boot + suites); update the plan + this file after each.
+1. M3-M6 in order (chat, rendering/client, coremods, boot + suites); update the plan + this file after each. M2 (worldgen + restored worldgen tests) is done, see the plan's "M2 result".
 
 ## Where things are
 

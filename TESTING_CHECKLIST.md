@@ -54,7 +54,7 @@ Sections 1-5 list what the automated suites did **not** cover on 1.16.5 (204 row
 | 59 | "Beans" item — plants Bean Sprout |  |  |
 | 60 | "Lesser Magic Bean" item — plants the lesser Bean Stalk |  |  |
 | 61 | "Magic Bean" item — plants the fast/strong magic Bean Stalk |  |  |
-| 62 | Bean Sprout |  |  |
+| 62 | Bean Sprout - also plantable on grass/dirt (FIXED 2026-10-17; used to need farmland) |  |  |
 | 63 | Bean Stalk (lesser) |  |  |
 | 64 | Bean Stalk (magic) |  |  |
 | 65 | Pod — drops beans when broken |  |  |
@@ -266,7 +266,7 @@ The scenarios assert state and pixel measurements for these, but only your eyes/
 | 234 | Fluid Display: takes the poured fluid's texture/colour, still vs flowing looks right, no holes beside neighbouring blocks (sand, stone) - this was the 1.16 culling bug |  |  |
 | 149-153 | Biome Radar: crystal spins in the middle of the radar; antenna particles change colour when the search finishes |  |  |
 | 254 | Magic Hood: no potion swirl around you in F5 view (and other players see no nametag, two-player check) |  |  |
-| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion |  |  |
+| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion (FIXED on 1.19.2: only 1 in 16 columns used to melt) |  |  |
 | 277 | Portkey: dropped item shimmers, stops glowing about 5 s later; disguised Portkey (#279) looks like the donor item in hand/ground/item frame |  |  |
 | 319 | Light Redirector: open face shows the block on the opposite side (periscope picture) |  |  |
 | 321-323 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |

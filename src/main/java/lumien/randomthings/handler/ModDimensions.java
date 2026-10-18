@@ -5,6 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
+import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
@@ -40,6 +41,30 @@ public class ModDimensions {
      */
     public static void registerBuiltin() {
         Registry.register(Registry.CHUNK_GENERATOR, SPECTRE_ID, SpectreChunkGenerator.CODEC);
+        registerDimensionType();
+    }
+
+    /**
+     * The "Create New World" screen builds its registries from the vanilla data pack only (Forge 1.19.2 adds the mod packs
+     * to that load only once the Data Packs screen is opened), so a datapack-only dimension type is missing from a world
+     * created through the UI and the server would stop at {@link #addToServer}. The same JSON is therefore also parsed
+     * into the built-in registry, which every new world starts from.
+     */
+    private static void registerDimensionType() {
+        if (BuiltinRegistries.DIMENSION_TYPE.getOptional(SPECTRE_TYPE).isPresent()) {
+            return;
+        }
+
+        try (java.io.InputStream in = ModDimensions.class.getResourceAsStream("/data/randomthings/dimension_type/spectre.json");
+             java.io.Reader reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
+            DimensionType type = DimensionType.DIRECT_CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseReader(reader))
+                    .getOrThrow(false, message -> {
+                        throw new IllegalStateException("spectre dimension type: " + message);
+                    });
+            BuiltinRegistries.register(BuiltinRegistries.DIMENSION_TYPE, SPECTRE_TYPE, type);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** Adds the Spectre dimension to this world's dimension list if it is not there yet (new worlds, and old worlds on first load). */
@@ -54,7 +79,15 @@ public class ModDimensions {
         Registry<Biome> biomes = server.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
         Registry<StructureSet> structureSets = server.registryAccess().registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
 
-        dimensions.register(SPECTRE_DIMENSION, new LevelStem(types.getHolderOrThrow(SPECTRE_TYPE), new SpectreChunkGenerator(structureSets, new FixedBiomeSource(biomes.getHolderOrThrow(Biomes.THE_VOID)))), Lifecycle.stable());
+        // A world that already has a level.dat is read with a frozen dimension registry (only a world being created in this session
+        // still has an open one), so the registry is opened for this one registration and frozen again.
+        dimensions.unfreeze();
+
+        try {
+            dimensions.register(SPECTRE_DIMENSION, new LevelStem(types.getHolderOrThrow(SPECTRE_TYPE), new SpectreChunkGenerator(structureSets, new FixedBiomeSource(biomes.getHolderOrThrow(Biomes.THE_VOID)))), Lifecycle.stable());
+        } finally {
+            dimensions.freeze();
+        }
     }
 
     public static boolean isSpectre(Level world) {

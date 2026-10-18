@@ -30,6 +30,9 @@ public final class RTTestRunner
 	private static List<RTTest> queue;
 	private static int testIndex;
 	private static int stepIndex;
+	private static int pollTicks;
+	private static boolean savedInstabuild;
+	private static int stableCount;
 	private static int wait;
 	static TestCtx ctx;
 	private static ServerPlayer player;
@@ -86,6 +89,9 @@ public final class RTTestRunner
 		}
 
 		player = starter;
+		// a real (creative) player in a client run would not use up items or durability; the dedicated-server runs use a survival fake player
+		savedInstabuild = starter.getAbilities().instabuild;
+		starter.getAbilities().instabuild = false;
 		BlockPos base = starter.blockPosition();
 		ctx = new TestCtx(world, new BlockPos(base.getX() + 14, 100, base.getZ()), starter);
 		ctx.clear();
@@ -137,6 +143,14 @@ public final class RTTestRunner
 			return;
 		}
 
+		if (ctx != null && ctx.world.getServer() != event.getServer())
+		{
+			// the world this run started in was closed (client: Save and Quit); ticking its stale level from the next world's server blocks forever
+			running = false;
+			player.getAbilities().instabuild = savedInstabuild;
+			return;
+		}
+
 		if (wait > 0)
 		{
 			wait--;
@@ -162,6 +176,39 @@ public final class RTTestRunner
 
 		try
 		{
+			if (step.until != null)
+			{
+				if (!step.until.met(ctx))
+				{
+					stableCount = 0;
+
+					if (++pollTicks > step.maxTicks)
+					{
+						String message = "timed out waiting for " + step.what + " (" + step.maxTicks + " ticks)";
+
+						if (step.skipOnTimeout)
+						{
+							throw new TestCtx.Skip(message);
+						}
+
+						throw new TestCtx.Failure(message);
+					}
+
+					wait = 1;
+					return;
+				}
+
+				if (++stableCount < step.stableTicks)
+				{
+					pollTicks++;
+					wait = 1;
+					return;
+				}
+
+				pollTicks = 0;
+				stableCount = 0;
+			}
+
 			step.body.run(ctx);
 		}
 		catch (TestCtx.Skip s)
@@ -211,11 +258,19 @@ public final class RTTestRunner
 
 		testIndex++;
 		stepIndex = 0;
+		pollTicks = 0;
+		stableCount = 0;
 	}
 
 	private static void finish()
 	{
 		running = false;
+
+		if (player != null)
+		{
+			player.getAbilities().instabuild = savedInstabuild;
+		}
+
 		failureCount = failures.size();
 
 		List<String> lines = new ArrayList<>();

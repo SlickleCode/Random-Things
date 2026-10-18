@@ -75,6 +75,7 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 | `RT_AUTOTEST_NO_GUIS=true` | Skip the GUI screenshot pass at the end (recommended for quick runs) |
 | `RT_AUTOTEST_FILTER=<text>` | Only run tests whose name contains the text (case-insensitive), e.g. `block_breaker`, `nbt.item`, `iron_dropper` |
 | `RT_AUTOTEST_EXIT=true` | Quit the client when done |
+| `RT_AUTOTEST_SOUND=true` | Keep the game audio on during the client autotest (it is muted by default, at runtime only; the saved options are untouched) |
 | `RT_AUTOTEST_SCENES=true` | Render screenshot pass (`debug/RenderScenes` + `client/SceneShots`): builds each scene (`/rtdebug scene <id>`), saves HUD-less screenshots to `run/screenshots/randomthings_debug/scenes/<id>.png`, then pages through the Random Things creative tab (`items_N.png`). Review the images by eye. |
 | `RT_AUTOTEST_SCENES_ONLY=id,id` | With `_SCENES`: only these scene ids (skips the creative-tab pages) |
 | `RT_AUTOTEST_CLICKS=true` | GUI click-through (`client/GuiClickTest`): opens every GUI, hovers and clicks every button through `mouseClicked`, compares server-side block/item NBT before and after, types into every text field and reopens the GUI to check the text was saved. Report: `run/randomthings_clicks.txt`. Slots are not exercised yet. |
@@ -111,6 +112,7 @@ in-test cave and terrain checks first looked fine; use it after touching natural
 
 `docs/testing/desktop-helper/` (`desk.py` + `scn.py`, copy to `prod-test/desktop/`) drives the real game window through deterministic scenarios in a fresh seed-424242 world.
 It was built on 1.14.4 (see the 1.14.4 branch's `docs/testing/README.md` for the full scenario list and pitfalls); on `1.16.5` run it with `SCN_MC=1.16`; on `1.18.2` run it with `SCN_MC=1.18` (adapted 2026-10-15: `/item replace`, a y=3 floor in the flat world, `snowy_plains`; all 26 scenarios pass - see the `scripted-playtest` skill) (1.16 menu clicks, registry-string dimensions)
+On `1.19.2` the `fresh_world_worldgen` scenario (flat world made through the Create World screen, runs `/rtdebug test worldgen`; expects all 22 to pass, none skipped) proves the biome modifiers apply to a player's first world.
 (different create-world screen). Pixel reads must use `desk.grab()` (one frame) rather than many `desk.pixel()` calls.
 
 ### Switching branches
