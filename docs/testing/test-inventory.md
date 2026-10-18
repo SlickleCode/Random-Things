@@ -93,12 +93,26 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `worldgen.peace_candle.real_village_assemblies_contain_the_church_about_a_third_of_the_time`
 - `worldgen.peace_candle.assembler_builds_no_peace_candle_churches_with_the_config_off`
 - `worldgen.peace_candle.church_piece_places_a_working_peace_candle`
+- `worldgen.bean_sprout.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.lotus.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.ancient_furnace.is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity`
+- `worldgen.bean_sprout.places_on_air_above_farmland_but_not_on_stone_or_into_a_solid_block`
+- `worldgen.lotus.snowy_biome_check_and_refuses_in_a_non_snowy_biome`
+- `worldgen.ancient_furnace.generates_only_in_cold_biomes_on_solid_ground`
+- `worldgen.ancient_furnace.heating_converts_cold_biomes_melts_snow_and_ice_and_leaves_warm_biomes_alone`
+- `worldgen.ancient_furnace.client_sees_the_biome_change_after_heating (client run only)`
+- `worldgen.spectre.dimension_uses_the_void_generator`
+- `worldgen.spectre.a_generated_chunk_far_from_the_cubes_is_empty_air`
 
 ## World generation tests (`worldgen.*`, deterministic)
 
 Random-chance worldgen is verified without playing: every random source is seeded, so a result never changes. Layers: (1) the feature is in every overworld-style biome (none in Nether/End) with the original rarity (1 in 4 chunks, random column, heightmap); (2) run directly in a sealed cave it places only roofed, valid mushrooms inside the +-7/+-3 patch; (3) a placed mushroom survives neighbour updates and spreads (these two found a real bug); (4) real vanilla terrain is generated (terrain, caves, the real decorator; 12 areas of 5x5 chunks) and mushrooms must appear underground (found a real bug: none ever generated); (5) the plains houses pool in the world's dynamic registry is the Peace Candle wrapper and swaps 33.2% of church candidate lists (996 of 3000); (6) 60 real village starts contain 7 Peace Candle and 22 vanilla churches; (7) the church template places a working Peace Candle (tile entity registered); (8) both config switches stop generation (via `PeaceCandleChurchPool.enabled` / `GlowingMushroomFeature.enabled`, so the config file is never rewritten). Numbers are logged as `worldgen test:` lines in `run/logs/latest.log`.
 
 **Real-world cross-check (production server, not part of the suite):** `prod-test/<ver>/realgen.py` force-generates ~1,700 chunks of a real default overworld and counts region-file chunks containing a Glowing Mushroom (1.14.4: 74, 1.16.5 after the fix: 70, before it: 0).
+
+## Use-item tests (`use_item.*`)
+
+`UseItemTests` right-clicks items with the test player (`onItemRightClick` / `onItemUse` / `onItemUseFinish`): Escape Rope (refuses under open sky; charges and teleports out of a roofed room through its doorway for one durability; releasing the rope cancels; a sealed room drops the rope; the 20th use breaks it), Blaze and Steel, Beans (top of farmland only), Lotus Seeds (grass yes, stone no), Lotus Blossom (3-11 XP), Grass Seeds (plain and dyed), Bottle of Air, Golden and Weather Eggs (projectile spawned, one egg used), Eclipsed Clock (wall yes, floor no). `coremod.spawn.slime_cube_only_affects_slimes_in_its_own_chunk_and_stops_when_removed` (CoremodTests) covers the Slime Cube's chunk scoping. Ported from the 1.18.2 branch; on 1.18 the rope tests also wait 20 ticks for asynchronous sky light, which is harmless here. Mutation-checked on 1.18.2.
 
 ## Generated in-game tests
 

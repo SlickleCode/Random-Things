@@ -54,7 +54,7 @@ This sheet lists only what the automated suites and scripted scenarios do **not*
 | 59 | "Beans" item — plants Bean Sprout |  |  |
 | 60 | "Lesser Magic Bean" item — plants the lesser Bean Stalk |  |  |
 | 61 | "Magic Bean" item — plants the fast/strong magic Bean Stalk |  |  |
-| 62 | Bean Sprout |  |  |
+| 62 | Bean Sprout - also plantable on grass/dirt (FIXED 2026-10-17; used to need farmland) |  |  |
 | 63 | Bean Stalk (lesser) |  |  |
 | 64 | Bean Stalk (magic) |  |  |
 | 65 | Pod — drops beans when broken |  |  |
@@ -107,9 +107,6 @@ This sheet lists only what the automated suites and scripted scenarios do **not*
 | 139 | Emerald Compass — freshly crafted (emeralds + vanilla compass), no target bound yet: needle wobbles randomly, same as an unbound Golden Compass |  |  |
 | 140 | Emerald Compass — bind an ID Card to yourself (right-click), then combine it with the compass at a crafting table … |  |  |
 | 141 | Emerald Compass — bound player logs off: needle goes back to a random wobble instead of pointing at their last known position, and resumes tracking automatically once they log back in |  |  |
-| 142 | Escape Rope — deep underground (no sky visible from where you're standing), hold right-click … |  |  |
-| 143 | Escape Rope — release right-click partway through the search instead of holding it the whole time … |  |  |
-| 144 | Escape Rope — used 20 times (its full durability): breaks like a normal tool after the 21st successful use |  |  |
 | 145 | Chunk Analyzer — right-click to open the GUI, hit the "Scan" button … |  |  |
 | 146 | Chunk Analyzer — close the GUI and reopen it without rescanning: the previous scan results are still there (persisted in the item's own NBT), no need to rescan |  |  |
 | 147 | Chunk Analyzer — scan a chunk, then move to your own inventory/hotbar/armor while the scan is running (e.g. pick up or drop an item) … |  |  |
@@ -249,7 +246,7 @@ The scenarios assert state and pixel measurements for these, but only your eyes/
 | 234 | Fluid Display: takes the poured fluid's texture/colour, still vs flowing looks right, no holes beside neighbouring blocks (sand, stone) - this was the 1.16 culling bug |  |  |
 | 149-153 | Biome Radar: crystal spins in the middle of the radar; antenna particles change colour when the search finishes |  |  |
 | 254 | Magic Hood: no potion swirl around you in F5 view (and other players see no nametag, two-player check) |  |  |
-| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion |  |  |
+| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion (FIXED: only 1 in 16 columns used to melt; heating + client resync tests added) |  |  |
 | 277 | Portkey: dropped item shimmers, stops glowing about 5 s later; disguised Portkey (#279) looks like the donor item in hand/ground/item frame |  |  |
 | 319 | Light Redirector: open face shows the block on the opposite side (periscope picture) |  |  |
 | 321-323 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |

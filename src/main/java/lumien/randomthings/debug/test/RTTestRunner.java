@@ -30,6 +30,8 @@ public final class RTTestRunner
 	private static List<RTTest> queue;
 	private static int testIndex;
 	private static int stepIndex;
+	private static int pollTicks;
+	private static int stableCount;
 	private static int wait;
 	static TestCtx ctx;
 	private static ServerPlayerEntity player;
@@ -65,6 +67,7 @@ public final class RTTestRunner
 		all.addAll(UtilityBehaviorTests.create());
 		all.addAll(RemainingBehaviorTests.create());
 		all.addAll(CoremodTests.create());
+		all.addAll(UseItemTests.create());
 		all.addAll(WorldgenTests.create());
 		all.addAll(RoundTripTests.create());
 
@@ -161,6 +164,39 @@ public final class RTTestRunner
 
 		try
 		{
+			if (step.until != null)
+			{
+				if (!step.until.met(ctx))
+				{
+					stableCount = 0;
+
+					if (++pollTicks > step.maxTicks)
+					{
+						String message = "timed out waiting for " + step.what + " (" + step.maxTicks + " ticks)";
+
+						if (step.skipOnTimeout)
+						{
+							throw new TestCtx.Skip(message);
+						}
+
+						throw new TestCtx.Failure(message);
+					}
+
+					wait = 1;
+					return;
+				}
+
+				if (++stableCount < step.stableTicks)
+				{
+					pollTicks++;
+					wait = 1;
+					return;
+				}
+
+				pollTicks = 0;
+				stableCount = 0;
+			}
+
 			step.body.run(ctx);
 		}
 		catch (TestCtx.Skip s)
@@ -210,6 +246,8 @@ public final class RTTestRunner
 
 		testIndex++;
 		stepIndex = 0;
+		pollTicks = 0;
+		stableCount = 0;
 	}
 
 	private static void finish()
