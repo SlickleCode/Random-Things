@@ -64,7 +64,7 @@ The scenarios assert state and pixel measurements for these (rows removed from B
 | 158 | Sound Dampener: the muted sound is really silent near the block and audible again beyond 20 blocks |  |  |
 | 234 | Fluid Display: takes the poured fluid's texture/colour, still vs flowing looks right |  |  |
 | 254 | Magic Hood: no potion swirl around you in F5 view (and other players see no nametag, two-player check) |  |  |
-| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion |  |  |
+| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion (automated: heating test + client resync test) |  |  |
 | 277/279 | Portkey: dropped item shimmers then stops glowing about 5 s later; a disguised Portkey looks like the donor item in hand/ground/item frame |  |  |
 | 319 | Light Redirector: open face shows the block on the opposite side (periscope picture) |  |  |
 | 321-323, 390 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |

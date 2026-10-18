@@ -75,6 +75,7 @@ The client boots, creates/opens the flat creative world `RTAutoTest`, runs the a
 | `RT_AUTOTEST_NO_GUIS=true` | Skip the GUI screenshot pass at the end (recommended for quick runs) |
 | `RT_AUTOTEST_FILTER=<text>` | Only run tests whose name contains the text (case-insensitive), e.g. `block_breaker`, `nbt.item`, `iron_dropper` |
 | `RT_AUTOTEST_EXIT=true` | Quit the client when done |
+| `RT_AUTOTEST_SOUND=true` | Keep the game audio on during the client autotest (it is muted by default, at runtime only; the saved options are untouched) |
 | `RT_AUTOTEST_SCENES=true` | Render screenshot pass (`debug/RenderScenes` + `client/SceneShots`): builds each scene (`/rtdebug scene <id>`), saves HUD-less screenshots to `run/screenshots/randomthings_debug/scenes/<id>.png`, then pages through the Random Things creative tab (`items_N.png`). Review the images by eye. |
 | `RT_AUTOTEST_SCENES_ONLY=id,id` | With `_SCENES`: only these scene ids (skips the creative-tab pages) |
 | `RT_AUTOTEST_CLICKS=true` | GUI click-through (`client/GuiClickTest`): opens every GUI, hovers and clicks every button through `mouseClicked`, compares server-side block/item NBT before and after, types into every text field and reopens the GUI to check the text was saved, and hovers a filled slot in every container GUI to check it shows the item tooltip (catches a screen that forgets `renderHoveredToolTip`). Report: `run/randomthings_clicks.txt`. Moving items between slots is not exercised yet. |

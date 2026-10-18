@@ -35,6 +35,13 @@ public class BeanSproutBlock extends CropsBlock
 	}
 
 	@Override
+	protected boolean isValidGround(BlockState state, net.minecraft.world.IBlockReader worldIn, BlockPos pos)
+	{
+		// 1.12.2's sprout was a plain-type plant (grass, dirt, farmland); CropsBlock alone would only allow farmland
+		return state.getBlock() == net.minecraft.block.Blocks.GRASS_BLOCK || state.getBlock() == net.minecraft.block.Blocks.DIRT || state.getBlock() == net.minecraft.block.Blocks.COARSE_DIRT || state.getBlock() == net.minecraft.block.Blocks.PODZOL || state.getBlock() == net.minecraft.block.Blocks.FARMLAND;
+	}
+
+	@Override
 	public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
 	{
 		if (this.isMaxAge(state))

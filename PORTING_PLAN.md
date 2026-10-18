@@ -10,11 +10,12 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | --- | --- | --- |
 | `1.14.4` | Forge 28.2.26 port, complete (this branch) | this file, `docs/project/` |
 | `1.16.5` | Forge 36.2.39 port, complete in code, pushed | `docs/migration/plans/1.16.5-port-plan.md` |
+| `1.18.2` | Forge 40.3.12 port, complete (JDK 17, Mojang names) | `docs/migration/plans/1.18.2-port-plan.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 
 `source env/activate.sh` (pins JDK 8), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
-**Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
+**Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`, `1.18.2/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
 ## Current state (2026-10-14)
 
@@ -33,6 +34,8 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Worldgen bug found by the tests (2026-10-11):** the Glowing Mushroom dropped itself on its first neighbour update and could not spread (own light 15 vs its "light < 13" rule): light is now 12 (`GlowingMushroomBlock.GLOW_LEVEL`), worldgen uses `canGrowDuringWorldgen`; checklist #387 awaits retest.
 - **Worldgen:** Glowing Mushroom and Peace Candle church generation are covered by deterministic `worldgen.*` tests (real terrain + village assembly), so rows #49/#270/#341/#356b need no manual hunting.
 - **Nothing uncommitted;** everything is pushed (`origin/1.14.4`). The Sound Dampener tooltip fix, imbue icon fix, glint colours and the documentation layout are mirrored to `1.16.5`.
+- 2026-10-17: new worldgen tests (feature registration, bean sprout/lotus/furnace rules, heating, client biome resync via `ClientProbe`, Spectre generator); 1.14.4 biomes are per column so the heating bug of newer versions does not exist here. `worldgen.*` 22/0/0 on the client, server suite 372/0/2.
+- 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
 
 ## What to do next
 

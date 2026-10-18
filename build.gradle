@@ -41,6 +41,8 @@ minecraft {
             property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
             property 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
             property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
+            // RT_AUTOTEST_SOUND=true keeps the game audio on during the client autotest (muted by default)
+            property 'randomthings.autotest.sound', System.getenv('RT_AUTOTEST_SOUND') ?: 'false'
             property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
             // RT_AUTOTEST_SCENES=true: skip the tests/GUI pass and screenshot the render scenes instead (debug/RenderScenes, client/SceneShots)
             property 'randomthings.autotest.scenes', System.getenv('RT_AUTOTEST_SCENES') ?: 'false'

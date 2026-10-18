@@ -30,6 +30,11 @@ import java.util.List;
 public class EscapeRopeHandler {
     private static EscapeRopeHandler INSTANCE;
 
+    public static final int DEFAULT_MAX_CHECKED = 10000;
+
+    /** How many blocks one search may visit before it gives up and drops the rope; a field only so the automated tests can shrink it. */
+    public static int maxChecked = DEFAULT_MAX_CHECKED;
+
     private final List<Task> runningTasks = new ArrayList<>();
 
     private static class Task {
@@ -71,7 +76,7 @@ public class EscapeRopeHandler {
             for (int runs = 0; runs < 4; runs++) {
                 boolean finished = false;
 
-                if (toCheck.isEmpty() || alreadyChecked.size() > 10000) {
+                if (toCheck.isEmpty() || alreadyChecked.size() > maxChecked) {
                     finished = true;
 
                     actualPlayer.dropItem(holding, false);
