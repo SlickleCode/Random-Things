@@ -176,6 +176,11 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
             // text so it's obvious they're clickable. Sound ids can be wider than the list, so the
             // text is shrunk to fit (down to half size) instead of being cut off mid-id, and the
             // bar always spans the full row.
+            // The custom render() above skips vanilla's hover bookkeeping (its "hovered" field is private and
+            // never set), so the isMouseOver argument is always false - hit-test the row ourselves.
+            isMouseOver = SoundNameList.this.isMouseOver(mouseX, mouseY)
+                    && mouseX >= left && mouseX < left + width && mouseY >= top - 2 && mouseY < top + height + 2;
+
             if (isMouseOver) {
                 GuiComponent.fill(matrixStack, left, top - 2, left + width, top + height + 2, 0xFF404040);
             }

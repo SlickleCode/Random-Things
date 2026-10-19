@@ -29,6 +29,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - Everything is uncommitted.
 - 2026-10-17: Ancient Furnace heating melted snow/ice in only ~1 in 16 columns (a 4x4 biome cell converted on its first column hid the other 15 from the cold check); fixed in `AncientFurnaceTileEntity.warmSurroundings` (classify all columns, then write). New worldgen tests (feature registration, bean sprout/lotus/furnace rules, heating, client biome resync via `ClientProbe`, Spectre generator); `worldgen.*` 22/0/0 on the client, server suite 373/0/3.
 - 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
+- 2026-10-18 (user-reported, fixed, checked by screenshots and playtest scenario `render_fixes_18`): Advanced Redstone Torch had a black box (no render layer; now cutout in `RenderLayerSetup`); Sound Recorder rows never highlighted (the custom `SoundNameList.render` skips vanilla's private `hovered`; each row now hit-tests itself); Fluid Display drew over blocks in front of it (renderer now sets depth test/func/mask explicitly; root cause not isolated, the explicit state fixes it). Not yet run on 1.19.2/1.20.1 or the production jar.
 
 ## What to do next
 
