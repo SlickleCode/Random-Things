@@ -1255,6 +1255,41 @@ def biome_radar(g):
     g.check(entity_count(g, '@e[type=item,nbt={Item:{id:"randomthings:biome_crystal"}}]') >= 1, '#153: the crystal dropped when the radar was broken')
 
 
+@scenario
+def render_fixes_18(g):
+    """1.18.2: Advanced Redstone Torch has no black box, Fluid Display is hidden behind a wall (control: visible without one), Sound Recorder rows highlight on hover."""
+    arena(g)
+    g.cmd('fill -3 4 3 3 4 3 minecraft:stone')                       # wall in front of the first display
+    g.cmd('setblock 1 4 5 randomthings:fluid_display{fluidStack:{FluidName:"minecraft:water",Amount:1000}}')
+    g.cmd('setblock 5 4 5 randomthings:fluid_display{fluidStack:{FluidName:"minecraft:water",Amount:1000}}')
+    g.cmd('setblock 5 4 2 randomthings:advanced_redstone_torch')
+    g.cmd('setblock 6 4 2 minecraft:redstone_torch')
+    g.tp(5.5, 4, 0.5, 0, 12)
+    g.key('f1'); g.wait(1.0)
+    g.shot('torch_and_display_control')
+    g.tp(0.5, 4, 0.5, 0, 8)
+    g.wait(0.8)
+    g.shot('display_behind_wall')
+    g.key('f1'); g.wait(0.3)
+    px = desk.grab('Minecraft')
+    wall = desk.frame_px(px, 355, 290)       # where the display behind the wall overlapped the wall's face before the fix (blue)
+    g.check(wall[2] - wall[0] < 20, 'fluid display behind a wall is occluded (wall face is not tinted blue)', 'pixel %s' % (wall,))
+    g.slot(0, 'randomthings:sound_recorder{recordList:["block.stone.step","entity.cow.ambient","ui.button.click"]}')
+    g.select(0)
+    g.click(427, 240, 'right')
+    g.wait(1.0)
+    gui_open(g, 190, 186, 'Sound Recorder')
+    g.do('move', '366', '106')
+    g.wait(0.6)
+    g.shot('recorder_hover_row1')
+    bar = desk.pixel('Minecraft', 580, 106)
+    g.check(bar[0] < 90 and bar[1] < 90 and bar[2] < 90, 'sound recorder: hovered row shows the dark highlight bar', 'pixel %s' % (bar,))
+    g.do('move', '366', '135')
+    g.wait(0.6)
+    g.shot('recorder_hover_row2')
+    g.key('escape'); g.wait(0.5)
+
+
 # ---- A10 ----------------------------------------------------------------------------------
 @scenario
 def bean_stew(g):

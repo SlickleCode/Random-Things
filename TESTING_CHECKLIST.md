@@ -272,3 +272,6 @@ The scenarios assert state and pixel measurements for these, but only your eyes/
 | 321-323 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |
 | 346 | Runes: noisy texture, same-colour pixels join across the base edge, nothing flickers while you move |  |  |
 | all glass-like blocks | Trigger/Lapis/Quartz Glass, Diaphanous, Spectre and the other 28 `notSolid()` blocks: no see-through holes in the faces of blocks next to them |  |  |
+| 1.18+ torch | Advanced Redstone Torch (red/green, floor and wall): no black box around the texture (`RenderLayerSetup`: cutout) - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
+| 1.18+ recorder | Sound Recorder: the row under the mouse gets the dark highlight bar - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
+| 1.18+ fluid display | Fluid Display with a fluid is hidden behind blocks in front of it - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |

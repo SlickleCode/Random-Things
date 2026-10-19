@@ -78,6 +78,10 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
 
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
+        // Real bug (1.18.2, 2026-10-18): the cube was drawn over blocks in front of it, so depth state is set explicitly
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(org.lwjgl.opengl.GL11.GL_LEQUAL);
+        RenderSystem.depthMask(true);
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         // Real bug, found 2026-09-28 (same category as RuneBaseTileEntityRenderer's
