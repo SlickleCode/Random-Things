@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.WallTorchBlock;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
@@ -39,7 +38,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 
 	protected AdvancedRedstoneWallTorchBlock()
 	{
-		super(Block.Properties.of(Material.DECORATION).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
 	}
 

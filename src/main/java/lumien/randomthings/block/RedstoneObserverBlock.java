@@ -5,7 +5,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -27,7 +26,7 @@ import net.minecraft.world.InteractionResult;
 public class RedstoneObserverBlock extends Block implements EntityBlock {
 	public RedstoneObserverBlock()
 	{
-		super(Block.Properties.of(Material.STONE).strength(2.0F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
 	}
 
 	@Override

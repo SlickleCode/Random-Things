@@ -3,7 +3,6 @@ package lumien.randomthings.block;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -16,7 +15,7 @@ public class RainbowLampBlock extends Block
 
 	public RainbowLampBlock()
 	{
-		super(Block.Properties.of(Material.BUILDABLE_GLASS).lightLevel(state -> 15).strength(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).lightLevel(state -> 15).strength(0.3F).sound(SoundType.GLASS));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, DyeColor.WHITE));
 	}

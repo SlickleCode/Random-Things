@@ -55,7 +55,7 @@ public class SpectreKeyItem extends Item {
             SpectreHandler spectreHandler = SpectreHandler.getInstance(player.getServer());
 
             if (spectreHandler != null) {
-                if (!ModDimensions.isSpectre(player.level)) {
+                if (!ModDimensions.isSpectre(player.level())) {
                     spectreHandler.teleportPlayerToSpectreCube(player);
                 } else {
                     spectreHandler.teleportPlayerBack(player);
@@ -68,12 +68,12 @@ public class SpectreKeyItem extends Item {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return Minecraft.getInstance().player != null && ModDimensions.isSpectre(Minecraft.getInstance().player.level);
+        return Minecraft.getInstance().player != null && ModDimensions.isSpectre(Minecraft.getInstance().player.level());
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
-        if (!entity.level.isClientSide) {
+    public void onUseTick(net.minecraft.world.level.Level level, LivingEntity entity, ItemStack stack, int count) {
+        if (!entity.level().isClientSide) {
             return;
         }
 
@@ -82,7 +82,7 @@ public class SpectreKeyItem extends Item {
             double y = entity.getY() + Math.random() * 1.8;
             double z = entity.getZ() + Math.random() * 1.8 - 0.9;
 
-            entity.level.addParticle(ParticleTypes.PORTAL, x, y, z, 0, 0, 0);
+            entity.level().addParticle(ParticleTypes.PORTAL, x, y, z, 0, 0, 0);
         }
     }
 }

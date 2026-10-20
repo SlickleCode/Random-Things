@@ -1,5 +1,7 @@
 package lumien.randomthings.handler;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +95,7 @@ public class LootHandler
 
 	public static void registerFunctionTypes()
 	{
-		Registry.register(Registry.LOOT_FUNCTION_TYPE, new ResourceLocation("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
+		Registry.register(net.minecraft.core.registries.BuiltInRegistries.LOOT_FUNCTION_TYPE, new ResourceLocation("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
 	}
 
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */
@@ -122,8 +124,8 @@ public class LootHandler
 		@Override
 		protected ItemStack run(ItemStack stack, LootContext context)
 		{
-			List<ResourceLocation> biomes = new ArrayList<>(ForgeRegistries.BIOMES.getKeys());
-			BiomeCrystalItem.setBiome(stack, ForgeRegistries.BIOMES.getValue(biomes.get(context.getRandom().nextInt(biomes.size()))));
+			List<ResourceLocation> biomes = new ArrayList<>(lumien.randomthings.util.BiomeUtil.ids());
+			BiomeCrystalItem.setBiome(stack, lumien.randomthings.util.BiomeUtil.byId(biomes.get(context.getRandom().nextInt(biomes.size()))));
 			return stack;
 		}
 	}

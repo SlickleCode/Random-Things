@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TorchBlock;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -54,7 +53,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	protected AdvancedRedstoneTorchBlock()
 	{
-		super(Block.Properties.of(Material.DECORATION).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD), ParticleTypes.FLAME);
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD), ParticleTypes.FLAME);
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR_PROPERTY, COLOR.RED));
 	}
 
@@ -199,7 +198,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 		return true;
 	}
 
-	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(new com.mojang.math.Vector3f(0.0F, 1.0F, 0.0F), 1.0F);
+	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(new org.joml.Vector3f(0.0F, 1.0F, 0.0F), 1.0F);
 
 	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)

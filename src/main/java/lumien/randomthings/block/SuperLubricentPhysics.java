@@ -251,8 +251,8 @@ public final class SuperLubricentPhysics
 	 */
 	public static boolean isOnLubricentBlock(Entity entity)
 	{
-		BlockPos underfoot = new BlockPos(entity.getX(), entity.getBoundingBox().minY - 1.0D, entity.getZ());
-		Block block = entity.level.getBlockState(underfoot).getBlock();
+		BlockPos underfoot = BlockPos.containing(entity.getX(), entity.getBoundingBox().minY - 1.0D, entity.getZ());
+		Block block = entity.level().getBlockState(underfoot).getBlock();
 
 		return block instanceof SuperLubricentIceBlock || block instanceof SuperLubricentPlatformBlock || block instanceof SuperLubricentStoneBlock;
 	}

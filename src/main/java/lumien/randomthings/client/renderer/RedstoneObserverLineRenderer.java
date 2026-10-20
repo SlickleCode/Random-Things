@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.GameRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -59,7 +59,6 @@ public class RedstoneObserverLineRenderer
 		Vec3 camera = ari.getPosition();
 		BlockPos playerPos = player.blockPosition();
 
-		RenderSystem.disableTexture();
 		RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
 		RenderSystem.lineWidth(4F);
 
@@ -73,7 +72,7 @@ public class RedstoneObserverLineRenderer
 
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(RedstoneObserverTileEntity.loadedObservers))
 		{
-			if (observer.isRemoved() || observer.getLevel() != player.level || observer.getTarget() == null)
+			if (observer.isRemoved() || observer.getLevel() != player.level() || observer.getTarget() == null)
 			{
 				continue;
 			}
@@ -102,6 +101,5 @@ public class RedstoneObserverLineRenderer
 		tessellator.end();
 
 		matrixStack.popPose();
-		RenderSystem.enableTexture();
-	}
+		}
 }

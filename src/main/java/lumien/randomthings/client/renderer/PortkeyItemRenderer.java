@@ -1,5 +1,7 @@
 package lumien.randomthings.client.renderer;
 
+import net.minecraft.world.item.ItemDisplayContext;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.item.PortkeyItem;
@@ -44,7 +46,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * and plain render showed oversized/offset.** Root cause: unlike this method,
  * {@code ItemRenderer.renderItem(ItemStack, IBakedModel)}/{@code
  * ItemStackTileEntityRenderer.renderByItem} itself takes no {@code
- * TransformType} in this version - the GUI/ground/hand/fixed scaling for a
+ * ItemDisplayContext} in this version - the GUI/ground/hand/fixed scaling for a
  * TESR-backed item comes entirely from ITS OWN registered model's {@code
  * display} block, applied by the caller before {@code renderByItem} ever
  * runs (confirmed via {@code javap -c} and by extracting vanilla's real
@@ -59,7 +61,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * decompiled source) - unconditionally applies its own {@code RenderSystem.translatef(-0.5,
  * -0.5, -0.5)} centering offset before ever checking whether the model is builtin-rendered,
  * i.e. before calling into {@code renderByItem} at all. Every overload this class calls back
- * out to in order to draw the camo'd/plain stack ({@code renderItem(stack, TransformType)} and
+ * out to in order to draw the camo'd/plain stack ({@code renderItem(stack, ItemDisplayContext)} and
  * {@code renderItem(stack, IBakedModel)} alike) funnels through that exact same method again,
  * applying that exact same -0.5 offset a *second* time on top of the first - a real
  * double-translate, independent of whatever the display-transform fix above corrected.
@@ -75,7 +77,7 @@ public class PortkeyItemRenderer extends BlockEntityWithoutLevelRenderer {
     }
 
     @Override
-    public void renderByItem(ItemStack stack, ItemTransforms.TransformType transformType, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
+    public void renderByItem(ItemStack stack, ItemDisplayContext transformType, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
         ItemStack camo = PortkeyItem.getCamoStack(stack);
 
         matrixStack.pushPose();
@@ -84,11 +86,11 @@ public class PortkeyItemRenderer extends BlockEntityWithoutLevelRenderer {
         matrixStack.translate(0.5D, 0.5D, 0.5D);
 
         if (!camo.isEmpty()) {
-            Minecraft.getInstance().getItemRenderer().renderStatic(camo, ItemTransforms.TransformType.NONE, combinedLight, combinedOverlay, matrixStack, buffer, 0);
+            Minecraft.getInstance().getItemRenderer().renderStatic(camo, ItemDisplayContext.NONE, combinedLight, combinedOverlay, matrixStack, buffer, Minecraft.getInstance().level, 0);
         } else {
             BakedModel baseModel = Minecraft.getInstance().getModelManager().getModel(BASE_MODEL);
 
-            Minecraft.getInstance().getItemRenderer().render(stack, ItemTransforms.TransformType.NONE, false, matrixStack, buffer, combinedLight, combinedOverlay, baseModel);
+            Minecraft.getInstance().getItemRenderer().render(stack, ItemDisplayContext.NONE, false, matrixStack, buffer, combinedLight, combinedOverlay, baseModel);
         }
 
         matrixStack.popPose();

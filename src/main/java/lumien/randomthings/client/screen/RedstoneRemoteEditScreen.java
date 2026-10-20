@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -28,13 +30,13 @@ public class RedstoneRemoteEditScreen extends AbstractContainerScreen<RedstoneRe
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
@@ -43,15 +45,15 @@ public class RedstoneRemoteEditScreen extends AbstractContainerScreen<RedstoneRe
      * this screen never drew its title either.
      */
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
-        this.font.draw(matrixStack, I18n.get("container.inventory"), 8, this.imageHeight - 95 + 2, 4210752);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+        graphics.drawString(this.font, I18n.get("container.inventory"), 8, this.imageHeight - 95 + 2, 4210752, false);
     }
 
     @Override
-    public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-        this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
+    public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_) {
+        this.renderBackground(graphics);
+        super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
+        this.renderTooltip(graphics, p_render_1_, p_render_2_);
     }
 }

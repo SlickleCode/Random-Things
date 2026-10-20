@@ -1,5 +1,7 @@
 package lumien.randomthings.util;
 
+import net.minecraft.core.registries.Registries;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,7 +76,7 @@ public class BiomeUtil {
         List<RegistryAccess> accesses = accesses();
 
         for (RegistryAccess access : accesses) {
-            Registry<Biome> registry = access.registryOrThrow(Registry.BIOME_REGISTRY);
+            Registry<Biome> registry = access.registryOrThrow(Registries.BIOME);
             Optional<ResourceKey<Biome>> key = registry.getResourceKey(biome);
 
             if (key.isPresent()) {
@@ -82,11 +84,11 @@ public class BiomeUtil {
             }
         }
 
-        ResourceLocation id = ForgeRegistries.BIOMES.getKey(biome);
+        ResourceLocation id = null;
 
         if (id != null) {
             for (RegistryAccess access : accesses) {
-                Optional<Holder<Biome>> holder = access.registryOrThrow(Registry.BIOME_REGISTRY).getHolder(ResourceKey.create(Registry.BIOME_REGISTRY, id)).map(h -> (Holder<Biome>) h);
+                Optional<Holder<Biome>> holder = access.registryOrThrow(Registries.BIOME).getHolder(ResourceKey.create(Registries.BIOME, id)).map(h -> (Holder<Biome>) h);
 
                 if (holder.isPresent()) {
                     return holder;
@@ -97,6 +99,28 @@ public class BiomeUtil {
         return Optional.empty();
     }
 
+    /** A biome by id from the current world's registry (1.19.3+: biomes are data-pack entries, {@code ForgeRegistries.BIOMES} is empty). */
+    public static Biome byId(ResourceLocation id) {
+        for (RegistryAccess access : accesses()) {
+            Biome biome = access.registryOrThrow(Registries.BIOME).get(id);
+
+            if (biome != null) {
+                return biome;
+            }
+        }
+
+        return null;
+    }
+
+    /** Every biome id of the current world's registry (empty when no world is loaded). */
+    public static Set<ResourceLocation> ids() {
+        for (RegistryAccess access : accesses()) {
+            return access.registryOrThrow(Registries.BIOME).keySet();
+        }
+
+        return Set.of();
+    }
+
     public static ResourceLocation id(Biome biome) {
         Optional<Holder<Biome>> holder = holder(biome);
 
@@ -104,13 +128,13 @@ public class BiomeUtil {
             return holder.get().unwrapKey().get().location();
         }
 
-        return biome == null ? null : ForgeRegistries.BIOMES.getKey(biome);
+        return null;
     }
 
     public static ResourceKey<Biome> key(Biome biome) {
         ResourceLocation id = id(biome);
 
-        return id == null ? null : ResourceKey.create(Registry.BIOME_REGISTRY, id);
+        return id == null ? null : ResourceKey.create(Registries.BIOME, id);
     }
 
     public static boolean hasType(Biome biome, String type) {
@@ -140,7 +164,7 @@ public class BiomeUtil {
     private static TagKey<Biome> tag(String type) {
         ResourceLocation id = VANILLA_TAGS.getOrDefault(type, new ResourceLocation("forge", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
 
-        return TagKey.create(Registry.BIOME_REGISTRY, id);
+        return TagKey.create(Registries.BIOME, id);
     }
 
     public static Component displayName(Biome biome) {

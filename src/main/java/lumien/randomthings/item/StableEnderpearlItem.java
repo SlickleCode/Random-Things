@@ -21,8 +21,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 
@@ -77,7 +75,7 @@ public class StableEnderpearlItem extends Item
 
 		if (counter == 140)
 		{
-			if (!entityItem.level.isClientSide)
+			if (!entityItem.level().isClientSide)
 			{
 				entityItem.discard();
 
@@ -88,17 +86,17 @@ public class StableEnderpearlItem extends Item
 				{
 					String uuidString = itemStack.getTag().getString("player-uuid");
 					UUID uuid = UUID.fromString(uuidString);
-					player = ((ServerLevel) entityItem.level).getServer().getPlayerList().getPlayer(uuid);
+					player = ((ServerLevel) entityItem.level()).getServer().getPlayerList().getPlayer(uuid);
 				}
 
 				if (player != null)
 				{
-					player.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+					player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
 					player.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), player.getYRot(), player.getXRot());
 				}
 				else
 				{
-					List<LivingEntity> entityList = entityItem.level.getEntitiesOfClass(LivingEntity.class, new AABB(entityItem.getX() - 10, entityItem.getY() - 10, entityItem.getZ() - 10, entityItem.getX() + 10, entityItem.getY() + 10, entityItem.getZ() + 10), (e) -> true);
+					List<LivingEntity> entityList = entityItem.level().getEntitiesOfClass(LivingEntity.class, new AABB(entityItem.getX() - 10, entityItem.getY() - 10, entityItem.getZ() - 10, entityItem.getX() + 10, entityItem.getY() + 10, entityItem.getZ() + 10), (e) -> true);
 
 					if (!entityList.isEmpty())
 					{
@@ -107,23 +105,23 @@ public class StableEnderpearlItem extends Item
 						if (target instanceof ServerPlayer)
 						{
 							ServerPlayer targetPlayer = (ServerPlayer) target;
-							targetPlayer.level.playSound(null, targetPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+							targetPlayer.level().playSound(null, targetPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
 							targetPlayer.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), targetPlayer.getYRot(), targetPlayer.getXRot());
 						}
 						else
 						{
-							target.level.playSound(null, target.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+							target.level().playSound(null, target.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
 							target.teleportTo(entityItem.getX(), entityItem.getY(), entityItem.getZ());
 						}
 					}
 				}
 
-				entityItem.level.playSound(null, entityItem.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+				entityItem.level().playSound(null, entityItem.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
 			}
 		}
 		else
 		{
-			if (!entityItem.level.isClientSide)
+			if (!entityItem.level().isClientSide)
 			{
 				data.putInt("counter", counter + 1);
 			}

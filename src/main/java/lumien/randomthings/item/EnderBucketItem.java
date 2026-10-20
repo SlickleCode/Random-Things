@@ -18,14 +18,13 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.fluids.FluidActionResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
 
@@ -202,7 +201,7 @@ public class EnderBucketItem extends Item {
     private InteractionResultHolder<ItemStack> finishPickup(Player player, ItemStack stack, FluidStack drained) {
         ItemStack filled = stack.copy();
         filled.setCount(1);
-        filled.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).ifPresent(handler -> handler.fill(drained, FluidAction.EXECUTE));
+        filled.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).ifPresent(handler -> handler.fill(drained, FluidAction.EXECUTE));
 
         if (stack.getCount() > 1) {
             ItemStack remaining = stack.copy();
@@ -227,10 +226,10 @@ public class EnderBucketItem extends Item {
         // is still null at that point, and calling getCapability at all
         // NPEs inside Forge's own code before this method is even entered.
         // Guard against it rather than the capability itself.
-        if (CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY == null) {
+        if (ForgeCapabilities.FLUID_HANDLER_ITEM == null) {
             return null;
         }
 
-        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
+        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
     }
 }

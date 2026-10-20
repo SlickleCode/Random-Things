@@ -35,12 +35,12 @@ public class FlooTokenItem extends Item {
     public void tickDroppedToken(ItemEntity entityItem) {
         int age = age(entityItem);
 
-        if (age > 100 && entityItem.isOnGround()) {
-            boolean nearbyFireplace = !entityItem.level.getEntitiesOfClass(FlooFireplaceEntity.class, entityItem.getBoundingBox().inflate(5)).isEmpty();
+        if (age > 100 && entityItem.onGround()) {
+            boolean nearbyFireplace = !entityItem.level().getEntitiesOfClass(FlooFireplaceEntity.class, entityItem.getBoundingBox().inflate(5)).isEmpty();
 
             if (!nearbyFireplace) {
-                FlooFireplaceEntity toSpawn = new FlooFireplaceEntity(entityItem.level, entityItem.getX(), entityItem.getY(), entityItem.getZ());
-                entityItem.level.addFreshEntity(toSpawn);
+                FlooFireplaceEntity toSpawn = new FlooFireplaceEntity(entityItem.level(), entityItem.getX(), entityItem.getY(), entityItem.getZ());
+                entityItem.level().addFreshEntity(toSpawn);
                 entityItem.discard();
             }
         }

@@ -6,8 +6,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -29,7 +27,7 @@ public class SpectreLeafBlock extends LeavesBlock
 {
 	public SpectreLeafBlock()
 	{
-		super(Block.Properties.of(Material.LEAVES, MaterialColor.COLOR_PURPLE).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).ignitedByLava().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
 	}
 
 	@Override

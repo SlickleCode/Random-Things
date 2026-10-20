@@ -1,5 +1,7 @@
 package lumien.randomthings.debug;
 
+import net.minecraft.core.registries.Registries;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,10 +140,11 @@ public class RTDebugCommand
 
 		String[] how = new String[1];
 		boolean opened = openGui(player, id, sneak, placePos(player), how);
+		final ResourceLocation openedId = id;
 
 		if (opened)
 		{
-			source.sendSuccess(Component.literal("[rtdebug] " + id + ": GUI opened (" + how[0] + ")"), false);
+			source.sendSuccess(() -> Component.literal("[rtdebug] " + openedId + ": GUI opened (" + how[0] + ")"), false);
 			return 1;
 		}
 
@@ -157,7 +160,7 @@ public class RTDebugCommand
 	/** Opens the GUI of the given block/item as a right-click would; {@code how[0]} receives a short description. */
 	private static boolean openGui(ServerPlayer player, ResourceLocation id, boolean sneak, BlockPos blockPos, String[] how)
 	{
-		ServerLevel world = player.getLevel();
+		ServerLevel world = player.serverLevel();
 		boolean wasSneaking = player.isShiftKeyDown();
 		player.setShiftKeyDown(sneak);
 
@@ -262,7 +265,7 @@ public class RTDebugCommand
 			return 0;
 		}
 
-		context.getSource().sendSuccess(Component.literal("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
+		context.getSource().sendSuccess(() -> Component.literal("[rtdebug] running " + lumien.randomthings.debug.test.RTTestRunner.queued() + " tests - results in randomthings_tests.txt"), false);
 		return 1;
 	}
 
@@ -285,7 +288,7 @@ public class RTDebugCommand
 		allGuisFinished = false;
 		run = r;
 
-		context.getSource().sendSuccess(Component.literal("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
+		context.getSource().sendSuccess(() -> Component.literal("[rtdebug] opening " + ALL_GUIS.length + " GUIs, " + delay + " ticks apart - screenshots go to screenshots/randomthings_debug"), false);
 		return 1;
 	}
 
@@ -317,7 +320,7 @@ public class RTDebugCommand
 
 			if (r.placedBlock)
 			{
-				r.player.getLevel().setBlock(r.pos, Blocks.AIR.defaultBlockState(), 3);
+				r.player.level().setBlock(r.pos, Blocks.AIR.defaultBlockState(), 3);
 				r.placedBlock = false;
 			}
 

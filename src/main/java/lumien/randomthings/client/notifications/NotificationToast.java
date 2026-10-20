@@ -8,7 +8,7 @@ import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.components.toasts.ToastComponent;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * A vanilla-style toast showing a title/description and an item icon,
@@ -34,7 +34,7 @@ public class NotificationToast implements Toast
 	}
 
 	@Override
-	public Visibility render(PoseStack matrixStack, ToastComponent toastGui, long delta)
+	public Visibility render(GuiGraphics graphics, ToastComponent toastGui, long delta)
 	{
 		if (newDisplay)
 		{
@@ -45,14 +45,14 @@ public class NotificationToast implements Toast
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, TEXTURE);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		toastGui.blit(matrixStack, 0, 0, 0, 0, 160, 32);
+		graphics.blit(TEXTURE, 0, 0, 0, 0, 160, 32);
 
-		toastGui.getMinecraft().font.draw(matrixStack, title, 30, 7, 0xFFFFFF00);
-		toastGui.getMinecraft().font.draw(matrixStack, description, 30, 18, 0xFFFFFFFF);
+		graphics.drawString(toastGui.getMinecraft().font, title, 30, 7, 0xFFFFFF00, false);
+		graphics.drawString(toastGui.getMinecraft().font, description, 30, 18, 0xFFFFFFFF, false);
 
 		if (!icon.isEmpty())
 		{
-			toastGui.getMinecraft().getItemRenderer().renderAndDecorateItem(icon, 8, 8);
+			graphics.renderItem(icon, 8, 8);
 		}
 
 		return delta - firstDrawTime < DISPLAY_TIME_MS ? Visibility.SHOW : Visibility.HIDE;

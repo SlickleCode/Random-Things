@@ -16,7 +16,7 @@ import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.renderer.GameRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 public class RenderUtils
 {
@@ -25,7 +25,6 @@ public class RenderUtils
 		Tesselator t = Tesselator.getInstance();
 		BufferBuilder wr = t.getBuilder();
 
-		RenderSystem.disableTexture();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
 		matrixStack.pushPose();
@@ -67,8 +66,7 @@ public class RenderUtils
 		t.end();
 
 		matrixStack.popPose();
-		RenderSystem.enableTexture();
-	}
+		}
 
 	public static void drawCube(PoseStack matrixStack, float posX, float posY, float posZ, float size, int red, int green, int blue, int alpha)
 	{
@@ -77,8 +75,6 @@ public class RenderUtils
 
 	public static void drawCylinder(float x1, float y1, float z1, float x2, float y2, float z2)
 	{
-		RenderSystem.disableTexture();
-
 		Tesselator t = Tesselator.getInstance();
 		BufferBuilder wr = t.getBuilder();
 		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
@@ -111,8 +107,7 @@ public class RenderUtils
 
 
 
-		RenderSystem.enableTexture();
-	}
+		}
 
 	public static void enableDefaultBlending()
 	{

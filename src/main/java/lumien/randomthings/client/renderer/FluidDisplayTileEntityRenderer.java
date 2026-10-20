@@ -1,5 +1,7 @@
 package lumien.randomthings.client.renderer;
 
+import com.mojang.math.Axis;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -17,8 +19,8 @@ import net.minecraftforge.fluids.FluidStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.math.Vector3f;
-import com.mojang.math.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Matrix4f;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 
 /**
@@ -99,7 +101,7 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
 
         matrixStack.pushPose();
         matrixStack.translate(0.5, 0, 0.5);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(te.getRotation().ordinal() * 90F));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(te.getRotation().ordinal() * 90F));
         matrixStack.translate(-0.5, 0, -0.5);
         Matrix4f matrix = matrixStack.last().pose();
 

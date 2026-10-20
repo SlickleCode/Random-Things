@@ -5,8 +5,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import lumien.randomthings.tileentity.IgniterTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -35,7 +33,7 @@ public class IgniterBlock extends Block implements EntityBlock {
 
 	public IgniterBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}

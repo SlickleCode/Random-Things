@@ -19,9 +19,8 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
@@ -132,7 +131,7 @@ public class AdvancedItemCollectorTileEntity extends BlockEntity implements Menu
 
 		if (target != null)
 		{
-			LazyOptional<IItemHandler> capability = target.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing);
+			LazyOptional<IItemHandler> capability = target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing);
 			IItemHandler itemHandler = capability.orElse(null);
 
 			if (itemHandler != null)
@@ -148,7 +147,7 @@ public class AdvancedItemCollectorTileEntity extends BlockEntity implements Menu
 						continue;
 					}
 
-					if (!filterStack.isEmpty() && !ItemStack.isSame(filterStack, itemEntity.getItem()))
+					if (!filterStack.isEmpty() && !ItemStack.isSameItem(filterStack, itemEntity.getItem()))
 					{
 						continue;
 					}

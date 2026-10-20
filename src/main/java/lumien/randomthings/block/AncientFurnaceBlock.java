@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import lumien.randomthings.tileentity.AncientFurnaceTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -51,7 +50,7 @@ public class AncientFurnaceBlock extends Block implements EntityBlock {
     public static final BooleanProperty HEATING = BooleanProperty.create("heating");
 
     public AncientFurnaceBlock() {
-        super(Block.Properties.of(Material.STONE).strength(50.0F, 10.0F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(50.0F, 10.0F));
 
         this.registerDefaultState(this.stateDefinition.any().setValue(HEATING, false));
     }

@@ -1,5 +1,7 @@
 package lumien.randomthings.debug.test;
 
+import net.minecraft.core.registries.Registries;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;

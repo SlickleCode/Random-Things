@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,7 +17,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 
 /**
@@ -34,7 +33,7 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
  */
 public class FluidDisplayBlock extends Block implements EntityBlock {
     public FluidDisplayBlock() {
-        super(Block.Properties.of(Material.GLASS).noOcclusion().sound(SoundType.GLASS).strength(0.3F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(SoundType.GLASS).strength(0.3F));
     }
 
     @Override
@@ -51,7 +50,7 @@ public class FluidDisplayBlock extends Block implements EntityBlock {
         FluidDisplayTileEntity display = (FluidDisplayTileEntity) te;
         ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-        IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).orElse(null);
+        IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).orElse(null);
 
         if (handler != null) {
             FluidStack contents = handler.getTanks() > 0 ? handler.getFluidInTank(0) : null;

@@ -1,5 +1,7 @@
 package lumien.randomthings.item;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import lumien.randomthings.lib.IRTItemColor;
 import lumien.randomthings.util.BiomeColorUtil;
@@ -9,7 +11,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -76,7 +77,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         CompoundTag compound = stack.getTag();
 
         if (compound != null && compound.contains("biomeName")) {
-            return ForgeRegistries.BIOMES.getValue(new ResourceLocation(compound.getString("biomeName")));
+            return lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(compound.getString("biomeName")));
         }
 
         return null;

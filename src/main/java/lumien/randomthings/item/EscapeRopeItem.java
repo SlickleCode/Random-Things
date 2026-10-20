@@ -67,8 +67,8 @@ public class EscapeRopeItem extends Item {
     }
 
     @Override
-    public void onUsingTick(ItemStack stack, LivingEntity entity, int count) {
-        if (!entity.level.isClientSide) {
+    public void onUseTick(net.minecraft.world.level.Level level, LivingEntity entity, ItemStack stack, int count) {
+        if (!entity.level().isClientSide) {
             return;
         }
 
@@ -80,7 +80,7 @@ public class EscapeRopeItem extends Item {
                 double z = Math.cos((count + i * 20) / (10F + c));
                 double y = Math.sin((count + i * 20) / (15F + c));
 
-                entity.level.addParticle(ParticleTypes.PORTAL, entity.getX() + x, entity.getY() + 1 + y, entity.getZ() + z, 0, alpha * 0.1D, 0);
+                entity.level().addParticle(ParticleTypes.PORTAL, entity.getX() + x, entity.getY() + 1 + y, entity.getZ() + z, 0, alpha * 0.1D, 0);
             }
         }
     }

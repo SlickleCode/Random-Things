@@ -27,7 +27,6 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -261,7 +260,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 		float g = ((color >> 8) & 0xFF) / 255F;
 		float b = (color & 0xFF) / 255F;
 
-		DustParticleOptions data = new DustParticleOptions(new com.mojang.math.Vector3f(r, g, b), 1.0F);
+		DustParticleOptions data = new DustParticleOptions(new org.joml.Vector3f(r, g, b), 1.0F);
 
 		for (BlockPos p : affectedBlocks)
 		{

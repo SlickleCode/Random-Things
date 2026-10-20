@@ -93,28 +93,28 @@ public class GoldenChickenEntity extends Animal {
         super.aiStep();
         this.oFlap = this.wingRotation;
         this.oFlapSpeed = this.destPos;
-        this.destPos = (float) ((double) this.destPos + (double) (this.isOnGround() ? -1 : 4) * 0.3D);
+        this.destPos = (float) ((double) this.destPos + (double) (this.onGround() ? -1 : 4) * 0.3D);
         this.destPos = Mth.clamp(this.destPos, 0.0F, 1.0F);
 
-        if (!this.isOnGround() && this.wingRotDelta < 1.0F) {
+        if (!this.onGround() && this.wingRotDelta < 1.0F) {
             this.wingRotDelta = 1.0F;
         }
 
         this.wingRotDelta = (float) ((double) this.wingRotDelta * 0.9D);
 
-        if (!this.isOnGround() && this.getDeltaMovement().y < 0.0D) {
+        if (!this.onGround() && this.getDeltaMovement().y < 0.0D) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.0, 0.6, 1.0));
         }
 
         this.wingRotation += this.wingRotDelta * 2.0F;
 
-        if (!this.level.isClientSide && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
+        if (!this.level().isClientSide && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
             this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.5F);
             this.spawnAtLocation(Items.GOLD_INGOT, 3);
         }
 
         if (this.ingotDropTimer == 0) {
-            List<ItemEntity> items = this.level.getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(0.5));
+            List<ItemEntity> items = this.level().getEntitiesOfClass(ItemEntity.class, this.getBoundingBox().inflate(0.5));
 
             for (ItemEntity itemEntity : items) {
                 ItemStack stack = itemEntity.getItem();
@@ -162,7 +162,7 @@ public class GoldenChickenEntity extends Animal {
 
     @Override
     public GoldenChickenEntity getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-        return new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level);
+        return new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level());
     }
 
     @Override
@@ -195,11 +195,11 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    public void positionRider(Entity passenger) {
-        super.positionRider(passenger);
+    protected void positionRider(Entity passenger, Entity.MoveFunction moveFunction) {
+        super.positionRider(passenger, moveFunction);
         float f = Mth.sin(this.yBodyRot * 0.017453292F);
         float f1 = Mth.cos(this.yBodyRot * 0.017453292F);
-        passenger.setPos(this.getX() + (double) (0.1F * f), this.getY() + (double) (this.getBbHeight() * 0.5F) + passenger.getMyRidingOffset(), this.getZ() - (double) (0.1F * f1));
+        moveFunction.accept(passenger, this.getX() + (double) (0.1F * f), this.getY() + (double) (this.getBbHeight() * 0.5F) + passenger.getMyRidingOffset(), this.getZ() - (double) (0.1F * f1));
 
         if (passenger instanceof LivingEntity) {
             ((LivingEntity) passenger).yBodyRot = this.yBodyRot;

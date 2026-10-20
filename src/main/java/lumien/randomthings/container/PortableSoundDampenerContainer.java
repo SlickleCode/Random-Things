@@ -25,6 +25,6 @@ public class PortableSoundDampenerContainer extends AbstractSoundDampenerContain
 
     @Override
     public boolean stillValid(Player playerIn) {
-        return ItemStack.isSame(dampenerStack, playerIn.getMainHandItem());
+        return ItemStack.isSameItem(dampenerStack, playerIn.getMainHandItem());
     }
 }

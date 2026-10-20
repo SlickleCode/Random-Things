@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import lumien.randomthings.tileentity.GlobalChatDetectorTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -41,7 +40,7 @@ public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 
 	public GlobalChatDetectorBlock()
 	{
-		super(Block.Properties.of(Material.STONE).strength(2.0F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}

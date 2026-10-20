@@ -29,7 +29,7 @@ public class EmeraldCompassItem extends CompassItemBase
 	@Override
 	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged)
 	{
-		return !ItemStack.isSame(oldStack, newStack);
+		return !ItemStack.isSameItem(oldStack, newStack);
 	}
 
 	@Override

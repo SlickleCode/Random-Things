@@ -1,5 +1,7 @@
 package lumien.randomthings.debug.test;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +21,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -155,7 +156,7 @@ final class RoundTripTests
 		CompoundTag second = copy.save(new CompoundTag());
 
 		c.check(ItemStack.matches(stack, copy), "stack differs after reload: " + stack + " vs " + copy);
-		c.check(ItemStack.tagMatches(stack, copy), "stack tag differs after reload: " + stack.getTag() + " vs " + copy.getTag());
+		c.check(ItemStack.isSameItemSameTags(stack, copy), "stack tag differs after reload: " + stack.getTag() + " vs " + copy.getTag());
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
 		c.eq(snapshot(stack, STACK_SIDES), snapshot(copy, STACK_SIDES), "capability contents after reload");
 	}
@@ -171,7 +172,7 @@ final class RoundTripTests
 
 		for (Direction side : sides)
 		{
-			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(null);
+			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
 
 			if (items != null)
 			{
@@ -190,11 +191,11 @@ final class RoundTripTests
 				}
 			}
 
-			IFluidHandler fluids = provider.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side).orElse(null);
+			IFluidHandler fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER, side).orElse(null);
 
 			if (fluids == null && provider instanceof ItemStack)
 			{
-				fluids = provider.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, side).orElse(null);
+				fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, side).orElse(null);
 			}
 
 			if (fluids != null && (fluids.fill(new FluidStack(Fluids.WATER, 600), IFluidHandler.FluidAction.EXECUTE) > 0 || fluids.fill(new FluidStack(Fluids.LAVA, 600), IFluidHandler.FluidAction.EXECUTE) > 0))
@@ -202,7 +203,7 @@ final class RoundTripTests
 				placed++;
 			}
 
-			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(CapabilityEnergy.ENERGY, side).orElse(null);
+			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(ForgeCapabilities.ENERGY, side).orElse(null);
 
 			if (energy != null && energy.canReceive() && energy.receiveEnergy(500, false) > 0)
 			{
@@ -220,7 +221,7 @@ final class RoundTripTests
 
 		for (Direction side : sides)
 		{
-			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(null);
+			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
 
 			if (items != null)
 			{
@@ -231,11 +232,11 @@ final class RoundTripTests
 				}
 			}
 
-			IFluidHandler fluids = provider.getCapability(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, side).orElse(null);
+			IFluidHandler fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER, side).orElse(null);
 
 			if (fluids == null && provider instanceof ItemStack)
 			{
-				fluids = provider.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, side).orElse(null);
+				fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, side).orElse(null);
 			}
 
 			if (fluids != null)
@@ -248,7 +249,7 @@ final class RoundTripTests
 				}
 			}
 
-			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(CapabilityEnergy.ENERGY, side).orElse(null);
+			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(ForgeCapabilities.ENERGY, side).orElse(null);
 
 			if (energy != null)
 			{

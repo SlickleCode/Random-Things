@@ -53,7 +53,7 @@ public class AncientFurnaceFeature extends Feature<NoneFeatureConfiguration> {
             return false;
         }
 
-        if (worldIn.isEmptyBlock(ground) || worldIn.getBlockState(ground).getMaterial().isLiquid()) {
+        if (worldIn.isEmptyBlock(ground) || !worldIn.getBlockState(ground).getFluidState().isEmpty()) {
             return false;
         }
 

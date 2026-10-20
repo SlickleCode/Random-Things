@@ -84,9 +84,9 @@ public final class GuiClickTest
 		{
 			case START:
 				guis = RTDebugCommand.guiList();
-				mc.player.commandUnsigned("gamemode creative");
+				mc.player.connection.sendUnsignedCommand("gamemode creative");
 				// something in the player inventory, so every container GUI has a filled slot to hover
-				mc.player.commandUnsigned("give @s minecraft:stone 16");
+				mc.player.connection.sendUnsignedCommand("give @s minecraft:stone 16");
 				net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
@@ -186,7 +186,7 @@ public final class GuiClickTest
 	private static void openGui(Minecraft mc)
 	{
 		mc.player.closeContainer();
-		mc.player.commandUnsigned("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+		mc.player.connection.sendUnsignedCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 		phase = Phase.WAIT_OPEN;
 		openTimeout = 80;
 	}
@@ -243,7 +243,7 @@ public final class GuiClickTest
 						log("ok   " + currentName + ": '" + label + "' changed the server state");
 					}
 
-					if (button instanceof TooltipButton && ((TooltipButton) button).getTooltip() == null)
+					if (button instanceof TooltipButton && ((TooltipButton) button).getTooltipText() == null)
 					{
 						log("INFO " + currentName + ": '" + label + "' has no tooltip text");
 					}
@@ -297,7 +297,7 @@ public final class GuiClickTest
 				pendingFields = fields.size();
 			}));
 			steps.add(new Step(30, () -> {
-				mc.player.commandUnsigned("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+				mc.player.connection.sendUnsignedCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 				phase = Phase.WAIT_OPEN;
 				openTimeout = 80;
 			}));
@@ -397,7 +397,7 @@ public final class GuiClickTest
 
 	private static double[] center(AbstractWidget widget)
 	{
-		return new double[] { widget.x + widget.getWidth() / 2.0, widget.y + widget.getHeight() / 2.0 };
+		return new double[] { widget.getX() + widget.getWidth() / 2.0, widget.getY() + widget.getHeight() / 2.0 };
 	}
 
 	private static String describe(Button button)
@@ -406,7 +406,7 @@ public final class GuiClickTest
 
 		if (text == null || text.isEmpty())
 		{
-			return button.getClass().getSimpleName().replace("Button", "") + "@" + button.x + "," + button.y;
+			return button.getClass().getSimpleName().replace("Button", "") + "@" + button.getX() + "," + button.getY();
 		}
 
 		return text;
@@ -414,7 +414,7 @@ public final class GuiClickTest
 
 	private static void render(Screen screen, double[] at)
 	{
-		screen.render(new PoseStack(), (int) at[0], (int) at[1], 0.0F);
+		screen.render(new net.minecraft.client.gui.GuiGraphics(Minecraft.getInstance(), Minecraft.getInstance().renderBuffers().bufferSource()), (int) at[0], (int) at[1], 0.0F);
 	}
 
 	private static void click(Screen screen, double[] at)

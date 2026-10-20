@@ -12,7 +12,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -48,7 +47,7 @@ public class FilteredSuperLubricentPlatformTileEntity extends BlockEntity implem
 	public boolean matchesFilter(ItemStack stack)
 	{
 		ItemStack filterStack = filterInventory.getStackInSlot(0);
-		return !filterStack.isEmpty() && ItemStack.isSame(filterStack, stack);
+		return !filterStack.isEmpty() && ItemStack.isSameItem(filterStack, stack);
 	}
 
 	@Override

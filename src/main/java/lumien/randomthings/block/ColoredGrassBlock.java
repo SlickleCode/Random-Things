@@ -8,8 +8,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -26,7 +24,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 
 	public ColoredGrassBlock()
 	{
-		super(Block.Properties.of(Material.GRASS, MaterialColor.GRASS).noOcclusion().strength(0.6F).sound(SoundType.GRASS).randomTicks());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.GRASS).noOcclusion().strength(0.6F).sound(SoundType.GRASS).randomTicks());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, DyeColor.WHITE));
 	}

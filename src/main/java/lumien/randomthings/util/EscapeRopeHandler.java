@@ -58,7 +58,7 @@ public class EscapeRopeHandler {
             Task t = iterator.next();
             ServerPlayer actualPlayer = t.player.get();
 
-            if (actualPlayer == null || actualPlayer.level == null) {
+            if (actualPlayer == null || actualPlayer.level() == null) {
                 iterator.remove();
                 continue;
             }
@@ -71,7 +71,7 @@ public class EscapeRopeHandler {
 
             ArrayList<BlockPos> toCheck = t.toCheck;
             HashSet<BlockPos> alreadyChecked = t.alreadyChecked;
-            Level world = actualPlayer.level;
+            Level world = actualPlayer.level();
 
             for (int runs = 0; runs < 4; runs++) {
                 boolean finished = false;

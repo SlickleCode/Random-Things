@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
@@ -78,20 +80,20 @@ public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRem
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
      * Real bug, found 2026-09-28 (reported by user, screenshot of a blank-
      * looking GUI): this screen never drew its title at all - missing this
      * override entirely, unlike every other ported container screen in this
-     * project (standard convention: {@code this.font.drawString(matrixStack, this.title
+     * project (standard convention: {@code this.font.drawString(graphics, this.title
      * .getString(), 8, 6, 4210752)}). Ground-truthed 1.12.2's own {@code
      * GuiRedstoneRemoteUse#drawGuiContainerForegroundLayer} first - it drew
      * the same title text - confirming this was a real gap, not something to
@@ -102,15 +104,15 @@ public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRem
      * faithful to the original, not a missing-texture bug.
      */
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
-        SpriteStateButton.renderTooltips(matrixStack, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+        SpriteStateButton.renderTooltips(graphics, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
     }
 
     @Override
-    public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-        this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
+    public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_) {
+        this.renderBackground(graphics);
+        super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
+        this.renderTooltip(graphics, p_render_1_, p_render_2_);
     }
 }

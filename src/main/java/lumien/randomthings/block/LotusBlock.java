@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -42,7 +41,7 @@ public class LotusBlock extends BushBlock
 
 	public LotusBlock()
 	{
-		super(Block.Properties.of(Material.PLANT).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
 	}

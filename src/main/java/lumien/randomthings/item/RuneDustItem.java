@@ -62,7 +62,7 @@ public class RuneDustItem extends Item implements IRTItemColor {
                 BlockPos abovePos = pos.above();
                 BlockState toReplace = world.getBlockState(abovePos);
 
-                if (toReplace.isAir() || toReplace.getMaterial().isReplaceable()) {
+                if (toReplace.isAir() || toReplace.canBeReplaced()) {
                     world.setBlockAndUpdate(abovePos, ModBlocks.RUNE_BASE.defaultBlockState());
 
                     BlockEntity placedTe = world.getBlockEntity(abovePos);

@@ -14,7 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -57,7 +57,7 @@ public class ItemCollectorTileEntity extends BlockEntity
 
 		if (target != null)
 		{
-			LazyOptional<IItemHandler> capability = target.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing);
+			LazyOptional<IItemHandler> capability = target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing);
 			IItemHandler itemHandler = capability.orElse(null);
 
 			if (itemHandler != null)

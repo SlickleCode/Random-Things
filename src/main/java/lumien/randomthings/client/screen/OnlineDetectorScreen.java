@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -14,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.Component;
 
 /**
  * OnlineDetectorScreen
@@ -55,7 +56,7 @@ public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetector
 		// close on inventory keybind" check - explaining both "hitting the inventory
 		// button still closes the GUI" and "doesn't save unless you hit Enter" (the
 		// field never actually received any of the typed text to begin with).
-		this.usernameField.setFocus(true);
+		this.usernameField.setFocused(true);
 	}
 
 	// setFocusedDefault(IGuiEventListener) is inherited from INestedGuiEventHandler
@@ -115,29 +116,29 @@ public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetector
 	}
 
 	@Override
-	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		this.font.draw(matrixStack, I18n.get("gui.randomthings.online_detector.username"), 8, 6, 4210752);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.online_detector.username"), 8, 6, 4210752, false);
 
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(matrixStack);
-		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderBackground(graphics);
+		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
+		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}
 }

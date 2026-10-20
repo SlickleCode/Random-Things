@@ -131,7 +131,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
 
-        if (this.level.isClientSide && key.equals(ILLUMINATED) && this.entityData.get(ILLUMINATED)) {
+        if (this.level().isClientSide && key.equals(ILLUMINATED) && this.entityData.get(ILLUMINATED)) {
             RTDebug.log("[SpectreIlluminator] entity {} learned illuminated=true on the client, relighting", this.getId());
             relight();
         }
@@ -145,7 +145,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
 
         ILLUMINATORS.remove(this);
 
-        RTDebug.log("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getId(), this.level.isClientSide, wasIlluminated);
+        RTDebug.log("[SpectreIlluminator] entity {} removed from world (remote={}, wasIlluminated={})", this.getId(), this.level().isClientSide, wasIlluminated);
 
         if (wasIlluminated) {
             relight();
@@ -173,7 +173,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
 
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
-        if (!this.level.isClientSide) {
+        if (!this.level().isClientSide) {
             this.discard();
 
             this.spawnAtLocation(new net.minecraft.world.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
@@ -183,7 +183,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     }
 
     public boolean isInChunk(Level world, ChunkPos chunkPos) {
-        if (!isIlluminated() || this.level != world) {
+        if (!isIlluminated() || this.level() != world) {
             return false;
         }
 
@@ -195,8 +195,8 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     public void tick() {
         super.tick();
 
-        if (!this.level.isClientSide) {
-            LevelChunk chunk = this.level.getChunk(((int) this.getX()) >> 4, ((int) this.getZ()) >> 4);
+        if (!this.level().isClientSide) {
+            LevelChunk chunk = this.level().getChunk(((int) this.getX()) >> 4, ((int) this.getZ()) >> 4);
 
             int highestBlockInChunk = 0;
 
@@ -237,7 +237,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
             }
 
             if (!isIlluminated()) {
-                if (this.level.getGameTime() % 100 == 0) {
+                if (this.level().getGameTime() % 100 == 0) {
                     RTDebug.log("[SpectreIlluminator] entity {} settling: pos=({}, {}, {}) target=({}, {}, {}) highest={}", this.getId(), getX(), getY(), getZ(), chunkX, highestBlockInChunk, chunkZ, highestBlockInChunk);
                 }
 
@@ -250,8 +250,8 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
                 }
             }
         } else if (isIlluminated()) {
-            if (this.level.getGameTime() % 5 == 0) {
-                this.level.addParticle(ParticleTypes.END_ROD, this.getX() + (this.random.nextDouble() - 0.5) * 0.3, this.getY() + this.random.nextDouble() * 0.3, this.getZ() + (this.random.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
+            if (this.level().getGameTime() % 5 == 0) {
+                this.level().addParticle(ParticleTypes.END_ROD, this.getX() + (this.random.nextDouble() - 0.5) * 0.3, this.getY() + this.random.nextDouble() * 0.3, this.getZ() + (this.random.nextDouble() - 0.5) * 0.3, 0, 0.01, 0);
             }
         }
 
@@ -269,7 +269,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
      * attempt, did it), and for how wide that padding actually needs to be.
      */
     private void relight() {
-        SpectreIlluminatorRelight.queue(this.level, this.blockPosition());
+        SpectreIlluminatorRelight.queue(this.level(), this.blockPosition());
     }
 
     @Override
@@ -283,7 +283,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

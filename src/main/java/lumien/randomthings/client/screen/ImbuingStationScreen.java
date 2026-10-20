@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -32,36 +34,36 @@ public class ImbuingStationScreen extends AbstractContainerScreen<ImbuingStation
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title.getString(), 3, 6, 4210752);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title.getString(), 3, 6, 4210752, false);
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         int imbuingProgress = this.menu.imbuingProgress.get();
 
         if (imbuingProgress > 0) {
             int progressArrow = (int) (22F / ImbuingStationTileEntity.IMBUING_LENGTH * imbuingProgress) + 1;
-            this.blit(matrixStack, x + 99, y + 54, 189, 13, progressArrow, 16);
+            graphics.blit(GUI_TEXTURES, x + 99, y + 54, 189, 13, progressArrow, 16);
 
             if (this.menu.getSlot(0).hasItem()) {
-                this.blit(matrixStack, x + 82, y + 28, 176, 0, 12, progressBubble);
+                graphics.blit(GUI_TEXTURES, x + 82, y + 28, 176, 0, 12, progressBubble);
             }
 
             if (this.menu.getSlot(1).hasItem()) {
-                this.blit(matrixStack, x + 54, y + 56, 189, 0, progressBubble, 12);
+                graphics.blit(GUI_TEXTURES, x + 54, y + 56, 189, 0, progressBubble, 12);
             }
 
             if (this.menu.getSlot(2).hasItem()) {
-                this.blit(matrixStack, x + 82, y + 72, 176, 25, 12, 24);
-                this.blit(matrixStack, x + 82, y + 72, 176, 50, 12, 24 - progressBubble);
+                graphics.blit(GUI_TEXTURES, x + 82, y + 72, 176, 25, 12, 24);
+                graphics.blit(GUI_TEXTURES, x + 82, y + 72, 176, 50, 12, 24 - progressBubble);
             }
         }
     }
@@ -82,9 +84,9 @@ public class ImbuingStationScreen extends AbstractContainerScreen<ImbuingStation
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 }

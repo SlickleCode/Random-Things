@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -69,18 +68,16 @@ public class SpiritEntity extends FlyingMob {
 
         spiritAge++;
 
-        if (!this.level.isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
+        if (!this.level().isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
             this.kill();
         }
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
-        if (source instanceof EntityDamageSource) {
-            EntityDamageSource eds = (EntityDamageSource) source;
-
-            if (eds.getMsgId().equals("player") && eds.getEntity() instanceof Player) {
-                Player player = (Player) eds.getEntity();
+        if (source.getEntity() != null) {
+            if (source.is(net.minecraft.world.damagesource.DamageTypes.PLAYER_ATTACK) && source.getEntity() instanceof Player) {
+                Player player = (Player) source.getEntity();
                 ItemStack equipped = player.getMainHandItem();
 
                 if (!equipped.isEmpty() && equipped.getItem() == ModItems.SPECTRE_SWORD) {
@@ -89,7 +86,7 @@ public class SpiritEntity extends FlyingMob {
             }
         }
 
-        if (!source.isMagic() && source != DamageSource.OUT_OF_WORLD && !source.isCreativePlayer()) {
+        if (!source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.INDIRECT_MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD) && !source.isCreativePlayer()) {
             return false;
         }
 
@@ -142,7 +139,7 @@ public class SpiritEntity extends FlyingMob {
 
                 BlockPos modPos = spawnPosition.offset(modX, modY, modZ);
 
-                if (level.isEmptyBlock(modPos)) {
+                if (level().isEmptyBlock(modPos)) {
                     newTarget = modPos;
                 }
             }
@@ -174,9 +171,9 @@ public class SpiritEntity extends FlyingMob {
     public void tick() {
         super.tick();
 
-        if (this.level.isClientSide && (this.xOld != this.getX() || this.yOld != this.getY() || this.zOld != this.getZ())) {
+        if (this.level().isClientSide && (this.xOld != this.getX() || this.yOld != this.getY() || this.zOld != this.getZ())) {
             if (Math.random() < 0.5) {
-                this.level.addParticle(ParticleTypes.ENCHANT, this.getX(), this.getY(), this.getZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
+                this.level().addParticle(ParticleTypes.ENCHANT, this.getX(), this.getY(), this.getZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
             }
         }
     }
@@ -215,7 +212,7 @@ public class SpiritEntity extends FlyingMob {
             for (int i = 1; i < distance; ++i) {
                 aabb = aabb.move(stepX, stepY, stepZ);
 
-                if (!this.parentEntity.level.noCollision(this.parentEntity, aabb)) {
+                if (!this.parentEntity.level().noCollision(this.parentEntity, aabb)) {
                     return false;
                 }
             }

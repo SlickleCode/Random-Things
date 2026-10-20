@@ -21,7 +21,7 @@ public class SuperLubricentBootsItem extends ArmorItem
 {
 	public SuperLubricentBootsItem(Item.Properties properties)
 	{
-		super(ArmorMaterials.IRON, EquipmentSlot.FEET, properties.rarity(Rarity.UNCOMMON));
+		super(ArmorMaterials.IRON, ArmorItem.Type.BOOTS, properties.rarity(Rarity.UNCOMMON));
 	}
 
 	@Override

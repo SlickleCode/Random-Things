@@ -47,13 +47,13 @@ import net.minecraft.sounds.SoundEvent;
 public class MagicHoodItem extends ArmorItem {
     private static final ArmorMaterial DURABILITY_MATERIAL = new ArmorMaterial() {
         @Override
-        public int getDurabilityForSlot(EquipmentSlot slot) {
-            return ArmorMaterials.LEATHER.getDurabilityForSlot(slot);
+        public int getDurabilityForType(ArmorItem.Type type) {
+            return ArmorMaterials.LEATHER.getDurabilityForType(type);
         }
 
         @Override
-        public int getDefenseForSlot(EquipmentSlot slot) {
-            return ArmorMaterials.CHAIN.getDefenseForSlot(slot);
+        public int getDefenseForType(ArmorItem.Type type) {
+            return ArmorMaterials.CHAIN.getDefenseForType(type);
         }
 
         @Override
@@ -88,7 +88,7 @@ public class MagicHoodItem extends ArmorItem {
     };
 
     public MagicHoodItem(Item.Properties properties) {
-        super(DURABILITY_MATERIAL, EquipmentSlot.HEAD, properties);
+        super(DURABILITY_MATERIAL, ArmorItem.Type.HELMET, properties);
     }
 
     @Override

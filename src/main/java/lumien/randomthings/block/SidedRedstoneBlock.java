@@ -3,8 +3,6 @@ package lumien.randomthings.block;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +19,7 @@ public class SidedRedstoneBlock extends Block
 
 	public SidedRedstoneBlock()
 	{
-		super(Block.Properties.of(Material.METAL, MaterialColor.METAL).strength(5.0F, 10.0F).sound(SoundType.METAL));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).strength(5.0F, 10.0F).sound(SoundType.METAL));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}

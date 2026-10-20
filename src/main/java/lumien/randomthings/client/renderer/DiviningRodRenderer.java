@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Function;
 
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 
 import org.lwjgl.opengl.GL11;
 
@@ -58,7 +58,6 @@ public class DiviningRodRenderer
 
 		Vec3 pos = ari.getPosition();
 
-		RenderSystem.disableTexture();
 		RenderSystem.disableDepthTest();
 		RenderUtils.enableDefaultBlending();
 
@@ -73,7 +72,6 @@ public class DiviningRodRenderer
 		matrixStack.popPose();
 
 		RenderUtils.enableDefaultBlending();
-		RenderSystem.enableTexture();
 		RenderSystem.enableDepthTest();
 	}
 
@@ -99,7 +97,7 @@ public class DiviningRodRenderer
 
 		if (player != null)
 		{
-			Level world = player.level;
+			Level world = player.level();
 
 			if (world != null)
 			{

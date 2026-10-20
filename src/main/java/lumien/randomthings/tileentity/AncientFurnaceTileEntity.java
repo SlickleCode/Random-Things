@@ -1,5 +1,7 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
@@ -150,7 +152,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
     private static void finish(Level world, BlockPos center) {
         warmSurroundings(world, center);
         world.removeBlock(center, false);
-        world.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5, 4.0F, Explosion.BlockInteraction.BREAK);
+        world.explode(null, center.getX() + 0.5, center.getY() + 0.5, center.getZ() + 0.5, 4.0F, net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
     }
 
     private static void warmSurroundings(Level world, BlockPos center) {
@@ -158,7 +160,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
         int cz = center.getZ();
 
         Set<LevelChunk> touchedChunks = new HashSet<>();
-        Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+        Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registries.BIOME);
 
         // Every column is classified before any biome is written: a biome cell is 4x4 blocks wide, so writing one column
         // converts its 15 neighbours too, and they would otherwise look already warm and keep their snow and ice.
@@ -249,7 +251,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
         ServerLevel serverWorld = (ServerLevel) world;
 
         for (LevelChunk chunk : touchedChunks) {
-            ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, serverWorld.getChunkSource().getLightEngine(), null, null, true);
+            ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, serverWorld.getChunkSource().getLightEngine(), null, null);
 
             serverWorld.getChunkSource().chunkMap.getPlayers(chunk.getPos(), false)
                     .forEach(player -> player.connection.send(packet));

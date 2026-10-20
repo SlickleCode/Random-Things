@@ -1,5 +1,7 @@
 package lumien.randomthings.item;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import net.minecraft.world.item.Rarity;
 
@@ -208,27 +210,27 @@ public class ModItems {
     public static void registerItems(IForgeRegistry<Item> registry) {
 
 
-        registry.register("beans", new BeanItem(new Item.Properties().tab(RT_ITEM_GROUP), ModBlocks.BEAN_SPROUT, false));
-        registry.register("lesser_magic_bean", new BeanItem(new Item.Properties().tab(RT_ITEM_GROUP), ModBlocks.LESSER_BEAN_STALK, true));
-        registry.register("magic_bean", new BeanItem(new Item.Properties().tab(RT_ITEM_GROUP).rarity(Rarity.RARE), ModBlocks.BEAN_STALK, true));
+        registry.register("beans", new BeanItem(new Item.Properties(), ModBlocks.BEAN_SPROUT, false));
+        registry.register("lesser_magic_bean", new BeanItem(new Item.Properties(), ModBlocks.LESSER_BEAN_STALK, true));
+        registry.register("magic_bean", new BeanItem(new Item.Properties().rarity(Rarity.RARE), ModBlocks.BEAN_STALK, true));
 
-        registry.register("lotus_blossom", new LotusBlossomItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("lotus_seeds", new LotusSeedsItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("ectoplasm", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_ingot", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_string", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_key", new SpectreKeyItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("biome_sensor", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("luminous_powder", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("lotus_blossom", new LotusBlossomItem(new Item.Properties()));
+        registry.register("lotus_seeds", new LotusSeedsItem(new Item.Properties()));
+        registry.register("ectoplasm", new Item(new Item.Properties()));
+        registry.register("spectre_ingot", new Item(new Item.Properties()));
+        registry.register("spectre_string", new Item(new Item.Properties()));
+        registry.register("spectre_key", new SpectreKeyItem(new Item.Properties().stacksTo(1)));
+        registry.register("biome_sensor", new Item(new Item.Properties()));
+        registry.register("luminous_powder", new Item(new Item.Properties()));
 
-        registry.register("bean_stew", new BeanStewItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationMod(0.6F).build())));
-        registry.register("blaze_and_steel", new BlazeAndSteelItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1).durability(64)));
-        registry.register("bottle_of_air", new BottleOfAirItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("stable_enderpearl", new StableEnderpearlItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("bean_stew", new BeanStewItem(new Item.Properties().stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationMod(0.6F).build())));
+        registry.register("blaze_and_steel", new BlazeAndSteelItem(new Item.Properties().stacksTo(1).durability(64)));
+        registry.register("bottle_of_air", new BottleOfAirItem(new Item.Properties().stacksTo(1)));
+        registry.register("stable_enderpearl", new StableEnderpearlItem(new Item.Properties()));
 
-        registry.register("super_lubricent_boots", new SuperLubricentBootsItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("super_lubricent_boots", new SuperLubricentBootsItem(new Item.Properties()));
         // Plain crafting ingredient (1.12.2's ItemIngredient.SUPERLUBRICENT_TINCTURE has no behavior of its own).
-        registry.register("super_lubricent_tincture", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("super_lubricent_tincture", new Item(new Item.Properties()));
 
         // Divining Rods
         registerDiviningRod(registry, "coal", new Color(20, 20, 20, 50), Tags.Blocks.ORES_COAL.location().toString());
@@ -247,7 +249,7 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.FERTILIZED_DIRT);
         registerItemForBlock(registry, ModBlocks.RAINBOW_LAMP);
         registerItemForBlock(registry, ModBlocks.SUPER_LUBRICENT_STONE);
-        registry.register(RegUtil.id(ModBlocks.ADVANCED_REDSTONE_TORCH), new StandingAndWallBlockItem(ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH, new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register(RegUtil.id(ModBlocks.ADVANCED_REDSTONE_TORCH), new StandingAndWallBlockItem(ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH, new Item.Properties(), net.minecraft.core.Direction.DOWN));
         registerItemForBlock(registry, ModBlocks.BLOCK_OF_STICKS, ModBlocks.BLOCK_OF_STICKS_RETURNING);
         registerItemForBlock(registry, ModBlocks.PLATFORM_OAK, ModBlocks.PLATFORM_SPRUCE, ModBlocks.PLATFORM_BIRCH, ModBlocks.PLATFORM_JUNGLE, ModBlocks.PLATFORM_ACACIA, ModBlocks.PLATFORM_DARKOAK);
 
@@ -290,9 +292,9 @@ public class ModItems {
             registry.register(RegUtil.id(ModBlocks.COLORED_GRASS), coloredGrassItem);
         }
 
-        registry.register("grass_seeds", new GrassSeedsItem(new Item.Properties().tab(RT_ITEM_GROUP), null));
+        registry.register("grass_seeds", new GrassSeedsItem(new Item.Properties(), null));
         for (DyeColor color : DyeColor.values()) {
-            registry.register("grass_seeds_" + color.getName(), new GrassSeedsItem(new Item.Properties().tab(RT_ITEM_GROUP), color));
+            registry.register("grass_seeds_" + color.getName(), new GrassSeedsItem(new Item.Properties(), color));
         }
 
         for (DyeColor color : DyeColor.values()) {
@@ -314,12 +316,12 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.CHAT_DETECTOR);
         registerItemForBlock(registry, ModBlocks.REDSTONE_OBSERVER);
         registerItemForBlock(registry, ModBlocks.BASIC_REDSTONE_INTERFACE, ModBlocks.ADVANCED_REDSTONE_INTERFACE);
-        registry.register("redstone_tool", new RedstoneToolItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("redstone_tool", new RedstoneToolItem(new Item.Properties().stacksTo(1)));
         registerItemForBlock(registry, ModBlocks.POTION_VAPORIZER);
 
         registerItemForBlock(registry, ModBlocks.ENTITY_DETECTOR);
 
-        registry.register("entity_filter", new EntityFilterItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("entity_filter", new EntityFilterItem(new Item.Properties().stacksTo(1)));
 
         registerItemForBlock(registry, ModBlocks.SLIME_CUBE);
         registerItemForBlock(registry, ModBlocks.ADVANCED_ITEM_COLLECTOR);
@@ -330,87 +332,87 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.SOUND_BOX);
         registerItemForBlock(registry, ModBlocks.SOUND_DAMPENER);
 
-        registry.register("biome_crystal", new BiomeCrystalItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("biome_crystal", new BiomeCrystalItem(new Item.Properties().stacksTo(1)));
 
-        registry.register("sound_pattern", new SoundPatternItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("sound_recorder", new SoundRecorderItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("portable_sound_dampener", new PortableSoundDampenerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("id_card", new IdCardItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("sound_pattern", new SoundPatternItem(new Item.Properties()));
+        registry.register("sound_recorder", new SoundRecorderItem(new Item.Properties().stacksTo(1)));
+        registry.register("portable_sound_dampener", new PortableSoundDampenerItem(new Item.Properties().stacksTo(1)));
+        registry.register("id_card", new IdCardItem(new Item.Properties()));
 
-        registry.register("position_filter", new PositionFilterItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("golden_compass", new GoldenCompassItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("emerald_compass", new EmeraldCompassItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("escape_rope", new EscapeRopeItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1).durability(20)));
-        registry.register("chunk_analyzer", new ChunkAnalyzerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("position_filter", new PositionFilterItem(new Item.Properties()));
+        registry.register("golden_compass", new GoldenCompassItem(new Item.Properties().stacksTo(1)));
+        registry.register("emerald_compass", new EmeraldCompassItem(new Item.Properties().stacksTo(1)));
+        registry.register("escape_rope", new EscapeRopeItem(new Item.Properties().stacksTo(1).durability(20)));
+        registry.register("chunk_analyzer", new ChunkAnalyzerItem(new Item.Properties().stacksTo(1)));
 
         for (DyeColor color : DyeColor.values()) {
-            RuneDustItem dust = new RuneDustItem(new Item.Properties().tab(RT_ITEM_GROUP), color);
+            RuneDustItem dust = new RuneDustItem(new Item.Properties(), color);
             registry.register("rune_dust_" + color.getName(), dust);
             RuneDustItems.BY_COLOR.put(color, dust);
         }
 
-        registry.register("rune_pattern", new RunePatternItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("rune_pattern", new RunePatternItem(new Item.Properties().stacksTo(1)));
 
         registerItemForBlock(registry, ModBlocks.IMBUING_STATION);
-        registry.register("imbue_fire", new ImbueItem(new Item.Properties().tab(RT_ITEM_GROUP), () -> lumien.randomthings.potion.ModEffects.IMBUE_FIRE));
-        registry.register("imbue_poison", new ImbueItem(new Item.Properties().tab(RT_ITEM_GROUP), () -> lumien.randomthings.potion.ModEffects.IMBUE_POISON));
-        registry.register("imbue_experience", new ImbueItem(new Item.Properties().tab(RT_ITEM_GROUP), () -> lumien.randomthings.potion.ModEffects.IMBUE_EXPERIENCE));
-        registry.register("imbue_wither", new ImbueItem(new Item.Properties().tab(RT_ITEM_GROUP), () -> lumien.randomthings.potion.ModEffects.IMBUE_WITHER));
+        registry.register("imbue_fire", new ImbueItem(new Item.Properties(), () -> lumien.randomthings.potion.ModEffects.IMBUE_FIRE));
+        registry.register("imbue_poison", new ImbueItem(new Item.Properties(), () -> lumien.randomthings.potion.ModEffects.IMBUE_POISON));
+        registry.register("imbue_experience", new ImbueItem(new Item.Properties(), () -> lumien.randomthings.potion.ModEffects.IMBUE_EXPERIENCE));
+        registry.register("imbue_wither", new ImbueItem(new Item.Properties(), () -> lumien.randomthings.potion.ModEffects.IMBUE_WITHER));
 
-        registry.register("floo_powder", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("floo_pouch", new FlooPouchItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("floo_sign", new FlooSignItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("floo_token", new FlooTokenItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("floo_powder", new Item(new Item.Properties()));
+        registry.register("floo_pouch", new FlooPouchItem(new Item.Properties().stacksTo(1)));
+        registry.register("floo_sign", new FlooSignItem(new Item.Properties().stacksTo(1)));
+        registry.register("floo_token", new FlooTokenItem(new Item.Properties()));
 
-        registry.register("eclipsed_clock", new EclipsedClockItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("weather_egg_sun", new WeatherEggItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("weather_egg_rain", new WeatherEggItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("weather_egg_storm", new WeatherEggItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("time_in_a_bottle", new TimeInABottleItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("eclipsed_clock", new EclipsedClockItem(new Item.Properties().stacksTo(1)));
+        registry.register("weather_egg_sun", new WeatherEggItem(new Item.Properties()));
+        registry.register("weather_egg_rain", new WeatherEggItem(new Item.Properties()));
+        registry.register("weather_egg_storm", new WeatherEggItem(new Item.Properties()));
+        registry.register("time_in_a_bottle", new TimeInABottleItem(new Item.Properties().stacksTo(1)));
 
-        registry.register("ender_letter", new EnderLetterItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("ender_letter", new EnderLetterItem(new Item.Properties().stacksTo(1)));
         registerItemForBlock(registry, ModBlocks.ENDER_MAILBOX);
 
-        registry.register("ender_bucket", new EnderBucketItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(16)));
-        registry.register("reinforced_ender_bucket", new ReinforcedEnderBucketItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("ender_bucket", new EnderBucketItem(new Item.Properties().stacksTo(16)));
+        registry.register("reinforced_ender_bucket", new ReinforcedEnderBucketItem(new Item.Properties().stacksTo(1)));
 
-        registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("golden_egg", new GoldenEggItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().stacksTo(1)));
+        registry.register("golden_egg", new GoldenEggItem(new Item.Properties()));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
-        registry.register("evil_tear", new EvilTearItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("evil_tear", new EvilTearItem(new Item.Properties()));
         registerItemForBlock(registry, ModBlocks.CREATIVE_PLAYER_INTERFACE);
-        registry.register("magic_hood", new MagicHoodItem(new Item.Properties().tab(RT_ITEM_GROUP).rarity(net.minecraft.world.item.Rarity.RARE)));
+        registry.register("magic_hood", new MagicHoodItem(new Item.Properties().rarity(net.minecraft.world.item.Rarity.RARE)));
         registerItemForBlock(registry, ModBlocks.RAIN_SHIELD);
         registerItemForBlock(registry, ModBlocks.ENDER_BRIDGE, ModBlocks.PRISMARINE_ENDER_BRIDGE, ModBlocks.ENDER_ANCHOR);
         registerItemForBlock(registry, ModBlocks.PEACE_CANDLE, ModBlocks.ANCIENT_FURNACE);
         registerItemForBlock(registry, ModBlocks.BLOCK_BREAKER);
         registerItemForBlock(registry, ModBlocks.BLOCK_DESTABILIZER);
 
-        registry.register("spectre_illuminator", new SpectreIlluminatorItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("portkey", new PortkeyItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("spectre_anchor", new Item(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("redstone_activator", new lumien.randomthings.item.RedstoneActivatorItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
-        registry.register("redstone_remote", new lumien.randomthings.item.RedstoneRemoteItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
+        registry.register("spectre_illuminator", new SpectreIlluminatorItem(new Item.Properties()));
+        registry.register("portkey", new PortkeyItem(new Item.Properties().stacksTo(1)));
+        registry.register("spectre_anchor", new Item(new Item.Properties()));
+        registry.register("redstone_activator", new lumien.randomthings.item.RedstoneActivatorItem(new Item.Properties().stacksTo(1)));
+        registry.register("redstone_remote", new lumien.randomthings.item.RedstoneRemoteItem(new Item.Properties().stacksTo(1)));
 
-        registry.register("spectre_sword", new lumien.randomthings.item.spectretools.SpectreSwordItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_pickaxe", new lumien.randomthings.item.spectretools.SpectrePickaxeItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_axe", new lumien.randomthings.item.spectretools.SpectreAxeItem(new Item.Properties().tab(RT_ITEM_GROUP)));
-        registry.register("spectre_shovel", new lumien.randomthings.item.spectretools.SpectreShovelItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("spectre_sword", new lumien.randomthings.item.spectretools.SpectreSwordItem(new Item.Properties()));
+        registry.register("spectre_pickaxe", new lumien.randomthings.item.spectretools.SpectrePickaxeItem(new Item.Properties()));
+        registry.register("spectre_axe", new lumien.randomthings.item.spectretools.SpectreAxeItem(new Item.Properties()));
+        registry.register("spectre_shovel", new lumien.randomthings.item.spectretools.SpectreShovelItem(new Item.Properties()));
 
         registerItemForBlock(registry, ModBlocks.SPECTRE_ENERGY_INJECTOR);
         registerItemForBlock(registry, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
 
-        registry.register("spectre_charger_normal", new SpectreChargerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1), SpectreChargerItem.Tier.NORMAL));
-        registry.register("spectre_charger_redstone", new SpectreChargerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1), SpectreChargerItem.Tier.REDSTONE));
-        registry.register("spectre_charger_ender", new SpectreChargerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1), SpectreChargerItem.Tier.ENDER));
-        registry.register("spectre_charger_genesis", new SpectreChargerItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1), SpectreChargerItem.Tier.GENESIS));
+        registry.register("spectre_charger_normal", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.NORMAL));
+        registry.register("spectre_charger_redstone", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.REDSTONE));
+        registry.register("spectre_charger_ender", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.ENDER));
+        registry.register("spectre_charger_genesis", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.GENESIS));
 
         registerItemForBlock(registry, ModBlocks.SPECTRE_LENS);
 
         registerItemForBlock(registry, ModBlocks.LIGHT_REDIRECTOR);
 
-        registry.register("diaphanous_block", new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("diaphanous_block", new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, new Item.Properties()));
 
         registerItemForBlock(registry, ModBlocks.DYEING_MACHINE);
     }
@@ -423,7 +425,7 @@ public class ModItems {
         DiviningRodScratch.TAG_HOLDER.addAll(Arrays.asList(tags));
         DiviningRodScratch.COLOR_HOLDER.addAll(Arrays.asList(colors));
 
-        registry.register("divining_rod_" + name, new DiviningRodItem(new Item.Properties().tab(RT_ITEM_GROUP), colors, tags));
+        registry.register("divining_rod_" + name, new DiviningRodItem(new Item.Properties(), colors, tags));
     }
 
     private static void registerDiviningRod(IForgeRegistry<Item> registry, String name, Color color, String tag) {
@@ -432,18 +434,31 @@ public class ModItems {
 
     private static void registerItemForBlock(IForgeRegistry<Item> registry, Block... blocks) {
         for (Block block : blocks) {
-            Item itemInstance = new BlockItem(block, new Item.Properties().tab(RT_ITEM_GROUP));
+            Item itemInstance = new BlockItem(block, new Item.Properties());
             registry.register(RegUtil.id(block), itemInstance);
         }
     }
 
-    public static void initItemGroup() {
-        RT_ITEM_GROUP = new CreativeModeTab("randomthings") {
-            @Override
-            public ItemStack makeIcon() {
-                return new ItemStack(ModBlocks.FERTILIZED_DIRT);
-            }
-        };
+    /** The mod's creative tab (1.20: registered on {@code Registries.CREATIVE_MODE_TAB}; the contents are every Random Things item in registry order). */
+    public static CreativeModeTab createItemGroup() {
+        RT_ITEM_GROUP = CreativeModeTab.builder()
+                .title(net.minecraft.network.chat.Component.translatable("itemGroup.randomthings"))
+                .icon(() -> new ItemStack(ModBlocks.FERTILIZED_DIRT))
+                .displayItems((parameters, output) -> {
+                    for (Item item : ForgeRegistries.ITEMS) {
+                        if (!ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
+                            continue;
+                        }
+
+                        if (item instanceof lumien.randomthings.item.block.DiaphanousBlockItem diaphanous) {
+                            diaphanous.addCreativeStacks(output);
+                        } else {
+                            output.accept(item);
+                        }
+                    }
+                })
+                .build();
+        return RT_ITEM_GROUP;
     }
 
 }

@@ -14,8 +14,6 @@ import lumien.randomthings.tileentity.InventoryTesterTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -56,7 +54,7 @@ public class InventoryTesterBlock extends Block implements EntityBlock {
 
 	public InventoryTesterBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).noOcclusion().strength(0.3F).noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}

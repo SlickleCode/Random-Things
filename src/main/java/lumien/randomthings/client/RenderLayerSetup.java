@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import lumien.randomthings.block.StainedBrickBlock;
 import lumien.randomthings.block.AdvancedItemCollectorBlock;

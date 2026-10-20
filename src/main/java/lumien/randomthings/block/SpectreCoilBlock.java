@@ -17,7 +17,6 @@ import com.mojang.authlib.GameProfile;
 import lumien.randomthings.tileentity.SpectreCoilTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,7 +29,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 /**
  * Ported from 1.12.2's {@code BlockSpectreCoil} - a small block that attaches to a face of any
@@ -69,7 +68,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(Block.Properties.of(Material.STONE).strength(0.3F).noCollission());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollission());
 
         this.coilType = coilType;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
@@ -108,7 +107,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
 
     private static boolean hasEnergyCapableSupport(LevelReader world, BlockPos pos, Direction facing) {
         BlockEntity supportTe = world.getBlockEntity(pos.relative(facing.getOpposite()));
-        return supportTe != null && supportTe.getCapability(CapabilityEnergy.ENERGY, facing).isPresent();
+        return supportTe != null && supportTe.getCapability(ForgeCapabilities.ENERGY, facing).isPresent();
     }
 
     @Override

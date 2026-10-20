@@ -17,7 +17,6 @@ import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,7 +39,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock {
     public BiomeRadarBlock() {
-        super(Block.Properties.of(Material.METAL).noOcclusion().strength(5.0F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).noOcclusion().strength(5.0F));
     }
 
     @Override

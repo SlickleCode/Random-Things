@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 
 public class StainedBrickBlock extends Block
 {
@@ -16,7 +14,7 @@ public class StainedBrickBlock extends Block
 
 	public StainedBrickBlock(boolean luminous)
 	{
-		super(withLight(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE), luminous));
+		super(withLight(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F, 10.0F).sound(SoundType.STONE), luminous));
 
 		this.luminous = luminous;
 	}

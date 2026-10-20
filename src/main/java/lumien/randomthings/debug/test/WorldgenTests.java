@@ -1,5 +1,7 @@
 package lumien.randomthings.debug.test;
 
+import net.minecraft.core.registries.Registries;
+
 import java.util.HashMap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
@@ -68,7 +70,6 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
-import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
@@ -185,10 +186,10 @@ final class WorldgenTests
 	{
 		ServerLevel world = c.world;
 		RegistryAccess registries = world.registryAccess();
-		Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
+		Registry<Biome> biomes = registries.registryOrThrow(Registries.BIOME);
 		long seed = world.getSeed();
-		NoiseBasedChunkGenerator generator = (NoiseBasedChunkGenerator) WorldPresets.createNormalWorldFromPreset(registries, seed).overworld();
-		RandomState randomState = RandomState.create(generator.generatorSettings().value(), registries.registryOrThrow(Registry.NOISE_REGISTRY), seed);
+		NoiseBasedChunkGenerator generator = (NoiseBasedChunkGenerator) WorldPresets.getNormalOverworld(registries).generator();
+		RandomState randomState = RandomState.create(generator.generatorSettings().value(), registries.lookupOrThrow(Registries.NOISE), seed);
 		StructureManager featureManager = NoStructures.of(world);
 		Executor sameThread = Runnable::run;
 		// 9x9 chunks: the outer ring only exists so every generated chunk has its 3x3 neighbourhood (structure references, carvers)
@@ -215,7 +216,7 @@ final class WorldgenTests
 			{
 				WorldGenRegion region = new WorldGenRegion(world, neighbourhood(grid, x, z), ChunkStatus.STRUCTURE_REFERENCES, 0);
 				StructureManager regionManager = featureManager.forWorldGenRegion(region);
-				generator.createBiomes(biomes, sameThread, randomState, Blender.empty(), regionManager, grid[z][x]).join();
+				generator.createBiomes(sameThread, randomState, Blender.empty(), regionManager, grid[z][x]).join();
 				generator.fillFromNoise(sameThread, Blender.empty(), randomState, regionManager, grid[z][x]).join();
 			}
 		}
@@ -241,7 +242,7 @@ final class WorldgenTests
 		{
 			for (ProtoChunk primer : row)
 			{
-				primer.setStatus(ChunkStatus.LIQUID_CARVERS);
+				primer.setStatus(ChunkStatus.CARVERS);
 				Heightmap.primeHeightmaps(primer, EnumSet.of(Heightmap.Types.MOTION_BLOCKING, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Heightmap.Types.OCEAN_FLOOR, Heightmap.Types.WORLD_SURFACE));
 			}
 		}
@@ -327,7 +328,7 @@ final class WorldgenTests
 
 	private static StructureTemplatePool housesPool(TestCtx c)
 	{
-		return c.world.registryAccess().registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).get(HOUSES);
+		return c.world.registryAccess().registryOrThrow(Registries.TEMPLATE_POOL).get(HOUSES);
 	}
 	private static StructureTemplatePool vanillaHouses(StructureTemplatePool wrapper) throws Exception
 	{
@@ -357,14 +358,14 @@ final class WorldgenTests
 	{
 		RegistryAccess registries = c.world.registryAccess();
 		StructureTemplateManager templates = c.world.getStructureManager();
-		Holder<StructureTemplatePool> centers = registries.registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY).getHolderOrThrow(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, new ResourceLocation("village/plains/town_centers")));
+		Holder<StructureTemplatePool> centers = registries.registryOrThrow(Registries.TEMPLATE_POOL).getHolderOrThrow(ResourceKey.create(Registries.TEMPLATE_POOL, new ResourceLocation("village/plains/town_centers")));
 		ChunkGenerator generator = c.world.getChunkSource().getGenerator();
 		int vanilla = 0;
 		int peace = 0;
 		for (int i = 0; i < count; i++)
 		{
 			ChunkPos chunkPos = new ChunkPos(i * 11, i * 17);
-			Structure village = registries.registryOrThrow(Registry.STRUCTURE_REGISTRY).get(new ResourceLocation("village_plains"));
+			Structure village = registries.registryOrThrow(Registries.STRUCTURE).get(new ResourceLocation("village_plains"));
 			// vanilla's own village start (a hand-built JigsawPlacement call in this harness produced streets but never any house)
 			net.minecraft.world.level.levelgen.structure.StructureStart start = village.generate(registries, generator, generator.getBiomeSource(), c.world.getChunkSource().randomState(), templates, c.world.getSeed(), chunkPos, 0, c.world, biome -> true);
 			for (StructurePiece piece : start.getPieces())
@@ -422,7 +423,7 @@ final class WorldgenTests
 			for (int cz = (c.origin.getZ() - 24) >> 4; cz <= (c.origin.getZ() + 24) >> 4; cz++)
 			{
 				net.minecraft.world.level.chunk.LevelChunk chunk = c.world.getChunk(cx, cz);
-				c.player.connection.send(new net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket(chunk, c.world.getChunkSource().getLightEngine(), null, null, true));
+				c.player.connection.send(new net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket(chunk, c.world.getChunkSource().getLightEngine(), null, null));
 			}
 		}
 	}
@@ -433,7 +434,7 @@ final class WorldgenTests
 	 */
 	private static void skipWithoutBiomeModifiers(TestCtx c)
 	{
-		Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+		Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 
 		for (Biome biome : biomes)
 		{
@@ -459,7 +460,7 @@ final class WorldgenTests
 		// ---- Glowing Mushroom ----------------------------------------------------------------
 		tests.add(RTTest.named("worldgen.glowing_mushroom.is_registered_in_every_overworld_biome_with_the_original_rarity").run(c -> {
 				skipWithoutBiomeModifiers(c);
-			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 			int overworldStyle = 0;
 
 			for (Biome biome : biomes)
@@ -809,7 +810,7 @@ final class WorldgenTests
 		{
 			tests.add(RTTest.named("worldgen." + spec[0] + ".is_registered_in_every_overworld_biome_in_its_step_with_the_ported_rarity").run(c -> {
 				skipWithoutBiomeModifiers(c);
-				Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+				Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 				int step = GenerationStep.Decoration.valueOf(spec[2]).ordinal();
 				int overworldStyle = 0;
 
@@ -878,7 +879,7 @@ final class WorldgenTests
 		}));
 
 		tests.add(RTTest.named("worldgen.lotus.snowy_biome_check_and_refuses_in_a_non_snowy_biome").run(c -> {
-			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 			c.check(lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.SNOWY_PLAINS), "SNOWY"), "snowy_plains must count as SNOWY");
 			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.PLAINS), "SNOWY"), "plains must not count as SNOWY");
 			c.check(!lumien.randomthings.util.BiomeUtil.hasType(biomes.get(Biomes.DESERT), "SNOWY"), "desert must not count as SNOWY");
@@ -896,7 +897,7 @@ final class WorldgenTests
 		// the test world is warm, so the area is repainted with a cold biome (and restored afterwards); the feature reads the biome through
 		// the level's biome manager, which blends the neighbouring cells, hence the whole surrounding chunks are painted
 		tests.add(RTTest.named("worldgen.ancient_furnace.generates_only_in_cold_biomes_on_solid_ground").run(c -> {
-			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 			BlockPos pos = c.at(2, 1, 2);
 			Holder<Biome> original = c.world.getBiome(pos);
 			Holder<Biome> cold = biomes.getHolderOrThrow(Biomes.SNOWY_PLAINS);
@@ -932,7 +933,7 @@ final class WorldgenTests
 
 		// the heat-up's finish (warm the surroundings, then explode) is split: only the warming is run, the explosion would wreck the test area
 		tests.add(RTTest.named("worldgen.ancient_furnace.heating_converts_cold_biomes_melts_snow_and_ice_and_leaves_warm_biomes_alone").run(c -> {
-			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY);
+			Registry<Biome> biomes = c.world.registryAccess().registryOrThrow(Registries.BIOME);
 			Holder<Biome> original = c.world.getBiome(c.at(2, 1, 2));
 			BlockPos snow = c.at(2, 1, 2);
 			BlockPos ice = c.at(4, 1, 2);
@@ -998,7 +999,7 @@ final class WorldgenTests
 			}
 
 			originalClient[0] = c.world.getBiome(c.at(2, 1, 2));
-			paintBiome(c, c.world.registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.SNOWY_PLAINS));
+			paintBiome(c, c.world.registryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.SNOWY_PLAINS));
 			resendAround(c);
 		}).waitTicks(20).run(c -> {
 			if (warmClient[0] == null)
@@ -1083,7 +1084,7 @@ final class WorldgenTests
 
 		private NoStructures(ServerLevel world, net.minecraft.world.level.LevelAccessor level)
 		{
-			super(level, world.getServer().getWorldData().worldGenSettings(), null);
+			super(level, world.getServer().getWorldData().worldGenOptions(), null);
 			this.world = world;
 		}
 

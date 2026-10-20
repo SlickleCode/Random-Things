@@ -2,13 +2,11 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 
 public class LuminousTranslucentBlock extends Block
 {
 	public LuminousTranslucentBlock()
 	{
-		super(Block.Properties.of(Material.DIRT, MaterialColor.WOOL).noOcclusion().strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).noOcclusion().strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }

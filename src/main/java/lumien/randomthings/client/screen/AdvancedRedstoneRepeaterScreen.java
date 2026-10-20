@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
@@ -17,7 +19,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.Component;
 
 /**
  * AdvancedRedstoneRepeaterScreen
@@ -39,61 +40,52 @@ public class AdvancedRedstoneRepeaterScreen extends AbstractContainerScreen<Adva
 	{
 		super.init();
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 15, 10, 10, Component.literal("-"), (button) -> {
+		this.addRenderableWidget(Button.builder(Component.literal("-"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(-1));
-		}));
-		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 15, 10, 10, Component.literal("+"), (button) -> {
+		}).bounds(this.leftPos + 5, this.topPos + 15, 10, 10).build());
+		this.addRenderableWidget(Button.builder(Component.literal("+"), (button) -> {
 			this.menu.send(0, (pb) -> pb.writeInt(1));
-		}));
+		}).bounds(this.leftPos + 5 + 70, this.topPos + 15, 10, 10).build());
 
-		this.addRenderableWidget(new Button(this.leftPos + 5, this.topPos + 39, 10, 10, Component.literal("-"), (button) -> {
+		this.addRenderableWidget(Button.builder(Component.literal("-"), (button) -> {
 			this.menu.send(1, (pb) -> pb.writeInt(-1));
-		}));
-		this.addRenderableWidget(new Button(this.leftPos + 5 + 70, this.topPos + 39, 10, 10, Component.literal("+"), (button) -> {
+		}).bounds(this.leftPos + 5, this.topPos + 39, 10, 10).build());
+		this.addRenderableWidget(Button.builder(Component.literal("+"), (button) -> {
 			this.menu.send(1, (pb) -> pb.writeInt(1));
-		}));
+		}).bounds(this.leftPos + 5 + 70, this.topPos + 39, 10, 10).build());
 	}
 
 	@Override
-	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		this.font.draw(matrixStack, I18n.get("gui.randomthings.advanced_redstone_repeater.on"), 8, 5, 0);
-		this.font.draw(matrixStack, I18n.get("gui.randomthings.advanced_redstone_repeater.off"), 8, 29, 0);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.on"), 8, 5, 0, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.off"), 8, 29, 0, false);
 
 		String onString = this.menu.turnOnDelay.get() + "";
-		this.font.draw(matrixStack, onString, imageWidth / 2 - this.font.width(onString) / 2, 16, 0);
+		graphics.drawString(this.font, onString, imageWidth / 2 - this.font.width(onString) / 2, 16, 0, false);
 
 		String offString = this.menu.turnOffDelay.get() + "";
-		this.font.draw(matrixStack, offString, imageWidth / 2 - this.font.width(offString) / 2, 40, 0);
+		graphics.drawString(this.font, offString, imageWidth / 2 - this.font.width(offString) / 2, 40, 0, false);
 
-		for (AbstractWidget widget : ScreenWidgets.buttons(this))
-		{
-			if (widget.isHoveredOrFocused())
-			{
-				widget.renderToolTip(matrixStack, mouseX - this.leftPos, mouseY - this.topPos);
-				break;
-			}
-		}
-
-	}
+}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(matrixStack);
-		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderBackground(graphics);
+		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
+		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}
 }

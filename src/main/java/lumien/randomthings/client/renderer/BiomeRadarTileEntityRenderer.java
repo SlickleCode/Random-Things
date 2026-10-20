@@ -1,17 +1,19 @@
 package lumien.randomthings.client.renderer;
 
+import com.mojang.math.Axis;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 
 /**
@@ -39,10 +41,10 @@ public class BiomeRadarTileEntityRenderer implements BlockEntityRenderer<BiomeRa
         matrixStack.pushPose();
         // 1.12.2 pinned the item's bob phase (hoverStart) so it spun in place INSIDE the block, about a third of the way up - no bobbing, no hovering above it
         matrixStack.translate(0.5D, 0.4D, 0.5D);
-        matrixStack.mulPose(Vector3f.YN.rotationDegrees((age * 2.9F) % 360.0F));
+        matrixStack.mulPose(Axis.YN.rotationDegrees((age * 2.9F) % 360.0F));
         matrixStack.scale(0.75F, 0.75F, 0.75F);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(currentCrystal, TransformType.GROUND, net.minecraft.client.renderer.LevelRenderer.getLightColor(te.getLevel(), te.getBlockPos().above()), combinedOverlay, matrixStack, buffer, 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(currentCrystal, ItemDisplayContext.GROUND, net.minecraft.client.renderer.LevelRenderer.getLightColor(te.getLevel(), te.getBlockPos().above()), combinedOverlay, matrixStack, buffer, te.getLevel(), 0);
 
         matrixStack.popPose();
     }

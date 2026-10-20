@@ -62,7 +62,7 @@ public class NotificationInterfaceContainer extends AbstractContainerMenu implem
 
     private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos) {
         Inventory inv = (Inventory) playerInventory;
-        return ContainerLevelAccess.create(inv.player.level, blockPos);
+        return ContainerLevelAccess.create(inv.player.level(), blockPos);
     }
 
     public String getTitle() {

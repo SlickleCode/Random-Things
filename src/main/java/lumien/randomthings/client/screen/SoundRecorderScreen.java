@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -44,19 +46,19 @@ public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderCo
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
-        this.font.draw(matrixStack, net.minecraft.network.chat.Component.translatable("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+        graphics.drawString(this.font, net.minecraft.network.chat.Component.translatable("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752, false);
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     // ContainerScreen's mouseDragged/mouseReleased don't forward to child widgets, so the list's
@@ -73,12 +75,12 @@ public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderCo
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, partialTicks);
 
-        this.soundList.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.soundList.render(graphics, mouseX, mouseY, partialTicks);
 
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 }

@@ -130,10 +130,11 @@ def item_cmd(slot, item):
 SCENARIOS = {}
 WORLD_KIND = {}
 _MCV = os.environ.get('SCN_MC') or '1.14'
-MC18 = _MCV.startswith('1.18') or _MCV.startswith('1.19')   # SCN_MC=1.18 drives the 1.18.2 menus; 1.19.2 has the same create-world screen and commands
+MC18 = _MCV.startswith('1.18') or _MCV.startswith('1.19') or _MCV.startswith('1.20')   # SCN_MC=1.18 drives the 1.18.2 menus; 1.19.2 has the same create-world screen and commands
 MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT conventions: registry-string dimensions, generic.max_health, /locatebiome
 DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
-MC19 = _MCV.startswith('1.19')                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
+MC20 = _MCV.startswith('1.20')                    # 1.20.1: tabbed create-world screen (Game / World / More)
+MC19 = _MCV.startswith('1.19') or MC20                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
 SNOWY_BIOME = 'minecraft:snowy_plains' if MC18 else 'minecraft:snowy_tundra'     # renamed in 1.18
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
@@ -1540,6 +1541,28 @@ def new_world(g, world, kind='flat'):
     g.note('creating %s world %s with seed %s' % (kind, world, SEED))
     g.do('focus')
     g.click(426, 236)                          # main menu: Singleplayer
+    if MC20:
+        for _ in range(12):                    # 1.20: with no saved world Singleplayer opens the create screen directly (after "Preparing for world creation...")
+            g.wait(1.5)
+            if is_dark(426, 117, 12):
+                break
+        if not is_dark(426, 117, 12):
+            require_screen(g, 'world list', 426, 64)
+            g.click(584, 395)                  # Create New World
+            g.wait(2)
+        require_screen(g, 'create world', 426, 117)
+        g.click(426, 117); g.key('a', ctrl=True); g.do('text', world)
+        g.click(426, 175); g.wait(0.6); g.click(426, 175); g.wait(0.6)      # Game Mode: Survival -> Hardcore -> Creative (cheats on)
+        g.click(428, 27); g.wait(1.0)          # World tab
+        g.click(426, 173); g.key('a', ctrl=True); g.do('text', SEED)        # seed field
+        if kind == 'flat':
+            g.click(266, 89)                   # World Type: Default -> Superflat
+        g.wait(0.5)
+        g.shot('create_options')
+        g.click(266, 443)                      # Create New World
+        g.wait(1.5)
+        wait_for_world(g)
+        return
     require_screen(g, 'world list', 426, 64)   # the black search box
     g.click(584, 395)                          # Create New World
     require_screen(g, 'create world', 300, 139)
@@ -1562,6 +1585,10 @@ def new_world(g, world, kind='flat'):
     g.wait(1.5)
     if MC18:
         confirm_experimental(g)
+    wait_for_world(g)
+
+
+def wait_for_world(g):
     for attempt in range(60):                  # wait until the in-game chat works
         if not desk.find_window('Minecraft'):
             raise desk.Abort('the Minecraft window is gone')

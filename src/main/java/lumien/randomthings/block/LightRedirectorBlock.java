@@ -6,7 +6,6 @@ import lumien.randomthings.tileentity.LightRedirectorTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -54,7 +53,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class LightRedirectorBlock extends Block implements EntityBlock {
     public LightRedirectorBlock() {
-        super(Block.Properties.of(Material.WOOD).sound(SoundType.WOOD).strength(2.0F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(2.0F));
 
         this.registerDefaultState(this.getStateDefinition().any()
                 .setValue(BlockStateProperties.NORTH, true)

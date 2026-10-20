@@ -191,12 +191,12 @@ final class BehaviorTests
 
 		// ---- Special crafting recipes ---------------------------------------------------------
 		tests.add(RTTest.named("behavior.recipes.spectre_anchor_combine_tags_single_unstackable_item").run(c -> {
-			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(new ResourceLocation("randomthings", "test"));
+			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(new ResourceLocation("randomthings", "test"), net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
 			ItemStack anchor = new ItemStack(ModItems.SPECTRE_ANCHOR);
 
 			CraftingContainer good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
 			c.check(recipe.matches(good, c.world), "anchor + sword should match");
-			ItemStack result = recipe.assemble(good);
+			ItemStack result = recipe.assemble(good, net.minecraft.core.RegistryAccess.EMPTY);
 			c.eq(Items.IRON_SWORD, result.getItem(), "result item");
 			c.check(result.hasTag() && result.getTag().contains("spectreAnchor"), "result must carry the spectreAnchor tag");
 			recipe.getRemainingItems(good).forEach(s -> c.check(s.isEmpty(), "anchor and target are both consumed"));
@@ -220,7 +220,7 @@ final class BehaviorTests
 
 				checked++;
 				CraftingRecipe crafting = (CraftingRecipe) recipe;
-				CraftingContainer inv = new CraftingContainer(new NoopContainer(), 3, 3);
+				CraftingContainer inv = new net.minecraft.world.inventory.TransientCraftingContainer(new NoopContainer(), 3, 3);
 				List<Ingredient> ingredients = recipe.getIngredients();
 				int width = recipe instanceof ShapedRecipe ? ((ShapedRecipe) recipe).getRecipeWidth() : 3;
 
@@ -245,8 +245,8 @@ final class BehaviorTests
 					continue;
 				}
 
-				ItemStack out = crafting.assemble(inv);
-				ItemStack expected = recipe.getResultItem();
+				ItemStack out = crafting.assemble(inv, net.minecraft.core.RegistryAccess.EMPTY);
+				ItemStack expected = recipe.getResultItem(net.minecraft.core.RegistryAccess.EMPTY);
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
 				{
@@ -263,7 +263,7 @@ final class BehaviorTests
 
 	private static CraftingContainer grid(int w, int h, ItemStack... stacks)
 	{
-		CraftingContainer inv = new CraftingContainer(new NoopContainer(), w, h);
+		CraftingContainer inv = new net.minecraft.world.inventory.TransientCraftingContainer(new NoopContainer(), w, h);
 
 		for (int i = 0; i < stacks.length; i++)
 		{

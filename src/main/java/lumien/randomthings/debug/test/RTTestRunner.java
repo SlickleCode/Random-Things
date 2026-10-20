@@ -53,7 +53,7 @@ public final class RTTestRunner
 			return "tests already running";
 		}
 
-		ServerLevel world = starter.getLevel();
+		ServerLevel world = starter.serverLevel();
 
 		if (!(world.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.FlatLevelSource))
 		{

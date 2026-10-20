@@ -9,7 +9,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -33,10 +33,10 @@ import net.minecraft.world.level.Level;
  * directly).
  */
 public class DiaphanousSetRecipe extends CustomRecipe {
-    public static final RecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new SimpleRecipeSerializer<>(DiaphanousSetRecipe::new);
+    public static final RecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(DiaphanousSetRecipe::new);
 
-    public DiaphanousSetRecipe(ResourceLocation id) {
-        super(id);
+    public DiaphanousSetRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(id, category);
     }
 
     private static boolean isValidTarget(ItemStack stack) {
@@ -79,7 +79,7 @@ public class DiaphanousSetRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
         ItemStack diaphanous = ItemStack.EMPTY;
         Block targetBlock = Blocks.STONE;
 

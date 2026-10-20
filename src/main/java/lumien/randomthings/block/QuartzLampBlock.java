@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 
 /**
  * Looks dark (no light emitted) but still prevents hostile mob spawns nearby
@@ -19,6 +17,6 @@ public class QuartzLampBlock extends Block
 {
 	public QuartzLampBlock()
 	{
-		super(Block.Properties.of(Material.GLASS, MaterialColor.QUARTZ).strength(0.3F).sound(SoundType.GLASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS));
 	}
 }

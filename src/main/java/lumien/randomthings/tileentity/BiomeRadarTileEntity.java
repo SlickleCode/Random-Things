@@ -1,5 +1,7 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.item.BiomeCrystalItem;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.PositionFilterItem;
@@ -132,7 +134,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         if (this.state == STATE.SEARCHING) {
             for (int i = 0; i < 4; i++) {
                 if (antennaBiomes[i] != null) {
-                    Biome biome = ForgeRegistries.BIOMES.getValue(new ResourceLocation(antennaBiomes[i]));
+                    Biome biome = lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(antennaBiomes[i]));
 
                     if (biome != null) {
                         spawnAntennaParticle(i, biome);
@@ -148,7 +150,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
                 }
 
                 int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.worldPosition);
-                this.level.addParticle(new DustParticleOptions(new com.mojang.math.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 3.1, this.worldPosition.getZ() + 0.5, 0, 0, 0);
+                this.level.addParticle(new DustParticleOptions(new org.joml.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 3.1, this.worldPosition.getZ() + 0.5, 0, 0, 0);
             }
         }
     }
@@ -159,7 +161,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         double x = i < 2 ? this.worldPosition.getX() + 1.5 - i * 2 : this.worldPosition.getX() + 0.5;
         double z = i > 1 ? this.worldPosition.getZ() + 1.5 - (i - 2) * 2 : this.worldPosition.getZ() + 0.5;
 
-        this.level.addParticle(new DustParticleOptions(new com.mojang.math.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), x, this.worldPosition.getY() + 4.1, z, 0, 0, 0);
+        this.level.addParticle(new DustParticleOptions(new org.joml.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), x, this.worldPosition.getY() + 4.1, z, 0, 0, 0);
     }
 
     /**
@@ -171,10 +173,10 @@ public class BiomeRadarTileEntity extends BlockEntity {
             return null;
         }
 
-        ResourceLocation key = ForgeRegistries.BIOMES.getKey(biome);
+        ResourceLocation key = lumien.randomthings.util.BiomeUtil.id(biome);
 
         if (key == null && this.level instanceof net.minecraft.server.level.ServerLevel) {
-            key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getKey(biome);
+            key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).getKey(biome);
         }
 
         return key;
@@ -219,7 +221,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
                 break;
         }
 
-        return new BlockPos(this.worldPosition.getX() + x * 48, this.worldPosition.getY(), this.worldPosition.getZ() + z * 48);
+        return BlockPos.containing(this.worldPosition.getX() + x * 48, this.worldPosition.getY(), this.worldPosition.getZ() + z * 48);
     }
 
     @Override
@@ -232,7 +234,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         compound.putBoolean("powered", powered);
 
         if (biomeToSearch != null) {
-            compound.putString("biomeToSearch", ForgeRegistries.BIOMES.getKey(biomeToSearch).toString());
+            compound.putString("biomeToSearch", lumien.randomthings.util.BiomeUtil.id(biomeToSearch).toString());
         }
 
         compound.putInt("searchCounter", searchCounter);
@@ -255,7 +257,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         this.powered = compound.getBoolean("powered");
 
         if (compound.contains("biomeToSearch")) {
-            this.biomeToSearch = ForgeRegistries.BIOMES.getValue(new ResourceLocation(compound.getString("biomeToSearch")));
+            this.biomeToSearch = lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(compound.getString("biomeToSearch")));
         }
 
         this.searchCounter = compound.getInt("searchCounter");

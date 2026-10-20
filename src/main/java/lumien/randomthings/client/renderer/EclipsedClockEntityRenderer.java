@@ -1,5 +1,9 @@
 package lumien.randomthings.client.renderer;
 
+import net.minecraft.world.item.ItemDisplayContext;
+
+import com.mojang.math.Axis;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.entity.EclipsedClockEntity;
@@ -15,7 +19,7 @@ import net.minecraft.core.BlockPos;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 
@@ -54,7 +58,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
         double d2 = (double) blockpos.getZ() - entity.getZ();
 
         matrixStack.translate(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
-        matrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - entity.getYRot()));
+        matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F - entity.getYRot()));
         matrixStack.translate(0.0D, 0.0D, 0.4375D);
         matrixStack.scale(0.5F, 0.5F, 0.5F);
 
@@ -63,7 +67,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
         tag.putInt("targetTime", entity.getTargetTime());
         stack.setTag(tag);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
 
         matrixStack.popPose();
 

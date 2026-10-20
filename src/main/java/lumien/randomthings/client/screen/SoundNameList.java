@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ObjectSelectionList;
 
@@ -7,7 +9,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiComponent;
 
 /**
  * Scrollable list of recorded sound names, one clickable row per sound -
@@ -83,7 +84,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         // ContainerScreen#render leaves item lighting on and a stale GL color, which dimmed both the
         // hover bar and the (white) hovered text to near-black in the screenshots
         com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -92,11 +93,11 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
 
         ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(matrixStack, mouseX, mouseY, partialTicks);
+        this.renderList(graphics, mouseX, mouseY, partialTicks);
         ListClip.end();
 
-        renderBorder(matrixStack);
-        renderScrollbar(matrixStack);
+        renderBorder(graphics);
+        renderScrollbar(graphics);
 
     }
 
@@ -124,17 +125,17 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     }
 
     /** Light 1px frame around the scrollable area. */
-    private void renderBorder(PoseStack matrixStack) {
+    private void renderBorder(GuiGraphics graphics) {
         int color = 0xFFFFFFFF;
 
-        GuiComponent.fill(matrixStack, this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
-        GuiComponent.fill(matrixStack, this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
-        GuiComponent.fill(matrixStack, this.x0 - 1, this.y0, this.x0, this.y1, color);
-        GuiComponent.fill(matrixStack, this.x1, this.y0, this.x1 + 1, this.y1, color);
+        graphics.fill(this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
+        graphics.fill(this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
+        graphics.fill(this.x0 - 1, this.y0, this.x0, this.y1, color);
+        graphics.fill(this.x1, this.y0, this.x1 + 1, this.y1, color);
     }
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
-    private void renderScrollbar(PoseStack matrixStack) {
+    private void renderScrollbar(GuiGraphics graphics) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.y1 - this.y0;
 
@@ -150,9 +151,9 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.getMaxPosition())));
         int thumbY = Math.max(this.y0, Math.min(this.y1 - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.y0));
 
-        GuiComponent.fill(matrixStack, scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
-        GuiComponent.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
-        GuiComponent.fill(matrixStack, scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
+        graphics.fill(scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
+        graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
+        graphics.fill(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
     }
 
     public class SoundNameEntry extends ObjectSelectionList.Entry<SoundNameEntry> {
@@ -168,7 +169,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         }
 
         @Override
-        public void render(PoseStack matrixStack, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void render(GuiGraphics graphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
             net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
 
             // Dark text on the GUI's light-gray panel (white was nearly invisible there - found via
@@ -182,7 +183,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
                     && mouseX >= left && mouseX < left + width && mouseY >= top - 2 && mouseY < top + height + 2;
 
             if (isMouseOver) {
-                GuiComponent.fill(matrixStack, left, top - 2, left + width, top + height + 2, 0xFF404040);
+                graphics.fill(left, top - 2, left + width, top + height + 2, 0xFF404040);
             }
 
             int available = width - 4;
@@ -190,11 +191,11 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
             float scale = textWidth > available ? Math.max(0.5F, (float) available / textWidth) : 1.0F;
             String shown = font.width(sound) * scale > available ? font.plainSubstrByWidth(sound, (int) (available / scale)) : sound;
 
-            matrixStack.pushPose();
-            matrixStack.translate(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0D);
-            matrixStack.scale(scale, scale, 1.0F);
-            font.draw(matrixStack, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040);
-            matrixStack.popPose();
+            graphics.pose().pushPose();
+            graphics.pose().translate(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0D);
+            graphics.pose().scale(scale, scale, 1.0F);
+            graphics.drawString(font, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040, false);
+            graphics.pose().popPose();
         }
 
         @Override

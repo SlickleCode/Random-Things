@@ -74,7 +74,7 @@ public class ImbuingRecipe {
     }
 
     private static boolean contentEquals(ItemStack a, ItemStack b) {
-        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSame(a, b) && ItemStack.tagMatches(a, b);
+        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItem(a, b) && ItemStack.isSameItemSameTags(a, b);
     }
 
     public ItemStack toImbue() {

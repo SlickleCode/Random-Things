@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -15,7 +17,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.Component;
 
 /**
  * Port of 1.12.2's {@code GuiChunkAnalyzer}: a "Scan" button that asks the
@@ -50,10 +51,10 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
     protected void init() {
         super.init();
 
-        this.scanButton = this.addRenderableWidget(new Button(this.leftPos + 136, this.topPos + 5, 50, 14, Component.literal("Scan"), (button) -> {
+        this.scanButton = this.addRenderableWidget(Button.builder(Component.literal("Scan"), (button) -> {
             this.menu.send(0, (pb) -> {
             });
-        }));
+        }).bounds(this.leftPos + 136, this.topPos + 5, 50, 14).build());
 
         this.scanResultList = new ChunkAnalyzerScanResultList(this.minecraft, 182, 100, this.topPos + 20, this.topPos + 120, this.leftPos + 4);
         this.addWidget(this.scanResultList);
@@ -75,18 +76,18 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, this.title.getString(), 8, 6, 4210752);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     /**
@@ -104,11 +105,11 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, partialTicks);
 
-        this.scanResultList.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.scanResultList.render(graphics, mouseX, mouseY, partialTicks);
 
         boolean scanning = this.menu.scanning.get() != 0;
 
@@ -116,7 +117,7 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
         if (scanning) {
             String text = "Scanning Chunk" + dots();
-            this.font.draw(matrixStack, text, this.leftPos + (int) (95 - this.font.width(text) / 2F), this.topPos + 65, 16777215);
+            graphics.drawString(this.font, text, this.leftPos + (int) (95 - this.font.width(text) / 2F), this.topPos + 65, 16777215, false);
         }
 
         if (this.wasScanning && !scanning) {
@@ -129,7 +130,7 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
         this.wasScanning = scanning;
 
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 
     private String dots() {

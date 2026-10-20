@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.debug.RTDebug;
 import lumien.randomthings.debug.RTDebugCommand;
 import lumien.randomthings.debug.test.RTTestRunner;
@@ -80,14 +82,12 @@ public class AutoTest
 					else
 					{
 						// a flat creative world: the behavior tests wipe and rebuild their test area
-						RegistryAccess.Writable registries = RegistryAccess.builtinCopy();
-						Registry<DimensionType> types = registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY);
-						Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
-						Registry<net.minecraft.world.level.levelgen.structure.StructureSet> structureSets = registries.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
-						ChunkGenerator flat = new FlatLevelSource(structureSets, FlatLevelGeneratorSettings.getDefault(biomes, structureSets));
-						WorldGenSettings generatorSettings = new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 4242L).dimensions(), flat));
-						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DataPackConfig.DEFAULT);
-						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, registries, generatorSettings);
+						net.minecraft.world.level.levelgen.WorldOptions options = new net.minecraft.world.level.levelgen.WorldOptions(4242L, false, false);
+						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), net.minecraft.world.level.WorldDataConfiguration.DEFAULT);
+						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, options, registries -> {
+							ChunkGenerator flat = new FlatLevelSource(FlatLevelGeneratorSettings.getDefault(registries.lookupOrThrow(Registries.BIOME), registries.lookupOrThrow(Registries.STRUCTURE_SET), registries.lookupOrThrow(Registries.PLACED_FEATURE)));
+							return net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldDimensions(registries).replaceOverworldGenerator(registries, flat);
+						});
 					}
 
 					state = State.LOADING;
@@ -158,8 +158,8 @@ public class AutoTest
 					RTDebug.log("AutoTest: resource audit done, {} failure(s)", audit.failures.size());
 
 					RTDebug.log("AutoTest: running /rtdebug test");
-					mc.player.commandUnsigned("gamemode creative");
-					mc.player.commandUnsigned(("rtdebug test " + System.getProperty("randomthings.autotest.filter", "")).trim());
+					mc.player.connection.sendUnsignedCommand("gamemode creative");
+					mc.player.connection.sendUnsignedCommand(("rtdebug test " + System.getProperty("randomthings.autotest.filter", "")).trim());
 
 					state = State.TESTING;
 					ticks = 0;
@@ -182,7 +182,7 @@ public class AutoTest
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.commandUnsigned("rtdebug allguis 40");
+					mc.player.connection.sendUnsignedCommand("rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;

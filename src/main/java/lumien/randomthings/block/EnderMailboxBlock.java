@@ -17,7 +17,6 @@ import lumien.randomthings.item.ModItems;
 import lumien.randomthings.tileentity.EnderMailboxTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -63,7 +62,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE_EAST_WEST = Block.box(1, 0, 5, 15, 22, 11);
 
     public EnderMailboxBlock() {
-        super(Block.Properties.of(Material.STONE).strength(1.5F, 10.0F).noCollission());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 10.0F).noCollission());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }

@@ -4,8 +4,6 @@ import lumien.randomthings.lib.IRTBlockColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -28,7 +26,7 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 
 	public CompressedSlimeBlock()
 	{
-		super(Block.Properties.of(Material.CLAY, MaterialColor.COLOR_LIGHT_GRAY).sound(SoundType.SLIME_BLOCK));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_LIGHT_GRAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).sound(SoundType.SLIME_BLOCK));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COMPRESSION, 0));
 	}

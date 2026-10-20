@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import lumien.randomthings.tileentity.IronDropperTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
@@ -43,7 +42,7 @@ public class IronDropperBlock extends Block implements EntityBlock {
 
 	public IronDropperBlock()
 	{
-		super(Block.Properties.of(Material.METAL).strength(3.5F).sound(SoundType.METAL));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).strength(3.5F).sound(SoundType.METAL));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}

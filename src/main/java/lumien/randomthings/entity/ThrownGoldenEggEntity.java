@@ -43,7 +43,7 @@ public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile
     public void handleEntityEvent(byte id) {
         if (id == 3) {
             for (int i = 0; i < 8; ++i) {
-                this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
             }
         }
     }
@@ -52,21 +52,21 @@ public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile
     protected void onHit(HitResult result) {
         if (result.getType() == HitResult.Type.ENTITY) {
             Entity hitEntity = ((EntityHitResult) result).getEntity();
-            hitEntity.hurt(DamageSource.thrown(this, this.getOwner()), 1.0F);
+            hitEntity.hurt(this.damageSources().thrown(this, this.getOwner()), 1.0F);
         }
 
-        if (!this.level.isClientSide) {
-            GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level);
+        if (!this.level().isClientSide) {
+            GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level());
             chicken.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
-            this.level.addFreshEntity(chicken);
+            this.level().addFreshEntity(chicken);
 
-            this.level.broadcastEntityEvent(this, (byte) 3);
+            this.level().broadcastEntityEvent(this, (byte) 3);
             this.discard();
         }
     }
 
     @Override
-    public net.minecraft.network.protocol.Packet<?> getAddEntityPacket() {
+    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
     }
 }

@@ -1,5 +1,7 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.util.RandomSource;
 import java.util.List;
 import java.util.Random;
@@ -55,7 +57,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
     private final StructureTemplatePool vanilla;
 
     private PeaceCandleChurchPool(StructureTemplatePool vanilla, StructurePoolElement peaceCandleChurch) {
-        super(vanilla.getName(), vanilla.getFallback(), java.util.Collections.<Pair<StructurePoolElement, Integer>>emptyList());
+        super(vanilla.getFallback(), java.util.Collections.<Pair<StructurePoolElement, Integer>>emptyList());
         this.vanilla = vanilla;
         this.peaceCandleChurch = peaceCandleChurch;
     }
@@ -66,8 +68,8 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
      * per world load, so it is safe to call repeatedly.
      */
     public static void install(MinecraftServer server) {
-        Registry<StructureTemplatePool> registry = server.registryAccess().registryOrThrow(Registry.TEMPLATE_POOL_REGISTRY);
-        Holder<StructureTemplatePool> holder = registry.getHolder(ResourceKey.create(Registry.TEMPLATE_POOL_REGISTRY, HOUSES)).orElse(null);
+        Registry<StructureTemplatePool> registry = server.registryAccess().registryOrThrow(Registries.TEMPLATE_POOL);
+        Holder<StructureTemplatePool> holder = registry.getHolder(ResourceKey.create(Registries.TEMPLATE_POOL, HOUSES)).orElse(null);
 
         if (holder == null) {
             LogManager.getLogger().warn("Vanilla pool {} not found, Peace Candle churches won't generate", HOUSES);
@@ -82,7 +84,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
 
         try {
             // the pool registry is frozen by the time the server starts, so the holder's value is swapped in place instead
-            Holder<StructureProcessorList> noProcessors = server.registryAccess().registryOrThrow(Registry.PROCESSOR_LIST_REGISTRY).getHolderOrThrow(ResourceKey.create(Registry.PROCESSOR_LIST_REGISTRY, new ResourceLocation("empty")));
+            Holder<StructureProcessorList> noProcessors = server.registryAccess().registryOrThrow(Registries.PROCESSOR_LIST).getHolderOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, new ResourceLocation("empty")));
             StructurePoolElement church = StructurePoolElement.single("randomthings:peace_candle_church", noProcessors).apply(StructureTemplatePool.Projection.RIGID);
 
             HOLDER_VALUE.set(holder, new PeaceCandleChurchPool(vanilla, church));

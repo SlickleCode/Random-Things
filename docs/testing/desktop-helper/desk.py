@@ -365,6 +365,8 @@ def do_command(args, title, want_shot):
         x, y = int(pos[0]), int(pos[1])
         button = pos[2] if len(pos) > 2 else 'left'
         _, ox, oy, _, _ = gate(title, (x, y))
+        user32.SetCursorPos(ox + x + 3, oy + y + 3)      # GLFW only learns the cursor position from a move: a click at the spot the cursor already rests on is ignored (1.20.1)
+        sleep(0.05)
         user32.SetCursorPos(ox + x, oy + y)
         sleep(0.05)
         down, up = {'left': (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP), 'right': (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP), 'middle': (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP)}[button]

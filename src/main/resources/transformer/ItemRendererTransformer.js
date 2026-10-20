@@ -26,7 +26,7 @@ function initializeCoreMod() {
                     // tint index. Same intent as the 1.14.4 patch of the LightUtil.renderQuadColor call.
                     // Enchant-glint colour: remember which stack renderItem(ItemStack, TransformType, boolean, MatrixStack, IRenderTypeBuffer, int, int, IBakedModel)
                     // is drawing, so the RenderType glint getters (RenderTypeTransformer) can pick a tinted glint type; cleared again before every return.
-                    if ((method.name === "render" || method.name === "m_115143_") && method.desc === "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V") {
+                    if ((method.name === "render" || method.name === "m_115143_") && method.desc === "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IILnet/minecraft/client/resources/model/BakedModel;)V") {
                         var ins0 = method.instructions;
                         for (var r = 0; r < ins0.size(); r++) {
                             var rn = ins0.get(r);

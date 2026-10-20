@@ -1,5 +1,7 @@
 package lumien.randomthings.item.block;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -28,19 +30,14 @@ public class DiaphanousBlockItem extends BlockItem {
         super(block, properties);
     }
 
-    @Override
-    public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-        if (!this.allowedIn(group)) {
-            return;
-        }
-
+    public void addCreativeStacks(net.minecraft.world.item.CreativeModeTab.Output output) {
         ItemStack stack = new ItemStack(this);
         CompoundTag tag = new CompoundTag();
         tag.putString("block", RegUtil.id(Blocks.STONE).toString());
         tag.putBoolean("inverted", false);
         stack.setTag(tag);
 
-        items.add(stack);
+        output.accept(stack);
     }
 
     /**

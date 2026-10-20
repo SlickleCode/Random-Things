@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '[6.0.24,6.2)', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -14,14 +14,14 @@ apply plugin: 'maven-publish'
 
 version = '5.0'
 group = 'lumien.randomthings'
-archivesBaseName = 'RandomThings-MC1.19.2'
+archivesBaseName = 'RandomThings-MC1.20.1'
 
 tasks.withType(JavaCompile) { options.compilerArgs << '-Xmaxerrs' << '10000' }
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 
 minecraft {
-    mappings channel: 'official', version: '1.19.2'
+    mappings channel: 'official', version: '1.20.1'
     
     // accessTransformer = file('build/resources/main/META-INF/accesstransformer.cfg')
 
@@ -99,8 +99,11 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.2-43.5.2'
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.28'
 }
+
+// ForgeGradle 6: the production jar is SRG-remapped by reobfJar
+jar.finalizedBy('reobfJar')
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {

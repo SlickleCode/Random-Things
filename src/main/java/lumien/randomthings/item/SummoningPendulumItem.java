@@ -1,5 +1,7 @@
 package lumien.randomthings.item;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.EntityType;
@@ -19,8 +21,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -89,7 +89,7 @@ public class SummoningPendulumItem extends Item {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
-        if (entity.level.isClientSide) {
+        if (entity.level().isClientSide) {
             return InteractionResult.PASS;
         }
 
@@ -103,9 +103,9 @@ public class SummoningPendulumItem extends Item {
                 entity.save(entityNBT);
                 tagList.add(entityNBT);
                 entity.discard();
-                entity.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.5F);
+                entity.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.5F);
             } else {
-                entity.level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 1.5F);
+                entity.level().playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 1.5F);
             }
 
             compound.put("entitys", tagList);
@@ -134,10 +134,10 @@ public class SummoningPendulumItem extends Item {
                     EntityType.create(entityNBT, world).ifPresent(entity -> {
                         entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
                         world.addFreshEntity(entity);
-                        player.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 0.5F);
+                        player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 0.5F);
                     });
                 } else {
-                    player.level.playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 0.2F);
+                    player.level().playSound(null, player.blockPosition(), SoundEvents.FIRECHARGE_USE, SoundSource.PLAYERS, 0.5f, 0.2F);
                 }
             }
         }

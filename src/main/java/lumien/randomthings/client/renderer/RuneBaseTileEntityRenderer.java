@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.Minecraft;
 
@@ -64,7 +64,6 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
         RenderSystem.setShaderTexture(0, RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
         Matrix4f matrix = matrixStack.last().pose();
         double x = 0, y = 0, z = 0;
-        RenderSystem.enableTexture();
         // Real bug #2, found 2026-09-27 (the color4f reset below wasn't enough on its
         // own): TileEntityRendererDispatcher.render() calls RenderHelper
         // .enableStandardItemLighting() (real GL_LIGHTING, with fixed-function light
@@ -133,7 +132,6 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
         tessellator.end();
 
         RenderSystem.enableCull();
-        RenderSystem.enableTexture();
         Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
     }
 

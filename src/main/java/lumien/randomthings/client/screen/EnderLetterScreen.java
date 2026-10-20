@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -14,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.Component;
 
 /**
  * Direct port of 1.12.2's {@code GuiEnderLetter}: a 9-slot item tray plus a
@@ -92,7 +93,7 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         // only one of the two text inputs may hold focus; the clicked one claims it
         if (this.messageField.isMouseOver(mouseX, mouseY)) {
-            this.receiverField.setFocus(false);
+            this.receiverField.setFocused(false);
         } else {
             this.messageField.setFocusedState(false);
         }
@@ -135,32 +136,32 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-        this.font.draw(matrixStack, I18n.get("item.randomthings.ender_letter"), 8, 6, 4210752);
-        this.font.draw(matrixStack, I18n.get("container.inventory"), 8, this.imageHeight - 96 + 2, 4210752);
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        graphics.drawString(this.font, I18n.get("item.randomthings.ender_letter"), 8, 6, 4210752, false);
+        graphics.drawString(this.font, I18n.get("container.inventory"), 8, this.imageHeight - 96 + 2, 4210752, false);
 
         if (!received) {
             String counter = this.messageField.getText().length() + "/" + MAX_MESSAGE_LENGTH;
-            this.font.draw(matrixStack, counter, this.imageWidth - 8 - this.font.width(counter), this.imageHeight - 96 + 2, 0x707070);
+            graphics.drawString(this.font, counter, this.imageWidth - 8 - this.font.width(counter), this.imageHeight - 96 + 2, 0x707070, false);
         }
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        this.blit(matrixStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
-        this.receiverField.render(matrixStack, mouseX, mouseY, partialTicks);
+        this.receiverField.render(graphics, mouseX, mouseY, partialTicks);
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(matrixStack);
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderTooltip(matrixStack, mouseX, mouseY);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, partialTicks);
+        this.renderTooltip(graphics, mouseX, mouseY);
     }
 }

@@ -57,7 +57,7 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 
 				if (world == null)
 				{
-					world = entity.level;
+					world = entity.level();
 				}
 
 				double angle;

@@ -1,5 +1,7 @@
 package lumien.randomthings.asm;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;

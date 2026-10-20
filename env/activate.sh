@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Activates a JDK 17 toolchain for this session (Git Bash / POSIX shell), like a Python venv's `bin/activate`.
-# This branch (ForgeGradle 5.1 + Gradle 7.4.2, Forge 1.18.2) needs a Java 17 compiler; newer default JDKs
-# (e.g. 21) fail inside Gradle 7.4. It does NOT touch your system JAVA_HOME, only the CURRENT shell.
+# This branch (ForgeGradle 6 + Gradle 8.8, Forge 1.20.1) needs a Java 17 compiler; newer default JDKs
+# (e.g. 21) fail inside Gradle 8.8. It does NOT touch your system JAVA_HOME, only the CURRENT shell.
 #
 # Usage:  source ./env/activate.sh   then   ./gradlew compileJava
 
@@ -35,4 +35,4 @@ export PATH="$JDK17_HOME/bin:$PATH"
 echo "JAVA_HOME -> $JDK17_HOME"
 "$JDK17_HOME/bin/java.exe" -version
 echo
-echo "Gradle wrapper is pinned to 7.4.2 (gradle/wrapper/gradle-wrapper.properties)."
+echo "Gradle wrapper is pinned to 8.8 (gradle/wrapper/gradle-wrapper.properties)."

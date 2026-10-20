@@ -30,12 +30,12 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 public class DyeingMachineContainer extends AbstractContainerMenu {
     private final ContainerLevelAccess pos;
 
-    private final CraftingContainer ingredients = new CraftingContainer(this, 2, 1);
+    private final CraftingContainer ingredients = new net.minecraft.world.inventory.TransientCraftingContainer(this, 2, 1);
     private final Container dyeResult = new ResultContainer();
     private final Container enchantmentResult = new ResultContainer();
 
     public DyeingMachineContainer(int windowId, Container playerInventory, FriendlyByteBuf extraData) {
-        this(windowId, (Inventory) playerInventory, ContainerLevelAccess.create(((Inventory) playerInventory).player.level, extraData.readBlockPos()));
+        this(windowId, (Inventory) playerInventory, ContainerLevelAccess.create(((Inventory) playerInventory).player.level(), extraData.readBlockPos()));
     }
 
     public DyeingMachineContainer(int windowId, Inventory playerInventory, ContainerLevelAccess pos) {
@@ -200,7 +200,7 @@ public class DyeingMachineContainer extends AbstractContainerMenu {
                 Slot slot = this.slots.get(i);
                 ItemStack slotStack = slot.getItem();
 
-                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.tagMatches(stack, slotStack) && slot.mayPlace(stack)) {
+                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.isSameItemSameTags(stack, slotStack) && slot.mayPlace(stack)) {
                     int combined = slotStack.getCount() + stack.getCount();
 
                     if (combined <= stack.getMaxStackSize()) {

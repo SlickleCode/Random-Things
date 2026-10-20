@@ -68,7 +68,7 @@ final class RemainingBehaviorTests
 
 	private static ServerChatEvent chat(TestCtx c, String message)
 	{
-		ServerChatEvent event = new ServerChatEvent.Submitted(c.player, message, Component.literal("<test> " + message), false);
+		ServerChatEvent event = new ServerChatEvent(c.player, message, Component.literal("<test> " + message));
 		MinecraftForge.EVENT_BUS.post(event);
 		return event;
 	}

@@ -5,7 +5,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -22,10 +22,10 @@ import net.minecraft.world.level.Level;
  * own {@code getRemainingItems} exactly - it's only being read, not spent.
  */
 public class PortkeyCamoRecipe extends CustomRecipe {
-    public static final RecipeSerializer<PortkeyCamoRecipe> SERIALIZER = new SimpleRecipeSerializer<>(PortkeyCamoRecipe::new);
+    public static final RecipeSerializer<PortkeyCamoRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(PortkeyCamoRecipe::new);
 
-    public PortkeyCamoRecipe(ResourceLocation id) {
-        super(id);
+    public PortkeyCamoRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(id, category);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class PortkeyCamoRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
         ItemStack portkey = ItemStack.EMPTY;
         ItemStack camo = ItemStack.EMPTY;
 

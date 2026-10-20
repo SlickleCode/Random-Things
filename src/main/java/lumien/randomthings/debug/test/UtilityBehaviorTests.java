@@ -1,5 +1,7 @@
 package lumien.randomthings.debug.test;
 
+import net.minecraft.core.registries.Registries;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -168,7 +170,7 @@ final class UtilityBehaviorTests
 			}
 
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -176,7 +178,7 @@ final class UtilityBehaviorTests
 			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, te.getState(), "a plains crystal in a plains world finishes at once");
 			c.set(c.at(1, 1, 0), Blocks.AIR);
 			ItemStack desert = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation("minecraft:desert")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:desert")));
 			te.setCrystal(desert);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {

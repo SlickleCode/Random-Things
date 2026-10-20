@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
-        if (!playerIn.level.isClientSide) {
+        if (!playerIn.level().isClientSide) {
             if (!stack.hasTag()) {
                 stack.setTag(new CompoundTag());
             }

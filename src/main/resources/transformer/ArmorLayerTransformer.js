@@ -62,7 +62,7 @@ function initializeCoreMod() {
                             insn.name = "dyedColor";
                             insn.desc = "(Lnet/minecraft/world/item/DyeableLeatherItem;Lnet/minecraft/world/item/ItemStack;)I";
                             insn.itf = false;
-                        } else if ((insn.getOpcode() === Opcodes.INVOKESPECIAL || insn.getOpcode() === Opcodes.INVOKEVIRTUAL) && insn.owner === "net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer" && insn.desc === "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;IZLnet/minecraft/client/model/Model;FFFLnet/minecraft/resources/ResourceLocation;)V") {
+                        } else if ((insn.getOpcode() === Opcodes.INVOKESPECIAL || insn.getOpcode() === Opcodes.INVOKEVIRTUAL) && insn.owner === "net/minecraft/client/renderer/entity/layers/HumanoidArmorLayer" && insn.desc === "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/item/ArmorItem;Lnet/minecraft/client/model/Model;ZFFFLnet/minecraft/resources/ResourceLocation;)V") {
                             renderModelCalls.push(i);
                         }
                     }

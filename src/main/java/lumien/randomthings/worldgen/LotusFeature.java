@@ -54,7 +54,7 @@ public class LotusFeature extends Feature<NoneFeatureConfiguration> {
 
         BlockState existing = worldIn.getBlockState(pos);
 
-        if (!existing.isAir() && !existing.getMaterial().isReplaceable()) {
+        if (!existing.isAir() && !existing.canBeReplaced()) {
             return false;
         }
 

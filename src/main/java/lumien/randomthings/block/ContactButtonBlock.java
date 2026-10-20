@@ -3,8 +3,6 @@ package lumien.randomthings.block;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -30,7 +28,7 @@ public class ContactButtonBlock extends Block {
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
     public ContactButtonBlock() {
-        super(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F).randomTicks());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F).randomTicks());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
     }
@@ -77,7 +75,7 @@ public class ContactButtonBlock extends Block {
         if (!worldIn.isClientSide && state.getValue(POWERED)) {
             worldIn.setBlockAndUpdate(pos, state.setValue(POWERED, false));
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
-            worldIn.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 0.3F, 0.5F);
+            worldIn.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 0.3F, 0.5F);
         }
     }
 
@@ -117,7 +115,7 @@ public class ContactButtonBlock extends Block {
         }
 
         world.setBlock(pos, state.setValue(POWERED, true), 3);
-        world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 0.3F, 0.6F);
+        world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 0.3F, 0.6F);
         this.notifyNeighbors(world, pos, state.getValue(FACING));
         world.scheduleTick(pos, this, this.tickRate(world));
     }

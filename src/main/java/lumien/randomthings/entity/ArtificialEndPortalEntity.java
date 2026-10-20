@@ -65,20 +65,20 @@ public class ArtificialEndPortalEntity extends Entity {
             actionTimer++;
             this.entityData.set(ACTION_TIMER, actionTimer);
 
-            if (this.level.isClientSide && actionTimer > 40) {
+            if (this.level().isClientSide && actionTimer > 40) {
                 spawnParticles();
             }
         }
 
-        if (!this.level.isClientSide) {
-            if (this.level.getGameTime() % 40 == 0) {
-                if (!isValidPosition(this.level, new BlockPos(this.getX(), this.getY(), this.getZ()), false)) {
+        if (!this.level().isClientSide) {
+            if (this.level().getGameTime() % 40 == 0) {
+                if (!isValidPosition(this.level(), BlockPos.containing(this.getX(), this.getY(), this.getZ()), false)) {
                     this.discard();
                 }
             }
         } else {
             if (actionTimer == 85) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.2F, 1, false);
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.2F, 1, false);
             }
         }
     }
@@ -88,7 +88,7 @@ public class ArtificialEndPortalEntity extends Entity {
             double modX = this.random.nextFloat() * 0.05 - 0.025;
             double modZ = this.random.nextFloat() * 0.05 - 0.025;
 
-            this.level.addParticle(ParticleTypes.ENCHANT, this.getX() + modX, this.getY() + 2, this.getZ() + modZ, modX * 2, 1, modZ * 2);
+            this.level().addParticle(ParticleTypes.ENCHANT, this.getX() + modX, this.getY() + 2, this.getZ() + modZ, modX * 2, 1, modZ * 2);
         }
     }
 
@@ -96,8 +96,8 @@ public class ArtificialEndPortalEntity extends Entity {
     public void playerTouch(Player entityIn) {
         super.playerTouch(entityIn);
 
-        if (!this.level.isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
-            entityIn.changeDimension(this.level.getServer().getLevel(Level.END));
+        if (!this.level().isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
+            entityIn.changeDimension(this.level().getServer().getLevel(Level.END));
         }
     }
 
@@ -112,7 +112,7 @@ public class ArtificialEndPortalEntity extends Entity {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 

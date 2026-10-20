@@ -6,7 +6,6 @@ import lumien.randomthings.handler.spectre.SpectreHandler;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -46,7 +45,7 @@ public class SpectreCoreBlock extends Block {
     public static final EnumProperty<CoreOrientation> ORIENTATION = EnumProperty.create("orientation", CoreOrientation.class);
 
     public SpectreCoreBlock() {
-        super(Block.Properties.of(Material.STONE).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noLootTable());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noLootTable());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(ORIENTATION, CoreOrientation.NW));
     }

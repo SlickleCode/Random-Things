@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.minecraft.core.registries.Registries;
+
 import java.io.File;
 import java.util.List;
 
@@ -54,11 +56,11 @@ public final class SceneShots
 					ids.retainAll(java.util.Arrays.asList(only.split(",")));
 				}
 				mc.options.hideGui = true;
-				mc.player.commandUnsigned("gamemode creative");
+				mc.player.connection.sendUnsignedCommand("gamemode creative");
 				RTDebug.log("SceneShots: {} scenes", ids.size());
 				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_plains" })
 				{
-					net.minecraft.world.level.biome.Biome biome = net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.resources.ResourceLocation(b));
+					net.minecraft.world.level.biome.Biome biome = lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation(b));
 					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.blockPosition())), biome);
 				}
 				phase = Phase.SCENES;
@@ -93,7 +95,7 @@ public final class SceneShots
 
 				if (!requested)
 				{
-					mc.player.commandUnsigned("rtdebug scene " + id);
+					mc.player.connection.sendUnsignedCommand("rtdebug scene " + id);
 					requested = true;
 					wait = RenderScenes.waitTicks(id);
 					return false;
@@ -163,7 +165,7 @@ public final class SceneShots
 
 		for (int i = 0; i < 2; i++)
 		{
-			net.minecraft.client.player.RemotePlayer other = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]), null);
+			net.minecraft.client.player.RemotePlayer other = new net.minecraft.client.player.RemotePlayer(mc.level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(names[i].getBytes()), names[i]));
 			other.setPos(mc.player.getX() + (i == 0 ? -1.2 : 1.2), y, mc.player.getZ() + 4.0);
 			other.setYRot(180.0F);
 			other.yHeadRot = 180.0F;
@@ -184,17 +186,19 @@ public final class SceneShots
 
 	private static void startCreative(Minecraft mc)
 	{
-		NonNullList<ItemStack> stacks = NonNullList.create();
-		ModItems.RT_ITEM_GROUP.fillItemList(stacks);
+		net.minecraft.world.flag.FeatureFlagSet flags = mc.player.connection.enabledFeatures();
+		net.minecraft.world.item.CreativeModeTabs.tryRebuildTabContents(flags, true, mc.level.registryAccess());
+		java.util.Collection<ItemStack> stacks = ModItems.RT_ITEM_GROUP.getDisplayItems();
 		int rows = (stacks.size() + 8) / 9;
 		creativePages = Math.max(1, (rows - 5 + 4) / 5 + 1);
 		creativePage = 0;
 
-		CreativeModeInventoryScreen screen = new CreativeModeInventoryScreen(mc.player);
+		CreativeModeInventoryScreen screen = new CreativeModeInventoryScreen(mc.player, flags, true);
 		mc.setScreen(screen);
-		net.minecraftforge.fml.util.ObfuscationReflectionHelper.setPrivateValue(CreativeModeInventoryScreen.class, null, ModItems.RT_ITEM_GROUP.getId(), "f_98507_");
+
 		try
 		{
+			// the tab selection is private; m_98560_ is its SRG id (remapped to the Mojang name in dev runs)
 			java.lang.reflect.Method select = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(CreativeModeInventoryScreen.class, "m_98560_", net.minecraft.world.item.CreativeModeTab.class);
 			select.invoke(screen, ModItems.RT_ITEM_GROUP);
 		}

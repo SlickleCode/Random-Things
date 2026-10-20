@@ -5,7 +5,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -19,10 +19,10 @@ import net.minecraft.world.level.Level;
  * {@link DiaphanousSetRecipe}.
  */
 public class DiaphanousInvertRecipe extends CustomRecipe {
-    public static final RecipeSerializer<DiaphanousInvertRecipe> SERIALIZER = new SimpleRecipeSerializer<>(DiaphanousInvertRecipe::new);
+    public static final RecipeSerializer<DiaphanousInvertRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(DiaphanousInvertRecipe::new);
 
-    public DiaphanousInvertRecipe(ResourceLocation id) {
-        super(id);
+    public DiaphanousInvertRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(id, category);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class DiaphanousInvertRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
         ItemStack diaphanous = ItemStack.EMPTY;
 
         for (int i = 0; i < inv.getContainerSize(); i++) {

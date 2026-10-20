@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -385,7 +387,7 @@ public class ResourceAudit
 		for (Recipe<?> recipe : all)
 		{
 			ResourceLocation id = recipe.getId();
-			ItemStack out = recipe.getResultItem();
+			ItemStack out = recipe.getResultItem(mc.level.registryAccess());
 
 			if (!out.isEmpty())
 			{
@@ -458,7 +460,7 @@ public class ResourceAudit
 			return;
 		}
 
-		Set<ResourceLocation> known = mc.getSingleplayerServer().getServerResources().managers().getLootTables().getIds();
+		Set<ResourceLocation> known = new HashSet<>(mc.getSingleplayerServer().getServerResources().managers().getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE));
 
 		for (ResourceLocation table : new ResourceLocation[] { lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, lumien.randomthings.handler.LootHandler.JUNGLE_TEMPLE })
 		{

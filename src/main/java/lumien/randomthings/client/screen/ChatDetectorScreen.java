@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
@@ -16,7 +18,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.network.chat.Component;
 
 /**
  * ChatDetectorScreen
@@ -53,7 +54,7 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 		// charTyped (and this class's own keyPressed override below) actually gate
 		// on - without this, typing immediately after opening the GUI fell straight
 		// through to ContainerScreen's close-on-inventory-key check instead.
-		this.messageField.setFocus(true);
+		this.messageField.setFocused(true);
 
 		this.addRenderableWidget(new ToggleIconButton(this.leftPos + 112, this.topPos + 5, 20, 20, GUI_TEXTURES, 136, 0, () -> this.menu.consume.get() != 0, (button) -> {
 			this.menu.send(1, (pb) -> {
@@ -114,35 +115,35 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 	}
 
 	@Override
-	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY)
+	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		this.font.draw(matrixStack, I18n.get("gui.randomthings.chat_detector.message"), 8, 6, 4210752);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.chat_detector.message"), 8, 6, 4210752, false);
 
 		if (ScreenWidgets.buttons(this).get(1).isHoveredOrFocused())
 		{
 			boolean consume = this.menu.consume.get() != 0;
-			this.renderTooltip(matrixStack, Component.literal(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
+			graphics.renderTooltip(this.font, Component.literal(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
 		}
 
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY)
+	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		this.blit(matrixStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int p_render_1_, int p_render_2_, float p_render_3_)
+	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(matrixStack);
-		super.render(matrixStack, p_render_1_, p_render_2_, p_render_3_);
-		this.renderTooltip(matrixStack, p_render_1_, p_render_2_);
+		this.renderBackground(graphics);
+		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
+		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}
 }

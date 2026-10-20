@@ -30,6 +30,6 @@ public class RTTestPlayer extends FakePlayer
 	@Override
 	public BlockPos blockPosition()
 	{
-		return new BlockPos(this.getX(), this.getY(), this.getZ());
+		return BlockPos.containing(this.getX(), this.getY(), this.getZ());
 	}
 }

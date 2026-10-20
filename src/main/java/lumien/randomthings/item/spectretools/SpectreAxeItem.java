@@ -35,7 +35,7 @@ public class SpectreAxeItem extends AxeItem {
         Multimap<Attribute, AttributeModifier> multimap = ArrayListMultimap.create(super.getDefaultAttributeModifiers(equipmentSlot));
 
         if (equipmentSlot == EquipmentSlot.MAINHAND) {
-            multimap.put(ForgeMod.REACH_DISTANCE.get(), new AttributeModifier(SpectreItemTier.REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, AttributeModifier.Operation.ADDITION));
+            multimap.put(ForgeMod.BLOCK_REACH.get(), new AttributeModifier(SpectreItemTier.REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, AttributeModifier.Operation.ADDITION));
         }
 
         return multimap;

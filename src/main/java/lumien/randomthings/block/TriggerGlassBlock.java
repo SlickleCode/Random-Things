@@ -10,8 +10,6 @@ import java.util.Set;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -65,7 +63,7 @@ public class TriggerGlassBlock extends Block
 
 	public TriggerGlassBlock()
 	{
-		super(Block.Properties.of(Material.GLASS, MaterialColor.QUARTZ).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> !state.getValue(TRIGGERED)));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> !state.getValue(TRIGGERED)));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(TRIGGERED, false));
 	}

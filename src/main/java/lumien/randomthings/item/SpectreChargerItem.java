@@ -13,9 +13,8 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 
 /**
@@ -76,7 +75,7 @@ public class SpectreChargerItem extends Item {
             }
 
             ItemStack targetStack = player.getInventory().getItem(slot);
-            IEnergyStorage targetStorage = targetStack.getCapability(CapabilityEnergy.ENERGY, null).orElse(null);
+            IEnergyStorage targetStorage = targetStack.getCapability(ForgeCapabilities.ENERGY, null).orElse(null);
 
             if (targetStorage == null || !targetStorage.canReceive()) {
                 continue;

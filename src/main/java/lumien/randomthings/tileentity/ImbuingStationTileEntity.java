@@ -13,7 +13,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -79,7 +78,7 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
             return true;
         }
 
-        if (!ItemStack.isSame(currentInOutput, validOutput) || !ItemStack.tagMatches(currentInOutput, validOutput)) {
+        if (!ItemStack.isSameItem(currentInOutput, validOutput) || !ItemStack.isSameItemSameTags(currentInOutput, validOutput)) {
             return false;
         }
 

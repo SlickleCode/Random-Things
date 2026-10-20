@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import net.minecraft.sounds.SoundSource;
 
@@ -33,7 +35,6 @@ import lumien.randomthings.worldgen.ModFeatures;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.player.LocalPlayer;
@@ -62,7 +63,7 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ServerChatEvent;
@@ -204,7 +205,11 @@ public class ClientSetup {
         });
         ModScreens.register();
 
-        MinecraftForge.EVENT_BUS.addListener((RenderLevelLastEvent rwl) -> {
+        MinecraftForge.EVENT_BUS.addListener((RenderLevelStageEvent rwl) -> {
+            if (rwl.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+                return;
+            }
+
             DiviningRodRenderer.get().render(rwl.getPoseStack());
             RedstoneObserverLineRenderer.render(rwl.getPoseStack());
         });
@@ -250,10 +255,10 @@ public class ClientSetup {
         }
 
         ResourceLocation soundLocation = sound.getLocation();
-        BlockPos soundPosition = new BlockPos(sound.getX(), sound.getY(), sound.getZ());
+        BlockPos soundPosition = BlockPos.containing(sound.getX(), sound.getY(), sound.getZ());
 
         for (SoundDampenerTileEntity dampener : WeakSets.snapshot(SoundDampenerTileEntity.loadedDampeners)) {
-            if (dampener.getLevel() == thePlayer.level && !dampener.isRemoved() && dampener.getBlockPos().distSqr(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
+            if (dampener.getLevel() == thePlayer.level() && !dampener.isRemoved() && dampener.getBlockPos().distSqr(soundPosition) < 20 * 20 && dampener.getMutedSounds().contains(soundLocation)) {
                 lumien.randomthings.debug.RTDebug.log("muted sound {} (placed dampener)", soundLocation);
                 event.setSound(null);
                 return;

@@ -1,5 +1,7 @@
 package lumien.randomthings.debug;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -117,7 +119,7 @@ public final class RenderScenes
 
 	private static void prepare(ServerPlayer player)
 	{
-		ServerLevel world = player.getLevel();
+		ServerLevel world = player.serverLevel();
 
 		if (origin == null)
 		{
@@ -192,7 +194,7 @@ public final class RenderScenes
 	public static String build(ServerPlayer player, String id)
 	{
 		prepare(player);
-		ServerLevel world = player.getLevel();
+		ServerLevel world = player.serverLevel();
 		int x0 = origin.getX();
 		int y0 = origin.getY();
 		int z0 = origin.getZ();
@@ -272,7 +274,7 @@ public final class RenderScenes
 					BlockPos pos = origin.offset(i * 2, 0, 0);
 					place(world, pos, ModBlocks.BIOME_RADAR);
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, ForgeRegistries.BIOMES.getValue(new ResourceLocation(biomes[i])));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(biomes[i])));
 					tile(world, pos, BiomeRadarTileEntity.class).setCrystal(crystal);
 				}
 
@@ -383,7 +385,7 @@ public final class RenderScenes
 				for (int i = 0; i < 3; i++)
 				{
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, ForgeRegistries.BIOMES.getValue(new ResourceLocation(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
 					groundItem(world, crystal, x0 + 9 + i, y0 + 0.3, z0 + 4.5);
 				}
 

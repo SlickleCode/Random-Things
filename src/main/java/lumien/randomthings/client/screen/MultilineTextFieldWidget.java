@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +10,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.Component;
-import net.minecraft.client.gui.GuiComponent;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 /**
@@ -20,7 +21,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 public class MultilineTextFieldWidget extends AbstractWidget
 {
 	@Override
-	public void updateNarration(net.minecraft.client.gui.narration.NarrationElementOutput output)
+	public void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput output)
 	{
 	}
 
@@ -296,7 +297,7 @@ public class MultilineTextFieldWidget extends AbstractWidget
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button)
 	{
-		boolean inside = this.visible && mouseX >= this.x && mouseX < this.x + this.width && mouseY >= this.y && mouseY < this.y + this.height;
+		boolean inside = this.visible && mouseX >= this.getX() && mouseX < this.getX() + this.width && mouseY >= this.getY() && mouseY < this.getY() + this.height;
 
 		this.setFocusedState(inside);
 
@@ -304,8 +305,8 @@ public class MultilineTextFieldWidget extends AbstractWidget
 		{
 			this.layout();
 
-			int line = Math.max(0, Math.min(this.lines.size() - 1, this.scroll + ((int) mouseY - (this.y + 2)) / LINE_HEIGHT));
-			this.cursor = this.indexAtX(line, (int) mouseX - (this.x + 2));
+			int line = Math.max(0, Math.min(this.lines.size() - 1, this.scroll + ((int) mouseY - (this.getY() + 2)) / LINE_HEIGHT));
+			this.cursor = this.indexAtX(line, (int) mouseX - (this.getX() + 2));
 		}
 
 		return inside;
@@ -325,21 +326,21 @@ public class MultilineTextFieldWidget extends AbstractWidget
 	}
 
 	@Override
-	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		this.layout();
 
-		GuiComponent.fill(matrixStack, this.x - 1, this.y - 1, this.x + this.width + 1, this.y + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
-		GuiComponent.fill(matrixStack, this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
+		graphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
+		graphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, 0xFF000000);
 
 		int color = this.editable ? 0xE0E0E0 : 0x909090;
 
 		for (int l = this.scroll; l < Math.min(this.lines.size(), this.scroll + this.visibleLines); l++)
 		{
 			int[] line = this.lines.get(l);
-			int lineY = this.y + 2 + (l - this.scroll) * LINE_HEIGHT;
+			int lineY = this.getY() + 2 + (l - this.scroll) * LINE_HEIGHT;
 
-			this.font.drawShadow(matrixStack, this.text.substring(line[0], line[1]), this.x + 2, lineY, color);
+			graphics.drawString(this.font, this.text.substring(line[0], line[1]), this.getX() + 2, lineY, color);
 		}
 
 		if (this.isFocused() && (System.currentTimeMillis() / 500) % 2 == 0)
@@ -348,10 +349,10 @@ public class MultilineTextFieldWidget extends AbstractWidget
 
 			if (cl >= this.scroll && cl < this.scroll + this.visibleLines)
 			{
-				int cx = this.x + 2 + this.font.width(this.text.substring(this.lines.get(cl)[0], this.cursor));
-				int cy = this.y + 2 + (cl - this.scroll) * LINE_HEIGHT;
+				int cx = this.getX() + 2 + this.font.width(this.text.substring(this.lines.get(cl)[0], this.cursor));
+				int cy = this.getY() + 2 + (cl - this.scroll) * LINE_HEIGHT;
 
-				GuiComponent.fill(matrixStack, cx, cy - 1, cx + 1, cy + LINE_HEIGHT - 1, 0xFFD0D0D0);
+				graphics.fill(cx, cy - 1, cx + 1, cy + LINE_HEIGHT - 1, 0xFFD0D0D0);
 			}
 		}
 	}

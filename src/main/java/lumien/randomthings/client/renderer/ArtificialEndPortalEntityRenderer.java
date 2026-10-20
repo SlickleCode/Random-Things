@@ -18,7 +18,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 /**
  * The swirling end-portal starfield effect, keyed off {@code actionTimer}

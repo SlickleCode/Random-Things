@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import lumien.randomthings.tileentity.ImbuingStationTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -32,7 +31,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class ImbuingStationBlock extends Block implements EntityBlock {
     public ImbuingStationBlock() {
-        super(Block.Properties.of(Material.STONE).strength(1.25F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.25F));
     }
 
     @Override

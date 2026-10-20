@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +26,7 @@ public class ContactLeverBlock extends Block
 
 	public ContactLeverBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
 	}
@@ -113,6 +111,6 @@ public class ContactLeverBlock extends Block
 
 		world.setBlock(pos, newState, 3);
 		this.notifyNeighbors(world, pos, fromFacing);
-		world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK, SoundSource.BLOCKS, 0.3F, newState.getValue(POWERED) ? 0.6F : 0.5F);
+		world.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 0.3F, newState.getValue(POWERED) ? 0.6F : 0.5F);
 	}
 }

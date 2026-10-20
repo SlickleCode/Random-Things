@@ -1,5 +1,7 @@
 package lumien.randomthings.asm;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.core.Holder;
 
 import lumien.randomthings.util.WeakSets;
@@ -291,7 +293,7 @@ public class AsmHandler {
 
         for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
-                return world.registryAccess().registryOrThrow(net.minecraft.core.Registry.BIOME_REGISTRY).getHolderOrThrow(net.minecraft.world.level.biome.Biomes.DESERT);
+                return world.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).getHolderOrThrow(net.minecraft.world.level.biome.Biomes.DESERT);
             }
         }
 
@@ -356,7 +358,12 @@ public class AsmHandler {
      * sides). No 1.14.4 API change forced anything here; this is purely new
      * scope (Redstone Interface family was never ported before this slice).
      */
-    public static int overrideRedstonePower(int computed, Level world, BlockPos pos, Direction facing) {
+    public static int overrideRedstonePower(int computed, net.minecraft.world.level.SignalGetter reader, BlockPos pos, Direction facing) {
+        if (!(reader instanceof Level)) {
+            return computed;
+        }
+
+        Level world = (Level) reader;
         int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(world, pos, facing);
         int fromSignals = world.isClientSide ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
 
@@ -378,7 +385,7 @@ public class AsmHandler {
      * override when the receiver is actually a real {@code World} - anything
      * else can't sensibly hold either registry.
      */
-    public static int overrideStrongPower(int computed, LevelReader worldReader, BlockPos pos, Direction facing) {
+    public static int overrideStrongPower(int computed, net.minecraft.world.level.SignalGetter worldReader, BlockPos pos, Direction facing) {
         if (!(worldReader instanceof Level)) {
             return computed;
         }

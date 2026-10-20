@@ -6,7 +6,6 @@ import lumien.randomthings.tileentity.SlimeCubeTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,7 +27,7 @@ public class SlimeCubeBlock extends Block implements EntityBlock {
 
 	public SlimeCubeBlock()
 	{
-		super(Block.Properties.of(Material.CLAY).noOcclusion().noCollission().strength(0.5F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.CLAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).noOcclusion().noCollission().strength(0.5F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}

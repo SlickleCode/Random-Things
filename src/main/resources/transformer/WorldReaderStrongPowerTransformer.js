@@ -3,7 +3,7 @@ function initializeCoreMod() {
         'worldreaderstrongpowertransformer': {
             'target': {
                 'type': 'CLASS',
-                'name': 'net.minecraft.world.level.LevelReader'
+                'name': 'net.minecraft.world.level.SignalGetter'
             },
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
@@ -23,7 +23,7 @@ function initializeCoreMod() {
                     // IBlockReaderTransformer's getLightValue patch and this port's
                     // own WorldRedstonePowerTransformer (getRedstonePower's weak-power
                     // sibling).
-                    if (method.name !== "getDirectSignal" && method.name !== "m_46852_" || method.desc !== "(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I") {
+                    if (method.name !== "getDirectSignal" && method.name !== "m_277075_" || method.desc !== "(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I") {
                         continue;
                     }
 
@@ -43,7 +43,7 @@ function initializeCoreMod() {
                             call.add(new VarInsnNode(Opcodes.ALOAD, 0));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 1));
                             call.add(new VarInsnNode(Opcodes.ALOAD, 2));
-                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideStrongPower", "(ILnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I", false));
+                            call.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideStrongPower", "(ILnet/minecraft/world/level/SignalGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;)I", false));
                             instructions.insertBefore(insn, call);
                             break;
                         }

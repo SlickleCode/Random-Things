@@ -1,6 +1,6 @@
-# Random Things — 1.12.2 → Forge port (this branch: 1.18.2)
+# Random Things — 1.12.2 → Forge port (this branch: 1.20.1)
 
-Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to newer Forge versions (one branch per version; this folder is the 1.18.2 branch), on the
+Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to newer Forge versions (one branch per version; this folder is the 1.20.1 branch), on the
 fork [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things).
 
 Reusable docs: [docs/testing/](docs/testing/README.md) (automated in-game tests, dev-only) and
@@ -15,13 +15,15 @@ project state from scratch; that file is kept current after every slice.
 - `1.14.4` — the 1.14.4 port (Forge 28.2.26, Gradle 5.6.4).
 - `1.16.5` — the 1.16.5 port (Forge 36.2.39, ForgeGradle 4.1, Gradle 6.8.3), branched from `1.14.4`; plan in `docs/migration/plans/1.16.5-port-plan.md`.
 - `1.18.2` — the 1.18.2 port (Forge 40.3.12, ForgeGradle 5.1, Gradle 7.4.2, **JDK 17**, Mojang names), branched from `1.16.5`; plan in `docs/migration/plans/1.18.2-port-plan.md`.
+- `1.19.2` — the 1.19.2 port (Forge 43.5.2, ForgeGradle 5.1, Gradle 7.4.2, JDK 17), branched from `1.18.2`; plan in `docs/migration/plans/1.19.2-port-plan.md`.
+- `1.20.1` — the 1.20.1 port (Forge 47.4.28, ForgeGradle 6, Gradle 8.8, JDK 17), branched from `1.19.2`; plan in `docs/migration/plans/1.20.1-port-plan.md`.
 - `master` — untouched original 1.12.2-era source, kept as reference (`git show origin/1.12.2:<path>`
   to read the real original of any file).
 - `main` — landing-page README only, no code.
 
 ## One folder per version (git worktrees)
 
-The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4`, `<parent>/1.16.5`, `<parent>/1.18.2`); you
+The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4` ... `<parent>/1.20.1`); you
 are in one of them. Each has its own `run/`, `build/`, `prod-test/` and checked-out branch, so there is nothing to clean when changing versions:
 **open the other folder instead of running `git checkout`**. Use `git worktree list` to see them and `git -C <other-folder> ...` for the other branch.
 If you ever do switch the branch inside a folder, clear the old state first (a world from a newer version hangs an older client, an old server world

@@ -10,8 +10,6 @@ import lumien.randomthings.item.ModItems;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +30,7 @@ public class SticksBlock extends Block
 
 	public SticksBlock(boolean returning)
 	{
-		super(Block.Properties.of(Material.WOOD, MaterialColor.WOOD).noOcclusion().strength(0.5F).sound(SoundType.WOOD));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().noOcclusion().strength(0.5F).sound(SoundType.WOOD));
 
 		this.returning = returning;
 	}

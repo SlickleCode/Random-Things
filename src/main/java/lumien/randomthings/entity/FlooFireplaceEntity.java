@@ -40,7 +40,7 @@ public class FlooFireplaceEntity extends Entity {
 
         age++;
 
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             if (age >= 7) {
                 spawnParticles();
             }
@@ -55,7 +55,7 @@ public class FlooFireplaceEntity extends Entity {
                 double px = getX() + modX + (this.random.nextFloat() * 0.2 - 0.1);
                 double pz = getZ() + modZ + (this.random.nextFloat() * 0.1 - 0.05);
 
-                this.level.addParticle(ParticleTypes.FLAME, px, getY() + 0.05, pz, 0, this.random.nextDouble() * 0.01, 0);
+                this.level().addParticle(ParticleTypes.FLAME, px, getY() + 0.05, pz, 0, this.random.nextDouble() * 0.01, 0);
             }
         }
     }
@@ -75,7 +75,7 @@ public class FlooFireplaceEntity extends Entity {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;
@@ -24,7 +22,7 @@ public class SuperLubricentIceBlock extends Block
 {
 	public SuperLubricentIceBlock()
 	{
-		super(Block.Properties.of(Material.ICE, MaterialColor.ICE).noOcclusion().strength(0.5F).friction(1F / 0.91F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.ICE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.5F).friction(1F / 0.91F));
 	}
 
 	/**

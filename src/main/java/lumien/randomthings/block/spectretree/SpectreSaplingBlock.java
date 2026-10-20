@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.core.BlockPos;
@@ -35,7 +34,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 
 	public SpectreSaplingBlock()
 	{
-		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(STAGE, 0));
 	}
@@ -67,7 +66,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	}
 
 	@Override
-	public boolean isValidBonemealTarget(BlockGetter worldIn, BlockPos pos, BlockState state, boolean isClient)
+	public boolean isValidBonemealTarget(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state, boolean isClient)
 	{
 		return true;
 	}

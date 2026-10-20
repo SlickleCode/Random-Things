@@ -34,6 +34,13 @@ public class CoremodCheck {
         return sb.toString();
     }
 
+    /** a one-method copy of the class so fingerprint() can be reused per method */
+    static ClassNode single(ClassNode cn, MethodNode m) {
+        ClassNode one = new ClassNode();
+        one.methods.add(m);
+        return one;
+    }
+
     public static void main(String[] a) throws Exception {
         ZipFile z = new ZipFile(a[0]);
         int bad = 0;
@@ -53,7 +60,12 @@ public class CoremodCheck {
                     int sizeBefore = size(cn);
                     ((ScriptObjectMirror) d.get("transformer")).call(null, cn);
                     boolean changed = !fingerprint(cn).equals(before);
-                    System.out.println((changed ? "ok        " : "UNCHANGED ") + js.getFileName() + " -> " + target + " (" + (size(cn) - sizeBefore) + " instructions added)");
+                    StringBuilder touched = new StringBuilder();
+                    for (MethodNode m : cn.methods) {
+                        String key = m.name + m.desc + "{";
+                        if (before.contains(key) && !fingerprint(single(cn, m)).isEmpty() && !before.contains(fingerprint(single(cn, m)))) touched.append(m.name).append(' ');
+                    }
+                    System.out.println((changed ? "ok        " : "UNCHANGED ") + js.getFileName() + " -> " + target + " (" + (size(cn) - sizeBefore) + " instructions added; methods changed: " + touched.toString().trim() + ")");
                     if (!changed) bad++;
                 }
             }

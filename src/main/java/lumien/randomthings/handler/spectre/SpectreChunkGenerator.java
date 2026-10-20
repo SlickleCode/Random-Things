@@ -34,11 +34,11 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  * {@code data/randomthings/dimension_type/spectre.json}), the same as before 1.18's -64..320 overworld.
  */
 public class SpectreChunkGenerator extends ChunkGenerator {
-    public static final Codec<SpectreChunkGenerator> CODEC = RecordCodecBuilder.create(instance -> commonCodec(instance).and(
-            BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource)).apply(instance, instance.stable(SpectreChunkGenerator::new)));
+    public static final Codec<SpectreChunkGenerator> CODEC = RecordCodecBuilder.<SpectreChunkGenerator>mapCodec(instance -> instance.group(
+            BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource)).apply(instance, SpectreChunkGenerator::new)).codec();
 
-    public SpectreChunkGenerator(Registry<StructureSet> structureSets, BiomeSource biomeSource) {
-        super(structureSets, Optional.empty(), biomeSource);
+    public SpectreChunkGenerator(BiomeSource biomeSource) {
+        super(biomeSource);
     }
 
     @Override

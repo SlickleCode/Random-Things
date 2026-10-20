@@ -113,36 +113,36 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
         BlockPos target = getTarget();
 
         for (int i = 0; i < getTimeRate(); i++) {
-            BlockEntity targetTE = this.level.getBlockEntity(target);
+            BlockEntity targetTE = this.level().getBlockEntity(target);
 
-            BlockState targetState = this.level.getBlockState(target);
+            BlockState targetState = this.level().getBlockState(target);
 
             if (targetTE != null && targetState.getBlock() instanceof net.minecraft.world.level.block.EntityBlock) {
                 @SuppressWarnings("unchecked")
                 net.minecraft.world.level.block.entity.BlockEntityTicker<BlockEntity> ticker = ((net.minecraft.world.level.block.EntityBlock) targetState.getBlock())
-                        .getTicker(this.level, targetState, (net.minecraft.world.level.block.entity.BlockEntityType<BlockEntity>) targetTE.getType());
+                        .getTicker(this.level(), targetState, (net.minecraft.world.level.block.entity.BlockEntityType<BlockEntity>) targetTE.getType());
 
                 if (ticker != null) {
-                    ticker.tick(this.level, target, targetState, targetTE);
+                    ticker.tick(this.level(), target, targetState, targetTE);
                 }
             }
 
-            if (this.level.random.nextInt(1365) == 0) {
-                BlockState targetBlock = level.getBlockState(target);
+            if (this.level().random.nextInt(1365) == 0) {
+                BlockState targetBlock = level().getBlockState(target);
 
                 if (targetBlock.isRandomlyTicking()) {
-                    targetBlock.randomTick((net.minecraft.server.level.ServerLevel) level, target, level.random);
+                    targetBlock.randomTick((net.minecraft.server.level.ServerLevel) level(), target, level().random);
                 }
             }
         }
 
         this.remainingTime -= 1;
 
-        if (this.remainingTime <= 0 && !this.level.isClientSide) {
+        if (this.remainingTime <= 0 && !this.level().isClientSide) {
             this.discard();
         }
 
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             spawnParticles();
         }
     }
@@ -156,7 +156,7 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
             double dy = (this.random.nextDouble() - 0.5) * 1.05;
             double dz = (this.random.nextDouble() - 0.5) * 1.05;
 
-            this.level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, this.getX() + dx, this.getY() + dy, this.getZ() + dz, 0, 0, 0);
+            this.level().addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT, this.getX() + dx, this.getY() + dy, this.getZ() + dz, 0, 0, 0);
         }
     }
 
@@ -179,7 +179,7 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

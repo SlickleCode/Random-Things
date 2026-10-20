@@ -18,15 +18,14 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 `source env/activate.sh` (pins JDK 17 on this branch; JDK 8 on 1.14.4 / 1.16.5), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
 **Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`, `1.18.2/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
-## Current state on this branch (`1.19.2`, 2026-10-15) - PORT STARTED
+## Current state on this branch (`1.20.1`, 2026-10-18) - PORT STARTED
 
-- **Branch:** cut from `1.18.2` (`2a69d65`); toolchain Forge 1.19.2-43.5.2 / ForgeGradle 5.1 / Gradle 7.4.2 / JDK 17, Mojang names. Plan and milestones: `docs/migration/plans/1.19.2-port-plan.md`. M0 (toolchain) and M1 (mechanical API moves) done: `./gradlew build -x test` passes. The dedicated server boots and the dev suite passes 357/0/2 (2026-10-15); client, worldgen/Peace Candle tests and chat features are open - see the plan's "Known gaps"; test/status text below the 1.18.2 history is carried over.
-- Everything is uncommitted.
-- 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
+- **Branch:** cut from `1.19.2` (`c0962ea`); toolchain Forge 1.20.1-47.4.28 / ForgeGradle 6 / Gradle 8.8 / JDK 17, Mojang names. Plan and milestones: `docs/migration/plans/1.20.1-port-plan.md`. M0-M6 minus the playtest are done: dev server 375/0/3, dev client 377/0/1 (audit 0 failures), GUI click test 28/37/0, render scenes reviewed, production (SRG) server 375/0/3 and client 377/0/1 in `prod-test/1.20.1`. Scripted playtest: all 26 scenarios pass on the dev client. Open: the signed-chat check and a production re-run with the final jar (see the plan's "Still open").
+- Everything is uncommitted. The 1.19.2 state this branch started from (all suites green, signed chat unverified) is in `docs/migration/plans/1.19.2-port-plan.md`.
 
 ## What to do next
 
-1. M3-M6 in order (chat, rendering/client, coremods, boot + suites); update the plan + this file after each. M2 (worldgen + restored worldgen tests) is done, see the plan's "M2 result".
+1. Signed-chat check on a logged-in production client and a production re-run with the final jar; then add TESTING_CHECKLIST rows for the 1.20 changes (creative tab, tooltips on the old Button screens, datapack worldgen).
 
 ## Where things are
 

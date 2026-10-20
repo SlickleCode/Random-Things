@@ -37,7 +37,7 @@ import net.minecraft.server.level.ServerLevel;
 public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements EntityBlock {
 	public AdvancedRedstoneRepeaterBlock()
 	{
-		super(Block.Properties.of(net.minecraft.world.level.material.Material.DECORATION).noCollission().strength(0.0F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F));
 	}
 
 	@Override

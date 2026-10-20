@@ -113,10 +113,10 @@ public class FlooNetworkHandler extends SavedData {
             player.sendSystemMessage(Component.translatable("floo.info.teleport", targetFirePlace.getName()));
 
             if (originPos != null && originTE != null) {
-                spawnFlameBurst((ServerLevel) player.level, originPos, originTE.getChildren());
+                spawnFlameBurst((ServerLevel) player.level(), originPos, originTE.getChildren());
             }
 
-            spawnFlameBurst((ServerLevel) player.level, targetPos, targetTE.getChildren());
+            spawnFlameBurst((ServerLevel) player.level(), targetPos, targetTE.getChildren());
 
             return true;
         }

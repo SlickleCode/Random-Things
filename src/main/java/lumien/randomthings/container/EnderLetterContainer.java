@@ -82,14 +82,14 @@ public class EnderLetterContainer extends net.minecraft.world.inventory.Abstract
 
     @Override
     public boolean stillValid(Player playerIn) {
-        return ItemStack.isSame(letterStack, playerIn.getMainHandItem());
+        return ItemStack.isSameItem(letterStack, playerIn.getMainHandItem());
     }
 
     @Override
     public void removed(Player playerIn) {
         super.removed(playerIn);
 
-        if (received && !playerIn.level.isClientSide && isLetterEmpty()) {
+        if (received && !playerIn.level().isClientSide && isLetterEmpty()) {
             playerIn.getInventory().setItem(playerIn.getInventory().selected, ItemStack.EMPTY);
         }
     }

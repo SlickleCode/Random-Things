@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -31,7 +30,7 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
 	}
 
 	@Override

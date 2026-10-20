@@ -34,7 +34,7 @@ public class OnlineDetectorContainer extends AbstractContainerMenu implements IS
 	private static ContainerLevelAccess resolvePos(Container playerInventory, BlockPos blockPos)
 	{
 		net.minecraft.world.entity.player.Inventory inv = (net.minecraft.world.entity.player.Inventory) playerInventory;
-		return ContainerLevelAccess.create(inv.player.level, blockPos);
+		return ContainerLevelAccess.create(inv.player.level(), blockPos);
 	}
 
 	public String getUsername()

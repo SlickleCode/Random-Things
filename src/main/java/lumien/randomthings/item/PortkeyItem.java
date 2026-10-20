@@ -8,7 +8,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -166,7 +165,7 @@ public class PortkeyItem extends Item {
      * dirty check and gets it sent.
      */
     public void tickDroppedPortkey(net.minecraft.world.entity.item.ItemEntity entityItem) {
-        if (entityItem.level.isClientSide) {
+        if (entityItem.level().isClientSide) {
             return;
         }
 

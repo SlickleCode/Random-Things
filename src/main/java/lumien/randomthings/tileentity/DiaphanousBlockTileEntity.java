@@ -1,5 +1,7 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import net.minecraft.core.BlockPos;
 

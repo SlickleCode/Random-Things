@@ -49,7 +49,7 @@ public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectil
     public void handleEntityEvent(byte id) {
         if (id == 3) {
             for (int i = 0; i < 8; ++i) {
-                this.level.addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getItem()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
             }
         }
     }
@@ -58,20 +58,20 @@ public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectil
     protected void onHit(HitResult result) {
         if (result.getType() == HitResult.Type.ENTITY) {
             Entity hitEntity = ((EntityHitResult) result).getEntity();
-            hitEntity.hurt(DamageSource.thrown(this, this.getOwner()), 1.0F);
+            hitEntity.hurt(this.damageSources().thrown(this, this.getOwner()), 1.0F);
         }
 
-        if (!this.level.isClientSide) {
-            WeatherCloudEntity cloud = new WeatherCloudEntity(this.level, result.getLocation().x, result.getLocation().y + 0.5, result.getLocation().z, this.getItem().getItem());
-            this.level.addFreshEntity(cloud);
+        if (!this.level().isClientSide) {
+            WeatherCloudEntity cloud = new WeatherCloudEntity(this.level(), result.getLocation().x, result.getLocation().y + 0.5, result.getLocation().z, this.getItem().getItem());
+            this.level().addFreshEntity(cloud);
 
-            this.level.broadcastEntityEvent(this, (byte) 3);
+            this.level().broadcastEntityEvent(this, (byte) 3);
             this.discard();
         }
     }
 
     @Override
-    public net.minecraft.network.protocol.Packet<?> getAddEntityPacket() {
+    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
     }
 }

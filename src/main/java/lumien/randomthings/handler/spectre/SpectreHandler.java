@@ -1,5 +1,7 @@
 package lumien.randomthings.handler.spectre;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.handler.ModDimensions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
@@ -89,7 +91,7 @@ public class SpectreHandler extends SavedData {
         persistentData.putDouble("spectrePosX", player.getX());
         persistentData.putDouble("spectrePosY", player.getY());
         persistentData.putDouble("spectrePosZ", player.getZ());
-        persistentData.putString("spectreDimension", player.level.dimension().location().toString());
+        persistentData.putString("spectreDimension", player.level().dimension().location().toString());
 
         UUID uuid = player.getGameProfile().getId();
         SpectreCube spectreCube = cubes.get(uuid);
@@ -102,7 +104,7 @@ public class SpectreHandler extends SavedData {
 
         ServerLevel spectreWorld = getWorld();
 
-        if (!ModDimensions.isSpectre(player.level) && spectreWorld != null) {
+        if (!ModDimensions.isSpectre(player.level()) && spectreWorld != null) {
             player.changeDimension(spectreWorld, SpectreTeleporter.INSTANCE);
         }
 
@@ -123,20 +125,20 @@ public class SpectreHandler extends SavedData {
         ServerLevel destination = null;
 
         if (persistentData.contains("spectreDimension", 8)) {
-            destination = server.getLevel(ResourceKey.create(Registry.DIMENSION_REGISTRY, new ResourceLocation(persistentData.getString("spectreDimension"))));
+            destination = server.getLevel(ResourceKey.create(Registries.DIMENSION, new ResourceLocation(persistentData.getString("spectreDimension"))));
         }
 
         if (destination == null) {
             destination = server.getLevel(Level.OVERWORLD);
         }
 
-        if (player.level != destination) {
+        if (player.level() != destination) {
             player.changeDimension(destination, SpectreTeleporter.INSTANCE);
         }
 
         player.connection.teleport(spectrePosX, spectrePosY, spectrePosZ, player.getYRot(), player.getXRot());
 
-        while (!player.level.noCollision(player, player.getBoundingBox()) && player.getY() < 256.0D) {
+        while (!player.level().noCollision(player, player.getBoundingBox()) && player.getY() < 256.0D) {
             player.setPos(player.getX(), player.getY() + 1.0D, player.getZ());
         }
 
@@ -144,7 +146,7 @@ public class SpectreHandler extends SavedData {
     }
 
     public void checkPosition(ServerPlayer player) {
-        SpectreCube cube = getSpectreCubeFromPos(player.level, player.blockPosition());
+        SpectreCube cube = getSpectreCubeFromPos(player.level(), player.blockPosition());
 
         if (player.getAbilities().instabuild || (cube != null && cube.getOwner().equals(player.getGameProfile().getId()))) {
             return;

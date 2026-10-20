@@ -7,7 +7,6 @@ import lumien.randomthings.tileentity.SoundBoxTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -29,7 +28,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
     public static final BooleanProperty HAS_PATTERN = BooleanProperty.create("has_pattern");
 
     public SoundBoxBlock() {
-        super(Block.Properties.of(Material.WOOD).sound(SoundType.WOOD).strength(0.8F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(0.8F));
 
         this.registerDefaultState(this.stateDefinition.any().setValue(HAS_PATTERN, false));
     }

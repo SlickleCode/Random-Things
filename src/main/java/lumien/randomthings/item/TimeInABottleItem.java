@@ -15,7 +15,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -76,7 +75,7 @@ public class TimeInABottleItem extends Item {
 
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
-        return !ItemStack.isSame(oldStack, newStack);
+        return !ItemStack.isSameItem(oldStack, newStack);
     }
 
     @Override
@@ -167,7 +166,7 @@ public class TimeInABottleItem extends Item {
                             break;
                     }
 
-                    world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, pitch);
+                    world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP.value(), SoundSource.BLOCKS, 0.5F, pitch);
                 } else if (player != null) {
                     player.displayClientMessage(Component.translatable("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);
                 }
@@ -185,7 +184,7 @@ public class TimeInABottleItem extends Item {
                 n.setTimeRate(1);
                 n.setRemainingTime(20 * 30);
 
-                world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP, SoundSource.BLOCKS, 0.5F, 0.749154F);
+                world.playSound(null, pos, SoundEvents.NOTE_BLOCK_HARP.value(), SoundSource.BLOCKS, 0.5F, 0.749154F);
                 world.addFreshEntity(n);
             } else if (player != null) {
                 player.displayClientMessage(Component.translatable("item.randomthings.time_in_a_bottle.not_enough_time").withStyle(ChatFormatting.RED), false);

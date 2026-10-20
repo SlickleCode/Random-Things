@@ -10,7 +10,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.tileentity.LightRedirectorTileEntity;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import net.minecraft.client.resources.model.BakedModel;
@@ -141,7 +140,7 @@ public class ClientAsmHandler {
 
             BlockPos switched = redirector.targets.get(pos);
 
-            if (switched != null && access.getBlockState(switched).getMaterial() != Material.AIR) {
+            if (switched != null && !access.getBlockState(switched).isAir()) {
                 return getSwitchedPosition(access, switched);
             }
         }

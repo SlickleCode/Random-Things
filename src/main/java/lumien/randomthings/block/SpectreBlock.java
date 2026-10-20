@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 
 /**
  * Plain decorative "Spectre" block: unbreakable and explosion-immune, like
@@ -14,6 +12,6 @@ public class SpectreBlock extends Block
 {
 	public SpectreBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.COLOR_BLACK).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noLootTable());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLACK).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noLootTable());
 	}
 }

@@ -1,5 +1,7 @@
 package lumien.randomthings.block;
 
+import net.minecraft.core.registries.Registries;
+
 import lumien.randomthings.util.RegUtil;
 import net.minecraft.world.level.block.EntityBlock;
 
@@ -7,7 +9,6 @@ import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -58,7 +59,7 @@ import net.minecraft.server.level.ServerLevel;
  */
 public class DiaphanousBlock extends Block implements EntityBlock {
     public DiaphanousBlock() {
-        super(Block.Properties.of(Material.GLASS).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
     }
 
     @Override

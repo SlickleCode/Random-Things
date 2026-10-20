@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -27,11 +27,11 @@ import net.minecraft.world.level.Level;
  */
 public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 {
-	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SimpleRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
+	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
 
-	public EmeraldCompassSetTargetRecipe(ResourceLocation id)
+	public EmeraldCompassSetTargetRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category)
 	{
-		super(id);
+		super(id, category);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv)
+	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;

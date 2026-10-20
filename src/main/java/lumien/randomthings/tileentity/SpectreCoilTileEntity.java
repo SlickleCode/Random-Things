@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 
 /**
@@ -63,7 +63,7 @@ public class SpectreCoilTileEntity extends BlockEntity {
         }
 
         // The support's face touching this coil is the one pointing back at it, i.e. `facing` itself.
-        LazyOptional<IEnergyStorage> targetCap = targetTe.getCapability(CapabilityEnergy.ENERGY, facing);
+        LazyOptional<IEnergyStorage> targetCap = targetTe.getCapability(ForgeCapabilities.ENERGY, facing);
         IEnergyStorage targetStorage = targetCap.orElse(null);
 
         if (targetStorage == null || !targetStorage.canReceive()) {

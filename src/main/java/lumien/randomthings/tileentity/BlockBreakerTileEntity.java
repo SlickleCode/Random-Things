@@ -29,7 +29,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -142,7 +142,7 @@ public class BlockBreakerTileEntity extends BlockEntity {
         IItemHandler target = null;
         BlockEntity neighborTe = level.getBlockEntity(worldPosition.relative(facing.getOpposite()));
         if (neighborTe != null) {
-            target = neighborTe.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing).orElse(null);
+            target = neighborTe.getCapability(ForgeCapabilities.ITEM_HANDLER, facing).orElse(null);
         }
 
         for (int i = 1; i < player.getInventory().items.size(); i++) {

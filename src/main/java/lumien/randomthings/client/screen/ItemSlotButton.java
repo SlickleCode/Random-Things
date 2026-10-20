@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -27,14 +29,14 @@ public class ItemSlotButton extends Button implements TooltipButton
 
 	public ItemSlotButton(int x, int y, ItemStack stack, String tooltip, OnPress onPress)
 	{
-		super(x, y, 18, 18, Component.literal(""), onPress);
+		super(x, y, 18, 18, Component.literal(""), onPress, DEFAULT_NARRATION);
 
 		this.stack = stack;
 		this.tooltip = tooltip;
 	}
 
 	@Override
-	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft mc = Minecraft.getInstance();
 
@@ -42,17 +44,17 @@ public class ItemSlotButton extends Button implements TooltipButton
 		RenderSystem.setShaderTexture(0, TEXTURE);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
-		this.blit(matrixStack, this.x, this.y, 0, this.isHovered ? 18 : 0, 18, 18);
+		graphics.blit(TEXTURE, this.getX(), this.getY(), 0, this.isHovered ? 18 : 0, 18, 18);
 
 		if (!this.stack.isEmpty())
 		{
 			RenderSystem.enableDepthTest();
-			mc.getItemRenderer().renderAndDecorateItem(mc.player, this.stack, this.x + 1, this.y + 1, 0);
+			graphics.renderItem(this.stack, this.getX() + 1, this.getY() + 1);
 		}
 	}
 
 	@Override
-	public String getTooltip()
+	public String getTooltipText()
 	{
 		return this.tooltip;
 	}

@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import java.util.function.BooleanSupplier;
@@ -30,7 +32,7 @@ public class ToggleIconButton extends Button implements TooltipButton
 
 	public ToggleIconButton(int x, int y, int width, int height, ResourceLocation texture, int u, int v, BooleanSupplier value, OnPress onPress)
 	{
-		super(x, y, width, height, Component.literal(""), onPress);
+		super(x, y, width, height, Component.literal(""), onPress, DEFAULT_NARRATION);
 
 		this.texture = texture;
 		this.u = u;
@@ -45,17 +47,17 @@ public class ToggleIconButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public String getTooltip()
+	public String getTooltipText()
 	{
 		return this.tooltip == null ? null : this.tooltip.apply(this.value.getAsBoolean());
 	}
 
 	@Override
-	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, this.texture);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		this.blit(matrixStack, this.x, this.y, this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered ? 20 : 0), this.width, this.height);
+		graphics.blit(this.texture, this.getX(), this.getY(), this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered ? 20 : 0), this.width, this.height);
 	}
 }

@@ -2,8 +2,6 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 
 /**
  * A static, always-on decorative light source that should never block
@@ -33,6 +31,6 @@ public class LapisLampBlock extends Block
 {
 	public LapisLampBlock()
 	{
-		super(Block.Properties.of(Material.GLASS, MaterialColor.COLOR_BLUE).strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }

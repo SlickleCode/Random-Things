@@ -1,5 +1,7 @@
 package lumien.randomthings.item;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.Item;
@@ -32,7 +34,7 @@ public class DiviningRodItem extends Item {
 
     public int matches(BlockState blockState) {
         for (int i = 0; i < detectingTags.length; i++) {
-            net.minecraft.tags.TagKey<Block> t = net.minecraft.tags.TagKey.create(net.minecraft.core.Registry.BLOCK_REGISTRY, new ResourceLocation(detectingTags[i]));
+            net.minecraft.tags.TagKey<Block> t = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, new ResourceLocation(detectingTags[i]));
 
             if (blockState.is(t)) {
                 return i;

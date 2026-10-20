@@ -19,11 +19,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
@@ -82,7 +81,7 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 	@Override
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side)
 	{
-		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+		if (cap == ForgeCapabilities.ITEM_HANDLER)
 		{
 			return itemHandlerCap.cast();
 		}
@@ -226,7 +225,7 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 		ItemStack toDrop = stack.copy();
 		toDrop.setCount(1);
 
-		LazyOptional<IItemHandler> targetCap = target != null ? target.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing.getOpposite()) : LazyOptional.empty();
+		LazyOptional<IItemHandler> targetCap = target != null ? target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()) : LazyOptional.empty();
 		IItemHandler targetHandler = targetCap.orElse(null);
 
 		if (targetHandler != null)

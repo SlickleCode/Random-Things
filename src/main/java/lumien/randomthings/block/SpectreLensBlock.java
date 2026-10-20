@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -42,7 +41,7 @@ public class SpectreLensBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 1, 16);
 
     public SpectreLensBlock() {
-        super(Block.Properties.of(Material.GLASS).strength(0.3F).sound(SoundType.GLASS).dynamicShape());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS).dynamicShape());
     }
 
     @Override

@@ -5,7 +5,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import lumien.randomthings.tileentity.PeaceCandleTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -38,7 +37,7 @@ public class PeaceCandleBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 10, 10);
 
     public PeaceCandleBlock() {
-        super(Block.Properties.of(Material.DECORATION).noOcclusion().noCollission().strength(0.0F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollission().strength(0.0F));
     }
 
     @Override

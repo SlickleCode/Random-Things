@@ -10,7 +10,6 @@ import lumien.randomthings.tileentity.SpectreEnergyInjectorTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +25,7 @@ import net.minecraft.world.level.Level;
  */
 public class SpectreEnergyInjectorBlock extends Block implements EntityBlock {
     public SpectreEnergyInjectorBlock() {
-        super(Block.Properties.of(Material.STONE).strength(3.0F).sound(SoundType.GLASS));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(3.0F).sound(SoundType.GLASS));
     }
 
     @Override

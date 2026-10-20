@@ -73,11 +73,11 @@ public class WeatherCloudEntity extends Entity {
 
         if (this.age < 200) {
             this.setDeltaMovement(this.getDeltaMovement().x, 0.007, this.getDeltaMovement().z);
-        } else if (this.getY() < this.level.getMaxBuildHeight()) {
+        } else if (this.getY() < this.level().getMaxBuildHeight()) {
             this.setDeltaMovement(this.getDeltaMovement().x, (this.getDeltaMovement().y + 0.001) * 1.02, this.getDeltaMovement().z);
-        } else if (!this.level.isClientSide) {
+        } else if (!this.level().isClientSide) {
             int duration = (300 + new Random().nextInt(600)) * 20;
-            ServerLevelData info = (ServerLevelData) this.level.getLevelData();
+            ServerLevelData info = (ServerLevelData) this.level().getLevelData();
 
             int type = this.entityData.get(EGG_TYPE);
 
@@ -106,7 +106,7 @@ public class WeatherCloudEntity extends Entity {
 
         this.move(MoverType.SELF, this.getDeltaMovement());
 
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             spawnParticles();
         }
 
@@ -124,14 +124,14 @@ public class WeatherCloudEntity extends Entity {
                 double a = 0.25 / (1.5 + Math.random());
                 double b = 0.35 / (1.5 + Math.random());
 
-                this.level.addParticle(ParticleTypes.BUBBLE, this.getX() + a * Math.cos(t), this.getY() - 0.2, this.getZ() + b * Math.sin(t), 0, -0.05, 0);
+                this.level().addParticle(ParticleTypes.BUBBLE, this.getX() + a * Math.cos(t), this.getY() - 0.2, this.getZ() + b * Math.sin(t), 0, -0.05, 0);
             }
         } else if (type == 2) {
             double t = Math.PI * 2 * Math.random();
             double a = 0.25 / (1.5 + Math.random());
             double b = 0.35 / (1.5 + Math.random());
 
-            this.level.addParticle(new DustParticleOptions(new com.mojang.math.Vector3f(1F, 1F, 0F), 1F), this.getX() + a * Math.cos(t), this.getY(), this.getZ() + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
+            this.level().addParticle(new DustParticleOptions(new org.joml.Vector3f(1F, 1F, 0F), 1F), this.getX() + a * Math.cos(t), this.getY(), this.getZ() + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
         }
     }
 
@@ -141,7 +141,7 @@ public class WeatherCloudEntity extends Entity {
                 double a = 0.25 / (Math.abs(y) * 0.5 + 1);
                 double b = 0.35 / (Math.abs(y) * 0.5 + 1);
 
-                this.level.addParticle(ParticleTypes.CLOUD, this.getX() + a * Math.cos(t), this.getY() + y / 8, this.getZ() + b * Math.sin(t), 0, -0.03, 0);
+                this.level().addParticle(ParticleTypes.CLOUD, this.getX() + a * Math.cos(t), this.getY() + y / 8, this.getZ() + b * Math.sin(t), 0, -0.03, 0);
             }
         }
     }
@@ -159,7 +159,7 @@ public class WeatherCloudEntity extends Entity {
     }
 
     @Override
-    public Packet<?> getAddEntityPacket() {
+    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
         return NetworkHooks.getEntitySpawningPacket(this);
     }
 }

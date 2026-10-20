@@ -27,7 +27,7 @@ public class EnderMailboxContainer extends AbstractContainerMenu {
     public EnderMailboxContainer(int windowId, Inventory playerInventory, UUID owner) {
         super(ModContainerTypes.ENDER_MAILBOX, windowId);
 
-        IItemHandler inventory = owner != null ? EnderLetterHandler.get(playerInventory.player.level).getOrCreateInventoryForPlayer(owner) : new ItemStackHandler(9);
+        IItemHandler inventory = owner != null ? EnderLetterHandler.get(playerInventory.player.level()).getOrCreateInventoryForPlayer(owner) : new ItemStackHandler(9);
 
         for (int i = 0; i < 9; i++) {
             this.addSlot(new SlotItemHandler(inventory, i, 8 + i * 18, 18) {

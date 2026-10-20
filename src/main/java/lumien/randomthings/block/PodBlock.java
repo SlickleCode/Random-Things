@@ -7,7 +7,6 @@ import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -26,11 +25,11 @@ public class PodBlock extends Block
 {
 	public PodBlock()
 	{
-		super(Block.Properties.of(Material.PLANT).noOcclusion().strength(1.5F).noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(1.5F).noCollission());
 	}
 
 	@Override
-	public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder)
+	public List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder)
 	{
 		List<ItemStack> drops = new ArrayList<>(super.getDrops(state, builder));
 

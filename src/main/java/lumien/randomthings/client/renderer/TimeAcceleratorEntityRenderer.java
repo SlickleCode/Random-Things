@@ -1,5 +1,9 @@
 package lumien.randomthings.client.renderer;
 
+import net.minecraft.world.item.ItemDisplayContext;
+
+import com.mojang.math.Axis;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
 import net.minecraft.client.Minecraft;
@@ -13,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import com.mojang.math.Vector3f;
+import org.joml.Vector3f;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 /**
@@ -50,9 +54,9 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
             matrixStack.translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset);
             // billboard: face the camera, then flip like the 1.14.4 renderer did
             matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-            matrixStack.mulPose(Vector3f.YP.rotationDegrees(180.0F));
+            matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemTransforms.TransformType.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, 0);
+            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
 
             matrixStack.popPose();
         }

@@ -16,8 +16,6 @@ import lumien.randomthings.tileentity.ItemCollectorTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -45,7 +43,7 @@ public class ItemCollectorBlock extends Block implements EntityBlock {
 
 	public ItemCollectorBlock()
 	{
-		super(Block.Properties.of(Material.STONE, MaterialColor.STONE).noOcclusion().strength(0.3F).noCollission());
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}

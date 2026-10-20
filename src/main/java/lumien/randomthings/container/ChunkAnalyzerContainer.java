@@ -74,7 +74,7 @@ public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISi
         this.scanning.set(1);
         this.countMap = new HashMap<>();
 
-        LevelChunk targetChunk = player.level.getChunkAt(player.blockPosition());
+        LevelChunk targetChunk = player.level().getChunkAt(player.blockPosition());
 
         this.chunkX = targetChunk.getPos().x;
         this.chunkZ = targetChunk.getPos().z;
@@ -93,7 +93,7 @@ public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISi
         player.inventoryMenu.broadcastChanges();
 
         for (int q = 0; q < 10 && isScanning; q++) {
-            LevelChunk c = player.level.getChunk(chunkX, chunkZ);
+            LevelChunk c = player.level().getChunk(chunkX, chunkZ);
             int chunkBaseX = c.getPos().getMinBlockX();
             int chunkBaseZ = c.getPos().getMinBlockZ();
 

@@ -1,11 +1,12 @@
 package lumien.randomthings.worldgen;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.registries.ObjectHolder;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.data.BuiltinRegistries;
 import java.util.List;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -53,33 +54,6 @@ public class ModFeatures {
         registry.register("glowing_mushroom", new GlowingMushroomFeature(NoneFeatureConfiguration.CODEC));
     }
 
-    private static Holder<PlacedFeature> BEAN_SPROUT_PLACED;
-    private static Holder<PlacedFeature> LOTUS_PLACED;
-    private static Holder<PlacedFeature> ANCIENT_FURNACE_PLACED;
-    private static Holder<PlacedFeature> GLOWING_MUSHROOM_PLACED;
-
-    /**
-     * 1.18 biome features are {@code PlacedFeature}s (a configured feature plus placement modifiers) that must be
-     * registered (biomes are serialized by registry reference). The old 1.16 "chance, then square, then heightmap"
-     * decorator chain is now {@code RarityFilter} (1 in n chunks), {@code InSquarePlacement} (random column in the
-     * chunk) and {@code HeightmapPlacement}. Each feature's own {@code place} still does the per-attempt
-     * biome/temperature gating. Call from {@code FMLCommonSetupEvent.enqueueWork} (after the feature registry event).
-     */
-    public static void registerConfiguredFeatures() {
-        BEAN_SPROUT_PLACED = placed("bean_sprout", 2);
-        LOTUS_PLACED = placed("lotus", 10);
-        ANCIENT_FURNACE_PLACED = placed("ancient_furnace", 400);
-        GLOWING_MUSHROOM_PLACED = placed("glowing_mushroom", 4);
-    }
-
-    private static Holder<PlacedFeature> placed(String name, int chance) {
-        ResourceLocation id = new ResourceLocation(ModConstants.MOD_ID, name);
-        @SuppressWarnings("unchecked")
-        Feature<NoneFeatureConfiguration> feature = (Feature<NoneFeatureConfiguration>) net.minecraftforge.registries.ForgeRegistries.FEATURES.getValue(id);
-        if (feature == null) throw new IllegalStateException("feature not registered: " + id);
-        Holder<ConfiguredFeature<?, ?>> configured = BuiltinRegistries.register(BuiltinRegistries.CONFIGURED_FEATURE, id, new ConfiguredFeature<>(feature, NoneFeatureConfiguration.INSTANCE));
-
-        return BuiltinRegistries.register(BuiltinRegistries.PLACED_FEATURE, id, new PlacedFeature(configured,
-                List.of(RarityFilter.onAverageOnceEvery(chance), InSquarePlacement.spread(), HeightmapPlacement.onHeightmap(Heightmap.Types.MOTION_BLOCKING), BiomeFilter.biome())));
-    }
+    // 1.20: the configured/placed features are datapack JSON (data/randomthings/worldgen/{configured,placed}_feature/*.json) and the biome
+    // modifiers (data/randomthings/forge/biome_modifier/*.json) reference the placed features; only the Feature types are registered here.
 }

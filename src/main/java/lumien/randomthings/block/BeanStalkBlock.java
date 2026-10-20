@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.Direction;
@@ -42,7 +41,7 @@ public class BeanStalkBlock extends Block
 
 	public BeanStalkBlock(boolean strongMagic)
 	{
-		super(Block.Properties.of(Material.PLANT).noOcclusion().noCollission().sound(SoundType.GRASS));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollission().sound(SoundType.GRASS));
 
 		this.strongMagic = strongMagic;
 	}
@@ -56,7 +55,7 @@ public class BeanStalkBlock extends Block
 	@Override
 	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn)
 	{
-		if (entityIn.isOnGround() || entityIn.verticalCollision)
+		if (entityIn.onGround() || entityIn.verticalCollision)
 		{
 			return;
 		}
@@ -92,7 +91,7 @@ public class BeanStalkBlock extends Block
 
 		BlockState upState = worldIn.getBlockState(up);
 
-		if (upState.isAir() || upState.getMaterial().isReplaceable())
+		if (upState.isAir() || upState.canBeReplaced())
 		{
 			worldIn.setBlock(up, this.defaultBlockState(), 3);
 			worldIn.scheduleTick(up, this, strongMagic ? 1 : 5);

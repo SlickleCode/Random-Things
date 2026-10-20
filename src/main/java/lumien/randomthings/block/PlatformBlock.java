@@ -3,8 +3,6 @@ package lumien.randomthings.block;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.core.BlockPos;
@@ -17,7 +15,7 @@ public class PlatformBlock extends Block {
     protected static final VoxelShape SHAPE = Block.box(0, 14, 0, 16, 16, 16);
 
     public PlatformBlock() {
-        super(Block.Properties.of(Material.WOOD, MaterialColor.WOOD).strength(2.0F, 3.0F).sound(SoundType.WOOD));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().strength(2.0F, 3.0F).sound(SoundType.WOOD));
     }
 
     @Override

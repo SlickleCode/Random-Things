@@ -1,5 +1,7 @@
 package lumien.randomthings.client.screen;
 
+import net.minecraft.client.gui.GuiGraphics;
+
 import net.minecraft.client.renderer.GameRenderer;
 
 import java.util.List;
@@ -31,7 +33,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 	public SpriteStateButton(int x, int y, int width, int height, ResourceLocation texture, IntSupplier state, IntFunction<String> tooltip, OnPress onPress)
 	{
-		super(x, y, width, height, Component.literal(""), onPress);
+		super(x, y, width, height, Component.literal(""), onPress, DEFAULT_NARRATION);
 
 		this.texture = texture;
 		this.state = state;
@@ -39,17 +41,17 @@ public class SpriteStateButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks)
+	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, this.texture);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
-		this.blit(matrixStack, this.x, this.y, this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height);
+		graphics.blit(this.texture, this.getX(), this.getY(), this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height);
 	}
 
 	@Override
-	public String getTooltip()
+	public String getTooltipText()
 	{
 		return this.tooltip == null ? null : this.tooltip.apply(this.state.getAsInt());
 	}
@@ -58,17 +60,17 @@ public class SpriteStateButton extends Button implements TooltipButton
 	 * Call from {@code drawGuiContainerForegroundLayer} (coordinates there are relative to the
 	 * GUI's top-left corner) to show the tooltip of whichever {@link SpriteStateButton} is hovered.
 	 */
-	public static void renderTooltips(PoseStack matrixStack, Screen screen, List<? extends AbstractWidget> buttons, int mouseX, int mouseY, int guiLeft, int guiTop)
+	public static void renderTooltips(GuiGraphics graphics, Screen screen, List<? extends AbstractWidget> buttons, int mouseX, int mouseY, int guiLeft, int guiTop)
 	{
 		for (AbstractWidget widget : buttons)
 		{
 			if (widget instanceof TooltipButton && widget.isHoveredOrFocused())
 			{
-				String text = ((TooltipButton) widget).getTooltip();
+				String text = ((TooltipButton) widget).getTooltipText();
 
 				if (text != null)
 				{
-					screen.renderTooltip(matrixStack, Component.literal(text), mouseX - guiLeft, mouseY - guiTop);
+					graphics.renderTooltip(net.minecraft.client.Minecraft.getInstance().font, Component.literal(text), mouseX - guiLeft, mouseY - guiTop);
 				}
 
 				return;

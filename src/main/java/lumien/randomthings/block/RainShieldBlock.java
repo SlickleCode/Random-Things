@@ -6,7 +6,6 @@ import net.minecraft.world.level.block.EntityBlock;
 import lumien.randomthings.tileentity.RainShieldTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
@@ -47,7 +46,7 @@ public class RainShieldBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 16, 10);
 
     public RainShieldBlock() {
-        super(Block.Properties.of(Material.STONE).noOcclusion().strength(2.0F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(2.0F));
     }
 
     @Override

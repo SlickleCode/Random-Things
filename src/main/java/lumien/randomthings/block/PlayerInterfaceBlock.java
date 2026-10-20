@@ -6,7 +6,6 @@ import lumien.randomthings.tileentity.PlayerInterfaceTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +21,7 @@ import net.minecraft.world.level.Level;
 public class PlayerInterfaceBlock extends Block implements EntityBlock {
 	public PlayerInterfaceBlock()
 	{
-		super(Block.Properties.of(Material.STONE).strength(4.0F).sound(SoundType.STONE));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(4.0F).sound(SoundType.STONE));
 	}
 
 	@Override

@@ -19,12 +19,10 @@ import lumien.randomthings.handler.AnchorChunkLoader;
 import lumien.randomthings.tileentity.EnderAnchorTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -39,7 +37,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
  */
 public class EnderAnchorBlock extends Block implements EntityBlock {
     public EnderAnchorBlock() {
-        super(Block.Properties.of(Material.STONE).strength(1.5F));
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
     }
 
     @Override

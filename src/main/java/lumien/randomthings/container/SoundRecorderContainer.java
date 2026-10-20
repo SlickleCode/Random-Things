@@ -85,7 +85,7 @@ public class SoundRecorderContainer extends AbstractContainerMenu implements ISi
     public void removed(Player playerIn) {
         super.removed(playerIn);
 
-        if (!playerIn.level.isClientSide) {
+        if (!playerIn.level().isClientSide) {
             for (int i = 0; i < patternHandler.getSlots(); i++) {
                 ItemStack stack = patternHandler.extractItem(i, patternHandler.getSlotLimit(i), false);
 
@@ -145,7 +145,7 @@ public class SoundRecorderContainer extends AbstractContainerMenu implements ISi
 
             patternHandler.setStackInSlot(1, stamped);
             patternHandler.extractItem(0, 1, false);
-        } else if (ItemStack.isSame(patternOut, new ItemStack(ModItems.SOUND_PATTERN)) && SoundPatternItem.getSoundLocation(patternOut) != null && SoundPatternItem.getSoundLocation(patternOut).toString().equals(selectedSound) && patternOut.getCount() < patternOut.getMaxStackSize()) {
+        } else if (ItemStack.isSameItem(patternOut, new ItemStack(ModItems.SOUND_PATTERN)) && SoundPatternItem.getSoundLocation(patternOut) != null && SoundPatternItem.getSoundLocation(patternOut).toString().equals(selectedSound) && patternOut.getCount() < patternOut.getMaxStackSize()) {
             patternOut.grow(1);
             patternHandler.extractItem(0, 1, false);
         }

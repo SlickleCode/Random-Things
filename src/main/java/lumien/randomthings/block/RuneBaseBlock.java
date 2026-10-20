@@ -8,7 +8,6 @@ import lumien.randomthings.tileentity.RuneBaseTileEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -46,7 +45,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 0.1, 16);
 
     public RuneBaseBlock() {
-        super(Block.Properties.of(Material.SAND).strength(0.2F).noCollission());
+        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.SAND).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE).strength(0.2F).noCollission());
     }
 
     @Override
