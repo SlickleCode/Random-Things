@@ -74,6 +74,9 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.entity_detector.monster_filter_and_invert`
 - `behavior.ender_mailbox.sneak_click_with_a_letter_delivers_it_to_the_named_receivers_inbox`
 - `behavior.ender_mailbox.unknown_receiver_keeps_the_letter`
+- `behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it`
+- `behavior.loot.rolled_chest_biome_crystals_carry_a_biome`
+- `behavior.loot.vanilla_chest_tables_get_the_mod_pools_injected_on_load`
 - `behavior.glint.colour_priority_matches_1_12_2`
 - `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper` (also asserts the glow stops: `hasEffect`)
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`

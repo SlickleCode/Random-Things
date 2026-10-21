@@ -37,6 +37,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - 2026-10-17: new worldgen tests (feature registration, bean sprout/lotus/furnace rules, heating, client biome resync via `ClientProbe`, Spectre generator); 1.14.4 biomes are per column so the heating bug of newer versions does not exist here. `worldgen.*` 22/0/0 on the client, server suite 372/0/2.
 - 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
 
+- **Tests mirrored from 1.20.6 (2026-10-21):** `behavior.loot.rolled_chest_biome_crystals_carry_a_biome`, `behavior.loot.vanilla_chest_tables_get_the_mod_pools_injected_on_load`, `behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it`; dedicated-server suite now 377/0/2 (of 379; no biome-radar search test on this branch), 0 failures. Mutation-checked on 1.20.1 (dropping the random-biome function, the chest pool or the radar update tag each fails its test). The manual world (`/rtdebug manual`, `RT_MANUAL=true`) is on this branch too: `docs/testing/manual-test-world.md`.
 ## What to do next
 
 1. Check `TESTING_CHECKLIST.md` for `FAIL` rows, then the open rows (B, C) and the section D spot-checks; don't re-investigate a `FIXED` row without reading its entry in `docs/testing/fix-log/`.
