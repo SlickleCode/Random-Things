@@ -1,0 +1,9 @@
+# Line endings: the repository stores LF; the working tree is checked out with LF too (no autocrlf warnings, no mixed endings).
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jar binary
+*.ogg binary
+*.nbt binary
+*.dat binary
