@@ -96,6 +96,8 @@ re-verify and re-document).
 
 Project command: `/mirror <sha> <branch...>` (`.claude/commands/mirror.md`, `docs/migration/tools/mirror.sh`) applies a commit's diff to other version worktrees without committing and compiles each.
 
+Cross-version helpers (`docs/migration/tools/`): `/suites [--baseline] [branch...]` (`suite-all.sh`: server suite on every worktree, one table), `/parity` (`test-parity.py`: which tests exist on which branch), `.claude/hooks/remind.py` (PostToolUse reminders after editing coremod transformers, shared build/registry files and tests; wired in `.claude/settings.json`). Line endings are fixed by `.gitattributes` (LF in the repo and the working tree).
+
 Project agents (`.claude/agents/`): `bytecode-scout` (read-only javap/mapping research, returns anchors and signatures, not dumps) and `suite-runner`
 (runs the dev/server/click/production suites and reports only counts and failures). Use them when the raw output would flood the context.
 

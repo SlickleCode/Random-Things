@@ -38,7 +38,7 @@ for b in "$@"; do
 		rows+=("$b|applied|compile skipped"); continue
 	fi
 	log=$(mktemp)
-	if (cd "$dir" && source env/activate.sh >/dev/null 2>&1 && timeout 900 ./gradlew compileJava --offline -q) > "$log" 2>&1; then
+	if (cd "$dir" && set +u; source env/activate.sh >/dev/null 2>&1; timeout 900 ./gradlew compileJava --offline -q) > "$log" 2>&1; then
 		rows+=("$b|applied ($files files changed in tree)|compiles")
 	else
 		rows+=("$b|applied ($files files changed in tree)|COMPILE FAILED: $(grep -m3 'error:' "$log" | tr '\n' ' ' | cut -c1-240)")
