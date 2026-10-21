@@ -75,6 +75,9 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.glint.colour_priority_matches_1_12_2`
 - `behavior.render.see_through_blocks_are_not_solid_so_neighbours_keep_their_faces`
 - `behavior.biome_radar.search_finds_the_crystals_biome_and_a_missing_biome_keeps_searching`
+- `behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it`
+- `behavior.loot.rolled_chest_biome_crystals_carry_a_biome`
+- `behavior.loot.vanilla_chest_tables_get_the_mod_pools_injected_on_load`
 - `behavior.portkey.binds_primes_after_100_ticks_and_teleports_the_picker_upper` (also asserts the glow stops)
 - `behavior.potion_vaporizer.applies_its_potion_to_mobs_in_the_sealed_room_and_returns_a_bottle`
 - `registry.weak_sets_survive_concurrent_add_remove_and_iteration`
