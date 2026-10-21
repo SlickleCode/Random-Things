@@ -5,6 +5,8 @@ description: Verify the built mod jar on a REAL production (SRG-named) Forge 1.1
 
 # Production-jar check (1.18.2)
 
+> This skill's body was written on 1.18.2. Version notes for this branch: check `docs/project/` (api-gotchas, coremods) and `docs/migration/plans/1.20.1-port-plan.md` first; jar paths, versions and counts below may differ (Forge 47.4.28, JDK 17).
+
 Dev runs (`./gradlew runClient/runServer`) show Mojang names for methods and fields; a real install runs with SRG ids (`m_...`/`f_...`). Coremods and reflection can pass dev and still fail in a release jar. Background: `docs/testing/README.md` ("Production-jar test").
 
 ## Setup (once; untracked, gitignored `prod-test/1.18.2/`)

@@ -5,6 +5,8 @@ description: Ground-truth Minecraft 1.18.2 / Forge 40 APIs and find Mojang names
 
 # Mapping and javap lookup (1.18.2: official Mojang names)
 
+> This skill's body was written on 1.18.2. Version notes for this branch: check `docs/project/` (api-gotchas, coremods) and `docs/migration/plans/1.20.1-port-plan.md` first; jar paths, versions and counts below may differ (Forge 47.4.28, JDK 17).
+
 Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory - read the real jar.
 
 ## Naming on this branch

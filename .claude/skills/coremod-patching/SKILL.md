@@ -5,6 +5,8 @@ description: Write or change a JS coremod transformer (src/main/resources/transf
 
 # Coremod patching (Forge 40.3.12, JS coremods)
 
+> This skill's body was written on 1.18.2. Version notes for this branch: check `docs/project/` (api-gotchas, coremods) and `docs/migration/plans/1.20.1-port-plan.md` first; jar paths, versions and counts below may differ (Forge 47.4.28, JDK 17).
+
 Mixins cannot be tested via `runClient` in this setup - the project uses coremods (`META-INF/coremods.json` + `transformer/*.js` + `AsmHandler`/`ClientAsmHandler`). Existing transformers are the best templates; `docs/project/coremods.md` maps what each patches (update it when you add one; note it was written for 1.14.4 and the 1.18.2 retargets are listed in `docs/migration/plans/1.18.2-port-plan.md`).
 
 ## Workflow
