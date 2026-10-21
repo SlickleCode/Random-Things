@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.CapUtil;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,9 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 /** What a test step gets: the world, a private build area, and assertion helpers. */
 public final class TestCtx
@@ -95,7 +96,7 @@ public final class TestCtx
 
 	AABB area()
 	{
-		return new AABB(origin.offset(-RADIUS, -2, -RADIUS), origin.offset(RADIUS + 1, RADIUS + 1, RADIUS + 1));
+		return lumien.randomthings.util.AABBs.of(origin.offset(-RADIUS, -2, -RADIUS), origin.offset(RADIUS + 1, RADIUS + 1, RADIUS + 1));
 	}
 
 	/** Empties the whole build area (blocks, tile entities, loose entities). */
@@ -146,7 +147,7 @@ public final class TestCtx
 			throw new Failure("no tile entity at " + pos);
 		}
 
-		IItemHandler handler = te.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
+		IItemHandler handler = CapUtil.itemHandler(te, null);
 
 		if (handler == null && te instanceof Container)
 		{

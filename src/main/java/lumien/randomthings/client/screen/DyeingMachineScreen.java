@@ -89,11 +89,12 @@ public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineCo
         Color c = new Color(currentColor);
         RenderSystem.setShaderColor(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue(), 1.0F);
         graphics.blit(GUI_TEXTURES, x + 102, y + 23, 176, 21, 22, 15);
+        // 1.20.5+ draws slot items after renderBg without resetting the colour: leave it white or every item shows the swatch tint
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(graphics, mouseX, mouseY);
     }

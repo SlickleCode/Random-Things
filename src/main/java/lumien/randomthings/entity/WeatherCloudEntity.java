@@ -13,7 +13,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.world.level.storage.ServerLevelData;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Random;
 
@@ -63,8 +62,8 @@ public class WeatherCloudEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(EGG_TYPE, 0);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        builder.define(EGG_TYPE, 0);
     }
 
     @Override
@@ -158,8 +157,4 @@ public class WeatherCloudEntity extends Entity {
         compound.putInt("age", age);
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

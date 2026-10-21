@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.level.block.EntityBlock;
 
 import lumien.randomthings.tileentity.FluidDisplayTileEntity;
@@ -16,9 +17,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 
 /**
  * A glass-like block showing whatever fluid was last poured into it with a
@@ -37,7 +37,7 @@ public class FluidDisplayBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (worldIn.isClientSide) {
             return InteractionResult.SUCCESS;
         }
@@ -50,13 +50,13 @@ public class FluidDisplayBlock extends Block implements EntityBlock {
         FluidDisplayTileEntity display = (FluidDisplayTileEntity) te;
         ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-        IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).orElse(null);
+        IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
 
         if (handler != null) {
             FluidStack contents = handler.getTanks() > 0 ? handler.getFluidInTank(0) : null;
 
             if (contents != null && !contents.isEmpty()) {
-                display.setFluidStack(new FluidStack(contents.getFluid(), 1000, contents.getTag()));
+                display.setFluidStack(new FluidStack(contents.getFluid(), 1000));
                 display.syncTE();
                 return InteractionResult.SUCCESS;
             }

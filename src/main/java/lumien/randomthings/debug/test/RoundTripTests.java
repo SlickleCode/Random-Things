@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -20,11 +21,11 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Persistence tests for every registered tile entity, entity type and item: write to NBT, read
@@ -51,7 +52,7 @@ final class RoundTripTests
 	{
 		List<RTTest> tests = new ArrayList<>();
 
-		for (BlockEntityType<?> type : ForgeRegistries.BLOCK_ENTITY_TYPES)
+		for (BlockEntityType<?> type : BuiltInRegistries.BLOCK_ENTITY_TYPE)
 		{
 			if (RegUtil.id(type) != null && ModConstants.MOD_ID.equals(RegUtil.id(type).getNamespace()))
 			{
@@ -59,7 +60,7 @@ final class RoundTripTests
 			}
 		}
 
-		for (EntityType<?> type : ForgeRegistries.ENTITY_TYPES)
+		for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE)
 		{
 			if (RegUtil.id(type) != null && ModConstants.MOD_ID.equals(RegUtil.id(type).getNamespace()))
 			{
@@ -67,7 +68,7 @@ final class RoundTripTests
 			}
 		}
 
-		for (Item item : ForgeRegistries.ITEMS)
+		for (Item item : BuiltInRegistries.ITEM)
 		{
 			if (RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace()))
 			{
@@ -84,7 +85,7 @@ final class RoundTripTests
 	{
 		Block block = null;
 
-		for (Block candidate : ForgeRegistries.BLOCKS)
+		for (Block candidate : BuiltInRegistries.BLOCK)
 		{
 			if (RegUtil.id(candidate) != null && ModConstants.MOD_ID.equals(RegUtil.id(candidate).getNamespace()) && type.isValid(candidate.defaultBlockState()))
 			{
@@ -110,12 +111,12 @@ final class RoundTripTests
 
 		int populated = populate(original, BLOCK_SIDES);
 
-		CompoundTag first = original.saveWithoutMetadata();
+		CompoundTag first = original.saveWithoutMetadata(c.world.registryAccess());
 
 		BlockEntity copy = type.create(pos, block.defaultBlockState());
 		copy.setLevel(c.world);
-		copy.load(first);
-		CompoundTag second = copy.saveWithoutMetadata();
+		copy.loadWithComponents(first, c.world.registryAccess());
+		CompoundTag second = copy.saveWithoutMetadata(c.world.registryAccess());
 
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
 		c.eq(snapshot(original, BLOCK_SIDES), snapshot(copy, BLOCK_SIDES), "capability contents after reload");
@@ -151,12 +152,12 @@ final class RoundTripTests
 
 		int populated = populate(stack, STACK_SIDES);
 
-		CompoundTag first = stack.save(new CompoundTag());
-		ItemStack copy = ItemStack.of(first);
-		CompoundTag second = copy.save(new CompoundTag());
+		CompoundTag first = StackTag.saveStack(stack);
+		ItemStack copy = ItemStack.parseOptional(StackTag.provider(), first);
+		CompoundTag second = StackTag.saveStack(copy);
 
 		c.check(ItemStack.matches(stack, copy), "stack differs after reload: " + stack + " vs " + copy);
-		c.check(ItemStack.isSameItemSameTags(stack, copy), "stack tag differs after reload: " + stack.getTag() + " vs " + copy.getTag());
+		c.check(ItemStack.isSameItemSameComponents(stack, copy), "stack tag differs after reload: " + StackTag.get(stack) + " vs " + StackTag.get(copy));
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
 		c.eq(snapshot(stack, STACK_SIDES), snapshot(copy, STACK_SIDES), "capability contents after reload");
 	}
@@ -165,14 +166,29 @@ final class RoundTripTests
 
 	private static final ItemStack[] FILLERS = { new ItemStack(Items.COBBLESTONE, 7), new ItemStack(Items.APPLE, 3), new ItemStack(Items.STICK, 5), new ItemStack(Items.IRON_INGOT, 2), new ItemStack(Items.PAPER, 4) };
 
+	private static net.neoforged.neoforge.items.IItemHandler itemsOf(Object provider, Direction side)
+	{
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.itemHandler(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ITEM) : null;
+	}
+
+	private static IFluidHandler fluidsOf(Object provider, Direction side)
+	{
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.fluid(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM) : null;
+	}
+
+	private static net.neoforged.neoforge.energy.IEnergyStorage energyOf(Object provider, Direction side)
+	{
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.energy(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ITEM) : null;
+	}
+
 	/** Puts test content into every item / fluid / energy capability the provider exposes; returns how much it managed to place. */
-	private static int populate(ICapabilityProvider provider, Direction[] sides)
+	private static int populate(Object provider, Direction[] sides)
 	{
 		int placed = 0;
 
 		for (Direction side : sides)
 		{
-			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
+			net.neoforged.neoforge.items.IItemHandler items = itemsOf(provider, side);
 
 			if (items != null)
 			{
@@ -191,19 +207,14 @@ final class RoundTripTests
 				}
 			}
 
-			IFluidHandler fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER, side).orElse(null);
-
-			if (fluids == null && provider instanceof ItemStack)
-			{
-				fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, side).orElse(null);
-			}
+			IFluidHandler fluids = fluidsOf(provider, side);
 
 			if (fluids != null && (fluids.fill(new FluidStack(Fluids.WATER, 600), IFluidHandler.FluidAction.EXECUTE) > 0 || fluids.fill(new FluidStack(Fluids.LAVA, 600), IFluidHandler.FluidAction.EXECUTE) > 0))
 			{
 				placed++;
 			}
 
-			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(ForgeCapabilities.ENERGY, side).orElse(null);
+			net.neoforged.neoforge.energy.IEnergyStorage energy = energyOf(provider, side);
 
 			if (energy != null && energy.canReceive() && energy.receiveEnergy(500, false) > 0)
 			{
@@ -215,29 +226,24 @@ final class RoundTripTests
 	}
 
 	/** A comparable text dump of everything the provider's capabilities currently hold. */
-	private static String snapshot(ICapabilityProvider provider, Direction[] sides)
+	private static String snapshot(Object provider, Direction[] sides)
 	{
 		StringBuilder sb = new StringBuilder();
 
 		for (Direction side : sides)
 		{
-			net.minecraftforge.items.IItemHandler items = provider.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
+			net.neoforged.neoforge.items.IItemHandler items = itemsOf(provider, side);
 
 			if (items != null)
 			{
 				for (int slot = 0; slot < items.getSlots(); slot++)
 				{
 					ItemStack stack = items.getStackInSlot(slot);
-					sb.append("items[").append(side).append(',').append(slot).append("]=").append(stack.save(new CompoundTag())).append(';');
+					sb.append("items[").append(side).append(',').append(slot).append("]=").append(StackTag.saveStack(stack)).append(';');
 				}
 			}
 
-			IFluidHandler fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER, side).orElse(null);
-
-			if (fluids == null && provider instanceof ItemStack)
-			{
-				fluids = provider.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, side).orElse(null);
-			}
+			IFluidHandler fluids = fluidsOf(provider, side);
 
 			if (fluids != null)
 			{
@@ -249,7 +255,7 @@ final class RoundTripTests
 				}
 			}
 
-			net.minecraftforge.energy.IEnergyStorage energy = provider.getCapability(ForgeCapabilities.ENERGY, side).orElse(null);
+			net.neoforged.neoforge.energy.IEnergyStorage energy = energyOf(provider, side);
 
 			if (energy != null)
 			{

@@ -49,14 +49,14 @@ public class FlooNetworkHandler extends SavedData {
     public FlooNetworkHandler() {
     }
 
-    public static FlooNetworkHandler loadFrom(CompoundTag nbt) {
+    public static FlooNetworkHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         FlooNetworkHandler data = new FlooNetworkHandler();
         data.readData(nbt);
         return data;
     }
 
     public static FlooNetworkHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(FlooNetworkHandler::loadFrom, FlooNetworkHandler::new, ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FlooNetworkHandler::new, FlooNetworkHandler::loadFrom, null), ID);
     }
 
     public String getNameFromUUID(UUID uuid) {
@@ -152,7 +152,7 @@ public class FlooNetworkHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag firePlaceTags = new ListTag();
 
         for (FlooFireplace firePlace : firePlaces) {

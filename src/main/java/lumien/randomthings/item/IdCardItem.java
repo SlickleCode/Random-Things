@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import com.mojang.authlib.GameProfile;
 import lumien.randomthings.lib.IEntityFilterItem;
 import net.minecraft.world.item.TooltipFlag;
@@ -28,10 +29,11 @@ public class IdCardItem extends Item implements IEntityFilterItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+        Level worldIn = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
 
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = StackTag.get(stack);
 
         if (tag != null && tag.contains("name")) {
             tooltip.add(Component.literal(tag.getString("name")));
@@ -44,19 +46,17 @@ public class IdCardItem extends Item implements IEntityFilterItem {
         GameProfile profile = playerIn.getGameProfile();
 
         if (!worldIn.isClientSide) {
-            if (!stack.hasTag()) {
-                stack.setTag(new CompoundTag());
-            }
-
-            stack.getTag().putString("uuid", profile.getId().toString());
-            stack.getTag().putString("name", profile.getName() != null ? profile.getName() : "Anonymous");
+            StackTag.edit(stack, t -> {
+                t.putString("uuid", profile.getId().toString());
+                t.putString("name", profile.getName() != null ? profile.getName() : "Anonymous");
+            });
         }
 
         return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
     }
 
     public static UUID getUUID(ItemStack card) {
-        CompoundTag tag = card.getTag();
+        CompoundTag tag = StackTag.get(card);
         return tag != null && tag.contains("uuid") ? UUID.fromString(tag.getString("uuid")) : null;
     }
 

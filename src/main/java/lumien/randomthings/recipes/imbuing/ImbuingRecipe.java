@@ -1,7 +1,7 @@
 package lumien.randomthings.recipes.imbuing;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,7 +74,7 @@ public class ImbuingRecipe {
     }
 
     private static boolean contentEquals(ItemStack a, ItemStack b) {
-        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItem(a, b) && ItemStack.isSameItemSameTags(a, b);
+        return !a.isEmpty() && !b.isEmpty() && ItemStack.isSameItem(a, b) && ItemStack.isSameItemSameComponents(a, b);
     }
 
     public ItemStack toImbue() {

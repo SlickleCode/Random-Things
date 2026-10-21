@@ -239,8 +239,8 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("lazy", lazy);
@@ -265,8 +265,8 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         state = State.values()[compound.getInt("state")];
         lazy = compound.getBoolean("lazy");
@@ -293,7 +293,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
         ListTag list = new ListTag();
 
         for (BlockPos p : positions) {
-            list.add(NbtUtils.writeBlockPos(p));
+            list.add(lumien.randomthings.util.BlockPosNbt.write(p));
         }
 
         return list;
@@ -303,7 +303,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
         List<BlockPos> result = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(NbtUtils.readBlockPos(list.getCompound(i)));
+            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompound(i)));
         }
 
         return result;
@@ -313,7 +313,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
         Set<BlockPos> result = new HashSet<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(NbtUtils.readBlockPos(list.getCompound(i)));
+            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompound(i)));
         }
 
         return result;

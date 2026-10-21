@@ -1,14 +1,13 @@
 package lumien.randomthings.item;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
+import java.util.List;
+
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.sounds.SoundEvent;
 
 /**
  * Worn as a helmet: hides your nametag from other players and hides your
@@ -45,54 +44,17 @@ import net.minecraft.sounds.SoundEvent;
  * overrides only {@link IArmorMaterial#getDurability} with Leather's value.
  */
 public class MagicHoodItem extends ArmorItem {
-    private static final ArmorMaterial DURABILITY_MATERIAL = new ArmorMaterial() {
-        @Override
-        public int getDurabilityForType(ArmorItem.Type type) {
-            return ArmorMaterials.LEATHER.getDurabilityForType(type);
-        }
+    /** Chain stats, but the hood's own armor texture ({@code textures/models/armor/magic_hood_layer_1.png}). */
+    private static final Holder<ArmorMaterial> MATERIAL;
 
-        @Override
-        public int getDefenseForType(ArmorItem.Type type) {
-            return ArmorMaterials.CHAIN.getDefenseForType(type);
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return ArmorMaterials.CHAIN.getEnchantmentValue();
-        }
-
-        @Override
-        public SoundEvent getEquipSound() {
-            return ArmorMaterials.CHAIN.getEquipSound();
-        }
-
-        @Override
-        public Ingredient getRepairIngredient() {
-            return ArmorMaterials.CHAIN.getRepairIngredient();
-        }
-
-        @Override
-        public float getKnockbackResistance() {
-            return ArmorMaterials.CHAIN.getKnockbackResistance();
-        }
-
-        @Override
-        public String getName() {
-            return ArmorMaterials.CHAIN.getName();
-        }
-
-        @Override
-        public float getToughness() {
-            return ArmorMaterials.CHAIN.getToughness();
-        }
-    };
+    static {
+        ArmorMaterial chain = ArmorMaterials.CHAIN.value();
+        MATERIAL = Holder.direct(new ArmorMaterial(chain.defense(), chain.enchantmentValue(), chain.equipSound(), chain.repairIngredient(),
+                List.of(new ArmorMaterial.Layer(new ResourceLocation("randomthings", "magic_hood"))), chain.toughness(), chain.knockbackResistance()));
+    }
 
     public MagicHoodItem(Item.Properties properties) {
-        super(DURABILITY_MATERIAL, ArmorItem.Type.HELMET, properties);
+        super(MATERIAL, ArmorItem.Type.HELMET, properties.durability(ArmorItem.Type.HELMET.getDurability(5)));
     }
 
-    @Override
-    public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
-        return "randomthings:textures/models/armor/magic_hood.png";
-    }
 }

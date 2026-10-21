@@ -12,13 +12,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 /**
  * Second batch of gameplay tests (backlog Q8): Contact Button/Lever, Imbuing Station, Block Destabilizer.
@@ -33,7 +32,7 @@ final class MoreBehaviorTests
 	/** What a real right click on {@code pos} does as far as the mod is concerned (the contact blocks listen for this event). */
 	private static void rightClick(TestCtx c, BlockPos pos)
 	{
-		MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.RightClickBlock(c.player, InteractionHand.MAIN_HAND, pos, new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.UP, pos, false)));
+		NeoForge.EVENT_BUS.post(new PlayerInteractEvent.RightClickBlock(c.player, InteractionHand.MAIN_HAND, pos, new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(pos), Direction.UP, pos, false)));
 	}
 
 	static List<RTTest> create()
@@ -98,7 +97,7 @@ final class MoreBehaviorTests
 			ImbuingStationTileEntity station = c.tile(c.at(0, 1, 0), ImbuingStationTileEntity.class);
 			// The three ingredients may sit in any of the first three slots.
 			station.itemHandler().setStackInSlot(0, new ItemStack(Items.BONE_MEAL, 2));
-			station.itemHandler().setStackInSlot(1, PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER));
+			station.itemHandler().setStackInSlot(1, lumien.randomthings.util.PotionHelper.potion(Potions.WATER));
 			station.itemHandler().setStackInSlot(2, new ItemStack(Items.VINE, 2));
 			// Slot 3 is the item being imbued (the original recipe imbues the cobblestone with bottle + vine + bone meal).
 			station.itemHandler().setStackInSlot(3, new ItemStack(Items.COBBLESTONE, 2));

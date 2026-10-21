@@ -23,18 +23,18 @@ public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements Menu
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putInt("signalStrengthRed", signalStrengthRed);
 		compound.putInt("signalStrengthGreen", signalStrengthGreen);
 
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		this.signalStrengthRed = compound.getInt("signalStrengthRed");
 		this.signalStrengthGreen = compound.getInt("signalStrengthGreen");
 	}

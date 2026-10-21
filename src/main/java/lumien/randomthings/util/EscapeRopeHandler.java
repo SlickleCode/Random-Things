@@ -1,5 +1,7 @@
 package lumien.randomthings.util;
 
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
 import lumien.randomthings.item.EscapeRopeItem;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +24,7 @@ import java.util.List;
  * search never causes a visible hitch, teleporting the player up once it
  * finds a position that can see sky (landing on the first solid block
  * looking straight down from there, or the spot itself if none is found).
- * Ticked from a {@code TickEvent.ServerTickEvent} listener in
+ * Ticked from a {@code ServerTickEvent.Post} listener in
  * {@code RandomThings} (matches the original's own call site - this needs
  * to run once per server tick regardless of how many dimensions are loaded,
  * not once per world).
@@ -119,7 +121,7 @@ public class EscapeRopeHandler {
 
                                 world.playSound(null, actualPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5F, 1);
 
-                                holding.hurtAndBreak(1, actualPlayer, (p) -> p.broadcastBreakEvent(actualPlayer.getUsedItemHand()));
+                                holding.hurtAndBreak(1, actualPlayer, net.minecraft.world.entity.LivingEntity.getSlotForHand(actualPlayer.getUsedItemHand()));
                                 finished = true;
                             } else {
                                 alreadyChecked.add(nextPos);

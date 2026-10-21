@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.StackTag;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,8 @@ import net.minecraft.nbt.ByteTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.Difficulty;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 
 /**
  * Tests for features that exist only because of a coremod transformer or an unusual hook. These
@@ -222,12 +223,12 @@ final class CoremodTests
 			fake.setPos(c.origin.getX() + 0.5, c.origin.getY() + 2, c.origin.getZ() + 0.5);
 
 			ItemStack anchored = new ItemStack(Items.IRON_SWORD);
-			anchored.getOrCreateTag().put("spectreAnchor", ByteTag.valueOf((byte) 0));
+			StackTag.edit(anchored, t -> t.put("spectreAnchor", ByteTag.valueOf((byte) 0)));
 			fake.getInventory().setItem(0, anchored);
 			fake.getInventory().setItem(1, new ItemStack(Items.COBBLESTONE, 5));
 
 			// func_213337_cE = PlayerEntity.dropInventory (SRG name, resolves in dev and in a production jar)
-			Method drop = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(Player.class, "m_5907_");
+			Method drop = net.neoforged.fml.util.ObfuscationReflectionHelper.findMethod(Player.class, "dropEquipment");
 			drop.invoke(fake);
 
 			c.eq(Items.IRON_SWORD, fake.getInventory().getItem(0).getItem(), "anchored item must stay in its slot");

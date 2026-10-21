@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.CapUtil;
 import net.minecraft.core.BlockPos;
 
 import java.util.List;
@@ -19,11 +20,11 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -131,14 +132,13 @@ public class AdvancedItemCollectorTileEntity extends BlockEntity implements Menu
 
 		if (target != null)
 		{
-			LazyOptional<IItemHandler> capability = target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing);
-			IItemHandler itemHandler = capability.orElse(null);
+			IItemHandler itemHandler = CapUtil.itemHandler(target, facing);
 
 			if (itemHandler != null)
 			{
 				ItemStack filterStack = filterInventory.getStackInSlot(0);
 
-				List<ItemEntity> nearbyItems = this.level.getEntitiesOfClass(ItemEntity.class, new AABB(this.worldPosition.offset(-rangeX, -rangeY, -rangeZ), this.worldPosition.offset(rangeX + 1, rangeY + 1, rangeZ + 1)), EntitySelector.ENTITY_STILL_ALIVE);
+				List<ItemEntity> nearbyItems = this.level.getEntitiesOfClass(ItemEntity.class, lumien.randomthings.util.AABBs.of(this.worldPosition.offset(-rangeX, -rangeY, -rangeZ), this.worldPosition.offset(rangeX + 1, rangeY + 1, rangeZ + 1)), EntitySelector.ENTITY_STILL_ALIVE);
 
 				for (ItemEntity itemEntity : nearbyItems)
 				{
@@ -183,23 +183,23 @@ public class AdvancedItemCollectorTileEntity extends BlockEntity implements Menu
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putInt("rangeX", rangeX);
 		compound.putInt("rangeY", rangeY);
 		compound.putInt("rangeZ", rangeZ);
-		compound.put("inventory", filterInventory.serializeNBT());
+		compound.put("inventory", filterInventory.serializeNBT(registries));
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		rangeX = compound.getInt("rangeX");
 		rangeY = compound.getInt("rangeY");
 		rangeZ = compound.getInt("rangeZ");
-		filterInventory.deserializeNBT(compound.getCompound("inventory"));
+		filterInventory.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

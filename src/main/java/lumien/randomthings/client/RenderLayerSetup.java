@@ -35,7 +35,7 @@ import lumien.randomthings.block.spectretree.SpectreSaplingBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * 1.16 removed {@code Block#getRenderLayer()}; a block's render layer is now registered on the client through
@@ -45,7 +45,7 @@ public class RenderLayerSetup
 {
     public static void apply()
     {
-        for (Block block : ForgeRegistries.BLOCKS.getValues())
+        for (Block block : BuiltInRegistries.BLOCK)
         {
             if (!"randomthings".equals(RegUtil.id(block).getNamespace()))
             {

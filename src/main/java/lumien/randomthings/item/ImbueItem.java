@@ -36,9 +36,9 @@ import java.util.function.Supplier;
 public class ImbueItem extends Item {
     private static final int DURATION = 60 * 20 * 20;
 
-    private final Supplier<MobEffect> effect;
+    private final Supplier<net.minecraft.core.Holder<MobEffect>> effect;
 
-    public ImbueItem(Item.Properties properties, Supplier<MobEffect> effect) {
+    public ImbueItem(Item.Properties properties, Supplier<net.minecraft.core.Holder<MobEffect>> effect) {
         super(properties);
 
         this.effect = effect;
@@ -89,7 +89,7 @@ public class ImbueItem extends Item {
     }
 
     private void clearImbues(Player player) {
-        for (MobEffect imbue : new MobEffect[]{ModEffects.IMBUE_FIRE, ModEffects.IMBUE_POISON, ModEffects.IMBUE_EXPERIENCE, ModEffects.IMBUE_WITHER}) {
+        for (net.minecraft.core.Holder<MobEffect> imbue : new net.minecraft.core.Holder[]{ModEffects.IMBUE_FIRE, ModEffects.IMBUE_POISON, ModEffects.IMBUE_EXPERIENCE, ModEffects.IMBUE_WITHER}) {
             if (player.hasEffect(imbue)) {
                 player.removeEffect(imbue);
             }

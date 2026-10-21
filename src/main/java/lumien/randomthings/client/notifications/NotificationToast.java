@@ -17,6 +17,7 @@ import net.minecraft.client.gui.GuiGraphics;
  */
 public class NotificationToast implements Toast
 {
+	private static final net.minecraft.resources.ResourceLocation BACKGROUND_SPRITE = new net.minecraft.resources.ResourceLocation("toast/system");
 	private static final long DISPLAY_TIME_MS = 5000L;
 
 	private final String title;
@@ -42,10 +43,8 @@ public class NotificationToast implements Toast
 			newDisplay = false;
 		}
 
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, TEXTURE);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		graphics.blit(TEXTURE, 0, 0, 0, 0, 160, 32);
+				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		graphics.blitSprite(BACKGROUND_SPRITE, 0, 0, 160, 32);
 
 		graphics.drawString(toastGui.getMinecraft().font, title, 30, 7, 0xFFFFFF00, false);
 		graphics.drawString(toastGui.getMinecraft().font, description, 30, 18, 0xFFFFFFFF, false);

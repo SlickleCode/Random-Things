@@ -6,6 +6,6 @@
     "I": { "item": "minecraft:iron_ingot" }
   },
   "result": {
-    "item": "randomthings:blaze_and_steel"
+    "id": "randomthings:blaze_and_steel"
   }
 }

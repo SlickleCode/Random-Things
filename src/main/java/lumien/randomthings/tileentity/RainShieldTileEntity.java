@@ -74,14 +74,14 @@ public class RainShieldTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
         compound.putBoolean("active", active);
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
         this.active = !compound.contains("active") || compound.getBoolean("active");
     }
 

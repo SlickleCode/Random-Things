@@ -6,7 +6,7 @@ import net.minecraft.world.level.portal.PortalInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.util.ITeleporter;
+import net.neoforged.neoforge.common.util.ITeleporter;
 
 /**
  * Moves an entity into or out of the Spectre dimension without searching for or building a portal. 1.14.4's Forge had

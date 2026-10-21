@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.item.BiomeCrystalItem;
@@ -19,7 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -225,10 +226,10 @@ public class BiomeRadarTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
-        compound.put("currentCrystal", currentCrystal.save(new CompoundTag()));
+        compound.put("currentCrystal", StackTag.saveStack(currentCrystal));
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("powered", powered);
@@ -249,10 +250,10 @@ public class BiomeRadarTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
-        this.currentCrystal = ItemStack.of(compound.getCompound("currentCrystal"));
+        this.currentCrystal = ItemStack.parseOptional(StackTag.provider(), compound.getCompound("currentCrystal"));
         this.state = STATE.values()[compound.getInt("state")];
         this.powered = compound.getBoolean("powered");
 
@@ -275,24 +276,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    /**
-     * Real bug, found 2026-09-27 (same category as {@code RuneBaseTileEntity}'s
-     * identical fix, found while chasing that one's own "doesn't update without
-     * a relog" report): {@code TileEntity.onDataPacket} doesn't exist in this
-     * Forge version - it's a Forge-added default method on {@code
-     * IForgeTileEntity}, and that default is an empty no-op (confirmed by
-     * reading its source), unlike {@code handleUpdateTag}'s default (initial
-     * chunk-load sync only, e.g. on rejoin), which already calls {@code
-     * read(tag)}. Without this override, every live update sent via {@code
-     * getUpdatePacket} above silently did nothing on arrival.
-     */
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
-    }
-
-    /**
+/**
      * {@code TileEntity.getUpdateTag()}'s default implementation calls the
      * *private* {@code writeInternal()} directly (confirmed via `javap -c`),
      * not the public, overridable {@code write()} - so without this override
@@ -304,8 +288,8 @@ public class BiomeRadarTileEntity extends BlockEntity {
      * client.
      */
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     private void syncTE() {

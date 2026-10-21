@@ -2,8 +2,8 @@ package lumien.randomthings.entity;
 
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.ObjectHolder;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ObjectHolder;
 
 /**
  * This port's non-tile-entity {@link EntityType} registrations.
@@ -39,7 +39,7 @@ public class ModEntityTypes {
     @ObjectHolder(registryName = "minecraft:entity_type", value = "randomthings:spirit")
     public static EntityType<SpiritEntity> SPIRIT;
 
-    public static void registerEntityTypes(IForgeRegistry<EntityType<?>> registry) {
+    public static void registerEntityTypes(RTRegistry<EntityType<?>> registry) {
 
         EntityType.Builder<FlooFireplaceEntity> flooBuilder = EntityType.Builder.of(FlooFireplaceEntity::new, MobCategory.MISC);
         registry.register("floo_fireplace", flooBuilder.sized(2.0F, 1.0F).noSummon().build("floo_fireplace"));

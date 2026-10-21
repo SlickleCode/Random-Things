@@ -16,7 +16,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 
@@ -47,8 +46,8 @@ public class ArtificialEndPortalEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ACTION_TIMER, 0);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        builder.define(ACTION_TIMER, 0);
     }
 
     public int getActionTimer() {
@@ -111,10 +110,6 @@ public class ArtificialEndPortalEntity extends Entity {
         compound.putInt("actionTimer", getActionTimer());
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 
     public static boolean isValidPosition(Level world, BlockPos center, boolean checkForOtherPortals) {
         for (int modX = -1; modX < 2; modX++) {
@@ -154,7 +149,7 @@ public class ArtificialEndPortalEntity extends Entity {
         }
 
         if (checkForOtherPortals) {
-            List<ArtificialEndPortalEntity> portalList = world.getEntitiesOfClass(ArtificialEndPortalEntity.class, new AABB(center, center.offset(1, 2, 1)));
+            List<ArtificialEndPortalEntity> portalList = world.getEntitiesOfClass(ArtificialEndPortalEntity.class, lumien.randomthings.util.AABBs.of(center, center.offset(1, 2, 1)));
 
             if (!portalList.isEmpty()) {
                 return false;

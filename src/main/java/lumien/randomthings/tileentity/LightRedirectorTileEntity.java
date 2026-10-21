@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.util.WeakSets;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -103,9 +104,8 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
+    public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt, net.minecraft.core.HolderLookup.Provider registries) {
+        super.onDataPacket(net, pkt, registries);
 
         targets.clear();
 
@@ -115,13 +115,13 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         for (Direction facing : Direction.values()) {
             compound.putBoolean("enabled_" + facing.getSerializedName(), enabledMap.get(facing));
@@ -130,8 +130,8 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         for (Direction facing : Direction.values()) {
             String key = "enabled_" + facing.getSerializedName();

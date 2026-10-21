@@ -1,11 +1,13 @@
 package lumien.randomthings.item;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
+import java.util.List;
+
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 
 /**
@@ -19,14 +21,17 @@ import net.minecraft.world.item.Rarity;
  */
 public class SuperLubricentBootsItem extends ArmorItem
 {
-	public SuperLubricentBootsItem(Item.Properties properties)
+	/** Iron stats, but the boots' own armor texture ({@code textures/models/armor/superlubricentboots_layer_1.png}). */
+	private static final Holder<ArmorMaterial> MATERIAL;
+
+	static
 	{
-		super(ArmorMaterials.IRON, ArmorItem.Type.BOOTS, properties.rarity(Rarity.UNCOMMON));
+		ArmorMaterial iron = ArmorMaterials.IRON.value();
+		MATERIAL = Holder.direct(new ArmorMaterial(iron.defense(), iron.enchantmentValue(), iron.equipSound(), iron.repairIngredient(), List.of(new ArmorMaterial.Layer(new ResourceLocation("randomthings", "superlubricentboots"))), iron.toughness(), iron.knockbackResistance()));
 	}
 
-	@Override
-	public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type)
+	public SuperLubricentBootsItem(Item.Properties properties)
 	{
-		return "randomthings:textures/models/armor/superlubricentboots.png";
+		super(MATERIAL, ArmorItem.Type.BOOTS, properties.rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.BOOTS.getDurability(15)));
 	}
 }

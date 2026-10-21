@@ -6,6 +6,6 @@
     "G": { "item": "minecraft:gunpowder" }
   },
   "result": {
-    "item": "randomthings:sided_redstone"
+    "id": "randomthings:sided_redstone"
   }
 }

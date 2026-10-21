@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.EntityBlock;
 
@@ -41,7 +42,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.Random;
 import net.minecraft.world.InteractionResult;
@@ -140,7 +141,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (worldIn.isClientSide) {
             return InteractionResult.SUCCESS;
         }
@@ -159,7 +160,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
 
             if (mailbox.getOwner() != null) {
                 if (mailbox.getOwner().equals(player.getUUID())) {
-                    net.minecraftforge.network.NetworkHooks.openScreen((net.minecraft.server.level.ServerPlayer) player, mailbox, pos);
+                    ((net.minecraft.server.level.ServerPlayer) player).openMenu(mailbox, pos);
                 } else {
                     player.displayClientMessage(Component.translatable("block.randomthings.ender_mailbox.owner").withStyle(ChatFormatting.RED), false);
                 }
@@ -170,7 +171,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     }
 
     private void deliverLetter(Level worldIn, BlockPos pos, Player player, ItemStack heldItem) {
-        CompoundTag compound = heldItem.getTag();
+        CompoundTag compound = StackTag.get(heldItem);
 
         if (compound == null || !compound.contains("receiver") || compound.getBoolean("received")) {
             return;
@@ -189,9 +190,8 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
             if (mailboxInventory.getStackInSlot(slot).isEmpty()) {
                 ItemStack sendingLetter = heldItem.copy();
                 sendingLetter.setCount(1);
-                sendingLetter.getOrCreateTag().putBoolean("received", true);
-                sendingLetter.getOrCreateTag().putString("sender", player.getGameProfile().getName());
-
+                StackTag.edit(sendingLetter, t -> t.putBoolean("received", true));
+                StackTag.edit(sendingLetter, t -> t.putString("sender", player.getGameProfile().getName()));
                 mailboxInventory.insertItem(slot, sendingLetter, false);
                 heldItem.shrink(1);
 

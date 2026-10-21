@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -14,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import lumien.randomthings.util.BiomeUtil;
@@ -45,8 +46,9 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, world, tooltip, flag);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldCtx, tooltip, flag);
 
         Biome biome = getBiome(stack);
 
@@ -74,7 +76,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     public static Biome getBiome(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound != null && compound.contains("biomeName")) {
             return lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(compound.getString("biomeName")));
@@ -84,8 +86,6 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     public static void setBiome(ItemStack stack, Biome biome) {
-        CompoundTag compound = stack.getOrCreateTag();
-
-        compound.putString("biomeName", BiomeUtil.id(biome).toString());
+        StackTag.edit(stack, compound -> compound.putString("biomeName", BiomeUtil.id(biome).toString()));
     }
 }

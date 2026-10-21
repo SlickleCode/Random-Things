@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.StackTag;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -191,14 +192,14 @@ final class BehaviorTests
 
 		// ---- Special crafting recipes ---------------------------------------------------------
 		tests.add(RTTest.named("behavior.recipes.spectre_anchor_combine_tags_single_unstackable_item").run(c -> {
-			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(new ResourceLocation("randomthings", "test"), net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
+			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
 			ItemStack anchor = new ItemStack(ModItems.SPECTRE_ANCHOR);
 
 			CraftingContainer good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
 			c.check(recipe.matches(good, c.world), "anchor + sword should match");
 			ItemStack result = recipe.assemble(good, net.minecraft.core.RegistryAccess.EMPTY);
 			c.eq(Items.IRON_SWORD, result.getItem(), "result item");
-			c.check(result.hasTag() && result.getTag().contains("spectreAnchor"), "result must carry the spectreAnchor tag");
+			c.check(StackTag.contains(result, "spectreAnchor"), "result must carry the spectreAnchor tag");
 			recipe.getRemainingItems(good).forEach(s -> c.check(s.isEmpty(), "anchor and target are both consumed"));
 
 			c.check(!recipe.matches(grid(3, 3, anchor, new ItemStack(Items.COBBLESTONE)), c.world), "stackable items must not match");
@@ -211,9 +212,11 @@ final class BehaviorTests
 			List<String> problems = new ArrayList<>();
 			int checked = 0;
 
-			for (Recipe<?> recipe : c.world.getServer().getRecipeManager().getRecipes())
+			for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : c.world.getServer().getRecipeManager().getRecipes())
 			{
-				if (!"randomthings".equals(recipe.getId().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
+				Recipe<?> recipe = holder.value();
+
+				if (!"randomthings".equals(holder.id().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
 				{
 					continue;
 				}
@@ -222,7 +225,7 @@ final class BehaviorTests
 				CraftingRecipe crafting = (CraftingRecipe) recipe;
 				CraftingContainer inv = new net.minecraft.world.inventory.TransientCraftingContainer(new NoopContainer(), 3, 3);
 				List<Ingredient> ingredients = recipe.getIngredients();
-				int width = recipe instanceof ShapedRecipe ? ((ShapedRecipe) recipe).getRecipeWidth() : 3;
+				int width = recipe instanceof ShapedRecipe ? ((ShapedRecipe) recipe).getWidth() : 3;
 
 				for (int i = 0; i < ingredients.size(); i++)
 				{
@@ -241,7 +244,7 @@ final class BehaviorTests
 
 				if (!crafting.matches(inv, c.world))
 				{
-					problems.add(recipe.getId().getPath() + " does not match its own ingredients");
+					problems.add(holder.id().getPath() + " does not match its own ingredients");
 					continue;
 				}
 
@@ -250,7 +253,7 @@ final class BehaviorTests
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
 				{
-					problems.add(recipe.getId().getPath() + " crafts " + out + " but declares " + expected);
+					problems.add(holder.id().getPath() + " crafts " + out + " but declares " + expected);
 				}
 			}
 

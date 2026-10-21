@@ -144,7 +144,7 @@ public final class SceneShots
 				// one page = five rows
 				for (int i = 0; i < 5; i++)
 				{
-					mc.screen.mouseScrolled(mc.screen.width / 2.0, mc.screen.height / 2.0, -1.0);
+					mc.screen.mouseScrolled(mc.screen.width / 2.0, mc.screen.height / 2.0, 0.0, -1.0);
 				}
 
 				wait = 10;
@@ -176,7 +176,7 @@ public final class SceneShots
 			}
 
 			int entityId = -9000 - i;
-			mc.level.addPlayer(entityId, other);
+			mc.level.addEntity(other);
 			remotePlayers.add(entityId);
 		}
 
@@ -199,7 +199,7 @@ public final class SceneShots
 		try
 		{
 			// the tab selection is private; m_98560_ is its SRG id (remapped to the Mojang name in dev runs)
-			java.lang.reflect.Method select = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findMethod(CreativeModeInventoryScreen.class, "m_98560_", net.minecraft.world.item.CreativeModeTab.class);
+			java.lang.reflect.Method select = net.neoforged.fml.util.ObfuscationReflectionHelper.findMethod(CreativeModeInventoryScreen.class, "selectTab", net.minecraft.world.item.CreativeModeTab.class);
 			select.invoke(screen, ModItems.RT_ITEM_GROUP);
 		}
 		catch (ReflectiveOperationException e)

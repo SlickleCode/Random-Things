@@ -14,8 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -56,12 +55,12 @@ public class SoundDampenerBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (!worldIn.isClientSide) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof SoundDampenerTileEntity) {
-                NetworkHooks.openScreen((ServerPlayer) player, (SoundDampenerTileEntity) te);
+                ((ServerPlayer) player).openMenu((SoundDampenerTileEntity) te);
             }
         }
 

@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * Server -> nearby clients: the up-to-4 distinct biomes a
@@ -59,7 +59,7 @@ public class BiomeRadarAntennaMessage implements IRTMessage {
     }
 
     @Override
-    public void handle(Context ctx) {
+    public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (Minecraft.getInstance().level == null) {
                 return;

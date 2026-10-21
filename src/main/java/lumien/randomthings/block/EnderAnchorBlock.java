@@ -27,8 +27,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Direct port of 1.12.2's {@code BlockEnderAnchor}. Like its {@code breakBlock},
@@ -54,7 +54,7 @@ public class EnderAnchorBlock extends Block implements EntityBlock {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, @Nullable BlockGetter worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
         if (RTConfig.ENDER_ANCHOR_CHUNKLOADING.get()) {
             tooltip.add(Component.translatable("tooltip.randomthings.ender_anchor.chunkloading"));
         }

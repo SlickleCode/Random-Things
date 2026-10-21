@@ -5,13 +5,12 @@ import java.util.UUID;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.util.LazyLoadedValue;
 
 /**
  * Ported from 1.12.2's {@code EnumHelper.addToolMaterial("spectre", 3, 2000, 8, 3, 22)} (repair item
  * Spectre Ingot) - 1.14.4 replaced the enum-extension trick with a plain {@link IItemTier}
  * implementation, modeled directly on vanilla's own {@code ItemTier} enum constants. The repair
- * {@link Ingredient} is wrapped in a {@link LazyValue} exactly like every vanilla tier, since
+ * {@link Ingredient} is wrapped in a lazily exactly like every vanilla tier, since
  * {@code ModItems#SPECTRE_INGOT} isn't populated by its {@code ObjectHolder} until after the item
  * registry event this tier is constructed during has finished.
  */
@@ -31,7 +30,12 @@ public class SpectreItemTier implements Tier {
      */
     public static final UUID REACH_MODIFIER_UUID = UUID.nameUUIDFromBytes("SpectreRangeModifier".getBytes());
 
-    private final LazyLoadedValue<Ingredient> repairMaterial = new LazyLoadedValue<>(() -> Ingredient.of(ModItems.SPECTRE_INGOT));
+    private Ingredient repairMaterial;
+
+    /** The +3 block reach of the pickaxe, axe and shovel while held in the main hand, added to their normal tool attributes. */
+    public static net.minecraft.world.item.component.ItemAttributeModifiers withReach(net.minecraft.world.item.component.ItemAttributeModifiers base) {
+        return base.withModifierAdded(net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
+    }
 
     @Override
     public int getUses() {
@@ -49,8 +53,8 @@ public class SpectreItemTier implements Tier {
     }
 
     @Override
-    public int getLevel() {
-        return 3;
+    public net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> getIncorrectBlocksForDrops() {
+        return net.minecraft.tags.BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
     }
 
     @Override
@@ -60,6 +64,9 @@ public class SpectreItemTier implements Tier {
 
     @Override
     public Ingredient getRepairIngredient() {
-        return repairMaterial.get();
+        if (repairMaterial == null) {
+            repairMaterial = Ingredient.of(ModItems.SPECTRE_INGOT);
+        }
+        return repairMaterial;
     }
 }

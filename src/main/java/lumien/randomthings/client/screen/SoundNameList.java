@@ -25,10 +25,9 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     private final Consumer<String> onSelect;
 
     public SoundNameList(Minecraft client, int width, int height, int top, int bottom, int left, List<String> sounds, Consumer<String> onSelect) {
-        super(client, width, height, top, bottom, 14);
+        super(client, width, bottom - top, top, 14);
 
-        this.setLeftPos(left);
-        this.setRenderSelection(false);
+        this.setX(left);
 
         this.onSelect = onSelect;
 
@@ -66,7 +65,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     /** Rows start 2px inside the border (vanilla centers them on {@link #getRowWidth()} plus 2px, which left a wide left margin). */
     @Override
     public int getRowLeft() {
-        return this.x0 + 2;
+        return this.getX() + 2;
     }
 
     /**
@@ -80,20 +79,20 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
      */
     @Override
     protected int getScrollbarPosition() {
-        return this.x0 + this.width - 6;
+        return this.getX() + this.width - 6;
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         // ContainerScreen#render leaves item lighting on and a stale GL color, which dimmed both the
         // hover bar and the (white) hovered text to near-black in the screenshots
         com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int rowLeft = this.getRowLeft();
-        int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
+        int rowTop = this.getY() + 4 - (int) this.getScrollAmount();
 
-        ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(graphics, mouseX, mouseY, partialTicks);
+        ListClip.begin(this.minecraft, this.getX(), this.getY(), this.getRight(), this.getBottom());
+        this.renderListItems(graphics, mouseX, mouseY, partialTicks);
         ListClip.end();
 
         renderBorder(graphics);
@@ -128,16 +127,16 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     private void renderBorder(GuiGraphics graphics) {
         int color = 0xFFFFFFFF;
 
-        graphics.fill(this.x0 - 1, this.y0 - 1, this.x1 + 1, this.y0, color);
-        graphics.fill(this.x0 - 1, this.y1, this.x1 + 1, this.y1 + 1, color);
-        graphics.fill(this.x0 - 1, this.y0, this.x0, this.y1, color);
-        graphics.fill(this.x1, this.y0, this.x1 + 1, this.y1, color);
+        graphics.fill(this.getX() - 1, this.getY() - 1, this.getRight() + 1, this.getY(), color);
+        graphics.fill(this.getX() - 1, this.getBottom(), this.getRight() + 1, this.getBottom() + 1, color);
+        graphics.fill(this.getX() - 1, this.getY(), this.getX(), this.getBottom(), color);
+        graphics.fill(this.getRight(), this.getY(), this.getRight() + 1, this.getBottom(), color);
     }
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
     private void renderScrollbar(GuiGraphics graphics) {
         int totalHeight = this.getItemCount() * this.itemHeight;
-        int visibleHeight = this.y1 - this.y0;
+        int visibleHeight = this.getBottom() - this.getY();
 
         if (totalHeight <= visibleHeight) {
             return;
@@ -149,9 +148,9 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         int scrollbarX = this.getScrollbarPosition();
         int maxScroll = Math.max(1, this.getMaxPosition() - (visibleHeight - 4));
         int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.getMaxPosition())));
-        int thumbY = Math.max(this.y0, Math.min(this.y1 - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.y0));
+        int thumbY = Math.max(this.getY(), Math.min(this.getBottom() - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.getY()));
 
-        graphics.fill(scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF373737);
+        graphics.fill(scrollbarX, this.getY(), scrollbarX + 6, this.getBottom(), 0xFF373737);
         graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);
         graphics.fill(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight - 1, 0xFFC6C6C6);
     }

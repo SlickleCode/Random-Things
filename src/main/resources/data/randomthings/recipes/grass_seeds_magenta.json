@@ -4,5 +4,5 @@
     { "item": "randomthings:grass_seeds" },
     { "item": "minecraft:magenta_dye" }
   ],
-  "result": { "item": "randomthings:grass_seeds_magenta" }
+  "result": { "id": "randomthings:grass_seeds_magenta" }
 }

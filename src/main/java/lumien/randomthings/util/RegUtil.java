@@ -11,7 +11,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /** 1.19 removed {@code getRegistryName()}; this looks the id up in the matching Forge registry (null if unregistered). */
 public final class RegUtil
@@ -22,36 +22,36 @@ public final class RegUtil
 
 	public static ResourceLocation id(Block b)
 	{
-		return ForgeRegistries.BLOCKS.getKey(b);
+		return BuiltInRegistries.BLOCK.getKey(b);
 	}
 
 	public static ResourceLocation id(Item i)
 	{
-		return ForgeRegistries.ITEMS.getKey(i);
+		return BuiltInRegistries.ITEM.getKey(i);
 	}
 
 	public static ResourceLocation id(Fluid f)
 	{
-		return ForgeRegistries.FLUIDS.getKey(f);
+		return BuiltInRegistries.FLUID.getKey(f);
 	}
 
 	public static ResourceLocation id(EntityType<?> t)
 	{
-		return ForgeRegistries.ENTITY_TYPES.getKey(t);
+		return BuiltInRegistries.ENTITY_TYPE.getKey(t);
 	}
 
 	public static ResourceLocation id(BlockEntityType<?> t)
 	{
-		return ForgeRegistries.BLOCK_ENTITY_TYPES.getKey(t);
+		return BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(t);
 	}
 
 	public static ResourceLocation id(MobEffect e)
 	{
-		return ForgeRegistries.MOB_EFFECTS.getKey(e);
+		return BuiltInRegistries.MOB_EFFECT.getKey(e);
 	}
 
 	public static ResourceLocation id(Enchantment e)
 	{
-		return ForgeRegistries.ENCHANTMENTS.getKey(e);
+		return BuiltInRegistries.ENCHANTMENT.getKey(e);
 	}
 }

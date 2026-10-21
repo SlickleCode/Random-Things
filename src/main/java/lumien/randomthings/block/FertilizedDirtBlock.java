@@ -19,8 +19,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.IPlantable;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.IPlantable;
+import net.neoforged.neoforge.common.PlantType;
 import net.minecraft.server.level.ServerLevel;
 
 
@@ -35,6 +35,13 @@ public class FertilizedDirtBlock extends Block
 		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL).randomTicks());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(TILLED, false));
+	}
+
+	/** 1.20.5 made {@code randomTick} a no-op by default (it used to call {@code tick}), so random ticks are forwarded explicitly. */
+	@Override
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
+	{
+		this.tick(state, worldIn, pos, random);
 	}
 
 	@Override

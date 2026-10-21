@@ -40,21 +40,21 @@ public class FlooFireplace {
             compound.putString("name", name);
         }
 
-        compound.put("position", NbtUtils.writeBlockPos(lastKnownPosition));
+        compound.put("position", lumien.randomthings.util.BlockPosNbt.write(lastKnownPosition));
     }
 
     public void read(CompoundTag compound) {
         if (compound.contains("creatorPlayerUUID")) {
-            this.creatorPlayerUUID = NbtUtils.loadUUID(compound.getCompound("creatorPlayerUUID"));
+            this.creatorPlayerUUID = NbtUtils.loadUUID(compound.get("creatorPlayerUUID"));
         }
 
-        this.masterUUID = NbtUtils.loadUUID(compound.getCompound("masterUUID"));
+        this.masterUUID = NbtUtils.loadUUID(compound.get("masterUUID"));
 
         if (compound.contains("name")) {
             this.name = compound.getString("name");
         }
 
-        this.lastKnownPosition = NbtUtils.readBlockPos(compound.getCompound("position"));
+        this.lastKnownPosition = lumien.randomthings.util.BlockPosNbt.read(compound.getCompound("position"));
     }
 
     public String getName() {

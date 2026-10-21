@@ -18,7 +18,7 @@ come from, and an effort/risk/verdict. It is a planning document, not a commitme
 - **Skipped for now: 1.15.2 and 1.17.1** (backlog Q11); the path is 1.14.4 -> 1.16.5 -> 1.18.2 -> 1.19.4 -> 1.20.1/1.20.6 -> 1.21.1/1.21.11.
 - **Patching: stay with coremods** (owner: the mod's behavior is too specific for hook-only approaches). Risk: see
   cross-cutting finding 2.
-- **In scope: 6 lines (8 minus the two skipped)** - 1.14.4 (done, playtesting), 1.16.5 (**ported 2026-10-11, branch `1.16.5`, Forge 36.2.39, automated suites green; see `plans/1.16.5-port-plan.md`**), 1.18.2, 1.19.4, 1.20.6 (plus 1.20.1) and
+- **In scope: 6 lines (8 minus the two skipped)** - 1.14.4 (done, playtesting), 1.16.5 (**ported 2026-10-11, branch `1.16.5`, Forge 36.2.39, automated suites green; see `plans/1.16.5-port-plan.md`**), 1.18.2, 1.19.4, 1.20.6 (**ported 2026-10-20 on NeoForge 20.6.141, branch `1.20.6`; see `plans/1.20.6-port-plan.md`**; 1.20.1 also ported) and
   1.21.11 (plus 1.21.1).
 
 ## Definitions

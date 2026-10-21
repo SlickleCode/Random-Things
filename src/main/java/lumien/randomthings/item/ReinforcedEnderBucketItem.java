@@ -19,14 +19,11 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.neoforged.neoforge.fluids.FluidActionResult;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,15 +48,10 @@ import java.util.Set;
  * not in it.
  */
 public class ReinforcedEnderBucketItem extends Item {
-    private static final int CAPACITY = 1000 * 10;
+    public static final int CAPACITY = 1000 * 10;
 
     public ReinforcedEnderBucketItem(Item.Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, CompoundTag nbt) {
-        return new FluidHandlerItemStack(stack, CAPACITY);
     }
 
     @Override
@@ -80,7 +72,7 @@ public class ReinforcedEnderBucketItem extends Item {
         FluidStack contained = getContainedFluid(stack);
 
         if (contained != null) {
-            return net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions.of(contained.getFluid()).getTintColor(contained);
+            return net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions.of(contained.getFluid()).getTintColor(contained);
         }
 
         return super.getBarColor(stack);
@@ -181,7 +173,8 @@ public class ReinforcedEnderBucketItem extends Item {
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                int filled = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.fill(drained, FluidAction.EXECUTE)).orElse(0);
+                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem fillHandler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        int filled = fillHandler == null ? 0 : fillHandler.fill(drained, FluidAction.EXECUTE);
 
                 if (filled > 0) {
                     pickedAny = true;
@@ -205,7 +198,7 @@ public class ReinforcedEnderBucketItem extends Item {
     }
 
     private static boolean isFluidBlock(Block block) {
-        return block instanceof BucketPickup || block instanceof IFluidBlock;
+        return block instanceof BucketPickup;
     }
 
     /**
@@ -214,13 +207,9 @@ public class ReinforcedEnderBucketItem extends Item {
      * directly against each interface's own self-contained drain method instead.
      */
     private static FluidStack drainSource(Level world, BlockPos pos, BlockState state, Block block) {
-        if (block instanceof IFluidBlock) {
-            return ((IFluidBlock) block).drain(world, pos, FluidAction.EXECUTE);
-        }
-
         if (block instanceof BucketPickup) {
             Fluid fluid = state.getFluidState().getType();
-            ItemStack pickedUp = ((BucketPickup) block).pickupBlock(world, pos, state);
+            ItemStack pickedUp = ((BucketPickup) block).pickupBlock(null, world, pos, state);
             if (pickedUp.isEmpty()) {
                 fluid = Fluids.EMPTY;
             }
@@ -237,10 +226,11 @@ public class ReinforcedEnderBucketItem extends Item {
         // getDisplayName() (this method's caller) runs earlier than that
         // during the client's initial search-tree build - confirmed via a
         // real crash log.
-        if (ForgeCapabilities.FLUID_HANDLER_ITEM == null) {
+        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem handler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        if (handler == null) {
             return null;
         }
-
-        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
+        FluidStack drained = handler.drain(CAPACITY, FluidAction.SIMULATE);
+        return drained.isEmpty() ? null : drained;
     }
 }

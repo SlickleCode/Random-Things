@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.CapUtil;
 import java.util.UUID;
 
 import lumien.randomthings.block.SpectreCoilBlock;
@@ -10,9 +11,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.energy.IEnergyStorage;
+
+
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
  * Ported from 1.12.2's {@code TileEntitySpectreCoil} - the "output tap" of the Spectre energy network:
@@ -63,8 +64,7 @@ public class SpectreCoilTileEntity extends BlockEntity {
         }
 
         // The support's face touching this coil is the one pointing back at it, i.e. `facing` itself.
-        LazyOptional<IEnergyStorage> targetCap = targetTe.getCapability(ForgeCapabilities.ENERGY, facing);
-        IEnergyStorage targetStorage = targetCap.orElse(null);
+        IEnergyStorage targetStorage = CapUtil.energy(targetTe, facing);
 
         if (targetStorage == null || !targetStorage.canReceive()) {
             return;
@@ -88,8 +88,8 @@ public class SpectreCoilTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (owner != null) {
             compound.putUUID("owner", owner);
@@ -98,8 +98,8 @@ public class SpectreCoilTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("owner")) {
             owner = compound.getUUID("owner");

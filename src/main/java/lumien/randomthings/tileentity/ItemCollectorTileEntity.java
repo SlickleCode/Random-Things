@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.CapUtil;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.minecraft.core.BlockPos;
@@ -13,10 +14,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Vacuums nearby dropped items into the inventory it's mounted on, self
@@ -57,12 +58,11 @@ public class ItemCollectorTileEntity extends BlockEntity
 
 		if (target != null)
 		{
-			LazyOptional<IItemHandler> capability = target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing);
-			IItemHandler itemHandler = capability.orElse(null);
+			IItemHandler itemHandler = CapUtil.itemHandler(target, facing);
 
 			if (itemHandler != null)
 			{
-				List<ItemEntity> nearbyItems = this.level.getEntitiesOfClass(ItemEntity.class, new AABB(this.worldPosition.offset(-RANGE, -RANGE, -RANGE), this.worldPosition.offset(RANGE + 1, RANGE + 1, RANGE + 1)), EntitySelector.ENTITY_STILL_ALIVE);
+				List<ItemEntity> nearbyItems = this.level.getEntitiesOfClass(ItemEntity.class, lumien.randomthings.util.AABBs.of(this.worldPosition.offset(-RANGE, -RANGE, -RANGE), this.worldPosition.offset(RANGE + 1, RANGE + 1, RANGE + 1)), EntitySelector.ENTITY_STILL_ALIVE);
 
 				for (ItemEntity itemEntity : nearbyItems)
 				{

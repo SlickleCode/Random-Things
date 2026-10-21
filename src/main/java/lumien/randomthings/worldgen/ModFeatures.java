@@ -2,10 +2,10 @@ package lumien.randomthings.worldgen;
 
 import net.minecraft.core.registries.Registries;
 
-import net.minecraftforge.registries.IForgeRegistry;
+import lumien.randomthings.lib.RTRegistry;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
-import net.minecraftforge.registries.ObjectHolder;
+import lumien.randomthings.lib.ObjectHolder;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import java.util.List;
 import net.minecraft.core.Holder;
@@ -18,7 +18,7 @@ import net.minecraft.world.level.levelgen.placement.RarityFilter;
 import net.minecraft.resources.ResourceLocation;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.common.world.BiomeGenerationSettingsBuilder;
+import net.neoforged.neoforge.common.world.BiomeGenerationSettingsBuilder;
 import net.minecraft.world.level.levelgen.GenerationStep;
 
 /**
@@ -47,7 +47,7 @@ public class ModFeatures {
     @ObjectHolder(registryName = "minecraft:worldgen/feature", value = "randomthings:ancient_furnace")
     public static AncientFurnaceFeature ANCIENT_FURNACE;
 
-    public static void registerFeatures(IForgeRegistry<Feature<?>> registry) {
+    public static void registerFeatures(RTRegistry<Feature<?>> registry) {
         registry.register("bean_sprout", new BeanSproutFeature(NoneFeatureConfiguration.CODEC));
         registry.register("lotus", new LotusFeature(NoneFeatureConfiguration.CODEC));
         registry.register("ancient_furnace", new AncientFurnaceFeature(NoneFeatureConfiguration.CODEC));

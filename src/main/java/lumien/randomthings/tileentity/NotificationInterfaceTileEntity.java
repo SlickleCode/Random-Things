@@ -17,7 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -109,9 +109,9 @@ public class NotificationInterfaceTileEntity extends BlockEntity implements Menu
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		compound.putString("title", title);
 		compound.putString("description", description);
@@ -121,14 +121,14 @@ public class NotificationInterfaceTileEntity extends BlockEntity implements Menu
 			compound.putString("owner", owner.toString());
 		}
 
-		compound.put("inventory", iconInventory.serializeNBT());
+		compound.put("inventory", iconInventory.serializeNBT(registries));
 
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		title = compound.getString("title");
 		description = compound.getString("description");
@@ -138,7 +138,7 @@ public class NotificationInterfaceTileEntity extends BlockEntity implements Menu
 			owner = UUID.fromString(compound.getString("owner"));
 		}
 
-		iconInventory.deserializeNBT(compound.getCompound("inventory"));
+		iconInventory.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

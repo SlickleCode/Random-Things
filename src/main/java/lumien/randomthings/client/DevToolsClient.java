@@ -1,6 +1,6 @@
 package lumien.randomthings.client;
 
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 /** Client half of {@link lumien.randomthings.debug.DevTools}; only loaded in dev instances. */
 public final class DevToolsClient
@@ -11,13 +11,13 @@ public final class DevToolsClient
 
 	public static void init()
 	{
-		MinecraftForge.EVENT_BUS.register(GuiDebugScreenshots.class);
-		MinecraftForge.EVENT_BUS.register(GuiOpenTriggerLog.class);
-		MinecraftForge.EVENT_BUS.register(ParticleProbe.class);
+		NeoForge.EVENT_BUS.register(GuiDebugScreenshots.class);
+		NeoForge.EVENT_BUS.register(GuiOpenTriggerLog.class);
+		NeoForge.EVENT_BUS.register(ParticleProbe.class);
 
 		if (Boolean.getBoolean("randomthings.autotest"))
 		{
-			MinecraftForge.EVENT_BUS.register(AutoTest.class);
+			NeoForge.EVENT_BUS.register(AutoTest.class);
 		}
 	}
 }

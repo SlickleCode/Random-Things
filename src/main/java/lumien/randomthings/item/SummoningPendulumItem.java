@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.client.gui.screens.Screen;
@@ -23,7 +24,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 
@@ -39,11 +40,11 @@ public class SummoningPendulumItem extends Item {
     }
 
     private static int getEntityCount(ItemStack stack) {
-        if (!stack.hasTag()) {
+        if (!StackTag.has(stack)) {
             return 0;
         }
 
-        return stack.getTag().getList("entitys", 10).size();
+        return StackTag.get(stack).getList("entitys", 10).size();
     }
 
     @Override
@@ -67,15 +68,16 @@ public class SummoningPendulumItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag advanced) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
         int entityCount = getEntityCount(stack);
 
         if (Screen.hasShiftDown() && entityCount != 0) {
-            ListTag tagList = stack.getTag().getList("entitys", 10);
+            ListTag tagList = StackTag.get(stack).getList("entitys", 10);
 
             for (int i = 0; i < tagList.size(); i++) {
                 ResourceLocation entityLocation = new ResourceLocation(tagList.getCompound(i).getString("id"));
-                EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(entityLocation);
+                EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityLocation);
 
                 if (type != null) {
                     tooltip.add(Component.literal("- ").append(type.getDescription()));
@@ -95,7 +97,7 @@ public class SummoningPendulumItem extends Item {
 
         if (!(entity instanceof Enemy || entity instanceof Player)) {
             ItemStack heldStack = player.getMainHandItem();
-            CompoundTag compound = heldStack.hasTag() ? heldStack.getTag() : new CompoundTag();
+            CompoundTag compound = StackTag.has(heldStack) ? StackTag.get(heldStack) : new CompoundTag();
 
             ListTag tagList = compound.getList("entitys", 10);
             if (tagList.size() < 5) {
@@ -109,7 +111,7 @@ public class SummoningPendulumItem extends Item {
             }
 
             compound.put("entitys", tagList);
-            heldStack.setTag(compound);
+            StackTag.set(heldStack, compound);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.SUCCESS;
@@ -123,7 +125,7 @@ public class SummoningPendulumItem extends Item {
         Player player = context.getPlayer();
 
         if (!world.isClientSide && player != null) {
-            CompoundTag compound = stack.getTag();
+            CompoundTag compound = StackTag.get(stack);
             if (compound != null) {
                 ListTag tagList = compound.getList("entitys", 10);
                 if (tagList.size() > 0) {
@@ -144,8 +146,4 @@ public class SummoningPendulumItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public Rarity getRarity(ItemStack stack) {
-        return Rarity.RARE;
-    }
 }

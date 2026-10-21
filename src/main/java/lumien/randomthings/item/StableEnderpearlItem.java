@@ -1,5 +1,8 @@
 package lumien.randomthings.item;
 
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+
+import lumien.randomthings.util.StackTag;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -49,9 +52,9 @@ public class StableEnderpearlItem extends Item
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
-	{
-		CompoundTag compound = stack.getTag();
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+		CompoundTag compound = StackTag.get(stack);
 
 		if (compound != null)
 		{
@@ -65,7 +68,7 @@ public class StableEnderpearlItem extends Item
 	 * callback Forge fired on the item type for every matching dropped
 	 * {@code EntityItem}. That hook doesn't exist on {@code Item} in this
 	 * Forge build - instead, {@code RandomThings} drives this from a
-	 * {@code TickEvent.LevelTickEvent} listener that scans
+	 * {@code LevelTickEvent.Post} listener that scans
 	 * {@code ServerWorld.getEntities()} for dropped stacks of this item.
 	 */
 	public void tickDroppedPearl(ItemEntity entityItem)
@@ -82,9 +85,9 @@ public class StableEnderpearlItem extends Item
 				ItemStack itemStack = entityItem.getItem();
 				ServerPlayer player = null;
 
-				if (itemStack.getTag() != null)
+				if (StackTag.get(itemStack) != null)
 				{
-					String uuidString = itemStack.getTag().getString("player-uuid");
+					String uuidString = StackTag.getString(itemStack, "player-uuid");
 					UUID uuid = UUID.fromString(uuidString);
 					player = ((ServerLevel) entityItem.level()).getServer().getPlayerList().getPlayer(uuid);
 				}
@@ -135,16 +138,12 @@ public class StableEnderpearlItem extends Item
 
 		if (!worldIn.isClientSide)
 		{
-			if (itemStackIn.getTag() == null)
-			{
-				itemStackIn.setTag(new CompoundTag());
-			}
-
-			CompoundTag compound = itemStackIn.getTag();
 			GameProfile gameProfile = playerIn.getGameProfile();
 
-			compound.putString("player-uuid", gameProfile.getId().toString());
-			compound.putString("player-name", gameProfile.getName());
+			StackTag.edit(itemStackIn, compound -> {
+				compound.putString("player-uuid", gameProfile.getId().toString());
+				compound.putString("player-name", gameProfile.getName());
+			});
 		}
 
 		return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStackIn);

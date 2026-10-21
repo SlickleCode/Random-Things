@@ -56,7 +56,21 @@ public class SpectreCoreBlock extends Block {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
+    public net.minecraft.world.ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
+        InteractionResult result = legacyUse(state, worldIn, pos, playerIn, hand, hit);
+        if (result == InteractionResult.SUCCESS) {
+            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+        }
+        if (result == InteractionResult.CONSUME) {
+            return net.minecraft.world.ItemInteractionResult.CONSUME;
+        }
+        if (result == InteractionResult.FAIL) {
+            return net.minecraft.world.ItemInteractionResult.FAIL;
+        }
+        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    private InteractionResult legacyUse(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
         if (!lumien.randomthings.handler.ModDimensions.isSpectre(worldIn)) {
             return InteractionResult.PASS;
         }

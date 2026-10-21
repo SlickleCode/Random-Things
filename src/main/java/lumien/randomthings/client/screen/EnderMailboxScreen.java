@@ -49,7 +49,6 @@ public class EnderMailboxScreen extends AbstractContainerScreen<EnderMailboxCont
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(graphics, mouseX, mouseY);
     }

@@ -5,9 +5,9 @@
     "#": { "item": "minecraft:redstone_torch" },
     "X": { "item": "minecraft:redstone" },
     "S": { "item": "minecraft:stone" },
-    "I": { "tag": "forge:ingots/iron" }
+    "I": { "tag": "c:ingots/iron" }
   },
   "result": {
-    "item": "randomthings:advanced_redstone_repeater"
+    "id": "randomthings:advanced_redstone_repeater"
   }
 }

@@ -31,7 +31,7 @@ public class ChunkAnalyzerResult {
         for (int i = 0; i < displayStacks.size(); i++) {
             CompoundTag entryCompound = new CompoundTag();
 
-            entryCompound.put("stack", displayStacks.get(i).save(new CompoundTag()));
+            entryCompound.put("stack", StackTag.saveStack(displayStacks.get(i)));
             entryCompound.putString("description", blockDescriptions.get(i));
             entryCompound.putInt("count", blockCounts.get(i));
 
@@ -47,7 +47,7 @@ public class ChunkAnalyzerResult {
         for (int i = 0; i < entryList.size(); i++) {
             CompoundTag entryCompound = entryList.getCompound(i);
 
-            displayStacks.add(ItemStack.of(entryCompound.getCompound("stack")));
+            displayStacks.add(ItemStack.parseOptional(StackTag.provider(), entryCompound.getCompound("stack")));
             blockDescriptions.add(entryCompound.getString("description"));
             blockCounts.add(entryCompound.getInt("count"));
         }

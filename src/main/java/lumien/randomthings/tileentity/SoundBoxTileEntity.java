@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -62,7 +63,7 @@ public class SoundBoxTileEntity extends BlockEntity {
             ResourceLocation soundLocation = SoundPatternItem.getSoundLocation(this.pattern);
 
             if (soundLocation != null) {
-                SoundEvent soundEvent = ForgeRegistries.SOUND_EVENTS.getValue(soundLocation);
+                SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(soundLocation);
 
                 if (soundEvent != null) {
                     this.level.playSound(null, this.worldPosition, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -72,19 +73,19 @@ public class SoundBoxTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (!pattern.isEmpty()) {
-            compound.put("pattern", pattern.save(new CompoundTag()));
+            compound.put("pattern", StackTag.saveStack(pattern));
         }
 
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
-        this.pattern = compound.contains("pattern") ? ItemStack.of(compound.getCompound("pattern")) : ItemStack.EMPTY;
+        this.pattern = compound.contains("pattern") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("pattern")) : ItemStack.EMPTY;
     }
 }

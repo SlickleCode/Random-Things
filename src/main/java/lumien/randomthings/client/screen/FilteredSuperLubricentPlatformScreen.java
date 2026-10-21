@@ -49,7 +49,6 @@ public class FilteredSuperLubricentPlatformScreen extends AbstractContainerScree
 	@Override
 	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(graphics);
 		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
 		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}

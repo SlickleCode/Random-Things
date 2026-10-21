@@ -9,7 +9,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 
 /**
  * Ported from 1.12.2's {@code SpectreCoilHandler} - a per-player energy pool (keyed by player UUID,
@@ -34,14 +34,14 @@ public class SpectreCoilHandler extends SavedData {
     public SpectreCoilHandler() {
     }
 
-    public static SpectreCoilHandler loadFrom(CompoundTag nbt) {
+    public static SpectreCoilHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         SpectreCoilHandler data = new SpectreCoilHandler();
         data.readData(nbt);
         return data;
     }
 
     public static SpectreCoilHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(SpectreCoilHandler::loadFrom, SpectreCoilHandler::new, ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreCoilHandler::new, SpectreCoilHandler::loadFrom, null), ID);
     }
 
     /** Receive-only - used by the Spectre Energy Injector block (external machines push energy in). */
@@ -149,7 +149,7 @@ public class SpectreCoilHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
 
         for (Map.Entry<UUID, Integer> entry : coilEntries.entrySet()) {

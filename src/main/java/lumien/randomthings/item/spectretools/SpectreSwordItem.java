@@ -21,6 +21,6 @@ import net.minecraft.world.item.SwordItem;
  */
 public class SpectreSwordItem extends SwordItem {
     public SpectreSwordItem(Item.Properties properties) {
-        super(SpectreItemTier.INSTANCE, 3, -2.4F, properties);
+        super(SpectreItemTier.INSTANCE, properties.attributes(SwordItem.createAttributes(SpectreItemTier.INSTANCE, 3, -2.4F)));
     }
 }

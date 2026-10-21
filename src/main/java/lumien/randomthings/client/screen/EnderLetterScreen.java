@@ -1,5 +1,6 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
@@ -41,7 +42,7 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
         this.imageHeight = 183;
 
         ItemStack letterStack = inv.player.getMainHandItem();
-        this.received = letterStack.hasTag() && letterStack.getTag().getBoolean("received");
+        this.received = StackTag.getBoolean(letterStack, "received");
     }
 
     @Override
@@ -49,7 +50,7 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
         super.init();
 
         ItemStack letterStack = this.minecraft.player.getMainHandItem();
-        String receiver = letterStack.hasTag() ? letterStack.getTag().getString("receiver") : "";
+        String receiver = StackTag.has(letterStack) ? StackTag.getString(letterStack, "receiver") : "";
 
         this.receiverField = new EditBox(this.font, this.leftPos + 92, this.topPos + 5, 76, 10, Component.literal(""));
         this.receiverField.setMaxLength(64);
@@ -58,7 +59,7 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
         this.addRenderableWidget(this.receiverField);
         this.lastSentReceiver = receiver;
 
-        String message = letterStack.hasTag() ? letterStack.getTag().getString("message") : "";
+        String message = StackTag.has(letterStack) ? StackTag.getString(letterStack, "message") : "";
 
         this.messageField = new MultilineTextFieldWidget(this.font, this.leftPos + 8, this.topPos + 40, 162, 44, MAX_MESSAGE_LENGTH);
         this.messageField.setEditable(!received);
@@ -70,7 +71,6 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
     @Override
     public void containerTick() {
         super.containerTick();
-        this.receiverField.tick();
 
         // Sending only from removed() raced the vanilla close-window packet - the server could
         // already have swapped player.openContainer back to the plain inventory container by the
@@ -160,7 +160,6 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTicks);
         this.renderTooltip(graphics, mouseX, mouseY);
     }

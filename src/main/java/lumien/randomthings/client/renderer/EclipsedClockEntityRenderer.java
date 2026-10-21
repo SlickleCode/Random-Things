@@ -1,5 +1,6 @@
 package lumien.randomthings.client.renderer;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.item.ItemDisplayContext;
 
 import com.mojang.math.Axis;
@@ -65,7 +66,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
         ItemStack stack = new ItemStack(ModItems.ECLIPSED_CLOCK);
         CompoundTag tag = new CompoundTag();
         tag.putInt("targetTime", entity.getTargetTime());
-        stack.setTag(tag);
+        StackTag.set(stack, tag);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
 
@@ -88,7 +89,7 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
     private void drawLabel(EclipsedClockEntity entity, double yOffset, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         matrixStack.pushPose();
         matrixStack.translate(0.0D, yOffset, 0.0D);
-        this.renderNameTag(entity, Component.literal(entity.getStringTargetTime()), matrixStack, buffer, packedLight);
+        this.renderNameTag(entity, Component.literal(entity.getStringTargetTime()), matrixStack, buffer, packedLight, 0.0F);
         matrixStack.popPose();
     }
 

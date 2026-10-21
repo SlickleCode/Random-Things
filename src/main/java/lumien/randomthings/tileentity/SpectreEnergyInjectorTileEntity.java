@@ -10,10 +10,10 @@ import lumien.randomthings.handler.spectrecoils.SpectreCoilHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.energy.IEnergyStorage;
+
+
+
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -22,13 +22,12 @@ import net.minecraft.world.level.block.state.BlockState;
  * any adjacent pipe/machine from another mod can push energy into the owner's pool. The capability
  * object itself delegates live to {@code SpectreCoilHandler.get(world).getStorage(owner)} on every call
  * (matching the original, which built a fresh wrapper on every single {@code getCapability} call)
- * rather than baking in a value at construction time, since 1.14.4's {@link LazyOptional} would
- * otherwise cache a stale first read.
+ * rather than baking in a value at construction time.
  */
 public class SpectreEnergyInjectorTileEntity extends BlockEntity {
     private UUID owner;
 
-    private final LazyOptional<IEnergyStorage> energyCap = LazyOptional.of(() -> new IEnergyStorage() {
+    private final IEnergyStorage energyStorage = new IEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
             return owner == null ? 0 : SpectreCoilHandler.get(level).getStorage(owner).receiveEnergy(maxReceive, simulate);
@@ -58,7 +57,7 @@ public class SpectreEnergyInjectorTileEntity extends BlockEntity {
         public boolean canReceive() {
             return owner != null;
         }
-    });
+    };
 
     public SpectreEnergyInjectorTileEntity(BlockPos pos, BlockState state) {
         super(ModTileEntityTypes.SPECTRE_ENERGY_INJECTOR, pos, state);
@@ -69,24 +68,13 @@ public class SpectreEnergyInjectorTileEntity extends BlockEntity {
         setChanged();
     }
 
-    @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ENERGY) {
-            return energyCap.cast();
-        }
-
-        return super.getCapability(cap, side);
+    public IEnergyStorage getEnergyStorage() {
+        return energyStorage;
     }
 
     @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        energyCap.invalidate();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (owner != null) {
             compound.putUUID("owner", owner);
@@ -95,8 +83,8 @@ public class SpectreEnergyInjectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("owner")) {
             owner = compound.getUUID("owner");

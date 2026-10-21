@@ -21,7 +21,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.Set;
 import net.minecraft.world.InteractionResult;
@@ -101,7 +100,7 @@ import net.minecraft.world.InteractionResult;
  * this version's rewritten light engine. See {@link SpectreIlluminatorRelight}
  * for the fix (bounded per-tick draining instead of one big burst).
  */
-@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
+@net.neoforged.api.distmarker.OnlyIn(value = net.neoforged.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
 public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
 
     public static final Set<SpectreIlluminatorEntity> ILLUMINATORS = WeakSets.create();
@@ -123,8 +122,8 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(ILLUMINATED, false);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        builder.define(ILLUMINATED, false);
     }
 
     @Override
@@ -282,8 +281,4 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
         compound.putBoolean("illuminated", isIlluminated());
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

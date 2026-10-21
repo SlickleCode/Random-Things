@@ -6,7 +6,7 @@ import lumien.randomthings.network.IRTMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * ContainerSignalMessage
@@ -44,9 +44,9 @@ public class ContainerSignalMessage implements IRTMessage
 	}
 
 	@Override
-	public void handle(Context context)
+	public void handle(IPayloadContext context)
 	{
-		ServerPlayer player = context.getSender();
+		ServerPlayer player = (ServerPlayer) context.player();
 
 		AbstractContainerMenu container = player.containerMenu;
 

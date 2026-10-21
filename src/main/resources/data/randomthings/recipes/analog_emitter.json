@@ -3,10 +3,10 @@
   "pattern": ["TIR","III","RIT"],
   "key": {
     "T": { "item": "minecraft:redstone_torch" },
-    "I": { "tag": "forge:ingots/iron" },
+    "I": { "tag": "c:ingots/iron" },
     "R": { "item": "minecraft:redstone" }
   },
   "result": {
-    "item": "randomthings:analog_emitter"
+    "id": "randomthings:analog_emitter"
   }
 }

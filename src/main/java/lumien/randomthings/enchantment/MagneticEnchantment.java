@@ -1,7 +1,7 @@
 package lumien.randomthings.enchantment;
 
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EquipmentSlot;
 
 /**
@@ -16,18 +16,9 @@ import net.minecraft.world.entity.EquipmentSlot;
  * needed, unlike the wiki's own "ASM?" note for this feature.
  */
 public class MagneticEnchantment extends Enchantment {
-    protected MagneticEnchantment(Rarity rarityIn, EquipmentSlot... slots) {
-        super(rarityIn, EnchantmentCategory.DIGGER, slots);
-    }
-
-    @Override
-    public int getMinCost(int enchantmentLevel) {
-        return 15;
-    }
-
-    @Override
-    public int getMaxCost(int enchantmentLevel) {
-        return getMinCost(enchantmentLevel) + 50;
+    /** The old rarity RARE is weight 2 (anvil cost 4); the cost range 15..65 is the 1.12.2 one, the supported items are the digger tools. */
+    protected MagneticEnchantment() {
+        super(Enchantment.definition(ItemTags.MINING_ENCHANTABLE, 2, 1, Enchantment.constantCost(15), Enchantment.constantCost(65), 4, EquipmentSlot.MAINHAND));
     }
 
     @Override
@@ -40,8 +31,4 @@ public class MagneticEnchantment extends Enchantment {
         return lumien.randomthings.config.RTConfig.MAGNETIC_ENCHANTMENT.get();
     }
 
-    @Override
-    public int getMaxLevel() {
-        return 1;
-    }
 }

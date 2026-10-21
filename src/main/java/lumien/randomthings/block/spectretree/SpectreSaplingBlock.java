@@ -29,6 +29,14 @@ import net.minecraft.server.level.ServerLevel;
  */
 public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 {
+	public static final com.mojang.serialization.MapCodec<SpectreSaplingBlock> CODEC = simpleCodec(properties -> new SpectreSaplingBlock());
+
+	@Override
+	protected com.mojang.serialization.MapCodec<? extends BushBlock> codec()
+	{
+		return CODEC;
+	}
+
 	public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 1);
 	protected static final VoxelShape SHAPE = Block.box(1.6, 0, 1.6, 14.4, 12.8, 14.4);
 
@@ -53,6 +61,13 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 		return SHAPE;
 	}
 
+	/** 1.20.5 made {@code randomTick} a no-op by default (it used to call {@code tick}), so random ticks are forwarded explicitly. */
+	@Override
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
+	{
+		this.tick(state, worldIn, pos, rand);
+	}
+
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
@@ -66,7 +81,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	}
 
 	@Override
-	public boolean isValidBonemealTarget(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state, boolean isClient)
+	public boolean isValidBonemealTarget(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state)
 	{
 		return true;
 	}

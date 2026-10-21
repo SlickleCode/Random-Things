@@ -65,8 +65,4 @@ public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile
         }
     }
 
-    @Override
-    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

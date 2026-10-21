@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.Registry;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.fml.util.ObfuscationReflectionHelper;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityAncientFurnace} heating/explosion
@@ -259,15 +259,15 @@ public class AncientFurnaceTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
         compound.putBoolean("heating", heating);
         compound.putInt("ticks", ticks);
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
         this.heating = compound.getBoolean("heating");
         this.ticks = compound.getInt("ticks");
     }

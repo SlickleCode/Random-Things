@@ -3,7 +3,7 @@
   "pattern": [" X ", "X#X", " S "],
   "key": {
     "#": {
-      "tag": "forge:ingots/iron"
+      "tag": "c:ingots/iron"
     },
     "X": {
       "item": "minecraft:redstone"
@@ -13,6 +13,6 @@
     }
   },
   "result": {
-    "item": "randomthings:advanced_redstone_torch"
+    "id": "randomthings:advanced_redstone_torch"
   }
 }

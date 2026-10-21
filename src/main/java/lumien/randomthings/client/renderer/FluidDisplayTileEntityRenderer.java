@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -68,7 +68,7 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
             sprite = Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(EMPTY_SPRITE);
             r = g = b = 1.0F;
         } else {
-            net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions attributes = net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions.of(fluidStack.getFluid());
+            net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions attributes = net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions.of(fluidStack.getFluid());
             net.minecraft.resources.ResourceLocation spriteLocation = te.flowing() ? attributes.getFlowingTexture(fluidStack) : attributes.getStillTexture(fluidStack);
 
             sprite = Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(spriteLocation);

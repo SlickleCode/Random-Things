@@ -18,13 +18,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.core.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.EmptyHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import net.minecraftforge.items.wrapper.RangedWrapper;
+
+
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.wrapper.RangedWrapper;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -68,16 +67,14 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 		return server != null ? server.getPlayerList().getPlayer(playerUUID) : null;
 	}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side)
+	public IItemHandler getItemHandler(@Nullable Direction side)
 	{
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
 		{
 			Player player = getLinkedPlayer();
 
 			if (player == null)
 			{
-				return LazyOptional.of(() -> (IItemHandler) EmptyHandler.INSTANCE).cast();
+				return new net.neoforged.neoforge.items.ItemStackHandler(0);
 			}
 
 			InvWrapper full = new InvWrapper(new SlotValidatingInventory(player.getInventory()));
@@ -100,16 +97,15 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 				ranged = new RangedWrapper(full, 9, 36);
 			}
 
-			return LazyOptional.of(() -> ranged).cast();
+			return ranged;
 		}
 
-		return super.getCapability(cap, side);
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		if (playerUUID != null)
 		{
@@ -119,9 +115,9 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		if (compound.contains("playerUUID"))
 		{

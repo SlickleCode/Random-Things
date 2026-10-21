@@ -1,5 +1,6 @@
 package lumien.randomthings.debug;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -45,8 +46,8 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ServerLevelData;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Developer-only: builds small, repeatable scenes (a gallery of every block, the special block entities, the entities,
@@ -70,7 +71,7 @@ public final class RenderScenes
 	{
 		List<Block> blocks = new ArrayList<>();
 
-		for (Block block : ForgeRegistries.BLOCKS.getValues())
+		for (Block block : BuiltInRegistries.BLOCK)
 		{
 			if (ModConstants.MOD_ID.equals(RegUtil.id(block).getNamespace()))
 			{
@@ -141,7 +142,7 @@ public final class RenderScenes
 		world.setRainLevel(0);
 		world.setThunderLevel(0);
 
-		for (Entity entity : world.getEntitiesOfClass(Entity.class, new AABB(origin.offset(-20, -4, -12), origin.offset(20, 14, 34)), e -> !(e instanceof ServerPlayer)))
+		for (Entity entity : world.getEntitiesOfClass(Entity.class, lumien.randomthings.util.AABBs.of(origin.offset(-20, -4, -12), origin.offset(20, 14, 34)), e -> !(e instanceof ServerPlayer)))
 		{
 			entity.discard();
 		}
@@ -379,7 +380,7 @@ public final class RenderScenes
 				groundItem(world, rtDye(new ItemStack(Items.IRON_SWORD), 0x2222FF), x0 + 6, y0 + 0.3, z0 + 4.5);
 				groundItem(world, new ItemStack(ModItems.PORTKEY), x0 + 7, y0 + 0.3, z0 + 4.5);
 				ItemStack camo = new ItemStack(ModItems.PORTKEY);
-				camo.getOrCreateTag().put("camo", new ItemStack(Items.DIAMOND_PICKAXE).save(new net.minecraft.nbt.CompoundTag()));
+				StackTag.edit(camo, t -> t.put("camo", StackTag.saveStack(new ItemStack(Items.DIAMOND_PICKAXE))));
 				groundItem(world, camo, x0 + 8, y0 + 0.3, z0 + 4.5);
 
 				for (int i = 0; i < 3; i++)
@@ -479,14 +480,14 @@ public final class RenderScenes
 
 	private static ItemStack rtDye(ItemStack stack, int rgb)
 	{
-		stack.getOrCreateTag().putInt("rtDye", rgb);
+		StackTag.edit(stack, t -> t.putInt("rtDye", rgb));
 		return stack;
 	}
 
 	private static ItemStack dyedLeather(int rgb)
 	{
 		ItemStack stack = new ItemStack(Items.LEATHER_CHESTPLATE);
-		stack.getOrCreateTagElement("display").putInt("color", rgb);
+		stack.set(net.minecraft.core.component.DataComponents.DYED_COLOR, new net.minecraft.world.item.component.DyedItemColor(rgb, true));
 		return stack;
 	}
 

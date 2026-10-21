@@ -29,9 +29,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.particles.ParticleTypes;
@@ -53,13 +52,13 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	protected AdvancedRedstoneTorchBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD), ParticleTypes.FLAME);
+		super(ParticleTypes.FLAME, Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD));
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR_PROPERTY, COLOR.RED));
 	}
 
 	protected AdvancedRedstoneTorchBlock(Block.Properties properties)
 	{
-		super(properties, ParticleTypes.FLAME);
+		super(ParticleTypes.FLAME, properties);
 	}
 
 	@Override
@@ -68,8 +67,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 	    return new AdvancedRedstoneTorchTileEntity(pos, state);
 	}
 
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
-	{
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (worldIn.isClientSide)
 		{
 			return InteractionResult.SUCCESS;
@@ -80,7 +78,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 			if (tileentity instanceof AdvancedRedstoneTorchTileEntity)
 			{
 				AdvancedRedstoneTorchTileEntity art = (AdvancedRedstoneTorchTileEntity) tileentity;
-				NetworkHooks.openScreen((ServerPlayer) player, art);
+				((ServerPlayer) player).openMenu(art);
 			}
 
 			return InteractionResult.SUCCESS;

@@ -1,24 +1,24 @@
 package lumien.randomthings.network;
 
-import java.util.function.Supplier;
-
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
- * IRTMessage
+ * IRTMessage - one mod network message; wrapped as a {@link CustomPacketPayload} (1.20.5+ networking), the codec is built from {@link #read}/{@link #write}
+ * by {@link RTPacketHandler}.
  */
-public interface IRTMessage
+public interface IRTMessage extends CustomPacketPayload
 {
 	public void read(FriendlyByteBuf pb);
 
 	public void write(FriendlyByteBuf pb);
 
-	public default void enqueue(Supplier<Context> sup)
-	{
-		Context ctx = sup.get();
-		ctx.enqueueWork(() -> handle(ctx));
-	}
+	public void handle(IPayloadContext ctx);
 
-	public void handle(Context ctx);
+	@Override
+	public default Type<? extends CustomPacketPayload> type()
+	{
+		return RTPacketHandler.typeOf(getClass());
+	}
 }

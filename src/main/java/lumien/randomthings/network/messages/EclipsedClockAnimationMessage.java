@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * Server -> client: an {@link EclipsedClockEntity} just fast-forwarded the
@@ -34,7 +34,7 @@ public class EclipsedClockAnimationMessage implements IRTMessage {
     }
 
     @Override
-    public void handle(Context ctx) {
+    public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;
 

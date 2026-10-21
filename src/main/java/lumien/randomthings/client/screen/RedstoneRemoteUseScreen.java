@@ -1,5 +1,6 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.client.gui.GuiGraphics;
 
 import lumien.randomthings.client.screen.ScreenWidgets;
@@ -18,7 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -45,17 +46,17 @@ public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRem
 
         ItemStack remoteStack = this.menu.getRemoteStack();
 
-        if (remoteStack.isEmpty() || remoteStack.getItem() != ModItems.REDSTONE_REMOTE || !remoteStack.hasTag() || !remoteStack.getTag().contains("positions")) {
+        if (remoteStack.isEmpty() || remoteStack.getItem() != ModItems.REDSTONE_REMOTE || !StackTag.has(remoteStack) || !StackTag.contains(remoteStack, "positions")) {
             return;
         }
 
         ItemStackHandler positionInventory = new ItemStackHandler(9);
-        positionInventory.deserializeNBT(remoteStack.getTag().getCompound("positions"));
+        positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("positions"));
 
         ItemStackHandler camoInventory = new ItemStackHandler(9);
 
-        if (remoteStack.getTag().contains("camo")) {
-            camoInventory.deserializeNBT(remoteStack.getTag().getCompound("camo"));
+        if (StackTag.contains(remoteStack, "camo")) {
+            camoInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("camo"));
         }
 
         for (int i = 0; i < 9; i++) {
@@ -70,7 +71,7 @@ public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRem
             ItemStack camo = camoInventory.getStackInSlot(i);
             ItemStack icon = camo.isEmpty() ? positionFilter : camo;
             // the displayed item's own (anvil) name wins, else fall back to the Position Filter's
-            String name = icon.hasCustomHoverName() ? icon.getHoverName().getString() : positionFilter.hasCustomHoverName() ? positionFilter.getHoverName().getString() : null;
+            String name = icon.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) ? icon.getHoverName().getString() : positionFilter.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) ? positionFilter.getHoverName().getString() : null;
             int slot = i;
 
             this.addRenderableWidget(new ItemSlotButton(this.leftPos + 5 + i * 20, this.topPos + 17, icon.copy(), name, (b) -> {
@@ -111,7 +112,6 @@ public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRem
 
     @Override
     public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_) {
-        this.renderBackground(graphics);
         super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
         this.renderTooltip(graphics, p_render_1_, p_render_2_);
     }

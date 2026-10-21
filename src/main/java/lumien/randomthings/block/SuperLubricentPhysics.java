@@ -1,5 +1,7 @@
 package lumien.randomthings.block;
 
+
+
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -228,10 +230,10 @@ public final class SuperLubricentPhysics
 
 		try
 		{
-			// field_184475_as = deltaRotation (SRG name so it also resolves in a production jar)
-			deltaRotationField = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(Boat.class, "f_38266_");
+			// field_184475_as = deltaRotation 
+			deltaRotationField = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(Boat.class, "deltaRotation");
 		}
-		catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e)
+		catch (net.neoforged.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e)
 		{
 			deltaRotationLookupFailed = true;
 		}

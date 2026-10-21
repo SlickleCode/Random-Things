@@ -3,11 +3,11 @@
   "pattern": ["SW","B "],
   "key": {
     "S": { "item": "minecraft:wheat_seeds" },
-    "W": { "type": "forge:nbt", "item": "minecraft:potion", "nbt": { "Potion": "minecraft:water" } },
+    "W": { "type": "neoforge:components", "items": "minecraft:potion", "components": { "minecraft:potion_contents": { "potion": "minecraft:water" } } },
     "B": { "item": "randomthings:beans" }
   },
   "result": {
-    "item": "randomthings:super_lubricent_tincture",
+    "id": "randomthings:super_lubricent_tincture",
     "count": 4
   }
 }

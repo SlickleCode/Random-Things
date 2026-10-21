@@ -26,7 +26,7 @@ public class BlazingFireBlock extends FireBlock
 {
 	public BlazingFireBlock()
 	{
-		super(Block.Properties.copy(Blocks.FIRE).sound(SoundType.WOOL));
+		super(Block.Properties.ofFullCopy(Blocks.FIRE).sound(SoundType.WOOL));
 	}
 
 }

@@ -1,5 +1,6 @@
 package lumien.randomthings.container;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
@@ -9,8 +10,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * 9 Position Filter slots plus a second row of 9 ghost "camo" slots (stored in the held
@@ -42,26 +43,26 @@ public class RedstoneRemoteEditContainer extends AbstractContainerMenu {
             @Override
             protected void onContentsChanged(int slot) {
                 if (!remoteStack.isEmpty()) {
-                    remoteStack.getOrCreateTag().put("positions", serializeNBT());
+                    StackTag.edit(remoteStack, t -> t.put("positions", serializeNBT(StackTag.provider())));
                 }
             }
         };
 
-        if (!remoteStack.isEmpty() && remoteStack.hasTag() && remoteStack.getTag().contains("positions")) {
-            positionInventory.deserializeNBT(remoteStack.getTag().getCompound("positions"));
+        if (!remoteStack.isEmpty() && StackTag.contains(remoteStack, "positions")) {
+            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("positions"));
         }
 
         this.camoInventory = new ItemStackHandler(9) {
             @Override
             protected void onContentsChanged(int slot) {
                 if (!remoteStack.isEmpty()) {
-                    remoteStack.getOrCreateTag().put("camo", serializeNBT());
+                    StackTag.edit(remoteStack, t -> t.put("camo", serializeNBT(StackTag.provider())));
                 }
             }
         };
 
-        if (!remoteStack.isEmpty() && remoteStack.hasTag() && remoteStack.getTag().contains("camo")) {
-            camoInventory.deserializeNBT(remoteStack.getTag().getCompound("camo"));
+        if (!remoteStack.isEmpty() && StackTag.contains(remoteStack, "camo")) {
+            camoInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("camo"));
         }
 
         for (int col = 0; col < 9; col++) {

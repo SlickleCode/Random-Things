@@ -1,5 +1,6 @@
 package lumien.randomthings.debug.test;
 
+import lumien.randomthings.util.StackTag;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +44,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ServerChatEvent;
-import net.minecraftforge.event.entity.living.PotionColorCalculationEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ServerChatEvent;
+import net.neoforged.neoforge.event.entity.living.EffectParticleModificationEvent;
 
 /**
  * Fourth batch of gameplay tests (backlog Q8): Online/Chat/Global Chat detectors, Floo teleport, Blazing Fire,
@@ -62,14 +63,14 @@ final class RemainingBehaviorTests
 	{
 		if (c.player.connection == null || c.player.connection.getClass() != ServerGamePacketListenerImpl.class)
 		{
-			new ServerGamePacketListenerImpl(c.world.getServer(), new Connection(PacketFlow.SERVERBOUND), c.player);
+			new ServerGamePacketListenerImpl(c.world.getServer(), new Connection(PacketFlow.SERVERBOUND), c.player, net.minecraft.server.network.CommonListenerCookie.createInitial(c.player.getGameProfile(), false));
 		}
 	}
 
 	private static ServerChatEvent chat(TestCtx c, String message)
 	{
 		ServerChatEvent event = new ServerChatEvent(c.player, message, Component.literal("<test> " + message));
-		MinecraftForge.EVENT_BUS.post(event);
+		NeoForge.EVENT_BUS.post(event);
 		return event;
 	}
 
@@ -152,7 +153,7 @@ final class RemainingBehaviorTests
 			c.check(!first.isCanceled(), "without a matching ID card the message must not be consumed");
 
 			ItemStack card = new ItemStack(ModItems.ID_CARD);
-			card.getOrCreateTag().putString("uuid", c.player.getGameProfile().getId().toString());
+			StackTag.edit(card, t -> t.putString("uuid", c.player.getGameProfile().getId().toString()));
 			te.idCardInventory().setStackInSlot(0, card);
 			ServerChatEvent second = chat(c, "ping");
 			c.check(second.isCanceled(), "an ID card of the sender allows consuming");
@@ -173,7 +174,7 @@ final class RemainingBehaviorTests
 			for (String[] def : new String[][] { { home, "0" }, { away, "6" } })
 			{
 				ItemStack sign = new ItemStack(ModItems.FLOO_SIGN);
-				sign.setHoverName(Component.literal(def[0]));
+				sign.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(def[0]));
 				c.player.setItemInHand(InteractionHand.MAIN_HAND, sign);
 				BlockPos brick = c.at(Integer.parseInt(def[1]), 1, 0);
 				ModItems.FLOO_SIGN.useOn(new UseOnContext(c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(brick), Direction.NORTH, brick, false)));
@@ -206,12 +207,12 @@ final class RemainingBehaviorTests
 
 			try
 			{
-				tryCatchFire = FireBlock.class.getDeclaredMethod("tryCatchFire", Level.class, BlockPos.class, int.class, net.minecraft.util.RandomSource.class, int.class, Direction.class);
+				tryCatchFire = FireBlock.class.getDeclaredMethod("checkBurnOut", Level.class, BlockPos.class, int.class, net.minecraft.util.RandomSource.class, int.class, Direction.class);
 				tryCatchFire.setAccessible(true);
 			}
 			catch (ReflectiveOperationException e)
 			{
-				throw new TestCtx.Skip("cannot reach FireBlock.tryCatchFire by its dev name here: " + e);
+				throw new TestCtx.Skip("cannot reach FireBlock.checkBurnOut here: " + e);
 			}
 
 			BlockPos pos = c.at(0, 1, 0);
@@ -266,19 +267,16 @@ final class RemainingBehaviorTests
 				c.check(AsmHandler.overrideCanRenderName(true, c.player), "without the hood the nametag stays visible");
 				c.check(AsmHandler.overrideCanRenderName(true, pig), "non-player entities are not affected");
 
-				PotionColorCalculationEvent open = new PotionColorCalculationEvent(c.player, 0xABCDEF, false, new ArrayList<MobEffectInstance>());
-				MinecraftForge.EVENT_BUS.post(open);
-				c.eq(0xABCDEF, open.getColor(), "particle colour is untouched without the hood");
+				EffectParticleModificationEvent open = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100));
+				NeoForge.EVENT_BUS.post(open);
+				c.check(open.isVisible(), "the particles stay visible without the hood");
 
 				c.player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.MAGIC_HOOD));
 				c.check(!AsmHandler.overrideCanRenderName(true, c.player), "with the hood the nametag is hidden");
 
-				List<MobEffectInstance> effects = new ArrayList<>();
-				effects.add(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100));
-				PotionColorCalculationEvent worn = new PotionColorCalculationEvent(c.player, 0xABCDEF, false, effects);
-				MinecraftForge.EVENT_BUS.post(worn);
-				c.eq(0, worn.getColor(), "with the hood the particle colour is zeroed (no particles at all)");
-				c.check(worn.areParticlesHidden(), "and the hidden flag is set");
+				EffectParticleModificationEvent worn = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100));
+				NeoForge.EVENT_BUS.post(worn);
+				c.check(!worn.isVisible(), "with the hood the effect particles are hidden");
 			}
 			finally
 			{
@@ -350,7 +348,7 @@ final class RemainingBehaviorTests
 			c.check(box.hasPattern(), "pattern stored");
 
 			SoundBoxTileEntity copy = new SoundBoxTileEntity(box.getBlockPos(), box.getBlockState());
-			copy.load(box.saveWithoutMetadata());
+			copy.loadWithComponents(box.saveWithoutMetadata(c.world.registryAccess()), c.world.registryAccess());
 			c.check(copy.hasPattern() && "minecraft:block.note_block.harp".equals(SoundPatternItem.getSoundLocation(copy.getPattern()).toString()), "pattern survives an NBT round trip");
 		}));
 

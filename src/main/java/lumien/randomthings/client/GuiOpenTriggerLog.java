@@ -6,10 +6,10 @@ import java.util.Deque;
 
 import lumien.randomthings.debug.RTDebug;
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Debug aid (needs {@code DebugLogging}): remembers the last few key presses, mouse clicks and

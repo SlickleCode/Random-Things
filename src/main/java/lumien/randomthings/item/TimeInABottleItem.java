@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.Entity;
@@ -62,8 +63,9 @@ public class TimeInABottleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+        Level worldIn = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
 
         int storedSeconds = getStoredTime(stack) / 20;
         int hours = storedSeconds / 3600;
@@ -85,10 +87,10 @@ public class TimeInABottleItem extends Item {
         }
 
         if (worldIn.getGameTime() % SECOND_WORTH == 0) {
-            CompoundTag timeData = stack.getOrCreateTagElement("timeData");
+            int stored = getStoredTime(stack);
 
-            if (timeData.getInt("storedTime") < MAX_STORED) {
-                timeData.putInt("storedTime", timeData.getInt("storedTime") + 20);
+            if (stored < MAX_STORED) {
+                setStoredTime(stack, stored + 20);
             }
         }
 
@@ -99,11 +101,8 @@ public class TimeInABottleItem extends Item {
                 ItemStack invStack = player.getInventory().getItem(i);
 
                 if (invStack.getItem() == this && invStack != stack) {
-                    CompoundTag otherTimeData = invStack.getOrCreateTagElement("timeData");
-                    CompoundTag myTimeData = stack.getOrCreateTagElement("timeData");
-
-                    if (myTimeData.getInt("storedTime") < otherTimeData.getInt("storedTime")) {
-                        myTimeData.putInt("storedTime", 0);
+                    if (getStoredTime(stack) < getStoredTime(invStack)) {
+                        setStoredTime(stack, 0);
                     }
                 }
             }
@@ -132,14 +131,14 @@ public class TimeInABottleItem extends Item {
                 int nextRate = currentRate * 2;
                 int timeRequired = nextRate / 2 * 20 * 30;
 
-                CompoundTag timeData = me.getTagElement("timeData");
+                CompoundTag timeData = StackTag.getElement(me, "timeData");
                 int timeAvailable = timeData != null ? timeData.getInt("storedTime") : 0;
 
                 if (timeAvailable >= timeRequired || (player != null && player.getAbilities().instabuild)) {
                     int timeAdded = (nextRate * usedUpTime - currentRate * usedUpTime) / nextRate;
 
                     if (player == null || !player.getAbilities().instabuild) {
-                        timeData.putInt("storedTime", timeAvailable - timeRequired);
+                        setStoredTime(me, timeAvailable - timeRequired);
                     }
 
                     eta.setTimeRate(nextRate);
@@ -172,12 +171,11 @@ public class TimeInABottleItem extends Item {
                 }
             }
         } else {
-            CompoundTag timeData = me.getOrCreateTagElement("timeData");
-            int timeAvailable = timeData.getInt("storedTime");
+            int timeAvailable = getStoredTime(me);
 
             if (timeAvailable >= 20 * 30 || (player != null && player.getAbilities().instabuild)) {
                 if (player == null || !player.getAbilities().instabuild) {
-                    timeData.putInt("storedTime", timeAvailable - 20 * 30);
+                    setStoredTime(me, timeAvailable - 20 * 30);
                 }
 
                 TimeAcceleratorEntity n = new TimeAcceleratorEntity(world, pos, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
@@ -195,11 +193,15 @@ public class TimeInABottleItem extends Item {
     }
 
     public static int getStoredTime(ItemStack stack) {
-        CompoundTag timeData = stack.getTagElement("timeData");
+        CompoundTag timeData = StackTag.getElement(stack, "timeData");
         return timeData != null ? timeData.getInt("storedTime") : 0;
     }
 
     public static void setStoredTime(ItemStack stack, int time) {
-        stack.getOrCreateTagElement("timeData").putInt("storedTime", time);
+        StackTag.edit(stack, t -> {
+            CompoundTag timeData = t.getCompound("timeData");
+            timeData.putInt("storedTime", time);
+            t.put("timeData", timeData);
+        });
     }
 }

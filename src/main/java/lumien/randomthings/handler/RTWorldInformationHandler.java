@@ -27,14 +27,14 @@ public class RTWorldInformationHandler extends SavedData {
     public RTWorldInformationHandler() {
     }
 
-    public static RTWorldInformationHandler loadFrom(CompoundTag nbt) {
+    public static RTWorldInformationHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         RTWorldInformationHandler data = new RTWorldInformationHandler();
         data.readData(nbt);
         return data;
     }
 
     public static RTWorldInformationHandler get(MinecraftServer server) {
-        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(RTWorldInformationHandler::loadFrom, RTWorldInformationHandler::new, ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(RTWorldInformationHandler::new, RTWorldInformationHandler::loadFrom, null), ID);
     }
 
     public boolean isDragonDefeated() {
@@ -53,7 +53,7 @@ public class RTWorldInformationHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         compound.putBoolean("enderDragonDefeated", enderDragonDefeated);
         return compound;
     }

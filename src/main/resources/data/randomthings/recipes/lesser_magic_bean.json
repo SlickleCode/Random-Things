@@ -3,9 +3,9 @@
   "pattern": ["NNN","NBN","NNN"],
   "key": {
     "B": { "item": "randomthings:beans" },
-    "N": { "tag": "forge:nuggets/gold" }
+    "N": { "tag": "c:nuggets/gold" }
   },
   "result": {
-    "item": "randomthings:lesser_magic_bean"
+    "id": "randomthings:lesser_magic_bean"
   }
 }

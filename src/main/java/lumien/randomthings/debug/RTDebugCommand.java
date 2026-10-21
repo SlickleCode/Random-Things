@@ -1,5 +1,7 @@
 package lumien.randomthings.debug;
 
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
 import net.minecraft.core.registries.Registries;
 
 import java.util.ArrayList;
@@ -30,9 +32,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.NeoForge;
+
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Debug commands (only registered when the debug flag is on, see {@link RTDebug}):
@@ -69,7 +71,7 @@ public class RTDebugCommand
 		if (!tickRegistered)
 		{
 			tickRegistered = true;
-			MinecraftForge.EVENT_BUS.addListener(RTDebugCommand::onServerTick);
+			NeoForge.EVENT_BUS.addListener(RTDebugCommand::onServerTick);
 		}
 
 		dispatcher.register(Commands.literal("rtdebug").requires(source -> source.hasPermission(2))
@@ -91,6 +93,15 @@ public class RTDebugCommand
 
 									return 1;
 								})))
+				.then(Commands.literal("manual")
+						.executes(context -> {
+							net.minecraft.server.level.ServerPlayer player = context.getSource().getPlayerOrException();
+							for (String line : ManualTestWorld.build(player))
+							{
+								context.getSource().sendSuccess(() -> Component.literal("[rtdebug manual] " + line), false);
+							}
+							return 1;
+						}))
 				.then(Commands.literal("test")
 						.executes(context -> startTests(context, null))
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
@@ -106,7 +117,7 @@ public class RTDebugCommand
 	{
 		List<ResourceLocation> ids = new ArrayList<>();
 
-		for (ResourceLocation id : ForgeRegistries.BLOCKS.getKeys())
+		for (ResourceLocation id : BuiltInRegistries.BLOCK.keySet())
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -114,7 +125,7 @@ public class RTDebugCommand
 			}
 		}
 
-		for (ResourceLocation id : ForgeRegistries.ITEMS.getKeys())
+		for (ResourceLocation id : BuiltInRegistries.ITEM.keySet())
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()) && !ids.contains(id))
 			{
@@ -133,7 +144,7 @@ public class RTDebugCommand
 		ResourceLocation id = ResourceLocationArgument.getId(context, "id");
 
 		// a bare "igniter" parses as minecraft:igniter - assume this mod
-		if ("minecraft".equals(id.getNamespace()) && !ForgeRegistries.BLOCKS.containsKey(id) && !ForgeRegistries.ITEMS.containsKey(id))
+		if ("minecraft".equals(id.getNamespace()) && !BuiltInRegistries.BLOCK.containsKey(id) && !BuiltInRegistries.ITEM.containsKey(id))
 		{
 			id = new ResourceLocation(ModConstants.MOD_ID, id.getPath());
 		}
@@ -166,8 +177,8 @@ public class RTDebugCommand
 
 		try
 		{
-			boolean isBlock = ModConstants.MOD_ID.equals(id.getNamespace()) && ForgeRegistries.BLOCKS.containsKey(id);
-			boolean isItem = ModConstants.MOD_ID.equals(id.getNamespace()) && ForgeRegistries.ITEMS.containsKey(id);
+			boolean isBlock = ModConstants.MOD_ID.equals(id.getNamespace()) && BuiltInRegistries.BLOCK.containsKey(id);
+			boolean isItem = ModConstants.MOD_ID.equals(id.getNamespace()) && BuiltInRegistries.ITEM.containsKey(id);
 
 			if (!isBlock && !isItem)
 			{
@@ -179,7 +190,7 @@ public class RTDebugCommand
 
 			if (isBlock)
 			{
-				Block block = ForgeRegistries.BLOCKS.getValue(id);
+				Block block = BuiltInRegistries.BLOCK.get(id);
 
 				world.setBlock(blockPos, block.defaultBlockState(), 3);
 
@@ -187,7 +198,7 @@ public class RTDebugCommand
 				// run the placement hooks too (e.g. the Ender Mailbox only opens for its owner, set on placement)
 				state.getBlock().setPlacedBy(world, blockPos, state, player, new ItemStack(block));
 				BlockHitResult hit = new BlockHitResult(new Vec3(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D), player.getDirection().getOpposite(), blockPos, false);
-				boolean handled = state.use(world, player, InteractionHand.MAIN_HAND, hit).consumesAction();
+				boolean handled = BlockUse.use(state, world, player, InteractionHand.MAIN_HAND, hit).consumesAction();
 
 				net.minecraft.world.level.block.entity.BlockEntity te = world.getBlockEntity(blockPos);
 
@@ -195,7 +206,7 @@ public class RTDebugCommand
 			}
 			else
 			{
-				Item item = ForgeRegistries.ITEMS.getValue(id);
+				Item item = BuiltInRegistries.ITEM.get(id);
 				ItemStack previous = player.getMainHandItem();
 
 				ItemStack stack = new ItemStack(item);
@@ -292,11 +303,11 @@ public class RTDebugCommand
 		return 1;
 	}
 
-	private static void onServerTick(TickEvent.ServerTickEvent event)
+	private static void onServerTick(ServerTickEvent.Post event)
 	{
 		AllGuisRun r = run;
 
-		if (r == null || event.phase != TickEvent.Phase.END)
+		if (r == null)
 		{
 			return;
 		}
@@ -349,7 +360,7 @@ public class RTDebugCommand
 		String[] how = new String[1];
 		boolean sneak = "sneak".equals(entry[1]);
 		boolean opened = openGui(r.player, id, sneak, r.pos, how);
-		r.placedBlock = ForgeRegistries.BLOCKS.containsKey(id);
+		r.placedBlock = BuiltInRegistries.BLOCK.containsKey(id);
 
 		if (opened)
 		{

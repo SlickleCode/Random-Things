@@ -39,6 +39,6 @@ public class DyeCraftingSlot extends ResultSlot {
         }
 
         this.container.slotsChanged(craftMatrix);
-
+
     }
 }

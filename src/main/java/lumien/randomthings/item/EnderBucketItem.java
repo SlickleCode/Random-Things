@@ -19,14 +19,11 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fluids.FluidActionResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
+import net.neoforged.neoforge.fluids.FluidActionResult;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStackSimple;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,7 +43,7 @@ import java.util.Set;
  * how it stayed for years afterward, so nothing here is provisional.
  */
 public class EnderBucketItem extends Item {
-    private static final int CAPACITY = 1000;
+    public static final int CAPACITY = 1000;
 
     public EnderBucketItem(Item.Properties properties) {
         super(properties);
@@ -55,11 +52,6 @@ public class EnderBucketItem extends Item {
     @Override
     public int getMaxStackSize(ItemStack stack) {
         return getContainedFluid(stack) != null ? 1 : 16;
-    }
-
-    @Override
-    public ICapabilityProvider initCapabilities(ItemStack stack, CompoundTag nbt) {
-        return new FluidHandlerItemStackSimple(stack, CAPACITY);
     }
 
     @Override
@@ -169,7 +161,7 @@ public class EnderBucketItem extends Item {
     }
 
     private static boolean isFluidBlock(Block block) {
-        return block instanceof BucketPickup || block instanceof IFluidBlock;
+        return block instanceof BucketPickup;
     }
 
     /**
@@ -181,13 +173,9 @@ public class EnderBucketItem extends Item {
      * the world themselves on success, no capability lookup needed.
      */
     private static FluidStack drainSource(Level world, BlockPos pos, BlockState state, Block block) {
-        if (block instanceof IFluidBlock) {
-            return ((IFluidBlock) block).drain(world, pos, FluidAction.EXECUTE);
-        }
-
         if (block instanceof BucketPickup) {
             Fluid fluid = state.getFluidState().getType();
-            ItemStack pickedUp = ((BucketPickup) block).pickupBlock(world, pos, state);
+            ItemStack pickedUp = ((BucketPickup) block).pickupBlock(null, world, pos, state);
             if (pickedUp.isEmpty()) {
                 fluid = Fluids.EMPTY;
             }
@@ -201,7 +189,10 @@ public class EnderBucketItem extends Item {
     private InteractionResultHolder<ItemStack> finishPickup(Player player, ItemStack stack, FluidStack drained) {
         ItemStack filled = stack.copy();
         filled.setCount(1);
-        filled.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).ifPresent(handler -> handler.fill(drained, FluidAction.EXECUTE));
+        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem filledHandler = filled.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        if (filledHandler != null) {
+            filledHandler.fill(drained, FluidAction.EXECUTE);
+        }
 
         if (stack.getCount() > 1) {
             ItemStack remaining = stack.copy();
@@ -226,10 +217,11 @@ public class EnderBucketItem extends Item {
         // is still null at that point, and calling getCapability at all
         // NPEs inside Forge's own code before this method is even entered.
         // Guard against it rather than the capability itself.
-        if (ForgeCapabilities.FLUID_HANDLER_ITEM == null) {
+        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem handler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        if (handler == null) {
             return null;
         }
-
-        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
+        FluidStack drained = handler.drain(CAPACITY, FluidAction.SIMULATE);
+        return drained.isEmpty() ? null : drained;
     }
 }

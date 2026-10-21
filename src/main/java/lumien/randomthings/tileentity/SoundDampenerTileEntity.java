@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.BlockPos;
 
 import lumien.randomthings.util.WeakSets;
@@ -17,7 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -82,23 +83,7 @@ public class SoundDampenerTileEntity extends BlockEntity implements MenuProvider
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    /**
-     * Real bug, found 2026-09-27 (see {@code RuneBaseTileEntity} for the full
-     * story): {@code TileEntity.onDataPacket} doesn't exist in this Forge
-     * version - it's a Forge-added default method on {@code
-     * IForgeTileEntity} whose default is an empty no-op, unlike {@code
-     * handleUpdateTag}'s default (initial chunk-load sync only), which
-     * already calls {@code read(tag)}. Without this override, every live
-     * update sent via {@code getUpdatePacket} above silently did nothing on
-     * arrival until the next relog/rejoin.
-     */
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
-    }
-
-    /**
+/**
      * {@code TileEntity.getUpdateTag()}'s default implementation calls the
      * *private* {@code writeInternal()} directly (confirmed via `javap -c`),
      * not the public, overridable {@code write()} - so without this override
@@ -107,8 +92,8 @@ public class SoundDampenerTileEntity extends BlockEntity implements MenuProvider
      * `BiomeRadarTileEntity` for the full story on where this was found.
      */
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     private void syncTE() {
@@ -120,18 +105,18 @@ public class SoundDampenerTileEntity extends BlockEntity implements MenuProvider
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
-        compound.put("inventory", itemHandler.serializeNBT());
+        compound.put("inventory", itemHandler.serializeNBT(registries));
 
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
-        itemHandler.deserializeNBT(compound.getCompound("inventory"));
+        itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
         recomputeMutedSounds();
     }
 

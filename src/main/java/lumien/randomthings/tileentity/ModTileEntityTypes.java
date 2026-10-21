@@ -5,8 +5,8 @@ import lumien.randomthings.block.ModBlocks;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.ObjectHolder;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ObjectHolder;
 
 public class ModTileEntityTypes
 {
@@ -138,7 +138,7 @@ public class ModTileEntityTypes
 	public static BlockEntityType<DiaphanousBlockTileEntity> DIAPHANOUS_BLOCK;
 
 
-	public static void registerTypes(IForgeRegistry<BlockEntityType<?>> registry)
+	public static void registerTypes(RTRegistry<BlockEntityType<?>> registry)
 	{
 
 		registerSimple(registry, "advanced_redstone_torch", AdvancedRedstoneTorchTileEntity::new, ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH);
@@ -187,7 +187,7 @@ public class ModTileEntityTypes
 		registerSimple(registry, "diaphanous_block", DiaphanousBlockTileEntity::new, ModBlocks.DIAPHANOUS_BLOCK);
 	}
 
-	private static void registerSimple(IForgeRegistry<BlockEntityType<?>> registry, String name, BlockEntityType.BlockEntitySupplier<? extends BlockEntity> factoryIn, Block... validBlocks)
+	private static void registerSimple(RTRegistry<BlockEntityType<?>> registry, String name, BlockEntityType.BlockEntitySupplier<? extends BlockEntity> factoryIn, Block... validBlocks)
 	{
 		registry.register(name, BlockEntityType.Builder.of(factoryIn, validBlocks).build(null));
 	}

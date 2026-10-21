@@ -54,7 +54,8 @@ function initializeCoreMod() {
                         if (insn.getOpcode && insn.getOpcode() === Opcodes.ILOAD && insn.var === 11) {
                             var next = insn.getNext();
 
-                            if (next !== null && next.getOpcode && next.getOpcode() === Opcodes.BIPUSH && next.operand === 16) {
+                            // 1.20.6: the colour int (local 11) is first read by FastColor.ARGB32.alpha(i) (older versions: i >> 16 via BIPUSH 16)
+                            if (next !== null && next.getOpcode && ((next.getOpcode() === Opcodes.BIPUSH && next.operand === 16) || (next.getOpcode() === Opcodes.INVOKESTATIC && next.name === "alpha"))) {
                                 var toInsert = new InsnList();
                                 toInsert.add(new VarInsnNode(Opcodes.ALOAD, 4));
                                 toInsert.add(new VarInsnNode(Opcodes.ILOAD, 11));

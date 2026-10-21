@@ -20,7 +20,7 @@
     }
   },
   "result": {
-    "item": "randomthings:weather_egg_storm",
+    "id": "randomthings:weather_egg_storm",
     "count": 2
   }
 }

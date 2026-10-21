@@ -4,9 +4,9 @@ import glob, hashlib, json, os, urllib.request
 
 here = os.path.dirname(os.path.abspath(__file__))
 client = os.path.join(here, 'client')
-forge = json.load(open(glob.glob(os.path.join(client, 'versions', '*forge*', '*.json'))[0]))
+forge = json.load(open(glob.glob(os.path.join(client, 'versions', '*neoforge*', '*.json'))[0]))
 mc = forge['inheritsFrom']
-v = json.load(open(os.path.expanduser('~/.gradle/caches/forge_gradle/minecraft_repo/versions/%s/version.json' % mc)))
+v = json.load(open(os.path.join(client, 'versions', mc, mc + '.json')))
 
 
 def fetch(art):

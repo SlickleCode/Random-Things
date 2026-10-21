@@ -1,5 +1,6 @@
 package lumien.randomthings.network.messages;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.container.RedstoneRemoteEditContainer;
 import lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler;
 import lumien.randomthings.item.PositionFilterItem;
@@ -8,8 +9,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.network.NetworkEvent.Context;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Client -> server: "the player clicked the Nth Position Filter button on
@@ -43,9 +44,9 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
     }
 
     @Override
-    public void handle(Context ctx) {
+    public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            ServerPlayer player = ctx.getSender();
+            ServerPlayer player = (ServerPlayer) ctx.player();
 
             if (player == null || slot < 0 || slot >= 9) {
                 return;
@@ -53,12 +54,12 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
 
             ItemStack remoteStack = RedstoneRemoteEditContainer.findRemoteStack(player);
 
-            if (remoteStack.isEmpty() || !remoteStack.hasTag() || !remoteStack.getTag().contains("positions")) {
+            if (remoteStack.isEmpty() || !StackTag.has(remoteStack) || !StackTag.contains(remoteStack, "positions")) {
                 return;
             }
 
             ItemStackHandler positionInventory = new ItemStackHandler(9);
-            positionInventory.deserializeNBT(remoteStack.getTag().getCompound("positions"));
+            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("positions"));
 
             ItemStack positionFilter = positionInventory.getStackInSlot(slot);
 

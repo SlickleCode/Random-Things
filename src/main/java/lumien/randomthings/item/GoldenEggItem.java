@@ -3,7 +3,6 @@ package lumien.randomthings.item;
 import lumien.randomthings.entity.ThrownGoldenEggEntity;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.core.Position;
-import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -24,16 +23,16 @@ import net.minecraft.world.level.Level;
  * Bottle/etc. Direct port of {@code ItemIngredient}'s {@code GOLDEN_EGG}
  * special case in {@code onItemRightClick} and its dispenser behavior.
  */
-public class GoldenEggItem extends Item {
+public class GoldenEggItem extends Item implements net.minecraft.world.item.ProjectileItem {
     public GoldenEggItem(Item.Properties properties) {
         super(properties);
 
-        DispenserBlock.registerBehavior(this, new AbstractProjectileDispenseBehavior() {
-            @Override
-            protected Projectile getProjectile(Level world, Position position, ItemStack stack) {
-                return new ThrownGoldenEggEntity(world, position.x(), position.y(), position.z());
-            }
-        });
+        DispenserBlock.registerProjectileBehavior(this);
+    }
+
+    @Override
+    public net.minecraft.world.entity.projectile.Projectile asProjectile(Level world, net.minecraft.core.Position position, ItemStack stack, net.minecraft.core.Direction direction) {
+        return new ThrownGoldenEggEntity(world, position.x(), position.y(), position.z());
     }
 
     @Override

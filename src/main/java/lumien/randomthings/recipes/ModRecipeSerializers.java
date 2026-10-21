@@ -3,11 +3,11 @@ package lumien.randomthings.recipes;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistry;
+import lumien.randomthings.lib.RTRegistry;
 
 public class ModRecipeSerializers
 {
-	public static void registerRecipeSerializers(IForgeRegistry<RecipeSerializer<?>> registry)
+	public static void registerRecipeSerializers(RTRegistry<RecipeSerializer<?>> registry)
 	{
 
 		registry.register(new ResourceLocation(ModConstants.MOD_ID, "golden_compass_set_position"), GoldenCompassSetPositionRecipe.SERIALIZER);

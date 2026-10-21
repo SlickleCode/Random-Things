@@ -51,7 +51,7 @@ public class FlooSignItem extends Item {
         Player player = context.getPlayer();
         ItemStack flooSign = context.getItemInHand();
 
-        String signName = flooSign.hasCustomHoverName() ? flooSign.getHoverName().getString() : null;
+        String signName = flooSign.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME) ? flooSign.getHoverName().getString() : null;
 
         Direction teleportFacing = context.getClickedFace();
 

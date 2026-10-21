@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.StackTag;
 import java.util.UUID;
 
 import lumien.randomthings.item.EmeraldCompassItem;
@@ -29,9 +30,9 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 {
 	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
 
-	public EmeraldCompassSetTargetRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category)
+	public EmeraldCompassSetTargetRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category)
 	{
-		super(id, category);
+		super(category);
 	}
 
 	@Override
@@ -75,7 +76,7 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess)
+	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;
@@ -99,14 +100,7 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 
 		if (uuid != null)
 		{
-			CompoundTag compound = result.getTag();
-
-			if (compound == null)
-			{
-				result.setTag(compound = new CompoundTag());
-			}
-
-			compound.putString("uuid", uuid.toString());
+			StackTag.edit(result, compound -> compound.putString("uuid", uuid.toString()));
 		}
 
 		return result;

@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -12,7 +13,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Direct port of 1.12.2's {@code TileEntityBlockDiaphanous}: holds which
@@ -67,19 +68,13 @@ public class DiaphanousBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         compound.putString("block", RegUtil.id(displayState.getBlock()).toString());
         compound.putBoolean("inverted", inverted);
@@ -87,11 +82,11 @@ public class DiaphanousBlockTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("block")) {
-            this.displayState = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(compound.getString("block"))).defaultBlockState();
+            this.displayState = BuiltInRegistries.BLOCK.get(new ResourceLocation(compound.getString("block"))).defaultBlockState();
         } else {
             this.displayState = Blocks.STONE.defaultBlockState();
         }

@@ -21,8 +21,8 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
-import net.minecraftforge.event.LootTableLoadEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.LootTableLoadEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.core.Registry;
 import com.google.gson.JsonObject;
@@ -91,7 +91,7 @@ public class LootHandler
 	}
 
 	/** 1.16 loot functions carry a registered type; this one is only ever added in code, so it has no JSON form. */
-	public static final LootItemFunctionType RANDOM_BIOME_TYPE = new LootItemFunctionType(new RandomBiomeFunction.Serializer());
+	public static final LootItemFunctionType<RandomBiomeFunction> RANDOM_BIOME_TYPE = new LootItemFunctionType<>(com.mojang.serialization.MapCodec.unit(RandomBiomeFunction::new));
 
 	public static void registerFunctionTypes()
 	{
@@ -99,26 +99,17 @@ public class LootHandler
 	}
 
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */
-	private static class RandomBiomeFunction extends LootItemConditionalFunction
+	static class RandomBiomeFunction extends LootItemConditionalFunction
 	{
 		protected RandomBiomeFunction()
 		{
-			super(new LootItemCondition[0]);
+			super(List.of());
 		}
 
 		@Override
-		public LootItemFunctionType getType()
+		public LootItemFunctionType<RandomBiomeFunction> getType()
 		{
 			return RANDOM_BIOME_TYPE;
-		}
-
-		static class Serializer extends LootItemConditionalFunction.Serializer<RandomBiomeFunction>
-		{
-			@Override
-			public RandomBiomeFunction deserialize(JsonObject object, JsonDeserializationContext context, LootItemCondition[] conditions)
-			{
-				return new RandomBiomeFunction();
-			}
 		}
 
 		@Override

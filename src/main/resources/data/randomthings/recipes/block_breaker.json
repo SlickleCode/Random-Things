@@ -7,7 +7,7 @@
   ],
   "key": {
     "C": {
-      "tag": "forge:cobblestone"
+      "tag": "c:cobblestones"
     },
     "P": {
       "item": "minecraft:iron_pickaxe"
@@ -17,6 +17,6 @@
     }
   },
   "result": {
-    "item": "randomthings:block_breaker"
+    "id": "randomthings:block_breaker"
   }
 }

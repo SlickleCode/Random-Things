@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.world.item.Item;
@@ -13,8 +14,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * A stamped-with-one-sound recording, produced by {@link SoundRecorderItem}'s
@@ -39,7 +40,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
             ItemStack me = playerIn.getItemInHand(handIn);
 
             if (getSoundLocation(me) != null) {
-                me.setTag(null);
+                StackTag.set(me, null);
 
                 return new InteractionResultHolder<>(InteractionResult.SUCCESS, me);
             }
@@ -60,8 +61,9 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+        Level worldIn = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
 
         ResourceLocation sound = getSoundLocation(stack);
 
@@ -69,7 +71,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
     }
 
     public static ResourceLocation getSoundLocation(ItemStack pattern) {
-        CompoundTag compound = pattern.getTag();
+        CompoundTag compound = StackTag.get(pattern);
 
         if (compound != null && compound.contains("sound")) {
             return new ResourceLocation(compound.getString("sound"));
@@ -79,7 +81,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
     }
 
     public static void setSoundLocation(ItemStack pattern, String sound) {
-        pattern.getOrCreateTag().putString("sound", sound);
+        StackTag.edit(pattern, t -> t.putString("sound", sound));
     }
 
 	@Override

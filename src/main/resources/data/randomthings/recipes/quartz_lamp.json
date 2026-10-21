@@ -6,6 +6,6 @@
     "L": { "item": "minecraft:redstone_lamp" }
   },
   "result": {
-    "item": "randomthings:quartz_lamp"
+    "id": "randomthings:quartz_lamp"
   }
 }

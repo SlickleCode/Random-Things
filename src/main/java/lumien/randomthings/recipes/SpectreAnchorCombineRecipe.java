@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -26,8 +27,8 @@ import net.minecraft.world.level.Level;
 public class SpectreAnchorCombineRecipe extends CustomRecipe {
     public static final RecipeSerializer<SpectreAnchorCombineRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(SpectreAnchorCombineRecipe::new);
 
-    public SpectreAnchorCombineRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
-        super(id, category);
+    public SpectreAnchorCombineRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
@@ -57,11 +58,11 @@ public class SpectreAnchorCombineRecipe extends CustomRecipe {
             }
         }
 
-        return !anchor.isEmpty() && !target.isEmpty() && (!target.hasTag() || !target.getTag().contains("spectreAnchor"));
+        return !anchor.isEmpty() && !target.isEmpty() && (!StackTag.has(target) || !StackTag.contains(target, "spectreAnchor"));
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess) {
         ItemStack target = ItemStack.EMPTY;
 
         for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -73,8 +74,7 @@ public class SpectreAnchorCombineRecipe extends CustomRecipe {
         }
 
         ItemStack result = target.copy();
-        result.getOrCreateTag().put("spectreAnchor", ByteTag.valueOf((byte) 0));
-
+        StackTag.edit(result, t -> t.put("spectreAnchor", ByteTag.valueOf((byte) 0)));
         return result;
     }
 

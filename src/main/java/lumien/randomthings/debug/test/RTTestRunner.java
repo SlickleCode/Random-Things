@@ -1,5 +1,7 @@
 package lumien.randomthings.debug.test;
 
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.TickEvent;
+
 
 /**
  * Runs the in-game test suite on the server thread, one step per tick (immediate steps are batched
@@ -136,9 +138,9 @@ public final class RTTestRunner
 		}
 	}
 
-	public static void onServerTick(TickEvent.ServerTickEvent event)
+	public static void onServerTick(ServerTickEvent.Post event)
 	{
-		if (!running || event.phase != TickEvent.Phase.END)
+		if (!running)
 		{
 			return;
 		}

@@ -34,10 +34,9 @@ import net.minecraft.network.chat.Component;
  */
 public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyzerScanResultList.ResultEntry> {
     public ChunkAnalyzerScanResultList(Minecraft client, int width, int height, int top, int bottom, int left) {
-        super(client, width, height, top, bottom, 20);
+        super(client, width, bottom - top, top, 20);
 
-        this.setLeftPos(left);
-        this.setRenderSelection(false);
+        this.setX(left);
     }
 
     /**
@@ -55,20 +54,20 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
 
     @Override
     protected int getScrollbarPosition() {
-        return this.x0 + this.width - 6;
+        return this.getX() + this.width - 6;
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 
         int rowLeft = this.getRowLeft();
-        int rowTop = this.y0 + 4 - (int) this.getScrollAmount();
+        int rowTop = this.getY() + 4 - (int) this.getScrollAmount();
 
         // Rows scrolled past the top/bottom must be clipped to the list's own box (1.12.2's
         // GuiScanResultList glScissor'd the same way) - otherwise they draw over the title,
         // the Scan button and below the GUI (reported 2026-10-03).
-        ListClip.begin(this.minecraft, this.x0, this.y0, this.x1, this.y1);
-        this.renderList(graphics, mouseX, mouseY, partialTicks);
+        ListClip.begin(this.minecraft, this.getX(), this.getY(), this.getRight(), this.getBottom());
+        this.renderListItems(graphics, mouseX, mouseY, partialTicks);
         ListClip.end();
 
         renderScrollbar(graphics);
@@ -76,7 +75,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
 
     private void renderScrollbar(GuiGraphics graphics) {
         int totalHeight = this.getItemCount() * this.itemHeight;
-        int visibleHeight = this.y1 - this.y0;
+        int visibleHeight = this.getBottom() - this.getY();
 
         if (totalHeight <= visibleHeight) {
             return;
@@ -85,9 +84,9 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
         int scrollbarX = this.getScrollbarPosition();
         int maxScroll = totalHeight - visibleHeight;
         int thumbHeight = Math.max(32, visibleHeight * visibleHeight / totalHeight);
-        int thumbY = this.y0 + (int) ((visibleHeight - thumbHeight) * (this.getScrollAmount() / maxScroll));
+        int thumbY = this.getY() + (int) ((visibleHeight - thumbHeight) * (this.getScrollAmount() / maxScroll));
 
-        graphics.fill(scrollbarX, this.y0, scrollbarX + 6, this.y1, 0xFF000000);
+        graphics.fill(scrollbarX, this.getY(), scrollbarX + 6, this.getBottom(), 0xFF000000);
         graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);
     }
 

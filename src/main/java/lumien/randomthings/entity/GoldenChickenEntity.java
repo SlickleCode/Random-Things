@@ -19,7 +19,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -27,7 +27,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.Tags;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.List;
 import java.util.Set;
@@ -70,7 +70,7 @@ public class GoldenChickenEntity extends Animal {
 
     public GoldenChickenEntity(EntityType<? extends GoldenChickenEntity> type, Level world) {
         super(type, world);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
     @Override
@@ -156,8 +156,8 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    protected ResourceLocation getDefaultLootTable() {
-        return new ResourceLocation("minecraft", "entities/chicken");
+    protected net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> getDefaultLootTable() {
+        return net.minecraft.world.entity.EntityType.CHICKEN.getDefaultLootTable();
     }
 
     @Override
@@ -197,9 +197,6 @@ public class GoldenChickenEntity extends Animal {
     @Override
     protected void positionRider(Entity passenger, Entity.MoveFunction moveFunction) {
         super.positionRider(passenger, moveFunction);
-        float f = Mth.sin(this.yBodyRot * 0.017453292F);
-        float f1 = Mth.cos(this.yBodyRot * 0.017453292F);
-        moveFunction.accept(passenger, this.getX() + (double) (0.1F * f), this.getY() + (double) (this.getBbHeight() * 0.5F) + passenger.getMyRidingOffset(), this.getZ() - (double) (0.1F * f1));
 
         if (passenger instanceof LivingEntity) {
             ((LivingEntity) passenger).yBodyRot = this.yBodyRot;

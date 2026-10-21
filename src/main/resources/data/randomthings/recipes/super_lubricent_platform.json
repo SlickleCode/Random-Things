@@ -6,7 +6,7 @@
     "E": { "item": "minecraft:ender_pearl" }
   },
   "result": {
-    "item": "randomthings:super_lubricent_platform",
+    "id": "randomthings:super_lubricent_platform",
     "count": 6
   }
 }

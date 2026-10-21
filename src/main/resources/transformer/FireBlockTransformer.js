@@ -16,7 +16,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "tryCatchFire") {
+                    if (method.name !== "checkBurnOut" && method.name !== "tryCatchFire") {
                         continue;
                     }
 

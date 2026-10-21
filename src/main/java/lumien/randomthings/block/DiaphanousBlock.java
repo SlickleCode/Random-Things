@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -113,17 +114,17 @@ public class DiaphanousBlock extends Block implements EntityBlock {
 
         BlockEntity te = worldIn.getBlockEntity(pos);
 
-        if (!(te instanceof DiaphanousBlockTileEntity) || !stack.hasTag()) {
+        if (!(te instanceof DiaphanousBlockTileEntity) || !StackTag.has(stack)) {
             return;
         }
 
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = StackTag.get(stack);
 
         if (!tag.contains("block")) {
             return;
         }
 
-        net.minecraft.world.level.block.Block displayBlock = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.resources.ResourceLocation(tag.getString("block")));
+        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation(tag.getString("block")));
 
         if (displayBlock != null) {
             ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBoolean("inverted"));
@@ -142,7 +143,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
                 CompoundTag tag = new CompoundTag();
                 tag.putString("block", RegUtil.id(diaphanous.getDisplayState().getBlock()).toString());
                 tag.putBoolean("inverted", diaphanous.isInverted());
-                drop.setTag(tag);
+                StackTag.set(drop, tag);
 
                 Block.popResource(worldIn, pos, drop);
             }
@@ -166,8 +167,8 @@ public class DiaphanousBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientBlockExtensions> consumer) {
-        consumer.accept(new net.minecraftforge.client.extensions.common.IClientBlockExtensions() {
+    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions> consumer) {
+        consumer.accept(new net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions() {
             @Override
             public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine manager) {
                 BlockEntity te = world.getBlockEntity(pos);

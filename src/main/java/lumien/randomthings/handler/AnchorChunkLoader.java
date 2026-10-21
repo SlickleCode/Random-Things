@@ -31,14 +31,14 @@ public class AnchorChunkLoader extends SavedData {
     public AnchorChunkLoader() {
     }
 
-    public static AnchorChunkLoader loadFrom(CompoundTag nbt) {
+    public static AnchorChunkLoader loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         AnchorChunkLoader data = new AnchorChunkLoader();
         data.readData(nbt);
         return data;
     }
 
     private static AnchorChunkLoader get(ServerLevel world) {
-        return world.getDataStorage().computeIfAbsent(AnchorChunkLoader::loadFrom, AnchorChunkLoader::new, ID);
+        return world.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(AnchorChunkLoader::new, AnchorChunkLoader::loadFrom, null), ID);
     }
 
     /** Start keeping the anchor's chunk loaded. Safe to call repeatedly for the same anchor. */
@@ -97,7 +97,7 @@ public class AnchorChunkLoader extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         compound.putLongArray("anchors", anchors.stream().mapToLong(Long::longValue).toArray());
         compound.putLongArray("ownedChunks", ownedChunks.stream().mapToLong(Long::longValue).toArray());
         return compound;

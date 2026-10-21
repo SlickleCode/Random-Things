@@ -19,18 +19,18 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 /**
  * Biomes are data-driven and 1.19 removed {@code getRegistryName()} and {@code BiomeDictionary}: a world's {@link Biome}
  * instances live in its {@link RegistryAccess} (not in {@code ForgeRegistries.BIOMES}), their ids come from that registry
  * and their "types" from biome tags. The old dictionary type names (BEACH, COLD, ...) are kept as the names these helpers
- * return; each maps to the Forge ({@code forge:is_<name>}) or vanilla ({@code minecraft:is_<name>}) biome tag of that name.
+ * return; each maps to the common ({@code c:is_<name>}) or vanilla ({@code minecraft:is_<name>}) biome tag of that name.
  */
 public class BiomeUtil {
-    /** Dictionary type name -> tag; names not listed use {@code forge:is_<lowercase name>}. */
+    /** Dictionary type name -> tag; names not listed use {@code c:is_<lowercase name>}. */
     private static final Map<String, ResourceLocation> VANILLA_TAGS = new HashMap<>();
 
     static {
@@ -43,6 +43,11 @@ public class BiomeUtil {
         VANILLA_TAGS.put("END", new ResourceLocation("minecraft", "is_end"));
         VANILLA_TAGS.put("OCEAN", new ResourceLocation("minecraft", "is_ocean"));
         VANILLA_TAGS.put("RIVER", new ResourceLocation("minecraft", "is_river"));
+        VANILLA_TAGS.put("MESA", new ResourceLocation("c", "is_badlands"));
+        VANILLA_TAGS.put("CONIFEROUS", new ResourceLocation("c", "is_taiga"));
+        VANILLA_TAGS.put("DENSE", new ResourceLocation("c", "is_dense_vegetation"));
+        VANILLA_TAGS.put("SPARSE", new ResourceLocation("c", "is_sparse_vegetation"));
+        VANILLA_TAGS.put("WATER", new ResourceLocation("c", "is_aquatic"));
     }
 
     /** Every type name {@link #types} can report (the cases of the biome colour switch plus the ones worldgen asks for). */
@@ -162,7 +167,7 @@ public class BiomeUtil {
     }
 
     private static TagKey<Biome> tag(String type) {
-        ResourceLocation id = VANILLA_TAGS.getOrDefault(type, new ResourceLocation("forge", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
+        ResourceLocation id = VANILLA_TAGS.getOrDefault(type, new ResourceLocation("c", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
 
         return TagKey.create(Registries.BIOME, id);
     }

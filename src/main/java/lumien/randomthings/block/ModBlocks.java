@@ -6,8 +6,8 @@ import lumien.randomthings.block.spectretree.SpectrePlankBlock;
 import lumien.randomthings.block.spectretree.SpectreSaplingBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.ObjectHolder;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ObjectHolder;
 
 public class ModBlocks
 {
@@ -288,7 +288,7 @@ public class ModBlocks
 		return (translucent ? "luminous_block_translucent_" : "luminous_block_") + color.getName();
 	}
 
-	public static void registerBlocks(IForgeRegistry<Block> registry)
+	public static void registerBlocks(RTRegistry<Block> registry)
 	{
 
 		registry.register("fertilized_dirt", new FertilizedDirtBlock());

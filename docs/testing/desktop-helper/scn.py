@@ -134,7 +134,35 @@ MC18 = _MCV.startswith('1.18') or _MCV.startswith('1.19') or _MCV.startswith('1.
 MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT conventions: registry-string dimensions, generic.max_health, /locatebiome
 DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
 MC20 = _MCV.startswith('1.20')                    # 1.20.1: tabbed create-world screen (Game / World / More)
+MC205 = _MCV.startswith('1.20.6') or _MCV.startswith('1.21')   # 1.20.5+: item data components instead of NBT, count/id stack tags, active_effects
 MC19 = _MCV.startswith('1.19') or MC20                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
+
+def sdata(item, nbt=None, ench=False):
+    """An item id with optional custom data (the old item NBT, now minecraft:custom_data) and/or a Protection I enchantment, in the syntax of the running version."""
+    parts = []
+    if MC205:
+        if ench:
+            parts.append('enchantments={levels:{"minecraft:protection":1}}')
+        if nbt:
+            parts.append('custom_data={%s}' % nbt)
+        return item + ('[%s]' % ','.join(parts) if parts else '')
+    if ench:
+        parts.append('Enchantments:[{id:"minecraft:protection",lvl:1}]')
+    if nbt:
+        parts.append(nbt)
+    return item + ('{%s}' % ','.join(parts) if parts else '')
+
+
+def stack_nbt(item_id, nbt, slot=None):
+    """A stack as it appears inside an NBT item list (Items:[...]) or an item entity: pre-1.20.5 Count/tag, 1.20.5+ count/components."""
+    sl = 'Slot:%db,' % slot if slot is not None else ''
+    if MC205:
+        return '{%sid:"%s",count:1,components:{"minecraft:custom_data":{%s}}}' % (sl, item_id, nbt)
+    return '{%sid:"%s",Count:1b,tag:{%s}}' % (sl, item_id, nbt)
+
+
+FLUID_WATER = '{id:"minecraft:water",amount:1000}' if MC205 else '{FluidName:"minecraft:water",Amount:1000}'
+EFFECTS_PATH = 'active_effects' if MC205 else 'ActiveEffects'
 SNOWY_BIOME = 'minecraft:snowy_plains' if MC18 else 'minecraft:snowy_tundra'     # renamed in 1.18
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
@@ -172,7 +200,7 @@ def imbuing(g):
     arena(g)
     g.cmd('setblock 0 5 3 randomthings:imbuing_station')
     g.tp(0.5, 4, 0.5, 0, 2)          # crosshair on the station block 2 blocks ahead
-    water = 'minecraft:potion{Potion:"minecraft:water"}'
+    water = 'minecraft:potion[potion_contents={potion:"minecraft:water"}]' if MC205 else 'minecraft:potion{Potion:"minecraft:water"}'
     g.slot(0, 'minecraft:cobblestone')
     g.slot(1, 'minecraft:vine')
     g.slot(2, 'minecraft:bone_meal')
@@ -221,10 +249,10 @@ def imbuing(g):
     g.select(1)
     g.hold(427, 240, 'right', 2.6)
     g.wait(0.5)
-    out = g.cmd('data get entity @s ActiveEffects')
-    g.expect_chat(out, r'Duration: 2\d{4}', '#175: drinking Fire Imbue gives a ~20 minute effect')
-    g.expect_chat(out, r'ShowIcon: 1b', '#175: the effect shows its HUD/inventory icon')
-    g.expect_chat(out, r'ShowParticles: 0b', '#175: the effect shows no particles (like 1.12.2)')
+    out = g.cmd('data get entity @s ' + EFFECTS_PATH)
+    g.expect_chat(out, r'[Dd]uration: 2\d{4}', '#175: drinking Fire Imbue gives a ~20 minute effect')
+    g.expect_chat(out, r'(ShowIcon|show_icon): 1b', '#175: the effect shows its HUD/inventory icon')
+    g.expect_chat(out, r'(ShowParticles|show_particles): 0b', '#175: the effect shows no particles (like 1.12.2)')
     g.shot('after_drink')
 
 def hits(g, n=6, gap=0.75):
@@ -277,17 +305,17 @@ def imbue_effects(g):
     g.cmd('effect give @s randomthings:imbue_poison 1000 0 true')
     spawn_dummy(g, 'pig')
     hits(g, 1)
-    out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 19b?(?![0-9])', '#177: Poison Imbue: a direct hit poisons the target')
-    g.expect_chat(out, r'Amplifier: 1b', '#177: ... at amplifier 1 (level II)')
+    out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] ' + EFFECTS_PATH)
+    g.expect_chat(out, r'(Id: 19b?(?![0-9])|id: "minecraft:poison")', '#177: Poison Imbue: a direct hit poisons the target')
+    g.expect_chat(out, r'[Aa]mplifier: 1b', '#177: ... at amplifier 1 (level II)')
     # --- Wither imbue: Wither II (effect id 20)
     g.cmd('effect clear @s')
     g.cmd('effect give @s randomthings:imbue_wither 1000 0 true')
     spawn_dummy(g)
     hits(g, 1)
-    out = g.cmd('data get entity @e[type=minecraft:spider,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 20b?(?![0-9])', '#178: Wither Imbue: a direct hit withers the target')
-    g.expect_chat(out, r'Amplifier: 1b', '#178: ... at amplifier 1 (level II)')
+    out = g.cmd('data get entity @e[type=minecraft:spider,limit=1] ' + EFFECTS_PATH)
+    g.expect_chat(out, r'(Id: 20b?(?![0-9])|id: "minecraft:wither")', '#178: Wither Imbue: a direct hit withers the target')
+    g.expect_chat(out, r'[Aa]mplifier: 1b', '#178: ... at amplifier 1 (level II)')
     # --- Experience imbue: double XP on a kill
     g.cmd('effect clear @s')
     g.cmd('effect give @s randomthings:imbue_experience 1000 0 true')
@@ -482,7 +510,7 @@ def sound_dampener(g):
     un-mutes. The client logs '[RT-DEBUG] muted sound ...' for every sound it silences, which is what is asserted here."""
     arena(g)
     harp = 'minecraft:block.note_block.harp'
-    pattern = '{Slot:0b,id:"randomthings:sound_pattern",Count:1b,tag:{sound:"%s"}}' % harp
+    pattern = stack_nbt('randomthings:sound_pattern', 'sound:"%s"' % harp, 0)
 
     def muted(x, y, z, who):
         before = g.mark()
@@ -504,7 +532,7 @@ def sound_dampener(g):
     g.cmd('setblock 0 4 3 minecraft:air')
     g.wait(0.5)
     g.check(not muted(3, 4, 3, 'placed'), '#160: breaking the Sound Dampener stops the muting')
-    g.slot(0, 'randomthings:portable_sound_dampener{inventory:{Size:9,Items:[%s]}}' % pattern)
+    g.slot(0, sdata('randomthings:portable_sound_dampener', 'inventory:{Size:9,Items:[%s]}' % pattern))
     g.wait(0.8)
     g.check(muted(60, 4, 3, 'portable'), '#159: the Portable Sound Dampener in the inventory mutes the sound wherever it is')
     g.cmd('clear @s randomthings:portable_sound_dampener')
@@ -587,12 +615,12 @@ def crafting_evil_tear_portkey(g):
 def portkey_drop(g):
     """#277: a bound Portkey on the ground counts 100 ticks (glint stops, no despawn); picking it up resets the counter."""
     arena(g)
-    g.cmd('summon item 0.5 4 3.5 {Item:{id:"randomthings:portkey",Count:1b,tag:{hasTarget:1b,dimension:' + DIM + ',targetX:10,targetY:4,targetZ:10}},Motion:[0.0,0.0,0.0]}')
+    g.cmd('summon item 0.5 4 3.5 {Item:%s,Motion:[0.0,0.0,0.0]}' % stack_nbt('randomthings:portkey', 'hasTarget:1b,dimension:' + DIM + ',targetX:10,targetY:4,targetZ:10'))
     g.wait(1)
-    v1 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Item.tag.dropCounter')
+    v1 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', ('Item.components."minecraft:custom_data".dropCounter' if MC205 else 'Item.tag.dropCounter'))
     c1 = int(v1) if re.fullmatch(r'-?\d+', v1) else -1
     g.wait(5)
-    v2 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Item.tag.dropCounter')
+    v2 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', ('Item.components."minecraft:custom_data".dropCounter' if MC205 else 'Item.tag.dropCounter'))
     c2 = int(v2) if re.fullmatch(r'-?\d+', v2) else -1
     g.check(0 < c1 < 100 and c2 >= 100, '#277: the dropped Portkey\'s counter runs up to the 100-tick priming time', 'after 1 s=%s after 6 s=%s' % (c1, c2))
     age = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Age')
@@ -612,8 +640,8 @@ def redstone_remote(g):
     g.cmd('setblock 10 4 10 minecraft:air')
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.check(block_isnt(g, 10, 4, 10, 'minecraft:emerald_block'), 'control: the marker block is not there before the pulse')
-    pos = '{Slot:0b,id:"randomthings:position_filter",Count:1b,tag:{hasPosition:1b,dimension:' + DIM + ',filterX:6,filterY:4,filterZ:3}}'
-    g.slot(0, 'randomthings:redstone_remote{positions:{Size:9,Items:[%s]}}' % pos)
+    pos = stack_nbt('randomthings:position_filter', ('hasPosition:1b,filterX:6,filterY:4,filterZ:3' if MC205 else 'hasPosition:1b,dimension:' + DIM + ',filterX:6,filterY:4,filterZ:3'), 0)   # 1.20.6: the chat box caps a command at 256 characters
+    g.slot(0, sdata('randomthings:redstone_remote', 'positions:{Size:9,Items:[%s]}' % pos))
     g.select(0)
     sky(g)
     g.click(427, 240, 'right'); g.wait(1.0)
@@ -749,7 +777,7 @@ def dyeing_machine(g):
     g.shot('hotbar_dyed_helmet')
     g.check(dyed >= 8 and plain == 0, '#321: the dyed helmet is drawn blue in the hotbar, the undyed one is not', 'blue pixels: undyed %d, dyed %d' % (plain, dyed))
     # enchant-glint result: an ENCHANTED helmet + blue dye, second result slot (an unenchanted item shows no glint, so nothing would be visible)
-    g.slot(6, 'minecraft:iron_helmet{Enchantments:[{id:"minecraft:protection",lvl:1}]}')
+    g.slot(6, sdata('minecraft:iron_helmet', ench=True))
     g.slot(7, 'minecraft:blue_dye')
     aim_at(g, 0, 4, 3)
     g.click(427, 240, 'right'); g.wait(0.9)
@@ -762,8 +790,8 @@ def dyeing_machine(g):
     g.wait(0.3)
     g.key('escape'); g.wait(0.8)
     out = inv(g)
-    g.check('enchantmentColor: 3949738' in out and 'Enchantments' in out, '#322: the enchanted helmet carries enchantmentColor = blue and keeps its enchantment', out[:400])
-    g.slot(7, 'minecraft:iron_helmet{Enchantments:[{id:"minecraft:protection",lvl:1}]}')       # reference: the same helmet with the vanilla (purple) glint
+    g.check('enchantmentColor: 3949738' in out and ('Enchantments' in out or 'minecraft:enchantments' in out), '#322: the enchanted helmet carries enchantmentColor = blue and keeps its enchantment', out[:400])
+    g.slot(7, sdata('minecraft:iron_helmet', ench=True))       # reference: the same helmet with the vanilla (purple) glint
     g.wait(0.3)
 
     def sheen_ratio(n):
@@ -831,14 +859,14 @@ def worn_armor(g):
     blue = lambda r, gg, b: r < 90 and 80 < b < 195 and b - r > 40 and b - gg > 15      # dark dye blue, not the sky
     plain_red, plain_blue = scan(red), scan(blue)
     g.shot('worn_plain')
-    wear('minecraft:iron_chestplate{rtDye:11546150}', 'minecraft:iron_helmet{rtDye:3949738}')
+    wear(sdata('minecraft:iron_chestplate', 'rtDye:11546150'), sdata('minecraft:iron_helmet', 'rtDye:3949738'))
     dyed_red, dyed_blue = scan(red), scan(blue)
     g.shot('worn_dyed')
     g.check(dyed_red >= plain_red + 25, 'a dyed (red) chestplate is drawn red on the player', 'red pixels: plain %d, dyed %d' % (plain_red, dyed_red))
     g.check(dyed_blue >= plain_blue + 6, 'a dyed (blue) helmet is drawn blue on the player', 'blue pixels: plain %d, dyed %d' % (plain_blue, dyed_blue))
 
     # glint: the same armor with the vanilla glint, then with a blue glint; the sheen of enchanted armor is purple unless tinted.
-    ench = '{Enchantments:[{id:"minecraft:protection",lvl:1}]'
+    ench = None
     box = [(x, y) for x in range(400, 452, 2) for y in range(262, 318, 2)]      # torso: almost all chestplate
 
     def frame_box():
@@ -864,9 +892,9 @@ def worn_armor(g):
     g.key('f1'); g.wait(0.6)
     base = frame_box()
     g.key('f1'); g.wait(0.4)
-    wear('minecraft:iron_chestplate%s}' % ench, 'minecraft:iron_helmet%s}' % ench)
+    wear(sdata('minecraft:iron_chestplate', ench=True), sdata('minecraft:iron_helmet', ench=True))
     vanilla, nv = sheen('worn_glint_vanilla', base)
-    wear('minecraft:iron_chestplate%s,enchantmentColor:3949738}' % ench, 'minecraft:iron_helmet%s,enchantmentColor:3949738}' % ench)
+    wear(sdata('minecraft:iron_chestplate', 'enchantmentColor:3949738', True), sdata('minecraft:iron_helmet', 'enchantmentColor:3949738', True))
     tinted, nt = sheen('worn_glint_blue', base)
     g.check(0 < tinted < vanilla - 0.1, 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
     g.key('f5'); g.wait(0.5)                                   # back to first person
@@ -921,7 +949,7 @@ def redstone_remote_edit(g):
         g.cmd('setblock %d %d %d minecraft:air' % p)
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.cmd('setblock 8 4 3 minecraft:command_block{Command:"setblock 11 4 10 minecraft:gold_block"}')
-    pf = lambda x: 'randomthings:position_filter{hasPosition:1b,dimension:' + DIM + ',filterX:%d,filterY:4,filterZ:3}' % x
+    pf = lambda x: sdata('randomthings:position_filter', ('hasPosition:1b,filterX:%d,filterY:4,filterZ:3' if MC205 else 'hasPosition:1b,dimension:' + DIM + ',filterX:%d,filterY:4,filterZ:3') % x)
     g.slot(0, 'randomthings:redstone_remote')
     g.slot(1, pf(6))
     g.slot(2, pf(8))
@@ -938,7 +966,7 @@ def redstone_remote_edit(g):
     pick_place(g, hotbar_xy(W, H, 3), gui_slot(W, H, 8, 36))             # diamond -> camo slot 0 (the icon of button 1)
     g.wait(0.3)
     g.key('escape'); g.wait(0.6)
-    held = ' '.join(g.cmd('data get entity @s Inventory[{Slot:0b}].tag', 0.7))
+    held = ' '.join(g.cmd('data get entity @s Inventory[{Slot:0b}]' + ('.components' if MC205 else '.tag'), 0.7))
     g.check(held.count('position_filter') == 2 and 'filterX: 6' in held and 'filterX: 8' in held, "the edit screen stored both Position Filters in the remote's positions", held[:300])
     g.check('diamond' in held, 'the camo slot stored the diamond (button icon)')
     sky(g)
@@ -1175,7 +1203,7 @@ def ender_mailbox(g):
     g.click(427, 240, 'right'); g.wait(0.6)
     g.check(block_is(g, 0, 4, 2, 'randomthings:ender_mailbox'), '#209: the Ender Mailbox was placed')
     g.cmd('clear @s')
-    letter = 'randomthings:ender_letter{receiver:"%s"}' % name
+    letter = sdata('randomthings:ender_letter', 'receiver:"%s"' % name)
     g.slot(1, letter)
     g.select(1)
     aim_at(g, 0, 4, 2)
@@ -1215,7 +1243,7 @@ def biome_radar(g):
     arena(g)
     g.cmd('setblock 0 4 3 randomthings:biome_radar')
     build_antenna(g, 0, 4, 3)
-    crystal = lambda biome: 'randomthings:biome_crystal{biomeName:"minecraft:%s"}' % biome
+    crystal = lambda biome: sdata('randomthings:biome_crystal', 'biomeName:"minecraft:%s"' % biome)
     g.slot(0, crystal('plains'))
     g.select(0)
     aim_at(g, 0, 4, 3)
@@ -1242,7 +1270,7 @@ def biome_radar(g):
     # --- #152: a biome that cannot be found keeps the radar searching; breaking a far antenna bar returns it to idle
     g.cmd('setblock 1 4 3 minecraft:air')
     g.wait(1)
-    g.cmd('data merge block 0 4 3 {currentCrystal:{id:"randomthings:biome_crystal",Count:1b,tag:{biomeName:"minecraft:desert"}},state:0}')
+    g.cmd('data merge block 0 4 3 {currentCrystal:%s,state:0}' % stack_nbt('randomthings:biome_crystal', 'biomeName:"minecraft:desert"'))
     g.cmd('setblock 1 4 3 minecraft:redstone_block')
     g.wait(2)
     g.check(dv(g, 'block 0 4 3', 'state') == '1', '#150: searching for a biome that does not exist on this world keeps the radar searching')
@@ -1261,8 +1289,8 @@ def render_fixes_18(g):
     """1.18.2: Advanced Redstone Torch has no black box, Fluid Display is hidden behind a wall (control: visible without one), Sound Recorder rows highlight on hover."""
     arena(g)
     g.cmd('fill -3 4 3 3 4 3 minecraft:stone')                       # wall in front of the first display
-    g.cmd('setblock 1 4 5 randomthings:fluid_display{fluidStack:{FluidName:"minecraft:water",Amount:1000}}')
-    g.cmd('setblock 5 4 5 randomthings:fluid_display{fluidStack:{FluidName:"minecraft:water",Amount:1000}}')
+    g.cmd('setblock 1 4 5 randomthings:fluid_display{fluidStack:%s}' % FLUID_WATER)
+    g.cmd('setblock 5 4 5 randomthings:fluid_display{fluidStack:%s}' % FLUID_WATER)
     g.cmd('setblock 5 4 2 randomthings:advanced_redstone_torch')
     g.cmd('setblock 6 4 2 minecraft:redstone_torch')
     g.tp(5.5, 4, 0.5, 0, 12)
@@ -1275,7 +1303,7 @@ def render_fixes_18(g):
     px = desk.grab('Minecraft')
     wall = desk.frame_px(px, 355, 290)       # where the display behind the wall overlapped the wall's face before the fix (blue)
     g.check(wall[2] - wall[0] < 20, 'fluid display behind a wall is occluded (wall face is not tinted blue)', 'pixel %s' % (wall,))
-    g.slot(0, 'randomthings:sound_recorder{recordList:["block.stone.step","entity.cow.ambient","ui.button.click"]}')
+    g.slot(0, sdata('randomthings:sound_recorder', 'recordList:["block.stone.step","entity.cow.ambient","ui.button.click"]'))
     g.select(0)
     g.click(427, 240, 'right')
     g.wait(1.0)
@@ -1328,7 +1356,7 @@ def magnetic(g):
     g.check(entity_count(g, '@e[type=item,nbt={Item:{id:"minecraft:cobblestone"}}]') >= 1 and 'cobblestone' not in inv(g),
             'control: without the enchantment the drop lies on the ground')
     g.cmd('kill @e[type=item]')
-    g.slot(0, 'minecraft:diamond_pickaxe{Enchantments:[{id:"randomthings:magnetic",lvl:1}]}')
+    g.slot(0, 'minecraft:diamond_pickaxe[enchantments={levels:{"randomthings:magnetic":1}}]' if MC205 else 'minecraft:diamond_pickaxe{Enchantments:[{id:"randomthings:magnetic",lvl:1}]}')
     g.cmd('setblock 0 4 3 minecraft:stone')
     aim_at(g, 0, 4, 3)
     g.hold(427, 240, 'left', 1.6)
@@ -1628,7 +1656,7 @@ def controlled_setup(g):
 def leave_world(g, world):
     g.key('escape'); g.wait(0.8)
     g.shot('pause_menu')
-    g.click(426, 395 if MC19 else 347)         # Save and Quit to Title (1.19.2's pause menu has Give Feedback/Report Bugs and Mods rows)
+    g.click(426, 383 if MC205 else (395 if MC19 else 347))         # Save and Quit to Title (1.19.2's pause menu has Give Feedback/Report Bugs and Mods rows)
     g.wait(5)
     shutil.rmtree(os.path.join(SAVES, world), ignore_errors=True)
     g.note('world %s deleted' % world)

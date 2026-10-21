@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.item.Items;
 
 import net.minecraft.world.item.DyeColor;
@@ -40,8 +41,9 @@ public class RunePatternItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+        Level worldIn = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
 
         DyeColor[][] pattern = getPattern(stack);
 
@@ -176,7 +178,7 @@ public class RunePatternItem extends Item {
     }
 
     public static DyeColor[][] getPattern(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound == null || !compound.contains("runeData")) {
             return null;
@@ -204,6 +206,6 @@ public class RunePatternItem extends Item {
             }
         }
 
-        stack.getOrCreateTag().putByteArray("runeData", flat);
+        StackTag.edit(stack, t -> t.putByteArray("runeData", flat));
     }
 }

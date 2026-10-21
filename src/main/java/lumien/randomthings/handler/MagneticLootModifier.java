@@ -1,7 +1,7 @@
 package lumien.randomthings.handler;
 
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.LootModifier;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.loot.LootModifier;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Magnetic enchantment: block drops produced for a harvester holding a Magnetic tool go straight
@@ -57,10 +57,10 @@ public class MagneticLootModifier extends LootModifier
 		return new ObjectArrayList<>();
 	}
 
-	public static final Codec<MagneticLootModifier> CODEC = RecordCodecBuilder.create(inst -> codecStart(inst).apply(inst, MagneticLootModifier::new));
+	public static final MapCodec<MagneticLootModifier> CODEC = RecordCodecBuilder.mapCodec(inst -> codecStart(inst).apply(inst, MagneticLootModifier::new));
 
 	@Override
-	public Codec<? extends net.minecraftforge.common.loot.IGlobalLootModifier> codec()
+	public MapCodec<? extends net.neoforged.neoforge.common.loot.IGlobalLootModifier> codec()
 	{
 		return CODEC;
 	}

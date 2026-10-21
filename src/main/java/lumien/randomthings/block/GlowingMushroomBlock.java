@@ -59,6 +59,13 @@ public class GlowingMushroomBlock extends Block
 		this.checkAndDropBlock(worldIn, pos, state);
 	}
 
+	/** 1.20.5 made {@code randomTick} a no-op by default (it used to call {@code tick}), so random ticks are forwarded explicitly. */
+	@Override
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
+	{
+		this.tick(state, worldIn, pos, rand);
+	}
+
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{

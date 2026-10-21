@@ -62,8 +62,8 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (this.owner != null) {
             compound.putString("owner", owner.toString());
@@ -72,8 +72,8 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("owner")) {
             this.owner = UUID.fromString(compound.getString("owner"));

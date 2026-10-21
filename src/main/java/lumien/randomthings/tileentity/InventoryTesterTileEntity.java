@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.CapUtil;
 import net.minecraft.core.BlockPos;
 
 import lumien.randomthings.block.InventoryTesterBlock;
@@ -15,11 +16,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -92,8 +93,7 @@ public class InventoryTesterTileEntity extends BlockEntity implements MenuProvid
 			return;
 		}
 
-		LazyOptional<IItemHandler> targetCap = target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite());
-		IItemHandler targetHandler = targetCap.orElse(null);
+		IItemHandler targetHandler = CapUtil.itemHandler(target, facing.getOpposite());
 
 		if (targetHandler == null)
 		{
@@ -117,21 +117,21 @@ public class InventoryTesterTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putBoolean("emitRedstone", emitRedstone);
 		compound.putBoolean("invertSignal", invertSignal);
-		compound.put("inventory", itemHandler.serializeNBT());
+		compound.put("inventory", itemHandler.serializeNBT(registries));
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		this.emitRedstone = compound.getBoolean("emitRedstone");
 		this.invertSignal = compound.getBoolean("invertSignal");
-		itemHandler.deserializeNBT(compound.getCompound("inventory"));
+		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

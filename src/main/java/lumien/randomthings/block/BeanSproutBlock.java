@@ -42,7 +42,7 @@ public class BeanSproutBlock extends CropBlock
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit)
 	{
 		if (this.isMaxAge(state))
 		{
@@ -61,6 +61,6 @@ public class BeanSproutBlock extends CropBlock
 			return InteractionResult.SUCCESS;
 		}
 
-		return super.use(state, worldIn, pos, player, handIn, hit);
+		return super.useWithoutItem(state, worldIn, pos, player, hit);
 	}
 }

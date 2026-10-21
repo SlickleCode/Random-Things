@@ -11,7 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -38,10 +38,10 @@ public class SpectreLensTileEntity extends BlockEntity {
         Field levels = null;
         try {
             // SRG names (primaryEffect / secondaryEffect) so they also resolve in a production jar
-            primary = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58652_");
-            secondary = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58653_");
-            levels = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "f_58650_");
-        } catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
+            primary = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "primaryPower");
+            secondary = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "secondaryPower");
+            levels = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(BeaconBlockEntity.class, "levels");
+        } catch (net.neoforged.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
         }
         PRIMARY_EFFECT = primary;
@@ -83,8 +83,8 @@ public class SpectreLensTileEntity extends BlockEntity {
                 int beaconLevels = LEVELS.getInt(beacon);
 
                 if (beaconLevels > 0) {
-                    MobEffect primary = (MobEffect) PRIMARY_EFFECT.get(beacon);
-                    MobEffect secondary = (MobEffect) SECONDARY_EFFECT.get(beacon);
+                    net.minecraft.core.Holder<MobEffect> primary = (net.minecraft.core.Holder<MobEffect>) PRIMARY_EFFECT.get(beacon);
+                    net.minecraft.core.Holder<MobEffect> secondary = (net.minecraft.core.Holder<MobEffect>) SECONDARY_EFFECT.get(beacon);
 
                     SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beaconLevels, primary, secondary);
                     return;
@@ -98,8 +98,8 @@ public class SpectreLensTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (owner != null) {
             compound.putUUID("owner", owner);
@@ -108,8 +108,8 @@ public class SpectreLensTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("owner")) {
             owner = compound.getUUID("owner");

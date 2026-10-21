@@ -1,9 +1,9 @@
 package lumien.randomthings.container;
 
 import net.minecraft.world.inventory.MenuType;
-import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.ObjectHolder;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ObjectHolder;
 
 public class ModContainerTypes {
     @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:advanced_redstone_torch")
@@ -90,35 +90,35 @@ public class ModContainerTypes {
     @ObjectHolder(registryName = "minecraft:menu", value = "randomthings:dyeing_machine")
     public static MenuType<DyeingMachineContainer> DYEING_MACHINE;
 
-    public static void registerContainerTypes(IForgeRegistry<MenuType<?>> registry) {
+    public static void registerContainerTypes(RTRegistry<MenuType<?>> registry) {
 
-        registry.register("advanced_redstone_torch", IForgeMenuType.create(AdvancedRedstoneTorchContainer::new));
-        registry.register("analog_emitter", IForgeMenuType.create(AnalogEmitterContainer::new));
-        registry.register("igniter", IForgeMenuType.create(IgniterContainer::new));
-        registry.register("online_detector", IForgeMenuType.create(OnlineDetectorContainer::new));
-        registry.register("advanced_redstone_repeater", IForgeMenuType.create(AdvancedRedstoneRepeaterContainer::new));
-        registry.register("iron_dropper", IForgeMenuType.create(IronDropperContainer::new));
-        registry.register("inventory_tester", IForgeMenuType.create(InventoryTesterContainer::new));
-        registry.register("chat_detector", IForgeMenuType.create(ChatDetectorContainer::new));
-        registry.register("redstone_observer", IForgeMenuType.create(RedstoneObserverContainer::new));
-        registry.register("basic_redstone_interface", IForgeMenuType.create(BasicRedstoneInterfaceContainer::new));
-        registry.register("advanced_redstone_interface", IForgeMenuType.create(AdvancedRedstoneInterfaceContainer::new));
-        registry.register("redstone_remote_edit", IForgeMenuType.create(RedstoneRemoteEditContainer::new));
-        registry.register("redstone_remote_use", IForgeMenuType.create(RedstoneRemoteUseContainer::new));
-        registry.register("potion_vaporizer", IForgeMenuType.create(PotionVaporizerContainer::new));
-        registry.register("entity_detector", IForgeMenuType.create(EntityDetectorContainer::new));
-        registry.register("advanced_item_collector", IForgeMenuType.create(AdvancedItemCollectorContainer::new));
-        registry.register("filtered_super_lubricent_platform", IForgeMenuType.create(FilteredSuperLubricentPlatformContainer::new));
-        registry.register("notification_interface", IForgeMenuType.create(NotificationInterfaceContainer::new));
-        registry.register("global_chat_detector", IForgeMenuType.create(GlobalChatDetectorContainer::new));
-        registry.register("chunk_analyzer", IForgeMenuType.create(ChunkAnalyzerContainer::new));
-        registry.register("sound_recorder", IForgeMenuType.create(SoundRecorderContainer::new));
-        registry.register("sound_dampener", IForgeMenuType.create(SoundDampenerContainer::new));
-        registry.register("portable_sound_dampener", IForgeMenuType.create(PortableSoundDampenerContainer::new));
-        registry.register("imbuing_station", IForgeMenuType.create(ImbuingStationContainer::new));
-        registry.register("ender_letter", IForgeMenuType.create(EnderLetterContainer::new));
-        registry.register("ender_mailbox", IForgeMenuType.create(EnderMailboxContainer::new));
-        registry.register("block_destabilizer", IForgeMenuType.create(BlockDestabilizerContainer::new));
-        registry.register("dyeing_machine", IForgeMenuType.create(DyeingMachineContainer::new));
+        registry.register("advanced_redstone_torch", IMenuTypeExtension.create(AdvancedRedstoneTorchContainer::new));
+        registry.register("analog_emitter", IMenuTypeExtension.create(AnalogEmitterContainer::new));
+        registry.register("igniter", IMenuTypeExtension.create(IgniterContainer::new));
+        registry.register("online_detector", IMenuTypeExtension.create(OnlineDetectorContainer::new));
+        registry.register("advanced_redstone_repeater", IMenuTypeExtension.create(AdvancedRedstoneRepeaterContainer::new));
+        registry.register("iron_dropper", IMenuTypeExtension.create(IronDropperContainer::new));
+        registry.register("inventory_tester", IMenuTypeExtension.create(InventoryTesterContainer::new));
+        registry.register("chat_detector", IMenuTypeExtension.create(ChatDetectorContainer::new));
+        registry.register("redstone_observer", IMenuTypeExtension.create(RedstoneObserverContainer::new));
+        registry.register("basic_redstone_interface", IMenuTypeExtension.create(BasicRedstoneInterfaceContainer::new));
+        registry.register("advanced_redstone_interface", IMenuTypeExtension.create(AdvancedRedstoneInterfaceContainer::new));
+        registry.register("redstone_remote_edit", IMenuTypeExtension.create(RedstoneRemoteEditContainer::new));
+        registry.register("redstone_remote_use", IMenuTypeExtension.create(RedstoneRemoteUseContainer::new));
+        registry.register("potion_vaporizer", IMenuTypeExtension.create(PotionVaporizerContainer::new));
+        registry.register("entity_detector", IMenuTypeExtension.create(EntityDetectorContainer::new));
+        registry.register("advanced_item_collector", IMenuTypeExtension.create(AdvancedItemCollectorContainer::new));
+        registry.register("filtered_super_lubricent_platform", IMenuTypeExtension.create(FilteredSuperLubricentPlatformContainer::new));
+        registry.register("notification_interface", IMenuTypeExtension.create(NotificationInterfaceContainer::new));
+        registry.register("global_chat_detector", IMenuTypeExtension.create(GlobalChatDetectorContainer::new));
+        registry.register("chunk_analyzer", IMenuTypeExtension.create(ChunkAnalyzerContainer::new));
+        registry.register("sound_recorder", IMenuTypeExtension.create(SoundRecorderContainer::new));
+        registry.register("sound_dampener", IMenuTypeExtension.create(SoundDampenerContainer::new));
+        registry.register("portable_sound_dampener", IMenuTypeExtension.create(PortableSoundDampenerContainer::new));
+        registry.register("imbuing_station", IMenuTypeExtension.create(ImbuingStationContainer::new));
+        registry.register("ender_letter", IMenuTypeExtension.create(EnderLetterContainer::new));
+        registry.register("ender_mailbox", IMenuTypeExtension.create(EnderMailboxContainer::new));
+        registry.register("block_destabilizer", IMenuTypeExtension.create(BlockDestabilizerContainer::new));
+        registry.register("dyeing_machine", IMenuTypeExtension.create(DyeingMachineContainer::new));
     }
 }

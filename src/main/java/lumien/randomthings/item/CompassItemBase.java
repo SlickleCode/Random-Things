@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
@@ -11,8 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Shared needle-angle logic for {@link GoldenCompassItem} and
@@ -62,7 +63,7 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 
 				double angle;
 
-				CompoundTag compound = stack.getTag();
+				CompoundTag compound = StackTag.get(stack);
 				boolean hasTarget = compound != null && compound.contains("targetX");
 
 				if (hasTarget)

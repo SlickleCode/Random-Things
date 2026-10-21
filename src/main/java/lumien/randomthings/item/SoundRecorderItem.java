@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.container.SoundRecorderContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,11 +17,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.ArrayList;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Sneak-right-click to toggle recording every sound you hear (up to 10, via
@@ -44,13 +44,12 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
             if (playerIn.isShiftKeyDown()) {
                 boolean nowRecording = !isRecording(stack);
 
-                stack.getOrCreateTag().putBoolean("recording", nowRecording);
-
+                StackTag.edit(stack, t -> t.putBoolean("recording", nowRecording));
                 if (nowRecording) {
-                    stack.getTag().remove("recordList");
+                    StackTag.remove(stack, "recordList");
                 }
             } else if (!isRecording(stack)) {
-                NetworkHooks.openScreen((ServerPlayer) playerIn, this);
+                ((ServerPlayer) playerIn).openMenu(this);
             }
         }
 
@@ -58,13 +57,13 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
     }
 
     public static boolean isRecording(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         return compound != null && compound.getBoolean("recording");
     }
 
     public static void recordSound(ItemStack stack, String soundName) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound == null || !compound.getBoolean("recording")) {
             return;
@@ -85,12 +84,13 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
         }
 
         compound.put("recordList", recordList);
+        StackTag.set(stack, compound);
     }
 
     public static ArrayList<String> getRecordedSounds(ItemStack stack) {
         ArrayList<String> list = new ArrayList<>();
 
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound != null) {
             ListTag recordList = compound.getList("recordList", 8);

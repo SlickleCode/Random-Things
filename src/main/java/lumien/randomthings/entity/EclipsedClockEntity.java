@@ -20,7 +20,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -82,10 +81,10 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(TARGET_TIME, 0);
-        this.entityData.define(HANGING_POS, BlockPos.ZERO);
-        this.entityData.define(FACING, Direction.NORTH);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        builder.define(TARGET_TIME, 0);
+        builder.define(HANGING_POS, BlockPos.ZERO);
+        builder.define(FACING, Direction.NORTH);
     }
 
     @Override
@@ -262,8 +261,4 @@ public class EclipsedClockEntity extends HangingEntity {
         return animationCounter;
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

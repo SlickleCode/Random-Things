@@ -30,6 +30,14 @@ import net.minecraft.server.level.ServerLevel;
  */
 public class LotusBlock extends BushBlock
 {
+	public static final com.mojang.serialization.MapCodec<LotusBlock> CODEC = simpleCodec(properties -> new LotusBlock());
+
+	@Override
+	protected com.mojang.serialization.MapCodec<? extends BushBlock> codec()
+	{
+		return CODEC;
+	}
+
 	public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 3);
 
 	private static final VoxelShape[] SHAPE_BY_AGE = new VoxelShape[] {
@@ -65,6 +73,13 @@ public class LotusBlock extends BushBlock
 		return block == Blocks.GRASS_BLOCK || block == Blocks.DIRT || block == Blocks.FARMLAND;
 	}
 
+	/** 1.20.5 made {@code randomTick} a no-op by default (it used to call {@code tick}), so random ticks are forwarded explicitly. */
+	@Override
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
+	{
+		this.tick(state, worldIn, pos, rand);
+	}
+
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
@@ -77,8 +92,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
-	{
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (state.getValue(AGE) == 3)
 		{
 			if (!worldIn.isClientSide)
@@ -100,7 +114,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(BlockGetter worldIn, BlockPos pos, BlockState state)
+	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state)
 	{
 		return new ItemStack(ModItems.LOTUS_SEEDS);
 	}

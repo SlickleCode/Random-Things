@@ -7,6 +7,6 @@
     "E": { "item": "minecraft:ender_eye" }
   },
   "result": {
-    "item": "randomthings:redstone_observer"
+    "id": "randomthings:redstone_observer"
   }
 }

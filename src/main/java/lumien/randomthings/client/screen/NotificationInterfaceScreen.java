@@ -61,8 +61,6 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 	public void containerTick()
 	{
 		super.containerTick();
-		this.titleField.tick();
-		this.descriptionField.tick();
 
 		// Sync on every change; sending only from removed() raced the close-window packet.
 		if (!this.titleField.getValue().equals(this.lastTitle) || !this.descriptionField.getValue().equals(this.lastDescription))
@@ -141,7 +139,6 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 	@Override
 	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(graphics);
 		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
 		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}

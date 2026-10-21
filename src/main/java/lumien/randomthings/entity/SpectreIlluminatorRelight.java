@@ -1,5 +1,7 @@
 package lumien.randomthings.entity;
 
+
+
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;

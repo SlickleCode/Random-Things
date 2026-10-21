@@ -47,8 +47,8 @@ public class FlooBrickTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         compound.putBoolean("amMaster", amMaster);
 
@@ -59,7 +59,7 @@ public class FlooBrickTileEntity extends BlockEntity {
             ListTag childrenTagList = new ListTag();
 
             for (BlockPos childPos : children) {
-                childrenTagList.add(NbtUtils.writeBlockPos(childPos));
+                childrenTagList.add(lumien.randomthings.util.BlockPosNbt.write(childPos));
             }
 
             compound.put("children", childrenTagList);
@@ -70,23 +70,23 @@ public class FlooBrickTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         this.amMaster = compound.getBoolean("amMaster");
 
         if (amMaster) {
-            this.uuid = NbtUtils.loadUUID(compound.getCompound("uuid"));
+            this.uuid = NbtUtils.loadUUID(compound.get("uuid"));
             this.facing = Direction.from3DDataValue(compound.getInt("facing"));
 
             children.clear();
             ListTag childrenTagList = compound.getList("children", 10);
 
             for (int i = 0; i < childrenTagList.size(); i++) {
-                children.add(NbtUtils.readBlockPos(childrenTagList.getCompound(i)));
+                children.add(lumien.randomthings.util.BlockPosNbt.read(childrenTagList.getCompound(i)));
             }
         } else if (compound.contains("masterUUID")) {
-            this.masterUUID = NbtUtils.loadUUID(compound.getCompound("masterUUID"));
+            this.masterUUID = NbtUtils.loadUUID(compound.get("masterUUID"));
         }
     }
 

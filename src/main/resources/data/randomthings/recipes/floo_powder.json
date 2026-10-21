@@ -7,7 +7,7 @@
     { "item": "randomthings:beans" }
   ],
   "result": {
-    "item": "randomthings:floo_powder",
+    "id": "randomthings:floo_powder",
     "count": 16
   }
 }

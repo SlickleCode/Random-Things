@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.item.GoldenCompassItem;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.PositionFilterItem;
@@ -25,9 +26,9 @@ public class GoldenCompassSetPositionRecipe extends CustomRecipe
 {
 	public static final RecipeSerializer<GoldenCompassSetPositionRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(GoldenCompassSetPositionRecipe::new);
 
-	public GoldenCompassSetPositionRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category)
+	public GoldenCompassSetPositionRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category)
 	{
-		super(id, category);
+		super(category);
 	}
 
 	@Override
@@ -71,7 +72,7 @@ public class GoldenCompassSetPositionRecipe extends CustomRecipe
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess)
+	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack filter = ItemStack.EMPTY;
@@ -95,15 +96,10 @@ public class GoldenCompassSetPositionRecipe extends CustomRecipe
 
 		if (pos != null)
 		{
-			CompoundTag compound = result.getTag();
-
-			if (compound == null)
-			{
-				result.setTag(compound = new CompoundTag());
-			}
-
-			compound.putInt("targetX", pos.getX());
-			compound.putInt("targetZ", pos.getZ());
+			StackTag.edit(result, compound -> {
+				compound.putInt("targetX", pos.getX());
+				compound.putInt("targetZ", pos.getZ());
+			});
 		}
 
 		return result;

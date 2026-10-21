@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.debug.RTDebug;
@@ -9,8 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+
+import net.neoforged.bus.api.SubscribeEvent;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -34,7 +36,9 @@ import net.minecraft.world.level.DataPackConfig;
  */
 public class AutoTest
 {
-	private static final String WORLD = "RTAutoTest";
+	/** {@code RT_MANUAL=true}: not a test run - open/create the normal-terrain manual-testing world and build the showroom ({@code /rtdebug manual}). */
+	private static final boolean MANUAL = Boolean.getBoolean("randomthings.autotest.manual");
+	private static final String WORLD = MANUAL ? "RTManual" : "RTAutoTest";
 
 	private enum State
 	{
@@ -50,9 +54,9 @@ public class AutoTest
 	}
 
 	@SubscribeEvent
-	public static void onTick(TickEvent.ClientTickEvent event)
+	public static void onTick(ClientTickEvent.Post event)
 	{
-		if (!enabled() || event.phase != TickEvent.Phase.END)
+		if (!enabled())
 		{
 			return;
 		}
@@ -60,7 +64,7 @@ public class AutoTest
 		Minecraft mc = Minecraft.getInstance();
 		ticks++;
 
-		if (!Boolean.getBoolean("randomthings.autotest.sound"))
+		if (!MANUAL && !Boolean.getBoolean("randomthings.autotest.sound"))
 		{
 			// runtime only (the saved options are untouched): the unattended run is otherwise noisy
 			mc.getSoundManager().updateSourceVolume(net.minecraft.sounds.SoundSource.MASTER, 0.0F);
@@ -77,17 +81,21 @@ public class AutoTest
 
 					if (mc.getLevelSource().levelExists(WORLD))
 					{
-						mc.createWorldOpenFlows().loadLevel(mc.screen, WORLD);
+						mc.createWorldOpenFlows().openWorld(WORLD, () -> mc.setScreen(new TitleScreen()));
 					}
 					else
 					{
 						// a flat creative world: the behavior tests wipe and rebuild their test area
-						net.minecraft.world.level.levelgen.WorldOptions options = new net.minecraft.world.level.levelgen.WorldOptions(4242L, false, false);
+						net.minecraft.world.level.levelgen.WorldOptions options = new net.minecraft.world.level.levelgen.WorldOptions(MANUAL ? 424242L : 4242L, MANUAL, false);
 						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), net.minecraft.world.level.WorldDataConfiguration.DEFAULT);
 						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, options, registries -> {
+							if (MANUAL)
+							{
+								return net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldDimensions(registries);
+							}
 							ChunkGenerator flat = new FlatLevelSource(FlatLevelGeneratorSettings.getDefault(registries.lookupOrThrow(Registries.BIOME), registries.lookupOrThrow(Registries.STRUCTURE_SET), registries.lookupOrThrow(Registries.PLACED_FEATURE)));
 							return net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldDimensions(registries).replaceOverworldGenerator(registries, flat);
-						});
+						}, mc.screen);
 					}
 
 					state = State.LOADING;
@@ -138,6 +146,18 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (MANUAL)
+				{
+					if (ticks > 100)
+					{
+						mc.player.connection.sendUnsignedCommand("gamemode creative");
+						mc.player.connection.sendUnsignedCommand("rtdebug manual");
+						state = State.DONE;
+						ticks = 0;
+					}
+					break;
+				}
+
 				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.clicks"))
 				{
 					state = State.CLICKS;

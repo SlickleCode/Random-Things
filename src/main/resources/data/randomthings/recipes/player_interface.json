@@ -8,6 +8,6 @@
     "N": { "item": "minecraft:nether_star" }
   },
   "result": {
-    "item": "randomthings:player_interface"
+    "id": "randomthings:player_interface"
   }
 }

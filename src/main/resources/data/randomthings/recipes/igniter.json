@@ -3,10 +3,10 @@
   "pattern": ["NCC","NFC","NCC"],
   "key": {
     "N": { "item": "minecraft:netherrack" },
-    "C": { "tag": "forge:cobblestone" },
+    "C": { "tag": "c:cobblestones" },
     "F": { "item": "minecraft:flint_and_steel" }
   },
   "result": {
-    "item": "randomthings:igniter"
+    "id": "randomthings:igniter"
   }
 }

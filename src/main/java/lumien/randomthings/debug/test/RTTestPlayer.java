@@ -7,7 +7,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 /**
  * The test player used on a dedicated server. Forge 1.16's {@link FakePlayer} reports its position as (0, 0, 0) from

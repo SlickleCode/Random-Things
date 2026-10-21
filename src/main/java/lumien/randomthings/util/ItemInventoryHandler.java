@@ -1,7 +1,7 @@
 package lumien.randomthings.util;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * A fixed-size {@link ItemStackHandler} whose contents live in one item's own
@@ -22,13 +22,13 @@ public class ItemInventoryHandler extends ItemStackHandler {
         this.stack = stack;
         this.childTagName = childTagName;
 
-        if (stack.getTagElement(childTagName) != null) {
-            deserializeNBT(stack.getTagElement(childTagName));
+        if (StackTag.getElement(stack, childTagName) != null) {
+            deserializeNBT(StackTag.provider(), StackTag.getElement(stack, childTagName));
         }
     }
 
     @Override
     protected void onContentsChanged(int slot) {
-        stack.getOrCreateTag().put(childTagName, serializeNBT());
+        StackTag.edit(stack, t -> t.put(childTagName, serializeNBT(StackTag.provider())));
     }
 }

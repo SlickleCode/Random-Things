@@ -16,10 +16,10 @@ import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.ObjectHolder;
+import net.neoforged.neoforge.common.Tags;
+import net.minecraft.core.registries.BuiltInRegistries;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ObjectHolder;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -207,7 +207,7 @@ public class ModItems {
 
     public static CreativeModeTab RT_ITEM_GROUP;
 
-    public static void registerItems(IForgeRegistry<Item> registry) {
+    public static void registerItems(RTRegistry<Item> registry) {
 
 
         registry.register("beans", new BeanItem(new Item.Properties(), ModBlocks.BEAN_SPROUT, false));
@@ -223,7 +223,7 @@ public class ModItems {
         registry.register("biome_sensor", new Item(new Item.Properties()));
         registry.register("luminous_powder", new Item(new Item.Properties()));
 
-        registry.register("bean_stew", new BeanStewItem(new Item.Properties().stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationMod(0.6F).build())));
+        registry.register("bean_stew", new BeanStewItem(new Item.Properties().stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.6F).build())));
         registry.register("blaze_and_steel", new BlazeAndSteelItem(new Item.Properties().stacksTo(1).durability(64)));
         registry.register("bottle_of_air", new BottleOfAirItem(new Item.Properties().stacksTo(1)));
         registry.register("stable_enderpearl", new StableEnderpearlItem(new Item.Properties()));
@@ -376,7 +376,7 @@ public class ModItems {
         registry.register("ender_bucket", new EnderBucketItem(new Item.Properties().stacksTo(16)));
         registry.register("reinforced_ender_bucket", new ReinforcedEnderBucketItem(new Item.Properties().stacksTo(1)));
 
-        registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().stacksTo(1)));
+        registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
         registry.register("golden_egg", new GoldenEggItem(new Item.Properties()));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
@@ -418,21 +418,21 @@ public class ModItems {
     }
 
     private static Block lookupBlock(String name) {
-        return ForgeRegistries.BLOCKS.getValue(new ResourceLocation(ModConstants.MOD_ID, name));
+        return BuiltInRegistries.BLOCK.get(new ResourceLocation(ModConstants.MOD_ID, name));
     }
 
-    private static void registerDiviningRod(IForgeRegistry<Item> registry, String name, Color[] colors, String[] tags) {
+    private static void registerDiviningRod(RTRegistry<Item> registry, String name, Color[] colors, String[] tags) {
         DiviningRodScratch.TAG_HOLDER.addAll(Arrays.asList(tags));
         DiviningRodScratch.COLOR_HOLDER.addAll(Arrays.asList(colors));
 
         registry.register("divining_rod_" + name, new DiviningRodItem(new Item.Properties(), colors, tags));
     }
 
-    private static void registerDiviningRod(IForgeRegistry<Item> registry, String name, Color color, String tag) {
+    private static void registerDiviningRod(RTRegistry<Item> registry, String name, Color color, String tag) {
         registerDiviningRod(registry, name, new Color[]{color}, new String[]{tag});
     }
 
-    private static void registerItemForBlock(IForgeRegistry<Item> registry, Block... blocks) {
+    private static void registerItemForBlock(RTRegistry<Item> registry, Block... blocks) {
         for (Block block : blocks) {
             Item itemInstance = new BlockItem(block, new Item.Properties());
             registry.register(RegUtil.id(block), itemInstance);
@@ -445,7 +445,7 @@ public class ModItems {
                 .title(net.minecraft.network.chat.Component.translatable("itemGroup.randomthings"))
                 .icon(() -> new ItemStack(ModBlocks.FERTILIZED_DIRT))
                 .displayItems((parameters, output) -> {
-                    for (Item item : ForgeRegistries.ITEMS) {
+                    for (Item item : BuiltInRegistries.ITEM) {
                         if (!ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
                             continue;
                         }

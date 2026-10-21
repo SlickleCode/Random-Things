@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "item": "randomthings:floo_token",
+    "id": "randomthings:floo_token",
     "count": 2
   }
 }

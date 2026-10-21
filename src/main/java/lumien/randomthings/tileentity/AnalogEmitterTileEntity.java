@@ -26,16 +26,16 @@ public class AnalogEmitterTileEntity extends BlockEntity implements MenuProvider
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putInt("emitLevel", emitLevel);
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		this.emitLevel = compound.getInt("emitLevel");
 	}
 

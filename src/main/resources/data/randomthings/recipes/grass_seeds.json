@@ -3,5 +3,5 @@
   "ingredients": [
     { "item": "minecraft:grass_block" }
   ],
-  "result": { "item": "randomthings:grass_seeds" }
+  "result": { "id": "randomthings:grass_seeds" }
 }

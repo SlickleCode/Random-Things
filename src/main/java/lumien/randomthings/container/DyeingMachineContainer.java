@@ -1,5 +1,6 @@
 package lumien.randomthings.container;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.container.slot.DyeCraftingSlot;
 import lumien.randomthings.container.slot.DyeSlot;
@@ -68,22 +69,13 @@ public class DyeingMachineContainer extends AbstractContainerMenu {
             int dyeColor = DyeUtil.getDyeColor(dye);
             ItemStack copy = toDye.copy();
 
-            if (copy.getTag() == null) {
-                copy.setTag(new CompoundTag());
-            }
-
-            CompoundTag compound = copy.getTag();
             copy.setCount(1);
-            compound.putInt("rtDye", dyeColor);
+            StackTag.edit(copy, t -> t.putInt("rtDye", dyeColor));
             this.dyeResult.setItem(0, copy);
 
             ItemStack enchantmentCopy = toDye.copy();
             enchantmentCopy.setCount(1);
-            if (enchantmentCopy.getTag() == null) {
-                enchantmentCopy.setTag(new CompoundTag());
-            }
-
-            enchantmentCopy.getTag().putInt("enchantmentColor", dyeColor);
+            StackTag.edit(enchantmentCopy, t -> t.putInt("enchantmentColor", dyeColor));
 
             enchantmentResult.setItem(0, enchantmentCopy);
         } else if (!toDye.isEmpty() && dye.isEmpty()) {
@@ -91,20 +83,12 @@ public class DyeingMachineContainer extends AbstractContainerMenu {
             ItemStack copy = toDye.copy();
             copy.setCount(1);
 
-            if (copy.getTag() != null) {
-                CompoundTag compound = copy.getTag();
+            if (StackTag.get(copy) != null) {
+                CompoundTag compound = StackTag.get(copy);
 
-                if (compound.contains("rtDye")) {
-                    compound.remove("rtDye");
-                }
-
-                if (compound.contains("enchantmentColor")) {
-                    compound.remove("enchantmentColor");
-                }
-
-                if (compound.isEmpty()) {
-                    copy.setTag(null);
-                }
+                compound.remove("rtDye");
+                compound.remove("enchantmentColor");
+                StackTag.set(copy, compound);
 
                 this.dyeResult.setItem(0, copy);
             } else {
@@ -200,7 +184,7 @@ public class DyeingMachineContainer extends AbstractContainerMenu {
                 Slot slot = this.slots.get(i);
                 ItemStack slotStack = slot.getItem();
 
-                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.isSameItemSameTags(stack, slotStack) && slot.mayPlace(stack)) {
+                if (!slotStack.isEmpty() && slotStack.getItem() == stack.getItem() && ItemStack.isSameItemSameComponents(stack, slotStack) && slot.mayPlace(stack)) {
                     int combined = slotStack.getCount() + stack.getCount();
 
                     if (combined <= stack.getMaxStackSize()) {

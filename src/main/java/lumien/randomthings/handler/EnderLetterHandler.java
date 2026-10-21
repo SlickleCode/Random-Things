@@ -7,7 +7,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,14 +31,14 @@ public class EnderLetterHandler extends SavedData {
     public EnderLetterHandler() {
     }
 
-    public static EnderLetterHandler loadFrom(CompoundTag nbt) {
+    public static EnderLetterHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         EnderLetterHandler data = new EnderLetterHandler();
-        data.readData(nbt);
+        data.readData(nbt, registries);
         return data;
     }
 
     public static EnderLetterHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(EnderLetterHandler::loadFrom, EnderLetterHandler::new, ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(EnderLetterHandler::new, EnderLetterHandler::loadFrom, null), ID);
     }
 
     public ItemStackHandler getOrCreateInventoryForPlayer(UUID playerUUID) {
@@ -82,7 +82,7 @@ public class EnderLetterHandler extends SavedData {
         };
     }
 
-    public void readData(CompoundTag nbt) {
+    public void readData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag entryList = nbt.getList("entryList", 10);
 
         for (int i = 0; i < entryList.size(); i++) {
@@ -90,20 +90,20 @@ public class EnderLetterHandler extends SavedData {
             UUID uuid = UUID.fromString(entryCompound.getString("uuid"));
 
             ItemStackHandler handler = newMailboxHandler();
-            handler.deserializeNBT(entryCompound.getCompound("inventory"));
+            handler.deserializeNBT(registries, entryCompound.getCompound("inventory"));
 
             inventoryMap.put(uuid, handler);
         }
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag entryList = new ListTag();
 
         for (Map.Entry<UUID, ItemStackHandler> entry : inventoryMap.entrySet()) {
             CompoundTag entryCompound = new CompoundTag();
             entryCompound.putString("uuid", entry.getKey().toString());
-            entryCompound.put("inventory", entry.getValue().serializeNBT());
+            entryCompound.put("inventory", entry.getValue().serializeNBT(registries));
             entryList.add(entryCompound);
         }
 

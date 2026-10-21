@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class SpectreHandler extends SavedData {
     public SpectreHandler() {
     }
 
-    public static SpectreHandler loadFrom(CompoundTag nbt) {
+    public static SpectreHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         SpectreHandler data = new SpectreHandler();
         data.readData(nbt);
         return data;
@@ -52,7 +52,7 @@ public class SpectreHandler extends SavedData {
             return null;
         }
 
-        return world.getDataStorage().computeIfAbsent(SpectreHandler::loadFrom, SpectreHandler::new, ID);
+        return world.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreHandler::new, SpectreHandler::loadFrom, null), ID);
     }
 
     public ServerLevel getWorld() {
@@ -184,7 +184,7 @@ public class SpectreHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag cubeTags = new ListTag();
 
         for (SpectreCube cube : cubes.values()) {

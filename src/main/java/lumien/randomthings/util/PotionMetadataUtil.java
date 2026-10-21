@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
  * metadata (color + hidden flag) on its very next tick - see {@link
  * lumien.randomthings.RandomThings}'s {@code LivingEquipmentChangeEvent}
  * listener for why Magic Hood needs this. {@code LivingEntity
- * .potionsNeedUpdate} is private with no public setter and no event fills
+ * .effectsDirty} is private with no public setter and no event fills
  * the gap (confirmed via {@code javap -p}/{@code javap -c}), so this
  * reflects it once and caches the {@link Field} - the same flag vanilla's
  * own effect-added/removed/expired paths already flip, just triggered from
@@ -38,9 +38,8 @@ public class PotionMetadataUtil {
         }
 
         try {
-            // field_70752_e = potionsNeedUpdate (SRG name so it also resolves in a production jar)
-            potionsNeedUpdateField = net.minecraftforge.fml.util.ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20948_");
-        } catch (net.minecraftforge.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
+            potionsNeedUpdateField = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(LivingEntity.class, "effectsDirty");
+        } catch (net.neoforged.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e) {
             lookupFailed = true;
         }
 

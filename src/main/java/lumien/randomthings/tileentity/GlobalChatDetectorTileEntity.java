@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -150,28 +150,28 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		compound.putBoolean("consume", consume);
 		compound.putString("chatMessage", chatMessage);
 		compound.putBoolean("pulsing", pulsing);
 		compound.putInt("pulsingCounter", pulsingCounter);
-		compound.put("inventory", idCardInventory.serializeNBT());
+		compound.put("inventory", idCardInventory.serializeNBT(registries));
 
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		consume = compound.getBoolean("consume");
 		chatMessage = compound.getString("chatMessage");
 		pulsing = compound.getBoolean("pulsing");
 		pulsingCounter = compound.getInt("pulsingCounter");
-		idCardInventory.deserializeNBT(compound.getCompound("inventory"));
+		idCardInventory.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

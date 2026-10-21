@@ -13,7 +13,7 @@
     "Q": { "item": "randomthings:quartz_glass" }
   },
   "result": {
-    "item": "randomthings:diaphanous_block",
+    "id": "randomthings:diaphanous_block",
     "count": 4
   }
 }

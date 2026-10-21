@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -24,8 +25,8 @@ import net.minecraft.world.level.Level;
 public class PortkeyCamoRecipe extends CustomRecipe {
     public static final RecipeSerializer<PortkeyCamoRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(PortkeyCamoRecipe::new);
 
-    public PortkeyCamoRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
-        super(id, category);
+    public PortkeyCamoRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
@@ -59,7 +60,7 @@ public class PortkeyCamoRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess) {
         ItemStack portkey = ItemStack.EMPTY;
         ItemStack camo = ItemStack.EMPTY;
 
@@ -74,14 +75,13 @@ public class PortkeyCamoRecipe extends CustomRecipe {
         }
 
         ItemStack result = portkey.copy();
-        CompoundTag resultTag = result.getOrCreateTag();
 
         ItemStack camoCopy = camo.copy();
         camoCopy.setCount(1);
 
         CompoundTag camoCompound = new CompoundTag();
-        camoCompound.put("stack", camoCopy.save(new CompoundTag()));
-        resultTag.put("camo", camoCompound);
+        camoCompound.put("stack", StackTag.saveStack(camoCopy));
+        StackTag.edit(result, resultTag -> resultTag.put("camo", camoCompound));
 
         return result;
     }

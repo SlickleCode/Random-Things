@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity.redstoneinterface;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.util.WeakSets;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.nbt.CompoundTag;
@@ -134,19 +135,13 @@ public abstract class RedstoneInterfaceTileEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         CompoundTag weakCompound = new CompoundTag();
         CompoundTag strongCompound = new CompoundTag();
@@ -162,8 +157,8 @@ public abstract class RedstoneInterfaceTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         CompoundTag weakCompound = compound.getCompound("weakPower");
         CompoundTag strongCompound = compound.getCompound("strongPower");

@@ -58,7 +58,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.chunk.ProtoChunk;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -220,6 +220,14 @@ final class WorldgenTests
 				generator.fillFromNoise(sameThread, Blender.empty(), randomState, regionManager, grid[z][x]).join();
 			}
 		}
+		// 1.20.5+: the surface pass asks every chunk it reads biomes from for BIOMES status, which the first loop has now produced
+		for (ProtoChunk[] row : grid)
+		{
+			for (ProtoChunk primer : row)
+			{
+				primer.setStatus(ChunkStatus.NOISE);
+			}
+		}
 		for (int z = 1; z < size - 1; z++)
 		{
 			for (int x = 1; x < size - 1; x++)
@@ -290,6 +298,13 @@ final class WorldgenTests
 		}
 		return new int[] { mushrooms, chunksWithMushrooms, exposed };
 	}
+	private static ProtoChunk blank(ChunkPos pos, ServerLevel world, Registry<Biome> biomes)
+	{
+		ProtoChunk chunk = new ProtoChunk(pos, UpgradeData.EMPTY, world, biomes, null);
+		chunk.setStatus(ChunkStatus.NOISE);
+		return chunk;
+	}
+
 	/** The (2r+1)^2 chunks around grid chunk (x, z): patch chunks where the patch has them, blank placeholders elsewhere. */
 	private static List<ChunkAccess> square(ProtoChunk[][] grid, int x, int z, int radius, int originX, int originZ, Map<Long, ProtoChunk> placeholders, ServerLevel world, Registry<Biome> biomes)
 	{
@@ -307,7 +322,7 @@ final class WorldgenTests
 				else
 				{
 					ChunkPos pos = new ChunkPos(originX + gx, originZ + gz);
-					chunks.add(placeholders.computeIfAbsent(pos.toLong(), key -> new ProtoChunk(pos, UpgradeData.EMPTY, world, biomes, null)));
+					chunks.add(placeholders.computeIfAbsent(pos.toLong(), key -> blank(pos, world, biomes)));
 				}
 			}
 		}
@@ -605,7 +620,7 @@ final class WorldgenTests
 				}
 
 				source = found.get(random.nextInt(found.size()));
-				ModBlocks.GLOWING_MUSHROOM.tick(c.world.getBlockState(source), c.world, source, random);
+				c.world.getBlockState(source).tick(c.world, source, random);
 			}
 
 			int count = countMushrooms(c, null);
@@ -983,7 +998,7 @@ final class WorldgenTests
 		final java.lang.reflect.Method[] warmClient = new java.lang.reflect.Method[1];
 		final Holder<?>[] originalClient = new Holder<?>[1];
 		tests.add(RTTest.named("worldgen.ancient_furnace.client_sees_the_biome_change_after_heating").run(c -> {
-			if (net.minecraftforge.fml.loading.FMLEnvironment.dist != net.minecraftforge.api.distmarker.Dist.CLIENT)
+			if (net.neoforged.fml.loading.FMLEnvironment.dist != net.neoforged.api.distmarker.Dist.CLIENT)
 			{
 				throw new TestCtx.Skip("needs a client run (the dedicated server has no client to look at)");
 			}
@@ -1136,7 +1151,7 @@ final class WorldgenTests
 		}
 
 		@Override
-		public net.minecraft.world.level.levelgen.structure.StructureCheckResult checkStructurePresence(ChunkPos pos, Structure structure, boolean skipKnown)
+		public net.minecraft.world.level.levelgen.structure.StructureCheckResult checkStructurePresence(ChunkPos pos, Structure structure, net.minecraft.world.level.levelgen.structure.placement.StructurePlacement placement, boolean skipKnown)
 		{
 			return net.minecraft.world.level.levelgen.structure.StructureCheckResult.START_NOT_PRESENT;
 		}

@@ -7,6 +7,6 @@
     "O": { "item": "minecraft:obsidian" }
   },
   "result": {
-    "item": "randomthings:item_collector"
+    "id": "randomthings:item_collector"
   }
 }

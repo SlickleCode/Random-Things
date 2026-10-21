@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -51,17 +51,17 @@ public class FilteredSuperLubricentPlatformTileEntity extends BlockEntity implem
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
-		compound.put("inventory", filterInventory.serializeNBT());
+		super.saveAdditional(compound, registries);
+		compound.put("inventory", filterInventory.serializeNBT(registries));
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
-		filterInventory.deserializeNBT(compound.getCompound("inventory"));
+		super.loadAdditional(compound, registries);
+		filterInventory.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

@@ -1,6 +1,6 @@
-# Random Things — 1.12.2 → Forge port (this branch: 1.20.1)
+# Random Things — 1.12.2 → Forge/NeoForge port (this branch: 1.20.6)
 
-Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to newer Forge versions (one branch per version; this folder is the 1.20.1 branch), on the
+Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to newer Forge versions (one branch per version; this folder is the 1.20.6 branch), on the
 fork [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things).
 
 Reusable docs: [docs/testing/](docs/testing/README.md) (automated in-game tests, dev-only) and
@@ -17,13 +17,14 @@ project state from scratch; that file is kept current after every slice.
 - `1.18.2` — the 1.18.2 port (Forge 40.3.12, ForgeGradle 5.1, Gradle 7.4.2, **JDK 17**, Mojang names), branched from `1.16.5`; plan in `docs/migration/plans/1.18.2-port-plan.md`.
 - `1.19.2` — the 1.19.2 port (Forge 43.5.2, ForgeGradle 5.1, Gradle 7.4.2, JDK 17), branched from `1.18.2`; plan in `docs/migration/plans/1.19.2-port-plan.md`.
 - `1.20.1` — the 1.20.1 port (Forge 47.4.28, ForgeGradle 6, Gradle 8.8, JDK 17), branched from `1.19.2`; plan in `docs/migration/plans/1.20.1-port-plan.md`.
+- `1.20.6` — the 1.20.6 port (**NeoForge 20.6.141**, NeoGradle 7, Gradle 8.13, **JDK 21**, Mojang names also in production), branched from `1.20.1`; plan in `docs/migration/plans/1.20.6-port-plan.md`, API notes in `docs/project/api-gotchas-1.20.6.md`.
 - `master` — untouched original 1.12.2-era source, kept as reference (`git show origin/1.12.2:<path>`
   to read the real original of any file).
 - `main` — landing-page README only, no code.
 
 ## One folder per version (git worktrees)
 
-The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4` ... `<parent>/1.20.1`); you
+The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4` ... `<parent>/1.20.6`); you
 are in one of them. Each has its own `run/`, `build/`, `prod-test/` and checked-out branch, so there is nothing to clean when changing versions:
 **open the other folder instead of running `git checkout`**. Use `git worktree list` to see them and `git -C <other-folder> ...` for the other branch.
 If you ever do switch the branch inside a folder, clear the old state first (a world from a newer version hangs an older client, an old server world
@@ -36,7 +37,7 @@ rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run
 ## Toolchain
 
 ```
-source env/activate.sh   # pins JDK 17 on this branch (JDK 8 on 1.14.4 / 1.16.5)
+source env/activate.sh   # pins JDK 21 on this branch (JDK 17 on 1.18.2-1.20.1, JDK 8 on 1.14.4 / 1.16.5)
 ./gradlew build          # full build; add -x test to skip tests for a quick compile check
 ```
 
@@ -51,7 +52,7 @@ history) lives in `docs/project/` — put new detail there, not back in the root
 
 - **Ground-truth every uncertain Minecraft/Forge API against the real mapped jar with `javap` before writing code that uses it** — never from
   memory of modding guides (this repeatedly caught real bugs: wrong render-layer assumptions, nonexistent methods, APIs that silently do nothing).
-  Jar locations, SRG ids and bytecode reading: the `mapping-lookup` skill (on 1.18.2 names are Mojang names; members are `m_`/`f_` ids in production).
+  Jar locations and bytecode reading: the `mapping-lookup` skill (on 1.18.2-1.20.1 names are Mojang names and members are `m_`/`f_` ids in production; **on 1.20.6 production uses Mojang names too, never write SRG ids here**). Decompiled 1.20.6 sources for grepping: see `docs/project/api-gotchas-1.20.6.md`, "Toolchain".
 - **Match 1.12.2 behavior exactly by default**, including reading the actual original source via
   `git show origin/1.12.2:<path>` rather than assuming. When the user explicitly states a preference
   that diverges from the original, follow their call and flag the divergence plainly rather than
@@ -85,7 +86,8 @@ attribution instructions for the current line to use.
   or hooks; read `run/randomthings_audit.txt` and `run/randomthings_tests.txt`. Also run
   `RT_AUTOTEST=true RT_AUTOTEST_EXIT=true ./gradlew runServer` after anything that adds client-class references (dedicated-server boot + suite). Add a behavior test
   (`debug/test/BehaviorTests`) for new redstone/capability/hook logic.
-- All dev tooling must stay behind `DevMode.ENABLED` (`-Drandomthings.debug=true`): no `@Mod.EventBusSubscriber`
+- Item data on this branch: `StackTag.get/getOrCreate` return COPIES, write with `StackTag.edit`/`set` (an empty tag removes the component).
+- All dev tooling must stay behind `DevMode.ENABLED` (`-Drandomthings.debug=true`): no `@EventBusSubscriber`
   on dev classes, no references to dev classes from game code except the guarded `DevTools.init()` call, no config
   options for it. Use `RTDebug.log(...)` for diagnostics, never an unconditional `LOGGER.info` in gameplay code.
 - Before relying on any Forge event, find who posts it in the sources jar (`HarvestDropsEvent` is never posted).

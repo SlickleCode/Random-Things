@@ -1,5 +1,6 @@
 package lumien.randomthings.container;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.util.ItemInventoryHandler;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
@@ -7,7 +8,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 
 /**
  * The "write/read a letter" GUI's container: 9 slots backed directly by the
@@ -28,7 +29,7 @@ public class EnderLetterContainer extends net.minecraft.world.inventory.Abstract
         super(ModContainerTypes.ENDER_LETTER, windowId);
 
         this.letterStack = letterStack;
-        this.received = letterStack.hasTag() && letterStack.getTag().getBoolean("received");
+        this.received = StackTag.getBoolean(letterStack, "received");
 
         ItemInventoryHandler content = new ItemInventoryHandler(letterStack, "content", 9);
 
@@ -108,18 +109,15 @@ public class EnderLetterContainer extends net.minecraft.world.inventory.Abstract
     public void handle(int id, FriendlyByteBuf data) {
         if (id == 0 && !received) {
             String receiver = data.readUtf(32767);
-            letterStack.getOrCreateTag().putString("receiver", receiver);
+            StackTag.edit(letterStack, t -> t.putString("receiver", receiver));
         } else if (id == 1 && !received) {
-            String message = data.readUtf(1024);
-
-            if (message.length() > MAX_MESSAGE_LENGTH) {
-                message = message.substring(0, MAX_MESSAGE_LENGTH);
-            }
+            String raw = data.readUtf(1024);
+            final String message = raw.length() > MAX_MESSAGE_LENGTH ? raw.substring(0, MAX_MESSAGE_LENGTH) : raw;
 
             if (message.isEmpty()) {
-                letterStack.getOrCreateTag().remove("message");
+                StackTag.edit(letterStack, t -> t.remove("message"));
             } else {
-                letterStack.getOrCreateTag().putString("message", message);
+                StackTag.edit(letterStack, t -> t.putString("message", message));
             }
         }
     }

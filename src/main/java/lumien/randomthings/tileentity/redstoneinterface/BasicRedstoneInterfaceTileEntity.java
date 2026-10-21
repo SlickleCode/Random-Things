@@ -56,7 +56,7 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     private void notifyOne(BlockPos targetPos, net.minecraft.world.level.block.Block neighborBlock) {
-        this.level.getBlockState(targetPos).neighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
+        this.level.getBlockState(targetPos).handleNeighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
         this.level.updateNeighborsAt(targetPos, neighborBlock);
     }
 
@@ -77,8 +77,8 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (target != null) {
             compound.putInt("targetX", target.getX());
@@ -89,8 +89,8 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("targetX")) {
             target = new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ"));

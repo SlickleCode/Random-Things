@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.util.WeakSets;
 import java.util.EnumMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.event.level.BlockEvent.NeighborNotifyEvent;
+import net.neoforged.neoforge.event.level.BlockEvent.NeighborNotifyEvent;
 
 /**
  * A "remote redstone wire": mirrors the weak/strong power of a distant
@@ -131,27 +132,6 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
-	/**
-	 * Real bug, found 2026-09-27 while chasing an identical live-sync report
-	 * on {@code RuneBaseTileEntity}: {@code TileEntity.onDataPacket} doesn't
-	 * exist in this Forge version - it's a Forge-added default method on
-	 * {@code IForgeTileEntity} whose default is an empty no-op, unlike
-	 * {@code handleUpdateTag}'s default (initial chunk-load sync only, e.g.
-	 * on rejoin), which already calls {@code read(tag)}. Without this
-	 * override, every live update sent via {@code getUpdatePacket} above -
-	 * including the one #94's fix above added - silently did nothing on
-	 * arrival; #94 fixed the packet's *payload* ({@code getUpdateTag}) but
-	 * not this half of actually applying it client-side, so a target set
-	 * live (no reload) very likely still didn't reach the line renderer
-	 * before this.
-	 */
-	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt)
-	{
-		// 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
-	}
-
 	public int getWeakPower(Direction side)
 	{
 		return weakPower.getOrDefault(side, 0);
@@ -163,9 +143,9 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		if (target != null)
 		{
@@ -189,15 +169,15 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 	 * this method, and the target was never actually in that payload.
 	 */
 	@Override
-	public CompoundTag getUpdateTag()
+	public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries)
 	{
-		return saveWithoutMetadata();
+		return saveWithoutMetadata(registries);
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		if (compound.contains("targetX"))
 		{

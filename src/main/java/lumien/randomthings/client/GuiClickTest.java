@@ -1,5 +1,6 @@
 package lumien.randomthings.client;
 
+import lumien.randomthings.util.StackTag;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
@@ -87,7 +88,7 @@ public final class GuiClickTest
 				mc.player.connection.sendUnsignedCommand("gamemode creative");
 				// something in the player inventory, so every container GUI has a filled slot to hover
 				mc.player.connection.sendUnsignedCommand("give @s minecraft:stone 16");
-				net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
+				net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
 				return false;
@@ -453,10 +454,10 @@ public final class GuiClickTest
 
 				if (te != null)
 				{
-					inner.append(te.saveWithoutMetadata());
+					inner.append(te.saveWithoutMetadata(mc.level.registryAccess()));
 				}
 
-				inner.append(server.getPlayerList().getPlayer(mc.player.getUUID()).getMainHandItem().getTag());
+				inner.append(StackTag.get(server.getPlayerList().getPlayer(mc.player.getUUID()).getMainHandItem()));
 				return inner.toString();
 			}).get(5, TimeUnit.SECONDS));
 		}

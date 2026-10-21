@@ -65,7 +65,6 @@ public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetector
 	public void containerTick()
 	{
 		super.containerTick();
-		this.usernameField.tick();
 
 		// Sync on every change rather than only from removed(): sending only on close
 		// raced the vanilla close-window packet, so Escape after clicking out of the
@@ -137,7 +136,6 @@ public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetector
 	@Override
 	public void render(GuiGraphics graphics, int p_render_1_, int p_render_2_, float p_render_3_)
 	{
-		this.renderBackground(graphics);
 		super.render(graphics, p_render_1_, p_render_2_, p_render_3_);
 		this.renderTooltip(graphics, p_render_1_, p_render_2_);
 	}

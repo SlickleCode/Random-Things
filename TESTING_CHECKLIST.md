@@ -1,4 +1,6 @@
-# Random Things 1.18.2 - Testing Checklist
+# Random Things 1.20.6 - Testing Checklist
+
+**Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md).
 
 Fill in **Result** with `Pass` or `Fail` (leave blank if untested) and a one-sentence note in **Feedback** (what you did, what happened vs. expected).
 Row numbers are the original sheet's, so references like "#158" still work. **Every result is blank: nothing on this branch has been tested by hand yet** (the 1.14.4 sheet was; sections 1-5 were carried over from 1.16.5 unchanged, section 6 is new for 1.18.2).
@@ -275,3 +277,26 @@ The scenarios assert state and pixel measurements for these, but only your eyes/
 | 1.18+ torch | Advanced Redstone Torch (red/green, floor and wall): no black box around the texture (`RenderLayerSetup`: cutout) - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
 | 1.18+ recorder | Sound Recorder: the row under the mouse gets the dark highlight bar - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
 | 1.18+ fluid display | Fluid Display with a fluid is hidden behind blocks in front of it - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
+
+## 7. New for 1.20.6 (NeoForge 20.6.141) - all FIXED/new, nothing tested by hand
+
+These are the behaviours whose implementation changed in the 1.20.6 port (data components, payloads, capabilities, new item/block interaction API). The suites pass; these are the things that are worth a quick manual look.
+
+| # | Check | Result | Feedback |
+|---|---|---|---|
+| P1 | Right-click interactions: every GUI block still opens (Iron Dropper, Igniter, Item Collectors, Detectors, Ender Mailbox, Imbuing Station, ...), Biome Radar takes/returns a Biome Crystal, Sound Box takes/returns a pattern, Ancient Furnace accepts a Nether Star, Spectre Core still works with an empty and a full hand |  | *Why:* `Block.use` is now `useItemOn`/`useWithoutItem` |
+| P2 | Ender Bucket / Reinforced Ender Bucket pick up and place water and lava, stack to 16 while empty, show the fluid in the name, durability-style bar on the reinforced one |  | *Why:* fluid is a custom data component now |
+| P3 | Items that keep data: Portkey (bind, camouflage recipe, prime after a drop), Golden/Emerald Compass (recipes with Position Filter/ID Card), Position Filter, ID Card, Entity Filter, Sound Pattern (shift-click clears), Sound Recorder (shift toggles, stops at 10), Time in a Bottle (charges while carried, accelerates), Redstone Tool (two clicks link), Redstone Remote, Ender Letter, Spectre Anchor survives death |  | *Why:* stack data moved to `custom_data` |
+| P4 | Spectre Pickaxe/Axe/Shovel: +3 block reach while held, tooltip line "Block Interaction Range"; Spectre tools keep their damage/speed |  | *Why:* tools use the new attribute modifier components |
+| P5 | Magic Hood: own green texture on the head, hides the potion particles (also when put on while an effect is active), nametag hidden for other players |  | *Why:* particle hiding is `EffectParticleModificationEvent`; armor texture is a material layer |
+| P6 | Super Lubricent Boots: wearing them shows the boots texture and you slide |  | *Why:* armor material layer texture |
+| P7 | Imbue bottles (fire/poison/experience/wither): drinking applies the effect for 20 minutes, a second kind replaces the first, hits ignite/poison/wither and experience drops grow |  | *Why:* effects are holders now |
+| P8 | Spectre Lens above a Beacon applies the beacon effects to the owner everywhere |  | *Why:* beacon fields are holders now |
+| P9 | Dispensers shoot Golden Eggs and Weather Eggs |  | *Why:* `ProjectileItem` dispense behaviour |
+| P10 | Magnetic enchantment appears in the enchanting table/anvil on digger tools and works (drops go into the inventory); Block Breaker still mines with it |  | *Why:* enchantment definition rewritten |
+| P11 | Creative tab "Random Things" lists everything; item tooltips show (Biome Crystal biome, Ender Letter, Time in a Bottle, Spectre Charger, Floo Pouch...) |  | *Why:* tooltips take `TooltipContext` |
+| P12 | Multiplayer (two clients): Notification Interface toast, Biome Radar antenna particles, Redstone Remote, Sound Recorder, Eclipsed Clock hands, chat features |  | *Why:* all packets are `CustomPacketPayload`s now (the Eclipsed Clock packet was never registered before) |
+| P13 | Chests in dungeons/strongholds/villages/jungle temples can contain Summoning Pendulum, Magic Hood, Slime Cube and Biome Crystals |  | *Why:* suite proves the pools are injected, not that they roll |
+| P14 | Load a world saved by the 1.20.1 version: block entity data (Floo network, Ender Mailbox letters, Spectre cubes) survives; stacks keep their data only if saved by this version (item NBT is not converted) |  | *Why:* new world format; no automatic conversion of custom item data |
+| P15 | Blazing Fire catches flammable blocks about 4 times as often as vanilla fire (the coremod now actually applies) |  | *Why:* `checkBurnOut` rename |
+

@@ -6,6 +6,6 @@
     "S": { "item": "randomthings:super_lubricent_tincture" }
   },
   "result": {
-    "item": "randomthings:super_lubricent_boots"
+    "id": "randomthings:super_lubricent_boots"
   }
 }

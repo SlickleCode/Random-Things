@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.nbt.CompoundTag;
@@ -8,7 +9,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -65,34 +66,18 @@ public class FluidDisplayTileEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    /**
-     * Real bug, found 2026-09-27 (see {@code RuneBaseTileEntity}'s identical
-     * fix for the full story): {@code TileEntity.onDataPacket} doesn't exist
-     * in this Forge version - it's a Forge-added default method on {@code
-     * IForgeTileEntity} whose default is an empty no-op, unlike {@code
-     * handleUpdateTag}'s default (initial chunk-load sync only), which
-     * already calls {@code read(tag)}. Without this override, every live
-     * update sent via {@code getUpdatePacket} above (rotation/flowing toggle)
-     * silently did nothing on arrival until the next relog/rejoin.
-     */
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
-        // 1.18 delivers an empty update tag as null
-        this.load(pkt.getTag() != null ? pkt.getTag() : new CompoundTag());
+    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         CompoundTag fluidCompound = new CompoundTag();
         if (fluidStack != null) {
-            fluidStack.writeToNBT(fluidCompound);
+            fluidCompound = (CompoundTag) fluidStack.saveOptional(registries);
         }
 
         compound.put("fluidStack", fluidCompound);
@@ -102,13 +87,13 @@ public class FluidDisplayTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("fluidStack")) {
             // an unset display is written as an empty compound; load it back as "unset" (null) rather than an
             // EMPTY stack so the NBT stays stable across save/load cycles
-            FluidStack loaded = FluidStack.loadFluidStackFromNBT(compound.getCompound("fluidStack"));
+            FluidStack loaded = FluidStack.parseOptional(registries, compound.getCompound("fluidStack"));
             this.fluidStack = loaded == null || loaded.isEmpty() ? null : loaded;
         } else {
             this.fluidStack = new FluidStack(Fluids.WATER, 1000);

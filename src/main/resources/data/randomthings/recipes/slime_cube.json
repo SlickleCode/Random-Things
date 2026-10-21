@@ -6,6 +6,6 @@
     "N": { "item": "minecraft:nether_star" }
   },
   "result": {
-    "item": "randomthings:slime_cube"
+    "id": "randomthings:slime_cube"
   }
 }

@@ -1,5 +1,6 @@
 package lumien.randomthings.recipes;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.item.block.DiaphanousBlockItem;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -21,8 +22,8 @@ import net.minecraft.world.level.Level;
 public class DiaphanousInvertRecipe extends CustomRecipe {
     public static final RecipeSerializer<DiaphanousInvertRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(DiaphanousInvertRecipe::new);
 
-    public DiaphanousInvertRecipe(ResourceLocation id, net.minecraft.world.item.crafting.CraftingBookCategory category) {
-        super(id, category);
+    public DiaphanousInvertRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
@@ -47,7 +48,7 @@ public class DiaphanousInvertRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess) {
         ItemStack diaphanous = ItemStack.EMPTY;
 
         for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -65,8 +66,7 @@ public class DiaphanousInvertRecipe extends CustomRecipe {
         ItemStack result = diaphanous.copy();
         result.setCount(1);
 
-        CompoundTag tag = result.getOrCreateTag();
-        tag.putBoolean("inverted", !tag.getBoolean("inverted"));
+        StackTag.edit(result, tag -> tag.putBoolean("inverted", !tag.getBoolean("inverted")));
 
         return result;
     }

@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.container.EnderLetterContainer;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
@@ -17,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class EnderLetterItem extends Item {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return stack.hasTag() && stack.getTag().getBoolean("received");
+        return StackTag.getBoolean(stack, "received");
     }
 
     @Override
@@ -47,20 +47,21 @@ public class EnderLetterItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, world, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flagIn) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldCtx, tooltip, flagIn);
 
-        if (!stack.hasTag() || !stack.getTag().getBoolean("received")) {
+        if (!StackTag.has(stack) || !StackTag.getBoolean(stack, "received")) {
             tooltip.add(Component.translatable("item.randomthings.ender_letter.how_to_send").withStyle(ChatFormatting.GRAY));
         }
 
-        if (stack.hasTag()) {
-            if (stack.getTag().contains("sender")) {
-                tooltip.add(Component.translatable("item.randomthings.ender_letter.sender", stack.getTag().getString("sender")));
+        if (StackTag.has(stack)) {
+            if (StackTag.contains(stack, "sender")) {
+                tooltip.add(Component.translatable("item.randomthings.ender_letter.sender", StackTag.getString(stack, "sender")));
             }
 
-            if (stack.getTag().contains("receiver")) {
-                tooltip.add(Component.translatable("item.randomthings.ender_letter.receiver", stack.getTag().getString("receiver")));
+            if (StackTag.contains(stack, "receiver")) {
+                tooltip.add(Component.translatable("item.randomthings.ender_letter.receiver", StackTag.getString(stack, "receiver")));
             }
         }
     }
@@ -75,7 +76,7 @@ public class EnderLetterItem extends Item {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
-            NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
+            ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
                     return Component.translatable("item.randomthings.ender_letter");

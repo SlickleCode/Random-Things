@@ -23,7 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -195,7 +195,7 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 
 	private boolean checkSupposedPoweredState()
 	{
-		AABB box = new AABB(worldPosition, worldPosition.offset(1, 1, 1)).inflate(rangeX, rangeY, rangeZ);
+		AABB box = lumien.randomthings.util.AABBs.of(worldPosition, worldPosition.offset(1, 1, 1)).inflate(rangeX, rangeY, rangeZ);
 
 		if (filter.filterClass == null)
 		{
@@ -217,9 +217,9 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		compound.putBoolean("powered", powered);
 		compound.putInt("rangeX", rangeX);
@@ -228,14 +228,14 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 		compound.putInt("filter", filter.ordinal());
 		compound.putBoolean("invert", invert);
 		compound.putBoolean("strongOutput", strongOutput);
-		compound.put("inventory", filterInventory.serializeNBT());
+		compound.put("inventory", filterInventory.serializeNBT(registries));
 
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		powered = compound.getBoolean("powered");
 		rangeX = compound.getInt("rangeX");
@@ -244,7 +244,7 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 		filter = FILTER.values()[compound.getInt("filter")];
 		invert = compound.getBoolean("invert");
 		strongOutput = compound.getBoolean("strongOutput");
-		filterInventory.deserializeNBT(compound.getCompound("inventory"));
+		filterInventory.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

@@ -7,6 +7,6 @@
     "O": { "item": "minecraft:bowl" }
   },
   "result": {
-    "item": "randomthings:bean_stew"
+    "id": "randomthings:bean_stew"
   }
 }

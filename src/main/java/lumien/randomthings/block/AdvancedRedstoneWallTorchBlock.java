@@ -27,8 +27,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.core.particles.ParticleTypes;
 
 public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
@@ -57,7 +57,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 
 	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
-		return Blocks.WALL_TORCH.canSurvive(state, worldIn, pos);
+		return Blocks.WALL_TORCH.defaultBlockState().setValue(FACING, state.getValue(FACING)).canSurvive(worldIn, pos);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	 */
 	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos)
 	{
-		return Blocks.WALL_TORCH.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+		return Blocks.WALL_TORCH.defaultBlockState().setValue(FACING, stateIn.getValue(FACING)).updateShape(facing, facingState, worldIn, currentPos, facingPos).is(Blocks.AIR) ? Blocks.AIR.defaultBlockState() : stateIn;
 	}
 
 	@Nullable
@@ -127,7 +127,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	 */
 	public BlockState rotate(BlockState state, Rotation rot)
 	{
-		return Blocks.WALL_TORCH.rotate(state, rot);
+		return state.setValue(FACING, rot.rotate(state.getValue(FACING)));
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	 */
 	public BlockState mirror(BlockState state, Mirror mirrorIn)
 	{
-		return Blocks.WALL_TORCH.mirror(state, mirrorIn);
+		return state.rotate(mirrorIn.getRotation(state.getValue(FACING)));
 	}
 
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)

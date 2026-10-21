@@ -6,7 +6,7 @@ import lumien.randomthings.network.IRTMessage;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * Client -> server: "I just heard this sound and slot N of my inventory
@@ -40,9 +40,9 @@ public class PlayedSoundMessage implements IRTMessage {
     }
 
     @Override
-    public void handle(Context ctx) {
+    public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            ServerPlayer player = ctx.getSender();
+            ServerPlayer player = (ServerPlayer) ctx.player();
 
             if (player == null || recorderSlot < 0 || recorderSlot >= player.getInventory().getContainerSize()) {
                 return;

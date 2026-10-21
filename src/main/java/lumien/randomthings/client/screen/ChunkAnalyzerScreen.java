@@ -1,5 +1,6 @@
 package lumien.randomthings.client.screen;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
@@ -64,7 +65,7 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
     private void refreshResultsFromHeldStack() {
         ItemStack held = this.minecraft.player.getMainHandItem();
-        CompoundTag resultTag = held.getTagElement("result");
+        CompoundTag resultTag = StackTag.getElement(held, "result");
 
         if (resultTag != null) {
             ChunkAnalyzerResult results = new ChunkAnalyzerResult();
@@ -106,7 +107,6 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTicks);
 
         this.scanResultList.render(graphics, mouseX, mouseY, partialTicks);

@@ -1,11 +1,16 @@
 package lumien.randomthings;
 
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -68,20 +73,20 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.registries.RegisterEvent;
-import net.minecraftforge.event.ServerChatEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.Event.Result;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import lumien.randomthings.lib.RTRegistry;
+import lumien.randomthings.lib.ModDataComponents;
+import lumien.randomthings.lib.ObjectHolderInjector;
+import net.neoforged.neoforge.event.ServerChatEvent;
+
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -96,23 +101,23 @@ public class RandomThings {
 
     public static RandomThings INSTANCE;
 
-    public RandomThings() {
+    public RandomThings(net.neoforged.bus.api.IEventBus modEventBus, net.neoforged.fml.ModContainer modContainer) {
         INSTANCE = this;
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setupCommon);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::registerEntityAttributes);
+        modEventBus.addListener(this::setupCommon);
+        modEventBus.addListener(this::registerEntityAttributes);
         // All client-only wiring lives in ClientSetup; this class must not reference client classes (dedicated server).
-        net.minecraftforge.fml.DistExecutor.runWhenOn(net.minecraftforge.api.distmarker.Dist.CLIENT, () -> lumien.randomthings.client.ClientSetup::init);
+        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+            lumien.randomthings.client.ClientSetup.init(modEventBus);
+        }
 
-        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, lumien.randomthings.config.RTConfig.SPEC);
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON, lumien.randomthings.config.RTConfig.SPEC);
 
-        MinecraftForge.EVENT_BUS.register(this);
-
-        MinecraftForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
+        NeoForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.server.ServerAboutToStartEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.server.ServerAboutToStartEvent event) -> {
             lumien.randomthings.worldgen.PeaceCandleChurchPool.install(event.getServer());
         });
 
@@ -122,8 +127,8 @@ public class RandomThings {
             lumien.randomthings.debug.DevTools.init();
         }
 
-        MinecraftForge.EVENT_BUS.addListener((BlockEvent.BlockToolModificationEvent event) -> {
-            if (event.getToolAction() != net.minecraftforge.common.ToolActions.HOE_TILL) {
+        NeoForge.EVENT_BUS.addListener((BlockEvent.BlockToolModificationEvent event) -> {
+            if (event.getToolAction() != net.neoforged.neoforge.common.ToolActions.HOE_TILL) {
                 return;
             }
 
@@ -139,7 +144,7 @@ public class RandomThings {
         // compacts it further, up to compression 2. There's no generic Forge event
         // for "tool X used on block Y" the way UseHoeEvent covers hoes, so this
         // mirrors 1.12.2's own approach of hooking the raw right-click event directly.
-        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+        NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
             ItemStack equipped = event.getItemStack();
 
             if (equipped.isEmpty() || !(equipped.getItem() instanceof ShovelItem)) {
@@ -156,8 +161,8 @@ public class RandomThings {
 
                 if (!world.isClientSide) {
                     world.setBlockAndUpdate(pos, ModBlocks.COMPRESSED_SLIME_BLOCK.defaultBlockState());
-                    world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F);
-                    equipped.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(event.getHand()));
+                    world.playSound(null, pos, Blocks.SLIME_BLOCK.defaultBlockState().getSoundType().getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F);
+                    equipped.hurtAndBreak(1, player, net.minecraft.world.entity.LivingEntity.getSlotForHand(event.getHand()));
                 }
             } else if (targetState.getBlock() == ModBlocks.COMPRESSED_SLIME_BLOCK) {
                 int currentCompression = targetState.getValue(CompressedSlimeBlock.COMPRESSION);
@@ -167,8 +172,8 @@ public class RandomThings {
 
                     if (!world.isClientSide) {
                         world.setBlockAndUpdate(pos, targetState.setValue(CompressedSlimeBlock.COMPRESSION, currentCompression + 1));
-                        world.playSound(null, pos, Blocks.SLIME_BLOCK.getSoundType(targetState).getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
-                        equipped.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(event.getHand()));
+                        world.playSound(null, pos, Blocks.SLIME_BLOCK.defaultBlockState().getSoundType().getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
+                        equipped.hurtAndBreak(1, player, net.minecraft.world.entity.LivingEntity.getSlotForHand(event.getHand()));
                     }
                 }
             }
@@ -181,7 +186,7 @@ public class RandomThings {
         // its 6 neighbors for a Contact Button/Lever whose FACING points back at
         // the clicked block, and activates the first match found (button checked
         // before lever, matching the original's ordering).
-        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+        NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
             Level world = event.getLevel();
 
             if (world.isClientSide || event.getHand() != InteractionHand.MAIN_HAND) {
@@ -211,7 +216,7 @@ public class RandomThings {
         // EntityDamageSource-but-not-IndirectEntityDamageSource check). Only one
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
-        MinecraftForge.EVENT_BUS.addListener((LivingHurtEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((LivingHurtEvent event) -> {
             if (event.isCanceled() || event.getEntity().level().isClientSide || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
                 return;
             }
@@ -225,7 +230,7 @@ public class RandomThings {
             LivingEntity attacker = (LivingEntity) damageSource.getEntity();
 
             if (attacker.hasEffect(ModEffects.IMBUE_FIRE)) {
-                event.getEntity().setSecondsOnFire(10);
+                event.getEntity().igniteForSeconds(10);
             } else if (attacker.hasEffect(ModEffects.IMBUE_WITHER)) {
                 event.getEntity().addEffect(new MobEffectInstance(MobEffects.WITHER, 5 * 20, 1));
             } else if (attacker.hasEffect(ModEffects.IMBUE_POISON)) {
@@ -234,7 +239,7 @@ public class RandomThings {
         });
 
         // Imbue Experience: doubles whatever XP a kill would have dropped.
-        MinecraftForge.EVENT_BUS.addListener((LivingExperienceDropEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((LivingExperienceDropEvent event) -> {
             if (event.getAttackingPlayer() != null && event.getAttackingPlayer().hasEffect(ModEffects.IMBUE_EXPERIENCE)) {
                 event.setDroppedExperience(event.getDroppedExperience() + event.getOriginalExperience());
             }
@@ -255,8 +260,10 @@ public class RandomThings {
         // would accelerate without limit on ordinary ground. Same condition
         // (worn + not sneaking) as bootsMaxSlip itself, and the same cap the
         // blocks use, per user direction.
-        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingTickEvent event) -> {
-            LivingEntity entity = event.getEntity();
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.tick.EntityTickEvent.Pre event) -> {
+            if (!(event.getEntity() instanceof LivingEntity entity)) {
+                return;
+            }
 
             if (!entity.onGround()) {
                 return;
@@ -310,12 +317,12 @@ public class RandomThings {
         // unmodified - it's now a pure backstop for sustained real paddle
         // input climbing toward the limit, not compensating for anything
         // growing on its own anymore.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.level).getEntities(EntityType.BOAT, e -> true)) {
+            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(EntityType.BOAT, e -> true)) {
                 if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
                     SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
@@ -326,7 +333,7 @@ public class RandomThings {
         // non-creative player standing outside their own SpectreCube room back to their
         // own spawn tile (or fully back home if they don't have a cube at all). Direct
         // port of 1.12.2's RTEventHandler#livingUpdate's Spectre-dimension branch.
-        MinecraftForge.EVENT_BUS.addListener((LivingEvent.LivingTickEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.tick.EntityTickEvent.Pre event) -> {
             if (event.getEntity().level().isClientSide || !(event.getEntity() instanceof ServerPlayer)) {
                 return;
             }
@@ -346,34 +353,34 @@ public class RandomThings {
         // StableEnderpearlItem.tickDroppedPearl for why this lives here instead of
         // on the item itself (Item.onEntityItemUpdate doesn't exist in this Forge
         // build).
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.getLevel()).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof StableEnderpearlItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((StableEnderpearlItem) e.getItem().getItem()).tickDroppedPearl(e));
         });
 
         // Drives FlooTokenItem's on-the-ground-long-enough-to-spawn-a-fireplace
         // countdown - same "no Item.onEntityItemUpdate hook in this Forge build"
         // finding as StableEnderpearlItem above, same fix.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.getLevel()).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof FlooTokenItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((FlooTokenItem) e.getItem().getItem()).tickDroppedToken(e));
         });
 
         // Drives PortkeyItem's "sitting on the ground, priming" countdown - same
         // "no Item.onEntityItemUpdate hook in this Forge build" finding as
         // StableEnderpearlItem/FlooTokenItem above, same fix.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            java.util.stream.StreamSupport.stream(((ServerLevel) event.level).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
+            java.util.stream.StreamSupport.stream(((ServerLevel) event.getLevel()).getAllEntities().spliterator(), false).filter(e -> e instanceof ItemEntity).map(e -> (ItemEntity) e).filter(e -> !e.getItem().isEmpty() && e.getItem().getItem() instanceof lumien.randomthings.item.PortkeyItem).collect(java.util.stream.Collectors.toList()).forEach(e -> ((lumien.randomthings.item.PortkeyItem) e.getItem().getItem()).tickDroppedPortkey(e));
         });
 
         // Teleports whoever picks up a primed, bound PortkeyItem to its target
@@ -381,21 +388,21 @@ public class RandomThings {
         // RTEventHandler#itemPickup exactly (same safe-landing-spot search: a
         // 5x5 column around the target, scanning down to 10 blocks below it for
         // a solid-topped position with 2 air blocks above).
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.EntityItemPickupEvent event) -> {
-            ItemEntity ei = event.getItem();
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent.Pre event) -> {
+            ItemEntity ei = event.getItemEntity();
             ItemStack stack = ei.getItem();
 
             if (ei.level().isClientSide || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
                 return;
             }
 
-            CompoundTag compound = stack.getTag();
+            CompoundTag compound = StackTag.get(stack);
 
             if (compound == null || !compound.getBoolean("hasTarget") || compound.getInt("dropCounter") <= 100) {
                 return;
             }
 
-            Player player = event.getEntity();
+            Player player = event.getPlayer();
 
             if (!(player instanceof ServerPlayer) || !player.level().dimension().location().toString().equals(compound.getString("dimension"))) {
                 return;
@@ -430,7 +437,7 @@ public class RandomThings {
                 serverPlayer.connection.teleport(teleportTarget.getX() + 0.5, teleportTarget.getY() + 1, teleportTarget.getZ() + 0.5, player.getYRot(), player.getXRot());
 
                 ei.discard();
-                event.setCanceled(true);
+                event.setCanPickup(net.neoforged.neoforge.common.util.TriState.FALSE);
             }
         });
 
@@ -441,8 +448,8 @@ public class RandomThings {
         // there (in its original slot) by the time this fires. Matches
         // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
         // inventory only - Baubles isn't present in this port).
-        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGHEST, (net.minecraftforge.event.entity.player.PlayerEvent.Clone event) -> {
-            if (!event.isWasDeath() || event.isCanceled() || event.getOriginal() == null || event.getEntity() instanceof net.minecraftforge.common.util.FakePlayer || event.getEntity().level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
+        NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.HIGHEST, (net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone event) -> {
+            if (!event.isWasDeath() || event.getOriginal() == null || event.getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || event.getEntity().level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
                 return;
             }
 
@@ -452,7 +459,7 @@ public class RandomThings {
             for (int i = 0; i < oldPlayer.getInventory().getContainerSize(); i++) {
                 ItemStack stack = oldPlayer.getInventory().getItem(i);
 
-                if (stack.isEmpty() || !stack.hasTag() || !stack.getTag().contains("spectreAnchor")) {
+                if (stack.isEmpty() || !StackTag.has(stack) || !StackTag.contains(stack, "spectreAnchor")) {
                     continue;
                 }
 
@@ -482,7 +489,7 @@ public class RandomThings {
         // visible. Matches 1.12.2's own RTEventHandler#livingDeath exactly
         // (same chance formula, same FakePlayer exclusion so things like
         // Advanced Item Collector's fake-player harvesting never trigger it).
-        MinecraftForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
             if (event.getEntity().level().isClientSide) {
                 return;
             }
@@ -491,7 +498,7 @@ public class RandomThings {
                 RTWorldInformationHandler.get(event.getEntity().getServer()).setEnderDragonDefeated(true);
             }
 
-            if (event.getSource().getEntity() == null || event.getSource().getEntity() instanceof net.minecraftforge.common.util.FakePlayer || !(event.getSource().getEntity() instanceof Player) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
+            if (event.getSource().getEntity() == null || event.getSource().getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || !(event.getSource().getEntity() instanceof Player) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
                 return;
             }
 
@@ -519,24 +526,16 @@ public class RandomThings {
         // Drives EscapeRopeHandler's "find the nearest path to daylight" search -
         // runs once per server tick regardless of how many dimensions are loaded,
         // matching the original's own ServerTickEvent call site.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END) {
-                return;
-            }
-
-            EscapeRopeHandler.getInstance().tick();
+        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> {
+                        EscapeRopeHandler.getInstance().tick();
         });
 
         // Drives SpectreLensHandler's every-60-ticks re-application of each lens's
         // bound Beacon effects to its owner - matching the original's own
         // ServerTickEvent call site (runs once per server tick regardless of which
         // dimension the owning player or the lens itself are actually in).
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.ServerTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END) {
-                return;
-            }
-
-            net.minecraft.server.MinecraftServer server = net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer();
+        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> {
+                        net.minecraft.server.MinecraftServer server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
 
             if (server != null) {
                 lumien.randomthings.handler.spectrelens.SpectreLensHandler.get(server).tick(server);
@@ -548,15 +547,15 @@ public class RandomThings {
         // server or client (WorldTickEvent fires for both, unlike ServerTickEvent) -
         // see that class's own javadoc for why this is spread out instead of done
         // all at once.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(event.level);
+            lumien.randomthings.entity.SpectreIlluminatorRelight.tick(event.getLevel());
         });
 
-        MinecraftForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((ServerChatEvent event) -> {
             if (handleFlooChat(event)) {
                 return;
             }
@@ -580,18 +579,18 @@ public class RandomThings {
             }
         });
 
-        MinecraftForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
+        NeoForge.EVENT_BUS.addListener(RedstoneObserverTileEntity::notifyNeighbor);
 
         // Drives RedstoneSignalHandler's timed-pulse expiry (Redstone Activator/Remote) -
         // same "no Item.onEntityItemUpdate hook" WorldTickEvent precedent used for
         // StableEnderpearlItem/FlooTokenItem/PortkeyItem above, just per-world state
         // instead of per-entity.
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || event.level.isClientSide) {
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel().isClientSide) {
                 return;
             }
 
-            lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(event.level).tick(event.level);
+            lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(event.getLevel()).tick(event.getLevel());
         });
 
         // Slime Cube's spawn-ALLOW and Lapis Lamp's spawn-prevention used to live here as
@@ -620,7 +619,7 @@ public class RandomThings {
         // all when that value is > 0, and it's set directly from event.getColor(). Forcing that
         // to exactly 0 is what actually stops every particle from spawning - shouldHideParticles
         // is left set too, in case anything else ever reads it, but it was never the real switch.
-        MinecraftForge.EVENT_BUS.addListener((PotionColorCalculationEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.EffectParticleModificationEvent event) -> {
             if (!(event.getEntity() instanceof Player)) {
                 return;
             }
@@ -628,8 +627,7 @@ public class RandomThings {
             ItemStack helmet = event.getEntity().getItemBySlot(EquipmentSlot.HEAD);
 
             if (helmet.getItem() == ModItems.MAGIC_HOOD) {
-                event.shouldHideParticles(true);
-                event.setColor(0);
+                event.setVisible(false);
             }
         });
 
@@ -645,7 +643,7 @@ public class RandomThings {
         // same thing vanilla's own effect-changed path does - whenever the head slot's Magic
         // Hood state actually changes, letting the very next tick's already-correct vanilla
         // logic (and the listener above) do the real work.
-        MinecraftForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
             if (event.getEntity().level().isClientSide || event.getSlot() != EquipmentSlot.HEAD) {
                 return;
             }
@@ -662,8 +660,8 @@ public class RandomThings {
         // to hard-revert the soil block under a sapling to plain Dirt. Forge fires a
         // BlockEvent for each block a world-gen feature places, so we can veto that
         // specific replacement without any bytecode patching.
-        MinecraftForge.EVENT_BUS.addListener((BlockEvent.EntityPlaceEvent event) -> {
-            if (event.getPlacedBlock().getBlock() == net.minecraft.world.level.block.Blocks.DIRT && event.getBlockSnapshot().getReplacedBlock().getBlock() == ModBlocks.FERTILIZED_DIRT) {
+        NeoForge.EVENT_BUS.addListener((BlockEvent.EntityPlaceEvent event) -> {
+            if (event.getPlacedBlock().getBlock() == net.minecraft.world.level.block.Blocks.DIRT && event.getBlockSnapshot().getState().getBlock() == ModBlocks.FERTILIZED_DIRT) {
                 event.setCanceled(true);
             }
         });
@@ -673,16 +671,13 @@ public class RandomThings {
     }
 
     /** 1.16: living entities need their attribute map registered (it was set in {@code registerAttributes()} per instance before). */
-    private void registerEntityAttributes(final net.minecraftforge.event.entity.EntityAttributeCreationEvent event) {
+    private void registerEntityAttributes(final net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent event) {
         event.put(ModEntityTypes.GOLDEN_CHICKEN, lumien.randomthings.entity.GoldenChickenEntity.registerAttributes().build());
         event.put(ModEntityTypes.SPIRIT, lumien.randomthings.entity.SpiritEntity.registerAttributes().build());
     }
 
     private void setupCommon(final FMLCommonSetupEvent event) {
         AsmHandler.modBlockLight(0F, 1);
-        RTPacketHandler.register();
-        event.enqueueWork(lumien.randomthings.handler.ModDimensions::registerBuiltin);
-        event.enqueueWork(lumien.randomthings.handler.LootHandler::registerFunctionTypes);
 
         registerImbuingRecipes();
     }
@@ -695,7 +690,7 @@ public class RandomThings {
      * matcher, not something the vanilla recipe/JSON pipeline models.
      */
     private void registerImbuingRecipes() {
-        ItemStack waterBottle = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
+        ItemStack waterBottle = lumien.randomthings.util.PotionHelper.potion(Potions.WATER);
 
         ImbuingRecipeHandler.addRecipe(waterBottle, new ItemStack(Items.VINE), new ItemStack(Items.BONE_MEAL), new ItemStack(Items.COBBLESTONE), new ItemStack(Items.MOSSY_COBBLESTONE));
 
@@ -776,34 +771,41 @@ public class RandomThings {
         return true;
     }
 
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
     public static class RegistryEvents {
         @SubscribeEvent
         public static void onRegister(final RegisterEvent event) {
             var key = event.getRegistryKey();
-            if (key.equals(ForgeRegistries.Keys.BLOCKS)) {
-                ModBlocks.registerBlocks(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.ITEMS)) {
-                ModItems.registerItems(event.getForgeRegistry());
-            } else if (key.equals(net.minecraft.core.registries.Registries.CREATIVE_MODE_TAB)) {
-                event.register(net.minecraft.core.registries.Registries.CREATIVE_MODE_TAB, new ResourceLocation(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
-            } else if (key.equals(ForgeRegistries.Keys.BLOCK_ENTITY_TYPES)) {
-                ModTileEntityTypes.registerTypes(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.MENU_TYPES)) {
-                ModContainerTypes.registerContainerTypes(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.RECIPE_SERIALIZERS)) {
-                ModRecipeSerializers.registerRecipeSerializers(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
-                event.register(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, new ResourceLocation(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
-            } else if (key.equals(ForgeRegistries.Keys.MOB_EFFECTS)) {
-                ModEffects.registerEffects(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.ENCHANTMENTS)) {
-                lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.ENTITY_TYPES)) {
-                ModEntityTypes.registerEntityTypes(event.getForgeRegistry());
-            } else if (key.equals(ForgeRegistries.Keys.FEATURES)) {
-                ModFeatures.registerFeatures(event.getForgeRegistry());
+            if (key.equals(Registries.BLOCK)) {
+                ModBlocks.registerBlocks(new RTRegistry<>(event, Registries.BLOCK));
+            } else if (key.equals(Registries.ITEM)) {
+                ModItems.registerItems(new RTRegistry<>(event, Registries.ITEM));
+            } else if (key.equals(Registries.CREATIVE_MODE_TAB)) {
+                event.register(Registries.CREATIVE_MODE_TAB, new ResourceLocation(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
+            } else if (key.equals(Registries.BLOCK_ENTITY_TYPE)) {
+                ModTileEntityTypes.registerTypes(new RTRegistry<>(event, Registries.BLOCK_ENTITY_TYPE));
+            } else if (key.equals(Registries.MENU)) {
+                ModContainerTypes.registerContainerTypes(new RTRegistry<>(event, Registries.MENU));
+            } else if (key.equals(Registries.RECIPE_SERIALIZER)) {
+                ModRecipeSerializers.registerRecipeSerializers(new RTRegistry<>(event, Registries.RECIPE_SERIALIZER));
+            } else if (key.equals(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
+                event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, new ResourceLocation(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
+            } else if (key.equals(Registries.MOB_EFFECT)) {
+                ModEffects.registerEffects(new RTRegistry<>(event, Registries.MOB_EFFECT));
+            } else if (key.equals(Registries.ENCHANTMENT)) {
+                lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(new RTRegistry<>(event, Registries.ENCHANTMENT));
+            } else if (key.equals(Registries.ENTITY_TYPE)) {
+                ModEntityTypes.registerEntityTypes(new RTRegistry<>(event, Registries.ENTITY_TYPE));
+            } else if (key.equals(Registries.CHUNK_GENERATOR)) {
+                event.register(Registries.CHUNK_GENERATOR, lumien.randomthings.handler.ModDimensions.SPECTRE_ID, () -> lumien.randomthings.handler.spectre.SpectreChunkGenerator.CODEC);
+            } else if (key.equals(Registries.LOOT_FUNCTION_TYPE)) {
+                event.register(Registries.LOOT_FUNCTION_TYPE, new ResourceLocation(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
+            } else if (key.equals(Registries.DATA_COMPONENT_TYPE)) {
+                ModDataComponents.register(event);
+            } else if (key.equals(Registries.FEATURE)) {
+                ModFeatures.registerFeatures(new RTRegistry<>(event, Registries.FEATURE));
             }
+            ObjectHolderInjector.inject(key);
         }
     }
 }

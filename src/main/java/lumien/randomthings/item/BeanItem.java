@@ -56,7 +56,7 @@ public class BeanItem extends Item {
             world.scheduleTick(pos, plantedBlock, 20);
         }
 
-        world.playSound(null, pos, plantedBlock.getSoundType(plantedBlock.defaultBlockState()).getPlaceSound(), SoundSource.BLOCKS, 1, 1);
+        world.playSound(null, pos, plantedBlock.defaultBlockState().getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1, 1);
 
         stack.shrink(1);
         return InteractionResult.SUCCESS;

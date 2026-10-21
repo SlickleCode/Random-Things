@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.entity.EclipsedClockEntity;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.Item;
@@ -9,8 +10,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Right-click a wall to hang an {@link EclipsedClockEntity} on it. Its "time"
@@ -57,8 +58,8 @@ public class EclipsedClockItem extends Item implements IClientItemProperties{
 		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("time"), (stack, world, entity, seed) -> {
             int time = 6000;
 
-            if (stack.hasTag() && stack.getTag().contains("targetTime")) {
-                time = stack.getTag().getInt("targetTime");
+            if (StackTag.contains(stack, "targetTime")) {
+                time = StackTag.getInt(stack, "targetTime");
             }
 
             int i = time % 24000;

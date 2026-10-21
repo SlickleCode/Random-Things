@@ -7,6 +7,6 @@
     "D": { "item": "randomthings:chat_detector" }
   },
   "result": {
-    "item": "randomthings:global_chat_detector"
+    "id": "randomthings:global_chat_detector"
   }
 }

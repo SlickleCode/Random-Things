@@ -9,13 +9,12 @@ import glob, json, os, subprocess, sys, zipfile
 here = os.path.dirname(os.path.abspath(__file__))
 client = os.path.join(here, 'client')
 game_dir = os.path.join(here, 'client-run')
-forge_path = glob.glob(os.path.join(client, 'versions', '*forge*', '*.json'))[0]
+forge_path = glob.glob(os.path.join(client, 'versions', '*neoforge*', '*.json'))[0]
 forge = json.load(open(forge_path))
 forge_id = os.path.basename(os.path.dirname(forge_path))
 mc = forge['inheritsFrom']
-cache = os.path.expanduser('~/.gradle/caches/forge_gradle/')
-vanilla = json.load(open(cache + 'minecraft_repo/versions/%s/version.json' % mc))
-assets = cache + 'assets'
+vanilla = json.load(open(os.path.join(client, 'versions', mc, mc + '.json')))
+assets = os.path.expanduser('~/.gradle/caches/fabric-loom/assets')   # any Gradle cache assets dir holding the asset index (NeoForge installs do not download assets)
 
 
 def allowed(lib):
@@ -84,5 +83,5 @@ args = ['java', '-Xmx2G', '-XX:+IgnoreUnrecognizedVMOptions'] + jvm + [
     '-Dminecraft.launcher.brand=prod-test', '-Dminecraft.launcher.version=1'] + sys.argv[1:]
 args += ['-cp', os.pathsep.join(cp), forge['mainClass']] + game + [
     '--username', 'Dev', '--version', forge_id, '--gameDir', game_dir, '--assetsDir', assets,
-    '--assetIndex', vanilla['assetIndex']['id'], '--accessToken', '0', '--userType', 'mojang', '--versionType', 'release']
+    '--assetIndex', mc + '-' + vanilla['assetIndex']['id'], '--accessToken', '0', '--userType', 'mojang', '--versionType', 'release']
 sys.exit(subprocess.call(args, cwd=game_dir))

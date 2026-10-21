@@ -1,5 +1,6 @@
 package lumien.randomthings.item.block;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -13,7 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Direct port of 1.12.2's {@code ItemBlockBlockDiaphanous}: the creative-tab
@@ -35,7 +36,7 @@ public class DiaphanousBlockItem extends BlockItem {
         CompoundTag tag = new CompoundTag();
         tag.putString("block", RegUtil.id(Blocks.STONE).toString());
         tag.putBoolean("inverted", false);
-        stack.setTag(tag);
+        StackTag.set(stack, tag);
 
         output.accept(stack);
     }
@@ -52,7 +53,7 @@ public class DiaphanousBlockItem extends BlockItem {
      */
     @Override
     public String getDescriptionId(ItemStack stack) {
-        return super.getDescriptionId(stack) + (stack.hasTag() && stack.getTag().getBoolean("inverted") ? "_inverted" : "");
+        return super.getDescriptionId(stack) + (StackTag.getBoolean(stack, "inverted") ? "_inverted" : "");
     }
 
     @Override
@@ -61,8 +62,8 @@ public class DiaphanousBlockItem extends BlockItem {
 
         Block displayBlock = Blocks.STONE;
 
-        if (stack.hasTag() && stack.getTag().contains("block")) {
-            Block resolved = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(stack.getTag().getString("block")));
+        if (StackTag.contains(stack, "block")) {
+            Block resolved = BuiltInRegistries.BLOCK.get(new ResourceLocation(StackTag.getString(stack, "block")));
 
             if (resolved != null) {
                 displayBlock = resolved;

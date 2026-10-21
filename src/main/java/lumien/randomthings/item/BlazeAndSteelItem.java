@@ -39,7 +39,7 @@ public class BlazeAndSteelItem extends Item
 
 		if (player != null)
 		{
-			stack.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(context.getHand()));
+			stack.hurtAndBreak(1, player, net.minecraft.world.entity.LivingEntity.getSlotForHand(context.getHand()));
 		}
 
 		return InteractionResult.SUCCESS;

@@ -7,6 +7,6 @@
     "S": { "item": "minecraft:string" }
   },
   "result": {
-    "item": "randomthings:filtered_super_lubricent_platform"
+    "id": "randomthings:filtered_super_lubricent_platform"
   }
 }

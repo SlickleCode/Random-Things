@@ -14,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -58,15 +57,14 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
-	{
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (!worldIn.isClientSide)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof RedstoneObserverTileEntity)
 			{
-				NetworkHooks.openScreen((ServerPlayer) player, (RedstoneObserverTileEntity) te);
+				((ServerPlayer) player).openMenu((RedstoneObserverTileEntity) te);
 			}
 		}
 

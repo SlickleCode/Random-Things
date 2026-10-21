@@ -10,7 +10,6 @@ import net.minecraft.world.InteractionResultHolder;
 import lumien.randomthings.entity.ThrownWeatherEggEntity;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.core.Position;
-import net.minecraft.core.dispenser.AbstractProjectileDispenseBehavior;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -27,16 +26,16 @@ import net.minecraft.world.level.Level;
  * one item with a {@code TYPE} enum stored as damage value. Direct port of
  * 1.12.2's {@code ItemWeatherEgg}.
  */
-public class WeatherEggItem extends Item {
+public class WeatherEggItem extends Item implements net.minecraft.world.item.ProjectileItem {
     public WeatherEggItem(Item.Properties properties) {
         super(properties);
 
-        DispenserBlock.registerBehavior(this, new AbstractProjectileDispenseBehavior() {
-            @Override
-            protected Projectile getProjectile(Level world, Position position, ItemStack stack) {
-                return new ThrownWeatherEggEntity(world, position.x(), position.y(), position.z(), WeatherEggItem.this);
-            }
-        });
+        DispenserBlock.registerProjectileBehavior(this);
+    }
+
+    @Override
+    public net.minecraft.world.entity.projectile.Projectile asProjectile(Level world, net.minecraft.core.Position position, ItemStack stack, net.minecraft.core.Direction direction) {
+        return new ThrownWeatherEggEntity(world, position.x(), position.y(), position.z(), WeatherEggItem.this);
     }
 
     @Override

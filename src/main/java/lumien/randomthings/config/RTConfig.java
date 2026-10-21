@@ -1,7 +1,7 @@
 package lumien.randomthings.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 
 /**
  * Common config ({@code randomthings-common.toml}), the 1.14.4 counterpart of 1.12.2's
@@ -11,7 +11,7 @@ import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
  */
 public class RTConfig
 {
-	public static final ForgeConfigSpec SPEC;
+	public static final ModConfigSpec SPEC;
 
 	public static final BooleanValue LOTUS;
 	public static final BooleanValue PEACE_CANDLE;
@@ -32,17 +32,17 @@ public class RTConfig
 	public static final BooleanValue HIDE_COORDINATES;
 
 
-	public static final ForgeConfigSpec.IntValue BLOCK_DESTABILIZER_LIMIT;
-	public static final ForgeConfigSpec.IntValue TRIGGER_GLASS_CHAIN_LIMIT;
+	public static final ModConfigSpec.IntValue BLOCK_DESTABILIZER_LIMIT;
+	public static final ModConfigSpec.IntValue TRIGGER_GLASS_CHAIN_LIMIT;
 
-	public static final ForgeConfigSpec.IntValue SPIRIT_LIFETIME;
-	public static final ForgeConfigSpec.DoubleValue SPIRIT_CHANCE_NORMAL;
-	public static final ForgeConfigSpec.DoubleValue SPIRIT_CHANCE_MOON_MULT;
-	public static final ForgeConfigSpec.DoubleValue SPIRIT_CHANCE_END_INCREASE;
+	public static final ModConfigSpec.IntValue SPIRIT_LIFETIME;
+	public static final ModConfigSpec.DoubleValue SPIRIT_CHANCE_NORMAL;
+	public static final ModConfigSpec.DoubleValue SPIRIT_CHANCE_MOON_MULT;
+	public static final ModConfigSpec.DoubleValue SPIRIT_CHANCE_END_INCREASE;
 
 	static
 	{
-		ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
+		ModConfigSpec.Builder b = new ModConfigSpec.Builder();
 
 		b.push("worldgen");
 		LOTUS = b.comment("Generate Lotus plants in the world").define("Lotus", true);

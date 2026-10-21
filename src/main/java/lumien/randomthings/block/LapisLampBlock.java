@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.SoundType;
  * 1.12.2's real mechanism was a per-side {@code getLightValue(state, world,
  * pos)} light-value trick instead (report 0 to the server so the real
  * placement predicate naturally allows spawns) - tried porting that exactly
- * via {@code net.minecraftforge.fml.common.thread.EffectiveSide#get()} on
+ * via {@code net.neoforged.fml.common.thread.EffectiveSide#get()} on
  * 2026-09-27, but reverted the same day: real in-game testing showed it
  * backwards (Lapis Lamp started blocking spawns instead of allowing them).
  * Root cause, found by reading {@code EffectiveSide}'s own source: it

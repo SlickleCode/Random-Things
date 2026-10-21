@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -27,11 +28,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /**
  * Ported from 1.12.2's {@code TileEntityBlockBreaker}: continuously mines the
@@ -79,11 +80,8 @@ public class BlockBreakerTileEntity extends BlockEntity {
         FakePlayer player = FakePlayerFactory.get((ServerLevel) level, BREAKER_PROFILE);
 
         ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
-        pickaxe.getOrCreateTag().putBoolean("Unbreakable", true);
-
-        Map<Enchantment, Integer> enchantments = new HashMap<>();
-        enchantments.put(ModEnchantments.MAGNETIC, 1);
-        EnchantmentHelper.setEnchantments(enchantments, pickaxe);
+        pickaxe.set(net.minecraft.core.component.DataComponents.UNBREAKABLE, new net.minecraft.world.item.component.Unbreakable(false));
+        pickaxe.enchant(ModEnchantments.MAGNETIC, 1);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
         player.setOnGround(true);
@@ -93,7 +91,7 @@ public class BlockBreakerTileEntity extends BlockEntity {
         // entity, but FakePlayer never gets a real ServerPlayNetHandler assigned - it's
         // null, which NPEs tryHarvestBlock. 1.12.2 worked around this the same way: give
         // it a real net handler whose sendPacket is a no-op.
-        player.connection = new ServerGamePacketListenerImpl(level.getServer(), new Connection(PacketFlow.SERVERBOUND), player) {
+        player.connection = new ServerGamePacketListenerImpl(level.getServer(), new Connection(PacketFlow.SERVERBOUND), player, net.minecraft.server.network.CommonListenerCookie.createInitial(BREAKER_PROFILE, false)) {
             @Override
             public void send(Packet<?> packetIn) {
             }
@@ -142,7 +140,7 @@ public class BlockBreakerTileEntity extends BlockEntity {
         IItemHandler target = null;
         BlockEntity neighborTe = level.getBlockEntity(worldPosition.relative(facing.getOpposite()));
         if (neighborTe != null) {
-            target = neighborTe.getCapability(ForgeCapabilities.ITEM_HANDLER, facing).orElse(null);
+            target = lumien.randomthings.util.CapUtil.itemHandler(neighborTe, facing);
         }
 
         for (int i = 1; i < player.getInventory().items.size(); i++) {
@@ -200,8 +198,8 @@ public class BlockBreakerTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         if (uuid != null) {
             compound.put("uuid", NbtUtils.createUUID(uuid));
@@ -212,11 +210,11 @@ public class BlockBreakerTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         if (compound.contains("uuid")) {
-            uuid = NbtUtils.loadUUID(compound.getCompound("uuid"));
+            uuid = NbtUtils.loadUUID(compound.get("uuid"));
         }
         mining = compound.getBoolean("mining");
         canMine = compound.getBoolean("canMine");

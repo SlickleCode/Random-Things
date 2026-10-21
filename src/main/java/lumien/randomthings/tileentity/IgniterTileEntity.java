@@ -35,16 +35,16 @@ public class IgniterTileEntity extends BlockEntity implements MenuProvider
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putInt("mode", this.mode.ordinal());
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		this.mode = MODE.values()[compound.getInt("mode")];
 	}
 

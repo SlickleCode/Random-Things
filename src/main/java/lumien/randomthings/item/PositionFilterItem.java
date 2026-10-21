@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import java.util.List;
 
 import net.minecraft.client.gui.screens.Screen;
@@ -27,9 +28,9 @@ public class PositionFilterItem extends Item
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag)
-	{
-		CompoundTag compound = stack.getTag();
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+		CompoundTag compound = StackTag.get(stack);
 
 		if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get())
 		{
@@ -66,23 +67,18 @@ public class PositionFilterItem extends Item
 
 	public static void setPosition(ItemStack positionFilter, String dimension, BlockPos pos)
 	{
-		CompoundTag compound = positionFilter.getTag();
-
-		if (compound == null)
-		{
-			positionFilter.setTag(compound = new CompoundTag());
-		}
-
-		compound.putBoolean("hasPosition", true);
-		compound.putString("dimension", dimension);
-		compound.putInt("filterX", pos.getX());
-		compound.putInt("filterY", pos.getY());
-		compound.putInt("filterZ", pos.getZ());
+		StackTag.edit(positionFilter, compound -> {
+			compound.putBoolean("hasPosition", true);
+			compound.putString("dimension", dimension);
+			compound.putInt("filterX", pos.getX());
+			compound.putInt("filterY", pos.getY());
+			compound.putInt("filterZ", pos.getZ());
+		});
 	}
 
 	public static BlockPos getPosition(ItemStack positionFilter)
 	{
-		CompoundTag compound = positionFilter.getTag();
+		CompoundTag compound = StackTag.get(positionFilter);
 
 		if (compound == null || !compound.getBoolean("hasPosition"))
 		{

@@ -1,5 +1,7 @@
 package lumien.randomthings.container;
 
+import lumien.randomthings.util.StackTag;
+
 import lumien.randomthings.item.ChunkAnalyzerItem;
 import lumien.randomthings.util.ChunkAnalyzerResult;
 import net.minecraft.world.level.block.state.BlockState;
@@ -180,8 +182,9 @@ public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISi
         ItemStack analyzer = player.getMainHandItem();
 
         if (!analyzer.isEmpty() && analyzer.getItem() instanceof ChunkAnalyzerItem) {
-            CompoundTag tag = analyzer.getOrCreateTagElement("result");
+            CompoundTag tag = new CompoundTag();
             result.writeToNBT(tag);
+            StackTag.edit(analyzer, t -> t.put("result", tag));
 
             player.inventoryMenu.broadcastChanges();
         }

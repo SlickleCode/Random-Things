@@ -1,5 +1,7 @@
 package lumien.randomthings.client;
 
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -11,8 +13,8 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.SpellParticle;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+
+import net.neoforged.bus.api.SubscribeEvent;
 
 /**
  * Dev-only: while a file named {@code rt_probe} exists in the game directory, logs once a second how many potion-swirl particles
@@ -30,11 +32,11 @@ public final class ParticleProbe
 
 	@SubscribeEvent
 	@SuppressWarnings("unchecked")
-	public static void onClientTick(TickEvent.ClientTickEvent event)
+	public static void onClientTick(ClientTickEvent.Post event)
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		if (event.phase != TickEvent.Phase.END || mc.player == null || ++tick % 20 != 0 || !new java.io.File(mc.gameDirectory, "rt_probe").exists())
+		if (mc.player == null || ++tick % 20 != 0 || !new java.io.File(mc.gameDirectory, "rt_probe").exists())
 		{
 			return;
 		}

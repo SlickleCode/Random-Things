@@ -1,16 +1,18 @@
 package lumien.randomthings.debug.test;
 
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+
 import lumien.randomthings.debug.RTDebug;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
+
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.minecraft.world.level.Level;
 
 /**
@@ -34,13 +36,13 @@ public final class ServerAutoTest
 	{
 		if (FMLEnvironment.dist == Dist.DEDICATED_SERVER && Boolean.getBoolean("randomthings.autotest"))
 		{
-			MinecraftForge.EVENT_BUS.addListener(ServerAutoTest::onTick);
+			NeoForge.EVENT_BUS.addListener(ServerAutoTest::onTick);
 		}
 	}
 
-	private static void onTick(TickEvent.ServerTickEvent event)
+	private static void onTick(ServerTickEvent.Post event)
 	{
-		if (event.phase != TickEvent.Phase.END || stopped)
+		if (stopped)
 		{
 			return;
 		}

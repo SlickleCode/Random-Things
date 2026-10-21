@@ -1,5 +1,6 @@
 package lumien.randomthings.asm;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.core.Holder;
@@ -156,7 +157,7 @@ public class AsmHandler {
      * the ALLOW/DENY itself, respecting every other rule for free) - reverted
      * the same day after real in-game testing showed it backwards (Lapis
      * blocking spawns, Quartz not blocking them; bug #2). Root cause of bug
-     * #2: {@code net.minecraftforge.fml.common.thread.EffectiveSide#get()}
+     * #2: {@code net.neoforged.fml.common.thread.EffectiveSide#get()}
      * returns {@code LogicalSide.CLIENT} for any thread that isn't part of
      * FML's own {@code SidedThreadGroup} (read straight from its source -
      * {@code return group instanceof SidedThreadGroup ? ... : LogicalSide.CLIENT;}),
@@ -424,7 +425,7 @@ public class AsmHandler {
                 continue;
             }
 
-            if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
+            if (StackTag.contains(stack, "spectreAnchor")) {
                 continue;
             }
 
@@ -445,8 +446,8 @@ public class AsmHandler {
      * not just ones with their own tint-index/IItemColor support.
      */
     public static int getColorFromItemStack(ItemStack stack, int originalColor) {
-        if (!stack.isEmpty() && stack.hasTag() && stack.getTag().contains("rtDye")) {
-            return stack.getTag().getInt("rtDye") | 0xFF000000;
+        if (!stack.isEmpty() && StackTag.contains(stack, "rtDye")) {
+            return StackTag.getInt(stack, "rtDye") | 0xFF000000;
         }
 
         return originalColor;

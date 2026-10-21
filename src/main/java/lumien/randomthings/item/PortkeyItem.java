@@ -1,5 +1,8 @@
 package lumien.randomthings.item;
 
+
+
+import lumien.randomthings.util.StackTag;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item;
@@ -64,8 +67,9 @@ public class PortkeyItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
-        CompoundTag compound = stack.getTag();
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+        CompoundTag compound = StackTag.get(stack);
 
         if (lumien.randomthings.config.RTConfig.HIDE_COORDINATES.get()) {
             // 1.12.2's HideCoordinates: only say whether a target is set, never where
@@ -83,19 +87,19 @@ public class PortkeyItem extends Item {
             tooltip.add(Component.translatable("tooltip.randomthings.general.shift"));
         }
 
-        super.appendHoverText(stack, world, tooltip, flag);
+        super.appendHoverText(stack, worldCtx, tooltip, flag);
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
         if (!context.getLevel().isClientSide) {
-            CompoundTag compound = context.getItemInHand().getOrCreateTag();
-
-            compound.putBoolean("hasTarget", true);
-            compound.putString("dimension", context.getLevel().dimension().location().toString());
-            compound.putInt("targetX", context.getClickedPos().getX());
-            compound.putInt("targetY", context.getClickedPos().getY());
-            compound.putInt("targetZ", context.getClickedPos().getZ());
+            StackTag.edit(context.getItemInHand(), compound -> {
+                compound.putBoolean("hasTarget", true);
+                compound.putString("dimension", context.getLevel().dimension().location().toString());
+                compound.putInt("targetX", context.getClickedPos().getX());
+                compound.putInt("targetY", context.getClickedPos().getY());
+                compound.putInt("targetZ", context.getClickedPos().getZ());
+            });
         }
 
         return InteractionResult.SUCCESS;
@@ -103,14 +107,14 @@ public class PortkeyItem extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, Level worldIn, net.minecraft.world.entity.Entity entityIn, int itemSlot, boolean isSelected) {
-        if (!worldIn.isClientSide && stack.hasTag() && stack.getTag().contains("dropCounter")) {
-            stack.getTag().remove("dropCounter");
+        if (!worldIn.isClientSide && StackTag.contains(stack, "dropCounter")) {
+            StackTag.remove(stack, "dropCounter");
         }
     }
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound == null || !compound.getBoolean("hasTarget")) {
             return true;
@@ -127,13 +131,13 @@ public class PortkeyItem extends Item {
      * how it gets set.
      */
     public static ItemStack getCamoStack(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
 
         if (compound == null || !compound.contains("camo")) {
             return ItemStack.EMPTY;
         }
 
-        return ItemStack.of(compound.getCompound("camo").getCompound("stack"));
+        return ItemStack.parseOptional(StackTag.provider(), compound.getCompound("camo").getCompound("stack"));
     }
 
     /**
@@ -170,20 +174,20 @@ public class PortkeyItem extends Item {
         }
 
         ItemStack original = entityItem.getItem();
-        int counter = original.hasTag() ? original.getTag().getInt("dropCounter") : 0;
+        int counter = StackTag.has(original) ? StackTag.getInt(original, "dropCounter") : 0;
 
         if (counter == 0) {
             entityItem.setExtendedLifetime();
         }
 
         ItemStack updated = original.copy();
-        updated.getOrCreateTag().putInt("dropCounter", counter + 1);
+        StackTag.edit(updated, t -> t.putInt("dropCounter", counter + 1));
         entityItem.setItem(updated);
     }
 
     @Override
-    public void initializeClient(java.util.function.Consumer<net.minecraftforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new net.minecraftforge.client.extensions.common.IClientItemExtensions() {
+    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
+        consumer.accept(new net.neoforged.neoforge.client.extensions.common.IClientItemExtensions() {
             private lumien.randomthings.client.renderer.PortkeyItemRenderer renderer;
 
             @Override

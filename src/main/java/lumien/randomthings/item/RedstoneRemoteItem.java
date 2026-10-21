@@ -14,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * Sneak-right-click to edit up to 9 bound Position Filter targets (stored in
@@ -35,7 +34,7 @@ public class RedstoneRemoteItem extends Item {
 
         if (!worldIn.isClientSide) {
             if (playerIn.isShiftKeyDown()) {
-                NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
+                ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                     @Override
                     public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                         return new RedstoneRemoteEditContainer(windowId, inv);
@@ -47,7 +46,7 @@ public class RedstoneRemoteItem extends Item {
                     }
                 });
             } else {
-                NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
+                ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                     @Override
                     public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                         return new RedstoneRemoteUseContainer(windowId, inv);

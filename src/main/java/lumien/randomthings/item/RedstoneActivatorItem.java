@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,8 +18,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * Right-click a block to broadcast a strength-15 "phantom" redstone signal
@@ -37,7 +38,8 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
         tooltip.add(Component.translatable("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
     }
 
@@ -74,12 +76,12 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
     }
 
     public static int getDurationIndex(ItemStack stack) {
-        CompoundTag compound = stack.getTag();
+        CompoundTag compound = StackTag.get(stack);
         return compound != null && compound.contains("durationIndex") ? compound.getInt("durationIndex") : 1;
     }
 
     public static void setDurationIndex(ItemStack stack, int index) {
-        stack.getOrCreateTag().putInt("durationIndex", index);
+        StackTag.edit(stack, t -> t.putInt("durationIndex", index));
     }
 
 	@Override

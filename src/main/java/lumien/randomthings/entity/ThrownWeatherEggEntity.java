@@ -70,8 +70,4 @@ public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectil
         }
     }
 
-    @Override
-    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

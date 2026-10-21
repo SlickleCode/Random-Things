@@ -71,9 +71,9 @@ public class TriggerGlassBlock extends Block
 	/** 1.14.4 switched this block to Material.PLANTS while triggered (so mobs path through it); 1.16 has no per-state material, so pathing is allowed explicitly. */
 	@Override
 	@SuppressWarnings("deprecation")
-	public boolean isPathfindable(BlockState state, BlockGetter worldIn, BlockPos pos, PathComputationType type)
+	public boolean isPathfindable(BlockState state, PathComputationType type)
 	{
-		return state.getValue(TRIGGERED) ? true : super.isPathfindable(state, worldIn, pos, type);
+		return state.getValue(TRIGGERED) ? true : super.isPathfindable(state, type);
 	}
 
 	@Override

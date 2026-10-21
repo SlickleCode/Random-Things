@@ -34,19 +34,19 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  * {@code data/randomthings/dimension_type/spectre.json}), the same as before 1.18's -64..320 overworld.
  */
 public class SpectreChunkGenerator extends ChunkGenerator {
-    public static final Codec<SpectreChunkGenerator> CODEC = RecordCodecBuilder.<SpectreChunkGenerator>mapCodec(instance -> instance.group(
-            BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource)).apply(instance, SpectreChunkGenerator::new)).codec();
+    public static final com.mojang.serialization.MapCodec<SpectreChunkGenerator> CODEC = RecordCodecBuilder.<SpectreChunkGenerator>mapCodec(instance -> instance.group(
+            BiomeSource.CODEC.fieldOf("biome_source").forGetter(generator -> generator.biomeSource)).apply(instance, SpectreChunkGenerator::new));
 
     public SpectreChunkGenerator(BiomeSource biomeSource) {
         super(biomeSource);
     }
 
     @Override
-    protected Codec<? extends ChunkGenerator> codec() {
+    protected com.mojang.serialization.MapCodec<? extends ChunkGenerator> codec() {
         return CODEC;
     }
 
-            @Override
+    @Override
     public void applyCarvers(WorldGenRegion region, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk, GenerationStep.Carving step) {
     }
 

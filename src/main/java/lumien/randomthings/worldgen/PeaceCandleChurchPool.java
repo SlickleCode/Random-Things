@@ -15,7 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Holder;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
@@ -93,7 +93,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
         }
     }
 
-    private static final java.lang.reflect.Field HOLDER_VALUE = ObfuscationReflectionHelper.findField(Holder.Reference.class, "f_205752_");
+    private static final java.lang.reflect.Field HOLDER_VALUE = ObfuscationReflectionHelper.findField(Holder.Reference.class, "value");
 
     /** The {@code PeaceCandle} config switch; a supplier so the automated tests can flip it without rewriting the config file. */
     public static java.util.function.BooleanSupplier enabled = () -> RTConfig.PEACE_CANDLE.get();

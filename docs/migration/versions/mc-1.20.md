@@ -49,4 +49,5 @@ This repo (forward from 1.19.4). For 1.20.1 and 1.20.6 treat as two separate tar
 
 ## Work log
 
-*(none yet — add dated notes, findings and links here as work on this version proceeds.)*
+- 2026-10-20: **1.20.1** (Forge 47.4.28) ported on branch `1.20.1` (see `plans/1.20.1-port-plan.md`).
+- 2026-10-20: **1.20.6 on NeoForge 20.6.141** ported on branch `1.20.6` in one session: NeoGradle 7 + Gradle 8.13 + JDK 21, Mojang names in production (no SRG), data components via `minecraft:custom_data`, `CustomPacketPayload` networking, capabilities per block entity type, data pack format changes. Dev suites green (server 379/0/3, client 381/0/1, GUI click test 0 failures). Real-install check and desktop playtest still open. Plan: `plans/1.20.6-port-plan.md`; traps: `docs/project/api-gotchas-1.20.6.md`. Estimate check: the XL (about 1.0x) guess held for the amount of API surface touched (about 4200 compile errors at first), but with the 1.20.1 test suites it took far less wall time than the 1.12.2 -> 1.14.4 port.

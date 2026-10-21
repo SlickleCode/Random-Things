@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A brief (260-tick), invisible marker entity a dropped {@link
@@ -61,7 +60,7 @@ public class FlooFireplaceEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
     }
 
     @Override
@@ -74,8 +73,4 @@ public class FlooFireplaceEntity extends Entity {
         compound.putInt("age", age);
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

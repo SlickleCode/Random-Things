@@ -123,9 +123,9 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		compound.putBoolean("consume", consume);
 		compound.putString("chatMessage", chatMessage);
@@ -141,9 +141,9 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		consume = compound.getBoolean("consume");
 		chatMessage = compound.getString("chatMessage");

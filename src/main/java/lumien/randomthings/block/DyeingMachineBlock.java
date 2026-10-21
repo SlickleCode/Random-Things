@@ -15,7 +15,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -29,9 +28,9 @@ public class DyeingMachineBlock extends Block {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (!worldIn.isClientSide) {
-            NetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
+            ((ServerPlayer) player).openMenu(new MenuProvider() {
                 @Override
                 public AbstractContainerMenu createMenu(int windowId, Inventory inv, Player p) {
                     return new DyeingMachineContainer(windowId, inv, ContainerLevelAccess.create(worldIn, pos));

@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import lumien.randomthings.tileentity.redstoneinterface.BasicRedstoneInterfaceTileEntity;
@@ -28,7 +29,7 @@ public class RedstoneToolItem extends Item {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = StackTag.get(stack);
         return tag != null && tag.getBoolean("linking");
     }
 
@@ -39,15 +40,11 @@ public class RedstoneToolItem extends Item {
         ItemStack stack = context.getItemInHand();
         BlockState state = world.getBlockState(pos);
 
-        if (!stack.hasTag()) {
-            if (!isLinkStart(state.getBlock())) {
-                return InteractionResult.FAIL;
-            }
-
-            stack.setTag(new CompoundTag());
+        if (!StackTag.has(stack) && !isLinkStart(state.getBlock())) {
+            return InteractionResult.FAIL;
         }
 
-        CompoundTag tag = stack.getTag();
+        CompoundTag tag = StackTag.getOrCreate(stack);
         boolean linking = tag.getBoolean("linking");
 
         if (linking) {
@@ -65,12 +62,14 @@ public class RedstoneToolItem extends Item {
             }
 
             tag.putBoolean("linking", false);
+            StackTag.set(stack, tag);
             return InteractionResult.SUCCESS;
         } else if (isLinkStart(state.getBlock())) {
             tag.putBoolean("linking", true);
             tag.putInt("oX", pos.getX());
             tag.putInt("oY", pos.getY());
             tag.putInt("oZ", pos.getZ());
+            StackTag.set(stack, tag);
             return InteractionResult.SUCCESS;
         }
 

@@ -1,5 +1,6 @@
 package lumien.randomthings.block;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.util.RandomSource;
 import java.util.Random;
 
@@ -44,7 +45,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 	/** Color stored in a Colored Grass item's {@code BlockStateTag} (Silk Touch drops), white if absent. */
 	public static DyeColor getColor(ItemStack stack)
 	{
-		CompoundTag tag = stack.getTagElement("BlockStateTag");
+		CompoundTag tag = StackTag.getElement(stack, "BlockStateTag");
 
 		if (tag != null && tag.contains(COLOR.getName()))
 		{
@@ -73,6 +74,13 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 	}
 
 	/** Port of 1.12.2's {@code updateTick}: reverts to dirt when smothered, otherwise spreads its color to nearby dirt. */
+	/** 1.20.5 made {@code randomTick} a no-op by default (it used to call {@code tick}), so random ticks are forwarded explicitly. */
+	@Override
+	public void randomTick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
+	{
+		this.tick(state, worldIn, pos, rand);
+	}
+
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{

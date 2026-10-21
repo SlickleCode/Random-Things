@@ -1,145 +1,74 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '[6.0.24,6.2)', changing: true
-    }
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.0.192'
 }
-apply plugin: 'net.minecraftforge.gradle'
-
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
 
 version = '5.0'
 group = 'lumien.randomthings'
-archivesBaseName = 'RandomThings-MC1.20.1'
+base { archivesName = 'RandomThings-MC1.20.6' }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 tasks.withType(JavaCompile) { options.compilerArgs << '-Xmaxerrs' << '10000' }
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
+repositories {
+    mavenCentral()
+}
 
-minecraft {
-    mappings channel: 'official', version: '1.20.1'
-    
-    // accessTransformer = file('build/resources/main/META-INF/accesstransformer.cfg')
+runs {
+    configureEach {
+        workingDirectory.set(project.file('run'))
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+        // Dev switch (see debug/DevMode.java): on for dev runs; RT_NO_DEBUG=true launches like a normal player install
+        systemProperty 'randomthings.debug', System.getenv('RT_NO_DEBUG') ? 'false' : 'true'
+        modSource project.sourceSets.main
+    }
 
+    client {
+        // RT_AUTOTEST=true ./gradlew runClient -> client opens a world and runs /rtdebug allguis itself
+        // (RT_AUTOTEST_EXIT=true also quits afterwards, RT_AUTOTEST_NO_GUIS=true skips the GUI pass); see client/AutoTest.java and docs/testing/
+        systemProperty 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
+        // RT_MANUAL=true (with RT_AUTOTEST=true): open the manual-testing world (seed 424242, normal terrain) and build the showroom; see docs/testing/manual-test-world.md
+        systemProperty 'randomthings.autotest.manual', System.getenv('RT_MANUAL') ?: 'false'
+        systemProperty 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
+        systemProperty 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
+        // RT_AUTOTEST_SOUND=true keeps the game audio on during the client autotest (muted by default)
+        systemProperty 'randomthings.autotest.sound', System.getenv('RT_AUTOTEST_SOUND') ?: 'false'
+        systemProperty 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
+        // RT_AUTOTEST_SCENES=true: skip the tests/GUI pass and screenshot the render scenes instead (debug/RenderScenes, client/SceneShots)
+        systemProperty 'randomthings.autotest.scenes', System.getenv('RT_AUTOTEST_SCENES') ?: 'false'
+        systemProperty 'randomthings.autotest.scenes.only', System.getenv('RT_AUTOTEST_SCENES_ONLY') ?: ''
+        // RT_AUTOTEST_CLICKS=true: skip the tests/GUI pass and click through every GUI (client/GuiClickTest)
+        systemProperty 'randomthings.autotest.clicks', System.getenv('RT_AUTOTEST_CLICKS') ?: 'false'
 
-    runs {
-        client {
-            workingDirectory project.file('run')
+        jvmArgument '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
+    }
 
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            property 'forge.logging.console.level', 'debug'
-
-            // Dev switch (see debug/DevMode.java): on for dev runs; RT_NO_DEBUG=true launches like a normal player install
-            property 'randomthings.debug', System.getenv('RT_NO_DEBUG') ? 'false' : 'true'
-
-            // RT_AUTOTEST=true ./gradlew runClient -> client opens a world and runs /rtdebug allguis itself
-            // (RT_AUTOTEST_EXIT=true also quits afterwards, RT_AUTOTEST_NO_GUIS=true skips the GUI pass); see client/AutoTest.java and docs/testing/
-            property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
-            property 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
-            property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
-            // RT_AUTOTEST_SOUND=true keeps the game audio on during the client autotest (muted by default)
-            property 'randomthings.autotest.sound', System.getenv('RT_AUTOTEST_SOUND') ?: 'false'
-            property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
-            // RT_AUTOTEST_SCENES=true: skip the tests/GUI pass and screenshot the render scenes instead (debug/RenderScenes, client/SceneShots)
-            property 'randomthings.autotest.scenes', System.getenv('RT_AUTOTEST_SCENES') ?: 'false'
-            property 'randomthings.autotest.scenes.only', System.getenv('RT_AUTOTEST_SCENES_ONLY') ?: ''
-            // RT_AUTOTEST_CLICKS=true: skip the tests/GUI pass and click through every GUI (client/GuiClickTest)
-            property 'randomthings.autotest.clicks', System.getenv('RT_AUTOTEST_CLICKS') ?: 'false'
-
-            jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n'
-
-            mods {
-                randomthings {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            property 'forge.logging.console.level', 'debug'
-
-            // Same dev switch / autotest properties as the client (see debug/test/ServerAutoTest.java and docs/testing/)
-            property 'randomthings.debug', System.getenv('RT_NO_DEBUG') ? 'false' : 'true'
-            property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
-            property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
-            property 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
-
-            mods {
-                randomthings {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            property 'forge.logging.console.level', 'debug'
-
-            args '--mod', 'randomthings', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                randomthings {
-                    source sourceSets.main
-                }
-            }
-        }
+    server {
+        // Same dev switch / autotest properties as the client (see debug/test/ServerAutoTest.java and docs/testing/)
+        systemProperty 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
+        systemProperty 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
+        systemProperty 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
+        programArgument '--nogui'
     }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.4.28'
+    implementation 'net.neoforged:neoforge:20.6.141'
 }
 
-// ForgeGradle 6: the production jar is SRG-remapped by reobfJar
-jar.finalizedBy('reobfJar')
-
-// Example for how to get properties into the manifest for reading by the runtime..
 jar {
     manifest {
         attributes([
 			"Specification-Title": project.name,
 			"Specification-Vendor": "Lumien",
-			"Specification-Version": "${version}", // We are version 1 of the modlauncher specification
+			"Specification-Version": "${version}",
 			"Implementation-Title": project.name,
 			"Implementation-Version": "${version}",
 			"Implementation-Vendor" :"Lumien",
 			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")],)
-    }
-}
-
-// RT_AUTOTEST=true ./gradlew runServer: the test suite needs a flat world, so point the dev server at a flat
-// throwaway world (only these two keys of run/server.properties are touched, and only when RT_AUTOTEST is set).
-tasks.matching { it.name == 'runServer' }.all {
-    def originalProps = null
-    doLast {
-        if (originalProps != null) {
-            file('run/server.properties').text = originalProps
-        }
-    }
-    doFirst {
-        if (System.getenv('RT_AUTOTEST') == 'true') {
-            def f = file('run/server.properties')
-            originalProps = f.exists() ? f.text : null
-            def lines = f.exists() ? f.readLines() : []
-            def set = { String k, String v ->
-                def i = lines.findIndexOf { it.startsWith(k + '=') }
-                if (i >= 0) lines[i] = k + '=' + v else lines << (k + '=' + v)
-            }
-            set('level-type', 'flat')
-            set('level-name', 'RTServerTest')
-            f.text = lines.join(System.lineSeparator()) + System.lineSeparator()
-        }
     }
 }

@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.BlockPos;
 
 import lumien.randomthings.container.ImbuingStationContainer;
@@ -78,7 +79,7 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
             return true;
         }
 
-        if (!ItemStack.isSameItem(currentInOutput, validOutput) || !ItemStack.isSameItemSameTags(currentInOutput, validOutput)) {
+        if (!ItemStack.isSameItem(currentInOutput, validOutput) || !ItemStack.isSameItemSameComponents(currentInOutput, validOutput)) {
             return false;
         }
 
@@ -104,28 +105,28 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
         compound.putInt("imbuingProgress", imbuingProgress);
 
         if (!currentOutput.isEmpty()) {
-            compound.put("output", currentOutput.save(new CompoundTag()));
+            compound.put("output", StackTag.saveStack(currentOutput));
         }
 
-        compound.put("inventory", itemHandler.serializeNBT());
+        compound.put("inventory", itemHandler.serializeNBT(registries));
 
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
         imbuingProgress = compound.getInt("imbuingProgress");
 
-        currentOutput = compound.contains("output") ? ItemStack.of(compound.getCompound("output")) : ItemStack.EMPTY;
+        currentOutput = compound.contains("output") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("output")) : ItemStack.EMPTY;
 
-        itemHandler.deserializeNBT(compound.getCompound("inventory"));
+        itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
     }
 
     @Override

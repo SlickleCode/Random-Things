@@ -31,7 +31,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * "Use item" tests: right-clicking items the way a player does ({@code Item.use} / {@code useOn} /
@@ -48,13 +48,13 @@ final class UseItemTests
 	{
 		if (c.player.connection == null || c.player.connection.getClass() != ServerGamePacketListenerImpl.class)
 		{
-			new ServerGamePacketListenerImpl(c.world.getServer(), new Connection(PacketFlow.SERVERBOUND), c.player);
+			new ServerGamePacketListenerImpl(c.world.getServer(), new Connection(PacketFlow.SERVERBOUND), c.player, net.minecraft.server.network.CommonListenerCookie.createInitial(c.player.getGameProfile(), false));
 		}
 	}
 
 	private static Item item(String path)
 	{
-		Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("randomthings", path));
+		Item item = BuiltInRegistries.ITEM.get(new ResourceLocation("randomthings", path));
 		return item;
 	}
 
@@ -403,7 +403,7 @@ final class UseItemTests
 		tests.add(RTTest.named("use_item.escape_rope.the_twentieth_successful_use_breaks_it").run(c -> {
 			resetRopeTasks();
 			ensureConnection(c);
-			c.eq(20, rope.getMaxDamage(), "durability");
+			c.eq(20, rope.getDefaultInstance().getMaxDamage(), "durability");
 			ropeRoom(c, true);
 		}).waitUntil("the room under the roof to lose its sky light (the old lighting engine sometimes never does; the test is skipped then)", c -> roomShaded(c, true), 300, 20).skipIfNeverMet().run(c -> {
 			standAt(c, 0, 1, 0);

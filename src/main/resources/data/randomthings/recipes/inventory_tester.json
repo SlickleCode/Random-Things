@@ -7,7 +7,7 @@
     "I": { "item": "minecraft:chest" }
   },
   "result": {
-    "item": "randomthings:inventory_tester",
+    "id": "randomthings:inventory_tester",
     "count": 2
   }
 }

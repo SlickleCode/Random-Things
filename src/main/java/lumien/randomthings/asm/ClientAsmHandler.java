@@ -1,5 +1,7 @@
 package lumien.randomthings.asm;
 
+import lumien.randomthings.util.StackTag;
+import net.minecraft.nbt.CompoundTag;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
@@ -149,27 +151,17 @@ public class ClientAsmHandler {
     }
 
     /**
-     * Redirect target for {@code BipedArmorLayer}'s leather-branch {@code IDyeableArmorItem.getColor(stack)} call - see
-     * {@code ArmorLayerTransformer.js}. Returns the Dyeing Machine's {@code rtDye} colour when the stack carries one,
-     * so a dyed leather piece shows the machine colour instead of its vanilla dye colour (as 1.12.2's
-     * {@code armorColorHook} overrode it for every armor piece).
+     * Replaces a colour channel of the armor draw (see {@code ArmorLayerTransformer.js}): channel 0/1/2 =
+     * red/green/blue of the stack's {@code rtDye} colour, or {@code defaultValue} when it has none. Lets the machine
+     * recolor any armor piece, not just vanilla's dyeable leather.
      */
-    public static int dyedColor(net.minecraft.world.item.DyeableLeatherItem item, ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("rtDye")) {
-            return stack.getTag().getInt("rtDye");
-        }
-
-        return item.getColor(stack);
+    public static float armorTintChannel(float value, int channel) {
+        return armorChannel(renderingStack, channel, value);
     }
 
-    /**
-     * Replaces the constant {@code 1.0F} colour channels of the plain (non-leather) armor draw: channel 0/1/2 =
-     * red/green/blue of the stack's {@code rtDye} colour, or {@code defaultValue} when it has none. Lets the machine
-     * recolor any armor piece, not just vanilla's dyeable leather. Colour is now a render argument rather than GL state.
-     */
     public static float armorChannel(ItemStack stack, int channel, float defaultValue) {
-        if (stack.hasTag() && stack.getTag().contains("rtDye")) {
-            int rgb = stack.getTag().getInt("rtDye");
+        if (StackTag.contains(stack, "rtDye")) {
+            int rgb = StackTag.getInt(stack, "rtDye");
             int shift = channel == 0 ? 16 : (channel == 1 ? 8 : 0);
 
             return ((rgb >> shift) & 255) / 255F;

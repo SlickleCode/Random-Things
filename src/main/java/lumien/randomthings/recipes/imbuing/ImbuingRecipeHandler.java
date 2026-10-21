@@ -1,7 +1,7 @@
 package lumien.randomthings.recipes.imbuing;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 

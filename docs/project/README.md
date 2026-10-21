@@ -12,6 +12,7 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [api-gotchas-1.14.4.md](api-gotchas-1.14.4.md) | Forge 28.2.26 / 1.14.4 API surprises |
 | [api-gotchas-1.16.5.md](api-gotchas-1.16.5.md) | Forge 36.2.39 / 1.16.5 behaviour changes that cost debugging time (culling/`notSolid`, glint render types, data-pack biomes, string dimensions, coremod names) |
 | [api-gotchas-1.18.2.md](api-gotchas-1.18.2.md) | Forge 40.3.12 / 1.18.2: Mojang names, block-entity tickers, shaders, Holder biomes, placed features, datapack dimension type, frozen registries, jigsaw/generation test traps |
+| [api-gotchas-1.20.6.md](api-gotchas-1.20.6.md) | NeoForge 20.6.141 / 1.20.6: Mojang names in production, StackTag/custom_data, ObjectHolder replacement, capabilities, payload networking, `useItemOn`/`useWithoutItem`, provider-taking (de)serialization, data pack formats, coremod fixes |
 | [pitfalls.md](pitfalls.md) | generalized lessons that cost real time |
 | [state-history-2026-10.md](state-history-2026-10.md) | detailed state and change-set history up to 2026-10-11 |
 | [slice-history.md](slice-history.md) | one line per porting slice |

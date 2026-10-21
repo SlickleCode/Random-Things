@@ -3,9 +3,8 @@ package lumien.randomthings.tileentity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.List;
 
@@ -37,8 +36,8 @@ public class PotionVaporizerItemHandler extends ItemStackHandler {
             case 0:
                 return AbstractFurnaceBlockEntity.isFuel(stack);
             case 1:
-                List<MobEffectInstance> effects = PotionUtils.getMobEffects(stack);
-                return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getEffect().isInstantenous();
+                List<MobEffectInstance> effects = lumien.randomthings.util.PotionHelper.effects(stack);
+                return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getEffect().value().isInstantenous();
             case 2:
                 return false;
             default:

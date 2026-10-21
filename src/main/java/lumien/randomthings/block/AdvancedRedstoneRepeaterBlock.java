@@ -18,7 +18,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.ticks.TickPriority;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerLevel;
 
@@ -47,15 +46,14 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements Enti
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
-	{
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (!worldIn.isClientSide)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof AdvancedRedstoneRepeaterTileEntity)
 			{
-				NetworkHooks.openScreen((ServerPlayer) player, (AdvancedRedstoneRepeaterTileEntity) te);
+				((ServerPlayer) player).openMenu((AdvancedRedstoneRepeaterTileEntity) te);
 			}
 		}
 

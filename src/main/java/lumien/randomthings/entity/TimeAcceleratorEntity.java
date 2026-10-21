@@ -13,7 +13,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * An immobile marker placed by {@link
@@ -55,7 +54,7 @@ import net.minecraftforge.network.NetworkHooks;
  * problem for {@link EclipsedClockEntity}'s {@code HANGING_POS}: a real
  * synced {@code DataParameter<BlockPos>} instead of a plain field.
  */
-@net.minecraftforge.api.distmarker.OnlyIn(value = net.minecraftforge.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
+@net.neoforged.api.distmarker.OnlyIn(value = net.neoforged.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
 public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
     private static final EntityDataAccessor<Integer> TIME_RATE = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<BlockPos> TARGET = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.BLOCK_POS);
@@ -76,9 +75,9 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(TIME_RATE, 1);
-        this.entityData.define(TARGET, BlockPos.ZERO);
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        builder.define(TIME_RATE, 1);
+        builder.define(TARGET, BlockPos.ZERO);
     }
 
     public int getRemainingTime() {
@@ -178,8 +177,4 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
         compound.putInt("timeRate", getTimeRate());
     }
 
-    @Override
-    public Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
-        return NetworkHooks.getEntitySpawningPacket(this);
-    }
 }

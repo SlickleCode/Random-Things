@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import lumien.randomthings.lib.IEntityFilterItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +37,7 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
     }
 
     private static Optional<EntityType<?>> getFilterType(ItemStack filter) {
-        CompoundTag tag = filter.getTag();
+        CompoundTag tag = StackTag.get(filter);
 
         if (tag == null || !tag.contains("entityType")) {
             return Optional.empty();
@@ -48,19 +49,16 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
         if (!playerIn.level().isClientSide) {
-            if (!stack.hasTag()) {
-                stack.setTag(new CompoundTag());
-            }
-
-            stack.getTag().putString("entityType", EntityType.getKey(target.getType()).toString());
+            StackTag.edit(stack, t -> t.putString("entityType", EntityType.getKey(target.getType()).toString()));
         }
 
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
-        super.appendHoverText(stack, world, tooltip, advanced);
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag advanced) {
+        Level world = lumien.randomthings.client.ClientHooks.level();
+        super.appendHoverText(stack, worldCtx, tooltip, advanced);
 
         Optional<EntityType<?>> filterType = getFilterType(stack);
 

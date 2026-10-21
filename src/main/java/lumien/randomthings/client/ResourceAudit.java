@@ -31,7 +31,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Static audit of the mod's registered content against its assets and data, run by
@@ -93,7 +93,7 @@ public class ResourceAudit
 
 	private void auditBlocks()
 	{
-		for (Block block : ForgeRegistries.BLOCKS)
+		for (Block block : BuiltInRegistries.BLOCK)
 		{
 			ResourceLocation id = RegUtil.id(block);
 
@@ -144,7 +144,7 @@ public class ResourceAudit
 
 	private void auditItems()
 	{
-		for (Item item : ForgeRegistries.ITEMS)
+		for (Item item : BuiltInRegistries.ITEM)
 		{
 			ResourceLocation id = RegUtil.id(item);
 
@@ -380,13 +380,14 @@ public class ResourceAudit
 			return;
 		}
 
-		Collection<Recipe<?>> all = mc.getSingleplayerServer().getRecipeManager().getRecipes();
+		Collection<net.minecraft.world.item.crafting.RecipeHolder<?>> all = mc.getSingleplayerServer().getRecipeManager().getRecipes();
 		Set<ResourceLocation> loaded = new HashSet<>();
 		Set<Item> produced = new HashSet<>();
 
-		for (Recipe<?> recipe : all)
+		for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : all)
 		{
-			ResourceLocation id = recipe.getId();
+			Recipe<?> recipe = holder.value();
+			ResourceLocation id = holder.id();
 			ItemStack out = recipe.getResultItem(mc.level.registryAccess());
 
 			if (!out.isEmpty())
@@ -439,7 +440,7 @@ public class ResourceAudit
 			}
 		}
 
-		for (Item item : ForgeRegistries.ITEMS)
+		for (Item item : BuiltInRegistries.ITEM)
 		{
 			ResourceLocation id = RegUtil.id(item);
 
@@ -460,7 +461,7 @@ public class ResourceAudit
 			return;
 		}
 
-		Set<ResourceLocation> known = new HashSet<>(mc.getSingleplayerServer().getServerResources().managers().getLootData().getKeys(net.minecraft.world.level.storage.loot.LootDataType.TABLE));
+		Set<ResourceLocation> known = new HashSet<>(mc.getSingleplayerServer().reloadableRegistries().getKeys(net.minecraft.core.registries.Registries.LOOT_TABLE));
 
 		for (ResourceLocation table : new ResourceLocation[] { lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, lumien.randomthings.handler.LootHandler.JUNGLE_TEMPLE })
 		{

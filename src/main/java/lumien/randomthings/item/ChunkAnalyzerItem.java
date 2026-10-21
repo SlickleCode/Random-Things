@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * Right-click (main hand only, matching the original) to open a GUI that
@@ -36,7 +35,7 @@ public class ChunkAnalyzerItem extends Item {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
-            NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
+            ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
                     return Component.translatable("item.randomthings.chunk_analyzer");

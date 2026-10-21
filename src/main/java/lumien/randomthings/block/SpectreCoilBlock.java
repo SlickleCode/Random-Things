@@ -29,7 +29,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 /**
  * Ported from 1.12.2's {@code BlockSpectreCoil} - a small block that attaches to a face of any
@@ -107,7 +106,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
 
     private static boolean hasEnergyCapableSupport(LevelReader world, BlockPos pos, Direction facing) {
         BlockEntity supportTe = world.getBlockEntity(pos.relative(facing.getOpposite()));
-        return supportTe != null && supportTe.getCapability(ForgeCapabilities.ENERGY, facing).isPresent();
+        return supportTe != null && lumien.randomthings.util.CapUtil.energy(supportTe, facing) != null;
     }
 
     @Override

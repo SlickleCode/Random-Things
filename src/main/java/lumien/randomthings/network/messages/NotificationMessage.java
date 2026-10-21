@@ -5,7 +5,7 @@ import lumien.randomthings.network.IRTMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent.Context;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * NotificationMessage - tells the receiving client to pop a toast, mirroring
@@ -33,7 +33,7 @@ public class NotificationMessage implements IRTMessage
 	{
 		this.title = pb.readUtf(32767);
 		this.description = pb.readUtf(32767);
-		this.icon = pb.readItem();
+		this.icon = ItemStack.OPTIONAL_STREAM_CODEC.decode((net.minecraft.network.RegistryFriendlyByteBuf) pb);
 	}
 
 	@Override
@@ -41,11 +41,11 @@ public class NotificationMessage implements IRTMessage
 	{
 		pb.writeUtf(title);
 		pb.writeUtf(description);
-		pb.writeItem(icon);
+		ItemStack.OPTIONAL_STREAM_CODEC.encode((net.minecraft.network.RegistryFriendlyByteBuf) pb, icon);
 	}
 
 	@Override
-	public void handle(Context context)
+	public void handle(IPayloadContext context)
 	{
 		Minecraft.getInstance().getToasts().addToast(new NotificationToast(title, description, icon));
 	}

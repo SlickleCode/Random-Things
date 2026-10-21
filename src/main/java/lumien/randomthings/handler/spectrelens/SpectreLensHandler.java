@@ -7,6 +7,7 @@ import java.util.UUID;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.server.MinecraftServer;
@@ -37,14 +38,14 @@ public class SpectreLensHandler extends SavedData {
     public SpectreLensHandler() {
     }
 
-    public static SpectreLensHandler loadFrom(CompoundTag nbt) {
+    public static SpectreLensHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         SpectreLensHandler data = new SpectreLensHandler();
         data.readData(nbt);
         return data;
     }
 
     public static SpectreLensHandler get(MinecraftServer server) {
-        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(SpectreLensHandler::loadFrom, SpectreLensHandler::new, ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreLensHandler::new, SpectreLensHandler::loadFrom, null), ID);
     }
 
     public void removeLens(UUID uuid) {
@@ -53,7 +54,7 @@ public class SpectreLensHandler extends SavedData {
         }
     }
 
-    public void addLens(UUID uuid, int levels, MobEffect primary, MobEffect secondary) {
+    public void addLens(UUID uuid, int levels, Holder<MobEffect> primary, Holder<MobEffect> secondary) {
         lensEntries.put(uuid, new LensEntry(levels, primary, secondary));
         setDirty();
     }
@@ -96,7 +97,7 @@ public class SpectreLensHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
 
         for (Map.Entry<UUID, LensEntry> entry : lensEntries.entrySet()) {
@@ -111,10 +112,10 @@ public class SpectreLensHandler extends SavedData {
 
     private static class LensEntry {
         final int levels;
-        final MobEffect primary;
-        final MobEffect secondary;
+        final Holder<MobEffect> primary;
+        final Holder<MobEffect> secondary;
 
-        LensEntry(int levels, MobEffect primary, MobEffect secondary) {
+        LensEntry(int levels, Holder<MobEffect> primary, Holder<MobEffect> secondary) {
             this.levels = levels;
             this.primary = primary;
             this.secondary = secondary;
@@ -123,8 +124,8 @@ public class SpectreLensHandler extends SavedData {
         CompoundTag write() {
             CompoundTag tag = new CompoundTag();
             tag.putInt("levels", levels);
-            tag.putInt("primary", primary != null ? MobEffect.getId(primary) : -1);
-            tag.putInt("secondary", secondary != null ? MobEffect.getId(secondary) : -1);
+            tag.putInt("primary", primary != null ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getId(primary.value()) : -1);
+            tag.putInt("secondary", secondary != null ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getId(secondary.value()) : -1);
             return tag;
         }
 
@@ -132,7 +133,7 @@ public class SpectreLensHandler extends SavedData {
             int primaryId = tag.getInt("primary");
             int secondaryId = tag.getInt("secondary");
 
-            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? MobEffect.byId(primaryId) : null, secondaryId >= 0 ? MobEffect.byId(secondaryId) : null);
+            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getHolder(primaryId).orElse(null) : null, secondaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getHolder(secondaryId).orElse(null) : null);
         }
     }
 }

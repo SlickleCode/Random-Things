@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -102,7 +102,7 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     private void notifyOne(BlockPos targetPos, Block neighborBlock) {
-        this.level.getBlockState(targetPos).neighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
+        this.level.getBlockState(targetPos).handleNeighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
         this.level.updateNeighborsAt(targetPos, neighborBlock);
     }
 
@@ -119,18 +119,18 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound) {
-        super.saveAdditional(compound);
+    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(compound, registries);
 
-        compound.put("inventory", positionInventory.serializeNBT());
-
+        compound.put("inventory", positionInventory.serializeNBT(registries));
+
     }
 
     @Override
-    public void load(CompoundTag compound) {
-        super.load(compound);
+    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(compound, registries);
 
-        positionInventory.deserializeNBT(compound.getCompound("inventory"));
+        positionInventory.deserializeNBT(registries, compound.getCompound("inventory"));
         refreshTargets();
     }
 

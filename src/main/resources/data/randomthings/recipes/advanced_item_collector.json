@@ -7,6 +7,6 @@
     "I": { "item": "randomthings:item_collector" }
   },
   "result": {
-    "item": "randomthings:advanced_item_collector"
+    "id": "randomthings:advanced_item_collector"
   }
 }

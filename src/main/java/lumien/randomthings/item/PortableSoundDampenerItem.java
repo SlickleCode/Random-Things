@@ -14,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 
 /**
  * A carried 9-slot filter of {@link SoundPatternItem}s, muting every sound
@@ -36,7 +35,7 @@ public class PortableSoundDampenerItem extends Item {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
-            NetworkHooks.openScreen((ServerPlayer) playerIn, new MenuProvider() {
+            ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
                     return Component.translatable("item.randomthings.portable_sound_dampener");

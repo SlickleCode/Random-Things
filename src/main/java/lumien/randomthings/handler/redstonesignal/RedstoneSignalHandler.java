@@ -38,14 +38,14 @@ public class RedstoneSignalHandler extends SavedData {
     public RedstoneSignalHandler() {
     }
 
-    public static RedstoneSignalHandler loadFrom(CompoundTag nbt) {
+    public static RedstoneSignalHandler loadFrom(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
         RedstoneSignalHandler data = new RedstoneSignalHandler();
         data.readData(nbt);
         return data;
     }
 
     public static RedstoneSignalHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(RedstoneSignalHandler::loadFrom, RedstoneSignalHandler::new, ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(RedstoneSignalHandler::new, RedstoneSignalHandler::loadFrom, null), ID);
     }
 
     public synchronized boolean addSignal(Level world, BlockPos pos, int duration, int strength) {
@@ -97,7 +97,7 @@ public class RedstoneSignalHandler extends SavedData {
 
     private static void updatePosition(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        state.neighborChanged(world, pos, Blocks.REDSTONE_BLOCK, pos, false);
+        state.handleNeighborChanged(world, pos, Blocks.REDSTONE_BLOCK, pos, false);
         world.updateNeighborsAt(pos, Blocks.REDSTONE_BLOCK);
     }
 
@@ -112,7 +112,7 @@ public class RedstoneSignalHandler extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound) {
+    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag signalList = new ListTag();
 
         for (RedstoneSignal signal : signals) {

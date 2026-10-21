@@ -7,7 +7,7 @@
     "A": { "item": "minecraft:redstone" }
   },
   "result": {
-    "item": "randomthings:trigger_glass",
+    "id": "randomthings:trigger_glass",
     "count": 4
   }
 }

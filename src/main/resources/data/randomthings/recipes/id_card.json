@@ -6,6 +6,6 @@
     "I": { "item": "minecraft:ink_sac" }
   },
   "result": {
-    "item": "randomthings:id_card"
+    "id": "randomthings:id_card"
   }
 }

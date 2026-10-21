@@ -19,7 +19,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
@@ -28,7 +27,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * Flood-fills the enclosed air space it faces (up to 100 blocks) and applies
@@ -91,7 +90,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 
 	public int getColor()
 	{
-		return currentPotionEffect != null ? currentPotionEffect.getEffect().getColor() : 0;
+		return currentPotionEffect != null ? currentPotionEffect.getEffect().value().getColor() : 0;
 	}
 
 	public int getFuelBurnTime()
@@ -168,9 +167,9 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 			return;
 		}
 
-		List<MobEffectInstance> effects = PotionUtils.getMobEffects(newPotion);
+		List<MobEffectInstance> effects = lumien.randomthings.util.PotionHelper.effects(newPotion);
 
-		if (effects.isEmpty() || effects.get(0).getEffect().isInstantenous())
+		if (effects.isEmpty() || effects.get(0).getEffect().value().isInstantenous())
 		{
 			return;
 		}
@@ -204,7 +203,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 		int i = 0;
 		for (BlockPos pos : affectedBlocks)
 		{
-			boxes[i++] = new AABB(pos, pos.offset(1, 1, 1));
+			boxes[i++] = lumien.randomthings.util.AABBs.of(pos, pos.offset(1, 1, 1));
 		}
 
 		AABB bounds = null;
@@ -255,7 +254,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 			return;
 		}
 
-		int color = currentPotionEffect.getEffect().getColor();
+		int color = currentPotionEffect.getEffect().value().getColor();
 		float r = ((color >> 16) & 0xFF) / 255F;
 		float g = ((color >> 8) & 0xFF) / 255F;
 		float b = (color & 0xFF) / 255F;
@@ -353,9 +352,9 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound)
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 
 		compound.putInt("durationLeft", durationLeft);
 		compound.putInt("fuelBurn", fuelBurn);
@@ -363,7 +362,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 
 		if (currentPotionEffect != null)
 		{
-			compound.put("currentPotionEffect", currentPotionEffect.save(new CompoundTag()));
+			compound.put("currentPotionEffect", currentPotionEffect.save());
 		}
 
 		ListTag affectedList = new ListTag();
@@ -377,14 +376,14 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 		}
 		compound.put("affectedBlocks", affectedList);
 
-		compound.put("inventory", itemHandler.serializeNBT());
+		compound.put("inventory", itemHandler.serializeNBT(registries));
 
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 
 		durationLeft = compound.getInt("durationLeft");
 		fuelBurn = compound.getInt("fuelBurn");
@@ -403,7 +402,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 			affectedBlocks.add(new BlockPos(posCompound.getInt("posX"), posCompound.getInt("posY"), posCompound.getInt("posZ")));
 		}
 
-		itemHandler.deserializeNBT(compound.getCompound("inventory"));
+		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	@Override

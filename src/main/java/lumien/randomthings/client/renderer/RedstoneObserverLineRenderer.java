@@ -94,8 +94,8 @@ public class RedstoneObserverLineRenderer
 			dz /= length;
 
 			// the 1.17+ line shader widens each line along its normal, so the normal is the line direction
-			buffer.vertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last().normal(), dx, dy, dz).endVertex();
-			buffer.vertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last().normal(), dx, dy, dz).endVertex();
+			buffer.vertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last(), dx, dy, dz).endVertex();
+			buffer.vertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last(), dx, dy, dz).endVertex();
 		}
 
 		tessellator.end();

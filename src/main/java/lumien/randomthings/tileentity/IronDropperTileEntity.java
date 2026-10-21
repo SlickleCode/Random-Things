@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import lumien.randomthings.util.CapUtil;
 import net.minecraft.core.BlockPos;
 
 import javax.annotation.Nullable;
@@ -20,12 +21,12 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+
+
+
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 /**
  * A block-form dropper with a 9-slot inventory that ejects one item at a
@@ -67,7 +68,6 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 		}
 	};
 
-	private final LazyOptional<IItemHandler> itemHandlerCap = LazyOptional.of(() -> itemHandler);
 
 	public IronDropperTileEntity(BlockPos pos, BlockState state) {
         super(ModTileEntityTypes.IRON_DROPPER, pos, state);
@@ -78,46 +78,29 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 		return itemHandler;
 	}
 
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side)
-	{
-		if (cap == ForgeCapabilities.ITEM_HANDLER)
-		{
-			return itemHandlerCap.cast();
-		}
-
-		return super.getCapability(cap, side);
-	}
 
 	@Override
-	public void invalidateCaps()
+	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.invalidateCaps();
-		itemHandlerCap.invalidate();
-	}
-
-	@Override
-	protected void saveAdditional(CompoundTag compound)
-	{
-		super.saveAdditional(compound);
+		super.saveAdditional(compound, registries);
 		compound.putInt("redstoneMode", redstoneMode.ordinal());
 		compound.putInt("pickupDelay", pickupDelay.ordinal());
 		compound.putInt("effects", effects.ordinal());
 		compound.putBoolean("randomMotion", randomMotion);
 		compound.putInt("dropCounter", dropCounter);
-		compound.put("inventory", itemHandler.serializeNBT());
+		compound.put("inventory", itemHandler.serializeNBT(registries));
 	}
 
 	@Override
-	public void load(CompoundTag compound)
+	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
 	{
-		super.load(compound);
+		super.loadAdditional(compound, registries);
 		this.redstoneMode = REDSTONE_MODE.values()[compound.getInt("redstoneMode")];
 		this.pickupDelay = PICKUP_DELAY.values()[compound.getInt("pickupDelay")];
 		this.effects = EFFECTS.values()[compound.getInt("effects")];
 		this.randomMotion = compound.getBoolean("randomMotion");
 		this.dropCounter = compound.getInt("dropCounter");
-		itemHandler.deserializeNBT(compound.getCompound("inventory"));
+		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
 	}
 
 	public REDSTONE_MODE redstoneMode()
@@ -225,8 +208,7 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 		ItemStack toDrop = stack.copy();
 		toDrop.setCount(1);
 
-		LazyOptional<IItemHandler> targetCap = target != null ? target.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()) : LazyOptional.empty();
-		IItemHandler targetHandler = targetCap.orElse(null);
+		IItemHandler targetHandler = CapUtil.itemHandler(target, facing.getOpposite());
 
 		if (targetHandler != null)
 		{

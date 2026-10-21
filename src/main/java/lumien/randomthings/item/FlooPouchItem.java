@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -27,7 +28,8 @@ public class FlooPouchItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+        Level worldIn = lumien.randomthings.client.ClientHooks.level();
         tooltip.add(Component.literal(getFlooCount(stack) + " / " + MAX_CHARGE));
     }
 
@@ -74,10 +76,10 @@ public class FlooPouchItem extends Item {
     }
 
     public static void setFlooCount(ItemStack stack, int count) {
-        stack.getOrCreateTag().putInt("flooCount", count);
+        StackTag.edit(stack, t -> t.putInt("flooCount", count));
     }
 
     public static int getFlooCount(ItemStack stack) {
-        return stack.hasTag() ? stack.getTag().getInt("flooCount") : 0;
+        return StackTag.has(stack) ? StackTag.getInt(stack, "flooCount") : 0;
     }
 }

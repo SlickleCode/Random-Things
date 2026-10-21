@@ -1,11 +1,12 @@
 package lumien.randomthings.asm;
 
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * The colour of an item's enchant glint, as 1.12.2's {@code AsmHandler.enchantmentColorHook} decided it. Plain logic with no client types, so it is
@@ -26,7 +27,7 @@ public final class GlintColors {
         }
 
         Item item = stack.getItem();
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         String path = id != null && "randomthings".equals(id.getNamespace()) ? id.getPath() : "";
 
         if (path.equals("redstone_tool")) {
@@ -41,8 +42,8 @@ public final class GlintColors {
             return 0xFFB200B2;
         }
 
-        if (stack.hasTag() && stack.getTag().contains("enchantmentColor")) {
-            return stack.getTag().getInt("enchantmentColor") | 0xFF000000;
+        if (StackTag.contains(stack, "enchantmentColor")) {
+            return StackTag.getInt(stack, "enchantmentColor") | 0xFF000000;
         }
 
         if (path.equals("spectre_sword")) {

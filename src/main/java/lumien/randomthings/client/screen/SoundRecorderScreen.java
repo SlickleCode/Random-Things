@@ -76,7 +76,6 @@ public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderCo
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTicks);
 
         this.soundList.render(graphics, mouseX, mouseY, partialTicks);

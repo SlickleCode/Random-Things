@@ -1,5 +1,6 @@
 package lumien.randomthings.item;
 
+import lumien.randomthings.util.StackTag;
 import java.util.UUID;
 
 import net.minecraft.world.entity.Entity;
@@ -39,7 +40,7 @@ public class EmeraldCompassItem extends CompassItemBase
 
 		if (!worldIn.isClientSide && worldIn.getGameTime() % 20 == 0)
 		{
-			CompoundTag compound = stack.getTag();
+			CompoundTag compound = StackTag.get(stack);
 
 			if (compound != null && compound.contains("uuid"))
 			{
@@ -58,6 +59,8 @@ public class EmeraldCompassItem extends CompassItemBase
 					compound.remove("targetX");
 					compound.remove("targetZ");
 				}
+
+				StackTag.set(stack, compound);
 			}
 		}
 	}

@@ -20,7 +20,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -72,15 +71,14 @@ public class FilteredSuperLubricentPlatformBlock extends SuperLubricentPlatformB
 	}
 
 	@Override
-	public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
-	{
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (!worldIn.isClientSide)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 
 			if (te instanceof FilteredSuperLubricentPlatformTileEntity)
 			{
-				NetworkHooks.openScreen((ServerPlayer) player, (FilteredSuperLubricentPlatformTileEntity) te);
+				((ServerPlayer) player).openMenu((FilteredSuperLubricentPlatformTileEntity) te);
 			}
 		}
 

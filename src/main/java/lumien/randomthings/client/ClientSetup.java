@@ -1,5 +1,8 @@
 package lumien.randomthings.client;
 
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+
+import lumien.randomthings.util.StackTag;
 import net.minecraft.core.registries.Registries;
 
 import lumien.randomthings.util.RegUtil;
@@ -62,28 +65,25 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.sound.PlaySoundEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ServerChatEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.TickEvent.ClientTickEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.Event.Result;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.sound.PlaySoundEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ServerChatEvent;
+
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.util.Random;
 import java.util.UUID;
-import net.minecraftforge.api.distmarker.Dist;
+import net.neoforged.api.distmarker.Dist;
 
 /**
  * Everything in the mod that touches client-only classes (renderers, screens, colour handlers, sound hooks).
@@ -94,8 +94,7 @@ import net.minecraftforge.api.distmarker.Dist;
  * {@code DistExecutor.runWhenOn(Dist.CLIENT, ...)}.
  */
 public class ClientSetup {
-    public static void init() {
-        net.minecraftforge.eventbus.api.IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public static void init(net.neoforged.bus.api.IEventBus modBus) {
         modBus.addListener(ClientSetup::setupClient);
         modBus.addListener(ClientSetup::registerDimensionEffects);
         modBus.addListener(ClientSetup::registerRenderers);
@@ -108,16 +107,16 @@ public class ClientSetup {
         // "spectreAnchor" NBT tag, regardless of which item it is. Matches
         // 1.12.2's own RTEventHandler#itemTooltip (inserted at index 1, right
         // after the item's display name).
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.event.entity.player.ItemTooltipEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.ItemTooltipEvent event) -> {
             ItemStack stack = event.getItemStack();
 
-            if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
+            if (StackTag.contains(stack, "spectreAnchor")) {
                 event.getToolTip().add(1, Component.translatable("tooltip.randomthings.spectre_anchor.item").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
             }
         });
 
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().level == null) {
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
+            if (Minecraft.getInstance().level == null) {
                 return;
             }
 
@@ -128,10 +127,8 @@ public class ClientSetup {
             }
         });
 
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase == TickEvent.Phase.END) {
-                DiviningRodRenderer.get().tick();
-            }
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
+            DiviningRodRenderer.get().tick();
         });
 
         // Drains lumien.randomthings.entity.SpectreIlluminatorRelight's queued
@@ -148,8 +145,8 @@ public class ClientSetup {
         // is what this project already uses elsewhere for exactly this "runs on
         // the client every tick" need (see DiviningRodRenderer.get().tick() right
         // above).
-        MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
-            if (event.phase != TickEvent.Phase.END || Minecraft.getInstance().level == null) {
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
+            if (Minecraft.getInstance().level == null) {
                 return;
             }
 
@@ -158,7 +155,7 @@ public class ClientSetup {
 
     }
 
-    private static void registerRenderers(final net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+    private static void registerRenderers(final net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.BIOME_RADAR, BiomeRadarTileEntityRenderer::new);
         event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.RUNE_BASE, RuneBaseTileEntityRenderer::new);
         event.registerBlockEntityRenderer(lumien.randomthings.tileentity.ModTileEntityTypes.FLUID_DISPLAY, lumien.randomthings.client.renderer.FluidDisplayTileEntityRenderer::new);
@@ -189,7 +186,7 @@ public class ClientSetup {
      * (the vanilla static map is no longer consulted), so a hand-made entry in the vanilla map left the Spectre cubes with the
      * overworld's night sky and no bright lightmap.
      */
-    private static void registerDimensionEffects(final net.minecraftforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
+    private static void registerDimensionEffects(final net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
         event.register(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
     }
 
@@ -197,15 +194,14 @@ public class ClientSetup {
         RenderLayerSetup.apply();
 
         event.enqueueWork(() -> {
-            for (net.minecraft.world.item.Item item : net.minecraftforge.registries.ForgeRegistries.ITEMS.getValues()) {
+            for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
                 if (item instanceof lumien.randomthings.item.IClientItemProperties) {
                     ((lumien.randomthings.item.IClientItemProperties) item).registerClientProperties();
                 }
             }
         });
-        ModScreens.register();
 
-        MinecraftForge.EVENT_BUS.addListener((RenderLevelStageEvent rwl) -> {
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent rwl) -> {
             if (rwl.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) {
                 return;
             }
@@ -214,7 +210,7 @@ public class ClientSetup {
             RedstoneObserverLineRenderer.render(rwl.getPoseStack());
         });
 
-        MinecraftForge.EVENT_BUS.addListener(ClientSetup::onPlaySound);
+        NeoForge.EVENT_BUS.addListener(ClientSetup::onPlaySound);
     }
 
     /**
@@ -226,7 +222,7 @@ public class ClientSetup {
      * plain, uncamouflaged Portkey appearance from inside its own {@code
      * ItemStackTileEntityRenderer} without recursing back into itself).
      */
-    private static void registerModels(final net.minecraftforge.client.event.ModelEvent.RegisterAdditional event) {
+    private static void registerModels(final net.neoforged.neoforge.client.event.ModelEvent.RegisterAdditional event) {
         event.register(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
     }
 
@@ -244,7 +240,7 @@ public class ClientSetup {
     private static void onPlaySound(PlaySoundEvent event) {
         LocalPlayer thePlayer = Minecraft.getInstance().player;
 
-        if (thePlayer == null || event.isCanceled() || event.getSound() == null) {
+        if (thePlayer == null || event.getSound() == null) {
             return;
         }
 
@@ -284,7 +280,7 @@ public class ClientSetup {
         }
     }
 
-    private static boolean mutesSound(net.minecraftforge.items.IItemHandler inventory, ResourceLocation soundLocation) {
+    private static boolean mutesSound(net.neoforged.neoforge.items.IItemHandler inventory, ResourceLocation soundLocation) {
         for (int s = 0; s < inventory.getSlots(); s++) {
             ItemStack patternStack = inventory.getStackInSlot(s);
 
@@ -308,7 +304,7 @@ public class ClientSetup {
      */
     @SubscribeEvent
     public static void onBlockColorHandler(final RegisterColorHandlersEvent.Block event) {
-        for (Block block : ForgeRegistries.BLOCKS.getValues()) {
+        for (Block block : BuiltInRegistries.BLOCK) {
             if (block instanceof IRTBlockColor && RegUtil.id(block) != null && ModConstants.MOD_ID.equals(RegUtil.id(block).getNamespace())) {
                 event.getBlockColors().register((state, worldIn, pos, tintIndex) -> ((IRTBlockColor) block).colorMultiplier(state, worldIn, pos, tintIndex), block);
             }
@@ -323,7 +319,7 @@ public class ClientSetup {
      */
     @SubscribeEvent
     public static void onItemColorHandler(final RegisterColorHandlersEvent.Item event) {
-        for (Item item : ForgeRegistries.ITEMS.getValues()) {
+        for (Item item : BuiltInRegistries.ITEM) {
             if (item instanceof BlockItem && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
                 Block block = ((BlockItem) item).getBlock();
 
@@ -354,7 +350,7 @@ public class ClientSetup {
      */
     @SubscribeEvent
     public static void onPlainItemColorHandler(final RegisterColorHandlersEvent.Item event) {
-        for (Item item : ForgeRegistries.ITEMS.getValues()) {
+        for (Item item : BuiltInRegistries.ITEM) {
             if (item instanceof IRTItemColor && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
                 event.getItemColors().register((stack, tintIndex) -> ((IRTItemColor) item).getColorFromItemstack(stack, tintIndex), item);
             }
