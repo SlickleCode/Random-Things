@@ -89,6 +89,51 @@ final class UtilityBehaviorTests
 		}));
 
 		// ---- Ender Mailbox --------------------------------------------------------------------
+		tests.add(RTTest.named("behavior.loot.rolled_chest_biome_crystals_carry_a_biome").run(c -> {
+			net.minecraft.loot.LootTable table = c.world.getServer().getLootTableManager().getLootTableFromLocation(lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON);
+			int crystals = 0;
+
+			for (int i = 0; i < 600; i++)
+			{
+				for (ItemStack rolled : table.generate(new net.minecraft.loot.LootContext.Builder(c.world).build(net.minecraft.loot.LootParameterSets.EMPTY)))
+				{
+					if (rolled.getItem() == ModItems.BIOME_CRYSTAL)
+					{
+						crystals++;
+						c.check(lumien.randomthings.item.BiomeCrystalItem.getBiome(rolled) != null, "a Biome Crystal from chest loot has a biome attached (tag " + rolled.getTag() + ")");
+					}
+				}
+			}
+
+			c.check(crystals > 40, "about 20% of 600 rolls give a Biome Crystal (got " + crystals + ")");
+		}));
+
+		tests.add(RTTest.named("behavior.loot.vanilla_chest_tables_get_the_mod_pools_injected_on_load").run(c -> {
+			java.util.function.BiPredicate<net.minecraft.util.ResourceLocation, String> hasPool = (tableName, poolName) -> c.world.getServer().getLootTableManager().getLootTableFromLocation(tableName).getPool(poolName) != null;
+
+			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, "randomthings:summoning_pendulum"), "the simple dungeon chest carries the Summoning Pendulum pool");
+			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, "randomthings:magic_hood"), "the weaponsmith chest carries the Magic Hood pool");
+			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, "randomthings:biome_crystal"), "every vanilla chest table gets the Biome Crystal pool");
+		}));
+
+		tests.add(RTTest.named("behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it").run(c -> {
+			c.floor();
+			BlockPos radar = c.at(0, 1, 0);
+			c.set(radar, ModBlocks.BIOME_RADAR);
+			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation("minecraft:plains")));
+			c.player.setHeldItem(Hand.MAIN_HAND, crystal);
+			ModBlocks.BIOME_RADAR.onBlockActivated(c.world.getBlockState(radar), c.world, radar, c.player, Hand.MAIN_HAND, new BlockRayTraceResult(Vector3d.copy(radar), Direction.UP, radar, false));
+			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
+			c.check(te.getCurrentCrystal().getItem() == ModItems.BIOME_CRYSTAL, "the right-clicked crystal is inside the radar");
+			c.check(c.player.getHeldItemMainhand().isEmpty(), "and it left the player's hand");
+			// what the client receives (getUpdatePacket carries getUpdateTag; the packet class is client-only on the dedicated server) must hold the crystal, or the radar shows nothing
+			lumien.randomthings.tileentity.BiomeRadarTileEntity client = new lumien.randomthings.tileentity.BiomeRadarTileEntity();
+			client.read(c.world.getBlockState(radar), te.getUpdateTag());
+			c.check(client.getCurrentCrystal().getItem() == ModItems.BIOME_CRYSTAL, "the update tag carries the crystal to the client");
+			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
+		}));
+
 		tests.add(RTTest.named("behavior.ender_mailbox.sneak_click_with_a_letter_delivers_it_to_the_named_receivers_inbox").run(c -> {
 			c.floor();
 			c.set(c.at(0, 1, 0), ModBlocks.ENDER_MAILBOX);

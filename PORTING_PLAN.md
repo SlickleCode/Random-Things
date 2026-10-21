@@ -35,6 +35,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - 2026-10-17: same Ancient Furnace snow/ice bug fixed here (biome cells are 4x4 in 1.16 too; the new heating test failed without the fix). New worldgen tests as on 1.18.2; `worldgen.*` 22/0/0 on the client, server suite 374/0/2.
 - 2026-10-17: Bean Sprout now also survives on grass, dirt, coarse dirt, podzol and farmland (1.12.2's plain-type plant rule; CropBlock alone allowed farmland only, so it almost never generated naturally). Test `worldgen.bean_sprout.places_on_air_above_grass_dirt_and_farmland_but_not_on_stone_or_into_a_solid_block`.
 
+- **Tests mirrored from 1.20.6 (2026-10-21):** `behavior.loot.rolled_chest_biome_crystals_carry_a_biome`, `behavior.loot.vanilla_chest_tables_get_the_mod_pools_injected_on_load`, `behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it`; dedicated-server suite now 379/0/2 (of 381), 0 failures. Mutation-checked on 1.20.1 (dropping the random-biome function, the chest pool or the radar update tag each fails its test). The manual world (`/rtdebug manual`, `RT_MANUAL=true`) is on this branch too: `docs/testing/manual-test-world.md`.
 ## What to do next
 
 1. **Manual pass by the user on this branch**: work through the rebuilt `TESTING_CHECKLIST.md`, rendering rows first (glass-like blocks and the 28 `notSolid()` blocks beside real neighbours, glints, dyes, Rune Base, Diaphanous Blocks), then worldgen in a normal world. Write a 1.16.5 playtest route listing only what the scripts do not cover.
