@@ -32,7 +32,9 @@ import net.minecraft.world.level.DataPackConfig;
  */
 public class AutoTest
 {
-	private static final String WORLD = "RTAutoTest";
+	/** {@code RT_MANUAL=true}: not a test run - open/create the normal-terrain manual-testing world and build the showroom ({@code /rtdebug manual}). */
+	private static final boolean MANUAL = Boolean.getBoolean("randomthings.autotest.manual");
+	private static final String WORLD = MANUAL ? "RTManual" : "RTAutoTest";
 
 	private enum State
 	{
@@ -58,7 +60,7 @@ public class AutoTest
 		Minecraft mc = Minecraft.getInstance();
 		ticks++;
 
-		if (!Boolean.getBoolean("randomthings.autotest.sound"))
+		if (!MANUAL && !Boolean.getBoolean("randomthings.autotest.sound"))
 		{
 			// runtime only (the saved options are untouched): the unattended run is otherwise noisy
 			mc.getSoundManager().updateSourceVolume(net.minecraft.sounds.SoundSource.MASTER, 0.0F);
@@ -85,7 +87,7 @@ public class AutoTest
 						Registry<Biome> biomes = registries.registryOrThrow(Registry.BIOME_REGISTRY);
 						Registry<net.minecraft.world.level.levelgen.structure.StructureSet> structureSets = registries.registryOrThrow(Registry.STRUCTURE_SET_REGISTRY);
 						ChunkGenerator flat = new FlatLevelSource(structureSets, FlatLevelGeneratorSettings.getDefault(biomes, structureSets));
-						WorldGenSettings generatorSettings = new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 4242L).dimensions(), flat));
+						WorldGenSettings generatorSettings = MANUAL ? new WorldGenSettings(424242L, true, false, net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 424242L).dimensions()) : new WorldGenSettings(4242L, false, false, WorldGenSettings.withOverworld(types, net.minecraft.world.level.levelgen.presets.WorldPresets.createNormalWorldFromPreset(registries, 4242L).dimensions(), flat));
 						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), DataPackConfig.DEFAULT);
 						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, registries, generatorSettings);
 					}
@@ -138,6 +140,18 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (MANUAL)
+				{
+					if (ticks > 100)
+					{
+						mc.player.commandUnsigned("gamemode creative");
+						mc.player.commandUnsigned("rtdebug manual");
+						state = State.DONE;
+						ticks = 0;
+					}
+					break;
+				}
+
 				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.clicks"))
 				{
 					state = State.CLICKS;
