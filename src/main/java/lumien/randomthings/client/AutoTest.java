@@ -21,7 +21,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
  */
 public class AutoTest
 {
-	private static final String WORLD = "RTAutoTest";
+	/** {@code RT_MANUAL=true}: not a test run - open/create the normal-terrain manual-testing world and build the showroom ({@code /rtdebug manual}). */
+	private static final boolean MANUAL = Boolean.getBoolean("randomthings.autotest.manual");
+	private static final String WORLD = MANUAL ? "RTManual" : "RTAutoTest";
 
 	private enum State
 	{
@@ -47,7 +49,7 @@ public class AutoTest
 		Minecraft mc = Minecraft.getInstance();
 		ticks++;
 
-		if (!Boolean.getBoolean("randomthings.autotest.sound"))
+		if (!MANUAL && !Boolean.getBoolean("randomthings.autotest.sound"))
 		{
 			// runtime only (the saved options are untouched): the unattended run is otherwise noisy
 			mc.getSoundHandler().setSoundLevel(net.minecraft.util.SoundCategory.MASTER, 0.0F);
@@ -62,7 +64,7 @@ public class AutoTest
 				{
 					RTDebug.log("AutoTest: opening world {}", WORLD);
 
-					WorldSettings settings = mc.getSaveLoader().canLoadWorld(WORLD) ? null : new WorldSettings(4242L, GameType.CREATIVE, false, false, WorldType.FLAT).enableCommands();
+					WorldSettings settings = mc.getSaveLoader().canLoadWorld(WORLD) ? null : MANUAL ? new WorldSettings(424242L, GameType.CREATIVE, true, false, WorldType.DEFAULT).enableCommands() : new WorldSettings(4242L, GameType.CREATIVE, false, false, WorldType.FLAT).enableCommands();
 					mc.launchIntegratedServer(WORLD, WORLD, settings);
 
 					state = State.LOADING;
@@ -77,6 +79,18 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (MANUAL)
+				{
+					if (ticks > 100)
+					{
+						mc.player.sendChatMessage("/gamemode creative");
+						mc.player.sendChatMessage("/rtdebug manual");
+						state = State.DONE;
+						ticks = 0;
+					}
+					break;
+				}
+
 				if (ticks > 200 && Boolean.getBoolean("randomthings.autotest.clicks"))
 				{
 					state = State.CLICKS;

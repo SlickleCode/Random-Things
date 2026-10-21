@@ -1,5 +1,7 @@
 # Random Things 1.14.4 - Testing Checklist (open items only)
 
+**Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md).
+
 The full numbered sheet with every row's test steps and your results (2026-10-11) is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md). This file lists only what still needs you. Record a result by filling the Result column here (Pass / Fail + one sentence), or just tell Claude the row number. Root-cause / fix writeups: [`docs/testing/fix-log/`](docs/testing/fix-log/README.md).
 
 **Totals (original sheet, 392 rows):** PASS 227, never tested 105, DONE/REMOVED 44, FIXED 16. **90 of the 121 open rows were removed on 2026-10-14 because the automated suites/scripted scenarios now cover them** (list with evidence: [`docs/testing/covered-by-tests.md`](docs/testing/covered-by-tests.md)); 31 remain below.
