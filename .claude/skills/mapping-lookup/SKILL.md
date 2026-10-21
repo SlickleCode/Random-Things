@@ -1,9 +1,11 @@
 ---
 name: mapping-lookup
-description: Ground-truth Minecraft 1.18.2 / Forge 40 APIs and find Mojang names vs production SRG ids (m_/f_) with javap and the helper scripts. Use before writing code or a coremod against an API you are not certain of, and whenever a transformer or reflection call must match a method/field by its SRG id.
+description: Ground-truth Minecraft APIs per branch and find Mojang names vs production SRG ids (m_/f_; none on 1.20.6) with javap and the helper scripts. Use before writing code or a coremod against an API you are not certain of, and whenever a transformer or reflection call must match a method/field by its SRG id.
 ---
 
 # Mapping and javap lookup (1.18.2: official Mojang names)
+
+> **Version notes (1.20.6, NeoForge 20.6.141, JDK 21):** this body was written on 1.18.2. On 1.20.6 production uses Mojang names too, so there are no SRG ids and `lookup.py` is not needed; never write `m_`/`f_` ids. Mapped classes for `javap`: `build/neoForm/neoFormJoined1.20.6-*/steps/packRecomp/output.jar`; decompiled sources to grep: `.../steps/patchUserDev/output.jar`; NeoForge sources: `neoforge-20.6.141-sources.jar` in the Gradle cache (`docs/project/api-gotchas-1.20.6.md`, "Toolchain"). Item data lives in data components (`util/StackTag`), registries only in `RegisterEvent`.
 
 Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory - read the real jar.
 

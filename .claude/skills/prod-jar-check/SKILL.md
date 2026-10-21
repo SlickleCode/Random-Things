@@ -1,9 +1,11 @@
 ---
 name: prod-jar-check
-description: Verify the built mod jar on a REAL production (SRG-named) Forge 1.18.2 server and client in prod-test/1.18.2/. Use after any change to coremods (transformer/*.js, ClientAsmHandler/AsmHandler), reflection, registries, or rendering hooks, and before committing a branch, because dev runs (Mojang names for members) can pass while a release jar breaks.
+description: Verify the built mod jar on a REAL production NeoForge 20.6.141 server and client in prod-test/1.20.6/. Use after any change to coremods (transformer/*.js, ClientAsmHandler/AsmHandler), reflection, registries, or rendering hooks, and before committing a branch, because dev runs (Mojang names for members) can pass while a release jar breaks.
 ---
 
-# Production-jar check (1.18.2)
+# Production-jar check (1.20.6; body below is the 1.18.2 text, see the version note)
+
+> **Version notes (1.20.6):** production = NeoForge 20.6.141 install in `prod-test/1.20.6/` (installer `neoforge-20.6.141-installer.jar`, JDK 21; ask before downloading). There is no SRG production variant: names are Mojang names, so this check now guards the jar packaging, `neoforge.mods.toml`, data-pack paths and coremods, not name mapping. Copy `build/libs/RandomThings-MC1.20.6-*.jar` into `prod-test/1.20.6/mods/` and `client-run/mods/`. Server: `run.sh`/`run.bat` (args file under `libraries/net/neoforged/neoforge/20.6.141/`, `-D` options in `user_jvm_args.txt`); client: `python run-client.py -D...` (`fetch-libs.py`/`run-client.py` are NeoForge-only). Baseline on the real install: server 379/0/3, client 383/0/1 + 26 render scenes.
 
 Dev runs (`./gradlew runClient/runServer`) show Mojang names for methods and fields; a real install runs with SRG ids (`m_...`/`f_...`). Coremods and reflection can pass dev and still fail in a release jar. Background: `docs/testing/README.md` ("Production-jar test").
 

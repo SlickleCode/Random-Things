@@ -1,9 +1,11 @@
 ---
 name: scripted-playtest
-description: Drive the real Minecraft window with the desktop helper (docs/testing/desktop-helper/desk.py + scn.py) to run deterministic in-game scenarios, or to write a new one. Use to verify gameplay/GUI/rendering behaviour that the automated suites cannot (real clicks, GUIs, pixels, third-person views). Works on 1.14.4, 1.16.5 and 1.18.2 (SCN_MC=1.18).
+description: Drive the real Minecraft window with the desktop helper (docs/testing/desktop-helper/desk.py + scn.py) to run deterministic in-game scenarios, or to write a new one. Use to verify gameplay/GUI/rendering behaviour that the automated suites cannot (real clicks, GUIs, pixels, third-person views). Works on 1.14.4, 1.16.5 and 1.20.6 (SCN_MC=1.18).
 ---
 
 # Scripted playtest (desk.py + scn.py)
+
+> **Version notes (1.20.6):** `SCN_MC=1.20.6` selects the 1.20.6 helper paths (`sdata`/`stack_nbt` for data-component commands, `EFFECTS_PATH`, `FLUID_WATER`, MC205 flag; pause-menu Save and Quit at y=383; chat commands are limited to 256 chars). All 28 scenarios pass on the dev client and the real install. Needs an unlocked desktop with Minecraft in front; ask for an uninterrupted window first.
 
 Source of truth: `docs/testing/desktop-helper/{desk.py,scn.py,README.md}` and the scenario list in `docs/testing/README.md`. Live copies run from the untracked `prod-test/desktop/` (copy changes back to `docs/testing/desktop-helper/` and keep them identical). Windows only (ctypes + Win32).
 

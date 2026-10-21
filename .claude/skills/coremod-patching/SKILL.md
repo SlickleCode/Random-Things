@@ -1,9 +1,11 @@
 ---
 name: coremod-patching
-description: Write or change a JS coremod transformer (src/main/resources/transformer/*.js, registered in META-INF/coremods.json) that patches vanilla 1.18.2 bytecode, with its AsmHandler/ClientAsmHandler redirect target. Use when a feature needs to hook vanilla code that no Forge event or API reaches (rendering internals, redstone power queries, spawn rules, etc.). Mixins do not work here; coremods do.
+description: Write or change a JS coremod transformer (src/main/resources/transformer/*.js, registered in META-INF/coremods.json) that patches vanilla bytecode, with its AsmHandler/ClientAsmHandler redirect target. Use when a feature needs to hook vanilla code that no Forge event or API reaches (rendering internals, redstone power queries, spawn rules, etc.). Mixins do not work here; coremods do.
 ---
 
-# Coremod patching (Forge 40.3.12, JS coremods)
+# Coremod patching (Forge 40.3.12 text; see version note, JS coremods)
+
+> **Version notes (1.20.6):** JS coremods still work unchanged in the NeoForge jar (14 transformers, Mojang names in dev AND production, so match the Mojang name only; no SRG ids). A transformer whose anchor vanished silently does nothing: on 1.20.6 three did (ItemRenderer `renderQuadList` anchor now follows `INVOKESTATIC alpha` after `ILOAD 11`; ArmorLayer patches the private `renderModel`; FireBlock `checkBurnOut`). Re-derive each anchor from `steps/packRecomp/output.jar` and confirm with the coremod tests and the render scenes. Registration, JS sandbox rules and the 1.18 glint notes below still apply.
 
 Mixins cannot be tested via `runClient` in this setup - the project uses coremods (`META-INF/coremods.json` + `transformer/*.js` + `AsmHandler`/`ClientAsmHandler`). Existing transformers are the best templates; `docs/project/coremods.md` maps what each patches (update it when you add one; note it was written for 1.14.4 and the 1.18.2 retargets are listed in `docs/migration/plans/1.18.2-port-plan.md`).
 
