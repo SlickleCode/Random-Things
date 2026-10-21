@@ -89,6 +89,15 @@ public class RTDebugCommand
 
 									return 1;
 								})))
+				.then(Commands.literal("manual")
+						.executes(context -> {
+							net.minecraft.entity.player.ServerPlayerEntity player = context.getSource().asPlayer();
+							for (String line : ManualTestWorld.build(player))
+							{
+								context.getSource().sendFeedback(new StringTextComponent("[rtdebug manual] " + line), false);
+							}
+							return 1;
+						}))
 				.then(Commands.literal("test")
 						.executes(context -> startTests(context, null))
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())

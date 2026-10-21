@@ -1,6 +1,6 @@
 # Random Things 1.16.5 - Testing Checklist
 
-Fill in **Result** with `Pass` or `Fail` (leave blank if untested) and a one-sentence note in **Feedback** (what you did, what happened vs. expected).
+**Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md). with `Pass` or `Fail` (leave blank if untested) and a one-sentence note in **Feedback** (what you did, what happened vs. expected).
 Row numbers are the original sheet's, so references like "#158" still work. **Every result is blank: nothing on this branch has been tested by hand yet** (the 1.14.4 sheet was).
 
 This sheet lists only what the automated suites and scripted scenarios do **not** cover: 204 rows. The 140 rows they do cover are listed with their evidence in [`docs/testing/covered-by-tests-1.16.5.md`](docs/testing/covered-by-tests-1.16.5.md); the 44 rows for features that were removed on request are dropped. The full 1.14.4 sheet with its old results is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md); a suggested order for these checks (rendering rows first) is in `PORTING_PLAN.md` "What to do next".
