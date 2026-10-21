@@ -95,6 +95,8 @@ server/client), `scripted-playtest` (drive the real game with `desk.py`/`scn.py`
 version), `coremod-patching` (writing/debugging JS transformers and their traps), `branch-mirroring` (switching version branches, cherry-picking, what to
 re-verify and re-document).
 
+Project command: `/mirror <sha> <branch...>` (`.claude/commands/mirror.md`, `docs/migration/tools/mirror.sh`) applies a commit's diff to other version worktrees without committing and compiles each.
+
 Project agents (`.claude/agents/`): `bytecode-scout` (read-only javap/mapping research, returns anchors and signatures, not dumps) and `suite-runner`
 (runs the dev/server/click/production suites and reports only counts and failures). Use them when the raw output would flood the context.
 

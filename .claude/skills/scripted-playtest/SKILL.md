@@ -5,6 +5,8 @@ description: Drive the real Minecraft window with the desktop helper (docs/testi
 
 # Scripted playtest (desk.py + scn.py)
 
+> This skill's body was written on 1.18.2. Version notes for this branch: check `docs/project/` (api-gotchas, coremods) and `docs/migration/plans/1.19.2-port-plan.md` first; jar paths, versions and counts below may differ (Forge 43.5.2, JDK 17).
+
 Source of truth: `docs/testing/desktop-helper/{desk.py,scn.py,README.md}` and the scenario list in `docs/testing/README.md`. Live copies run from the untracked `prod-test/desktop/` (copy changes back to `docs/testing/desktop-helper/` and keep them identical). Windows only (ctypes + Win32).
 
 ## 1.18.2 status: adapted, all 26 scenarios pass (2026-10-15, dev client)
