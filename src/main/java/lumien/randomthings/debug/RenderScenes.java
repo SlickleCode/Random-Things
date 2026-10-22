@@ -275,7 +275,7 @@ public final class RenderScenes
 					BlockPos pos = origin.offset(i * 2, 0, 0);
 					place(world, pos, ModBlocks.BIOME_RADAR);
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(biomes[i])));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(biomes[i])));
 					tile(world, pos, BiomeRadarTileEntity.class).setCrystal(crystal);
 				}
 
@@ -386,7 +386,7 @@ public final class RenderScenes
 				for (int i = 0; i < 3; i++)
 				{
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
 					groundItem(world, crystal, x0 + 9 + i, y0 + 0.3, z0 + 4.5);
 				}
 

@@ -28,13 +28,13 @@ public class SpectreItemTier implements Tier {
      * real camelCase name either), so without our own entry the tooltip showed the raw untranslated key
      * instead of "Reach Distance".
      */
-    public static final UUID REACH_MODIFIER_UUID = UUID.nameUUIDFromBytes("SpectreRangeModifier".getBytes());
+    public static final net.minecraft.resources.ResourceLocation REACH_MODIFIER_ID = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "spectre_range_modifier");
 
     private Ingredient repairMaterial;
 
     /** The +3 block reach of the pickaxe, axe and shovel while held in the main hand, added to their normal tool attributes. */
     public static net.minecraft.world.item.component.ItemAttributeModifiers withReach(net.minecraft.world.item.component.ItemAttributeModifiers base) {
-        return base.withModifierAdded(net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(REACH_MODIFIER_UUID, "Spectre Range Modifier", 3, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
+        return base.withModifierAdded(net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(REACH_MODIFIER_ID, 3, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
     }
 
     @Override

@@ -4,6 +4,7 @@ _Moved from `PORTING_PLAN.md` (2026-10-11 doc refactor); the 1.18.2 section belo
 
 ## 1.18.2 (this branch)
 
+- **1.21.1 branch:** same toolchain as 1.20.6 with NeoForge **21.1.264** (`neoforge.mods.toml` ranges `[21.1.264,)` / `[1.21.1]`); first client start needs `run/options.txt` with `onboardAccessibility:false`.
 - **1.20.6 branch:** NeoForge **20.6.141**, NeoGradle 7.0.192 (`net.neoforged.gradle.userdev`), Gradle **8.13**, **JDK 21** (`~/.jdks/temurin-21*`, `RT_JDK21_HOME` overrides), Mojang names also in production (no `reobfJar`); mod jar `RandomThings-MC1.20.6`; `META-INF/neoforge.mods.toml`, `pack_format` 32. Run configs are the NeoGradle `runs {}` block in `build.gradle`; `settings.gradle` adds the NeoForged maven for plugin resolution.
 - (1.18.2 pins below) Forge **1.18.2-40.3.12**, ForgeGradle 5.1.x, Gradle 7.4.2, **JDK 17** (`source env/activate.sh` finds `~/.jdks/temurin-17*`, `RT_JDK17_HOME` overrides; any other default JDK, e.g. 21, fails inside Gradle 7.4). Official Mojang mappings (`channel: 'official'`); mod jar `RandomThings-MC1.18.2`; `pack_format` 8; `loaderVersion [40,)`.
 - Mapped jar for `javap`: `~/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.18.2-40.3.12_mapped_official_1.18.2/forge-1.18.2-40.3.12_mapped_official_1.18.2.jar` (no vanilla source jar exists). Helper scripts: `docs/migration/tools/` (`lookup.py`, `jpm.py`; the rename tools used for the port).

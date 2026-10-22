@@ -10,10 +10,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.IPlantable;
-import net.neoforged.neoforge.common.PlantType;
 
-public class LotusSeedsItem extends Item implements IPlantable {
+public class LotusSeedsItem extends Item {
     public LotusSeedsItem(Item.Properties properties) {
         super(properties);
     }
@@ -35,7 +33,7 @@ public class LotusSeedsItem extends Item implements IPlantable {
 
         net.minecraft.world.level.block.state.BlockState groundState = world.getBlockState(pos);
 
-        if (!groundState.getBlock().canSustainPlant(groundState, world, pos, Direction.UP, this)) {
+        if (!canSustainLotus(groundState, world, pos)) {
             return InteractionResult.FAIL;
         }
 
@@ -46,13 +44,9 @@ public class LotusSeedsItem extends Item implements IPlantable {
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    public PlantType getPlantType(net.minecraft.world.level.BlockGetter world, BlockPos pos) {
-        return PlantType.PLAINS;
-    }
-
-    @Override
-    public net.minecraft.world.level.block.state.BlockState getPlant(net.minecraft.world.level.BlockGetter world, BlockPos pos) {
-        return ModBlocks.LOTUS.defaultBlockState();
+    /** Lotus sits on anything that sustains "plains" plants: the block decides via its extension, otherwise dirt-like ground. */
+    private static boolean canSustainLotus(net.minecraft.world.level.block.state.BlockState ground, Level world, BlockPos pos) {
+        net.neoforged.neoforge.common.util.TriState result = ground.canSustainPlant(world, pos, Direction.UP, ModBlocks.LOTUS.defaultBlockState());
+        return result.isTrue() || result.isDefault() && (ground.is(net.minecraft.tags.BlockTags.DIRT) || ground.is(net.minecraft.world.level.block.Blocks.FARMLAND));
     }
 }

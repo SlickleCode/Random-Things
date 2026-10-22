@@ -29,7 +29,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * reopen the GUI without rescanning.
  */
 public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/chunk_analyzer.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/chunk_analyzer.png");
 
     private ChunkAnalyzerScanResultList scanResultList;
     private Button scanButton;

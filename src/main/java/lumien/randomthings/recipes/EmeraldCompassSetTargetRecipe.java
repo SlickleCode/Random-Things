@@ -6,7 +6,7 @@ import java.util.UUID;
 import lumien.randomthings.item.EmeraldCompassItem;
 import lumien.randomthings.item.IdCardItem;
 import lumien.randomthings.item.ModItems;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -36,12 +36,12 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 	}
 
 	@Override
-	public boolean matches(CraftingContainer inv, Level worldIn)
+	public boolean matches(CraftingInput inv, Level worldIn)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getContainerSize(); i++)
+		for (int i = 0; i < inv.size(); i++)
 		{
 			ItemStack stack = inv.getItem(i);
 
@@ -76,12 +76,12 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, net.minecraft.core.HolderLookup.Provider registryAccess)
+	public ItemStack assemble(CraftingInput inv, net.minecraft.core.HolderLookup.Provider registryAccess)
 	{
 		ItemStack compass = ItemStack.EMPTY;
 		ItemStack card = ItemStack.EMPTY;
 
-		for (int i = 0; i < inv.getContainerSize(); i++)
+		for (int i = 0; i < inv.size(); i++)
 		{
 			ItemStack stack = inv.getItem(i);
 
@@ -107,11 +107,11 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 	}
 
 	@Override
-	public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv)
+	public NonNullList<ItemStack> getRemainingItems(CraftingInput inv)
 	{
-		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
+		NonNullList<ItemStack> remaining = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
 
-		for (int i = 0; i < inv.getContainerSize(); i++)
+		for (int i = 0; i < inv.size(); i++)
 		{
 			ItemStack stack = inv.getItem(i);
 

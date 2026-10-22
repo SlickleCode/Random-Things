@@ -151,7 +151,7 @@ public class SpiritEntity extends FlyingMob {
     }
 
     @Override
-    protected void dropCustomDeathLoot(DamageSource source, int lootingModifier, boolean wasRecentlyHit) {
+    protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel level, DamageSource source, boolean wasRecentlyHit) {
         if (!wasRecentlyHit) {
             return;
         }

@@ -54,7 +54,7 @@ final class UseItemTests
 
 	private static Item item(String path)
 	{
-		Item item = BuiltInRegistries.ITEM.get(new ResourceLocation("randomthings", path));
+		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("randomthings", path));
 		return item;
 	}
 

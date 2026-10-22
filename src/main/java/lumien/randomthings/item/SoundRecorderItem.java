@@ -117,7 +117,7 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("recording"), new ItemPropertyFunction() {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("recording"), new ItemPropertyFunction() {
             @Override
             public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, net.minecraft.world.entity.LivingEntity entityIn, int seed) {
                 return isRecording(stack) ? 1.0F : 0.0F;

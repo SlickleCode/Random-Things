@@ -20,7 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * the viewing player's own inbox.
  */
 public class EnderMailboxScreen extends AbstractContainerScreen<EnderMailboxContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/ender_mailbox.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/ender_mailbox.png");
 
     public EnderMailboxScreen(EnderMailboxContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);

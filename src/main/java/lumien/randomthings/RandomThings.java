@@ -128,7 +128,7 @@ public class RandomThings {
         }
 
         NeoForge.EVENT_BUS.addListener((BlockEvent.BlockToolModificationEvent event) -> {
-            if (event.getToolAction() != net.neoforged.neoforge.common.ToolActions.HOE_TILL) {
+            if (event.getItemAbility() != net.neoforged.neoforge.common.ItemAbilities.HOE_TILL) {
                 return;
             }
 
@@ -216,7 +216,7 @@ public class RandomThings {
         // EntityDamageSource-but-not-IndirectEntityDamageSource check). Only one
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
-        NeoForge.EVENT_BUS.addListener((LivingHurtEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) -> {
             if (event.isCanceled() || event.getEntity().level().isClientSide || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
                 return;
             }
@@ -781,7 +781,7 @@ public class RandomThings {
             } else if (key.equals(Registries.ITEM)) {
                 ModItems.registerItems(new RTRegistry<>(event, Registries.ITEM));
             } else if (key.equals(Registries.CREATIVE_MODE_TAB)) {
-                event.register(Registries.CREATIVE_MODE_TAB, new ResourceLocation(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
+                event.register(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
             } else if (key.equals(Registries.BLOCK_ENTITY_TYPE)) {
                 ModTileEntityTypes.registerTypes(new RTRegistry<>(event, Registries.BLOCK_ENTITY_TYPE));
             } else if (key.equals(Registries.MENU)) {
@@ -789,17 +789,15 @@ public class RandomThings {
             } else if (key.equals(Registries.RECIPE_SERIALIZER)) {
                 ModRecipeSerializers.registerRecipeSerializers(new RTRegistry<>(event, Registries.RECIPE_SERIALIZER));
             } else if (key.equals(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
-                event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, new ResourceLocation(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
+                event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
             } else if (key.equals(Registries.MOB_EFFECT)) {
                 ModEffects.registerEffects(new RTRegistry<>(event, Registries.MOB_EFFECT));
-            } else if (key.equals(Registries.ENCHANTMENT)) {
-                lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(new RTRegistry<>(event, Registries.ENCHANTMENT));
             } else if (key.equals(Registries.ENTITY_TYPE)) {
                 ModEntityTypes.registerEntityTypes(new RTRegistry<>(event, Registries.ENTITY_TYPE));
             } else if (key.equals(Registries.CHUNK_GENERATOR)) {
                 event.register(Registries.CHUNK_GENERATOR, lumien.randomthings.handler.ModDimensions.SPECTRE_ID, () -> lumien.randomthings.handler.spectre.SpectreChunkGenerator.CODEC);
             } else if (key.equals(Registries.LOOT_FUNCTION_TYPE)) {
-                event.register(Registries.LOOT_FUNCTION_TYPE, new ResourceLocation(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
+                event.register(Registries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
             } else if (key.equals(Registries.DATA_COMPONENT_TYPE)) {
                 ModDataComponents.register(event);
             } else if (key.equals(Registries.FEATURE)) {

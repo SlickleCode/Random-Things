@@ -24,7 +24,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * currently sits in the dye slot.
  */
 public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/dyeing_machine.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/dyeing_machine.png");
     private static final int IDLE_COLOR = 9145227;
     private static final float COLOR_MOD = 1F / 255F;
 

@@ -19,6 +19,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 
 /**
@@ -67,8 +68,7 @@ public class RedstoneObserverLineRenderer
 		Matrix4f matrix = matrixStack.last().pose();
 
 		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder buffer = tessellator.getBuilder();
-		buffer.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+		BufferBuilder buffer = tessellator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(RedstoneObserverTileEntity.loadedObservers))
 		{
@@ -94,11 +94,11 @@ public class RedstoneObserverLineRenderer
 			dz /= length;
 
 			// the 1.17+ line shader widens each line along its normal, so the normal is the line direction
-			buffer.vertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last(), dx, dy, dz).endVertex();
-			buffer.vertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).color(1F, 0F, 0F, 1F).normal(matrixStack.last(), dx, dy, dz).endVertex();
+			buffer.addVertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz);
+			buffer.addVertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz);
 		}
 
-		tessellator.end();
+		BufferUploader.drawWithShader(buffer.buildOrThrow());
 
 		matrixStack.popPose();
 		}

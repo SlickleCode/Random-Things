@@ -22,7 +22,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
  */
 public class ItemSlotButton extends Button implements TooltipButton
 {
-	private static final ResourceLocation TEXTURE = new ResourceLocation("randomthings:textures/gui/slot_button.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.parse("randomthings:textures/gui/slot_button.png");
 
 	private final ItemStack stack;
 	private final String tooltip;

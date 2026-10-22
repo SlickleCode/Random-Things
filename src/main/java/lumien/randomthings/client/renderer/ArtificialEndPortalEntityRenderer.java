@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.ArtificialEndPortalEntity;
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.platform.MemoryTracker;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -57,10 +56,10 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
             // 1.17+ draws the end portal with a fixed-layer shader (RenderType.endPortal()); the 1.16 per-distance pass count is gone
             VertexConsumer builder = buffer.getBuffer(RenderType.endPortal());
 
-            builder.vertex(matrix, (float) -sizeHalf, height, (float) sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            builder.vertex(matrix, (float) sizeHalf, height, (float) sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            builder.vertex(matrix, (float) sizeHalf, height, (float) -sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
-            builder.vertex(matrix, (float) -sizeHalf, height, (float) -sizeHalf).color(1.0F, 1.0F, 1.0F, 1.0F).endVertex();
+            builder.addVertex(matrix, (float) -sizeHalf, height, (float) sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            builder.addVertex(matrix, (float) sizeHalf, height, (float) sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            builder.addVertex(matrix, (float) sizeHalf, height, (float) -sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            builder.addVertex(matrix, (float) -sizeHalf, height, (float) -sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
     }
 

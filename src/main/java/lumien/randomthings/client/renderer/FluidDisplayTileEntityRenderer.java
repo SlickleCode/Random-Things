@@ -8,6 +8,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.tileentity.FluidDisplayTileEntity;
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -51,7 +52,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
  * no tint when there's no fluid, instead of skipping the draw.
  */
 public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<FluidDisplayTileEntity> {
-    private static final ResourceLocation EMPTY_SPRITE = new ResourceLocation("randomthings", "block/fluid_display");
+    private static final ResourceLocation EMPTY_SPRITE = ResourceLocation.fromNamespaceAndPath("randomthings", "block/fluid_display");
 
     public FluidDisplayTileEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -106,8 +107,7 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
         Matrix4f matrix = matrixStack.last().pose();
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder buffer = tessellator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
         float minU = sprite.getU0();
         float maxU = sprite.getU1();
@@ -148,7 +148,7 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
         // +X (east), EAST brightness (0.6)
         quad(matrix, buffer, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, minU, maxU, minV, maxV, r, g, b, 0.6F);
 
-        tessellator.end();
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         matrixStack.popPose();
     }
@@ -158,9 +158,9 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
         float fg = g * brightness;
         float fb = b * brightness;
 
-        buffer.vertex(matrix, (float) x1, (float) y1, (float) z1).uv(minU, minV).color(fr, fg, fb, 1.0F).endVertex();
-        buffer.vertex(matrix, (float) x2, (float) y2, (float) z2).uv(minU, maxV).color(fr, fg, fb, 1.0F).endVertex();
-        buffer.vertex(matrix, (float) x3, (float) y3, (float) z3).uv(maxU, maxV).color(fr, fg, fb, 1.0F).endVertex();
-        buffer.vertex(matrix, (float) x4, (float) y4, (float) z4).uv(maxU, minV).color(fr, fg, fb, 1.0F).endVertex();
+        buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1).setUv(minU, minV).setColor(fr, fg, fb, 1.0F);
+        buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2).setUv(minU, maxV).setColor(fr, fg, fb, 1.0F);
+        buffer.addVertex(matrix, (float) x3, (float) y3, (float) z3).setUv(maxU, maxV).setColor(fr, fg, fb, 1.0F);
+        buffer.addVertex(matrix, (float) x4, (float) y4, (float) z4).setUv(maxU, minV).setColor(fr, fg, fb, 1.0F);
     }
 }

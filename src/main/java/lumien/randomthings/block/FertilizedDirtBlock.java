@@ -19,8 +19,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.IPlantable;
-import net.neoforged.neoforge.common.PlantType;
+import net.neoforged.neoforge.common.util.TriState;
 import net.minecraft.server.level.ServerLevel;
 
 
@@ -55,7 +54,7 @@ public class FertilizedDirtBlock extends Block
 			BlockState aboveState = worldIn.getBlockState(pos.above());
 			Block aboveBlock = aboveState.getBlock();
 
-			if (aboveBlock instanceof IPlantable && aboveState.isRandomlyTicking())
+			if (aboveBlock instanceof net.minecraft.world.level.block.BushBlock && aboveState.isRandomlyTicking())
 			{
 				aboveState.randomTick(worldIn, pos.above(), random);
 			}
@@ -88,49 +87,38 @@ public class FertilizedDirtBlock extends Block
 		return false;
 	}
 
+	/**
+	 * 1.21 dropped {@code IPlantable}/{@code PlantType}: the plant now arrives as a block state, so the old plant types
+	 * are derived from the plant block (stems and crops need tilled soil, desert plants untilled, the rest follow "plains").
+	 */
 	@Override
-	public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, IPlantable plantable)
+	public TriState canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction facing, BlockState plant)
 	{
-		PlantType plantType = plantable.getPlantType(world, pos.above());
 		boolean tilled = state.getValue(TILLED);
-
-		Block b = plantable.getPlant(world, pos.relative(facing)).getBlock();
+		Block b = plant.getBlock();
 
 		if (b instanceof AttachedStemBlock)
 		{
-			return true;
+			return TriState.TRUE;
 		}
 
-		if (plantType == PlantType.DESERT)
+		if (b instanceof net.minecraft.world.level.block.NetherWartBlock || b instanceof net.minecraft.world.level.block.WaterlilyBlock)
 		{
-			return !tilled;
-		}
-		else if (plantType == PlantType.NETHER)
-		{
-			return false;
-		}
-		else if (plantType == PlantType.CROP)
-		{
-			return tilled;
-		}
-		else if (plantType == PlantType.CAVE)
-		{
-			return !tilled;
-		}
-		else if (plantType == PlantType.PLAINS)
-		{
-			return !tilled || tilled && world.getBlockState(pos.above()).getBlock() == Blocks.BEETROOTS;
-		}
-		else if (plantType == PlantType.WATER)
-		{
-			return false;
-		}
-		else if (plantType == PlantType.BEACH)
-		{
-			return !tilled;
+			return TriState.FALSE;
 		}
 
-		return false;
+		if (b instanceof net.minecraft.world.level.block.DeadBushBlock || b instanceof net.minecraft.world.level.block.CactusBlock || b instanceof net.minecraft.world.level.block.SugarCaneBlock)
+		{
+			return tilled ? TriState.FALSE : TriState.TRUE;
+		}
+
+		if (b instanceof net.minecraft.world.level.block.CropBlock || b instanceof net.minecraft.world.level.block.StemBlock)
+		{
+			return tilled ? TriState.TRUE : TriState.FALSE;
+		}
+
+		boolean plains = !tilled || world.getBlockState(pos.above()).getBlock() == Blocks.BEETROOTS;
+		return plains ? TriState.TRUE : TriState.FALSE;
 	}
 
 	@Override

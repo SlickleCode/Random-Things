@@ -151,22 +151,14 @@ public class ClientAsmHandler {
     }
 
     /**
-     * Replaces a colour channel of the armor draw (see {@code ArmorLayerTransformer.js}): channel 0/1/2 =
-     * red/green/blue of the stack's {@code rtDye} colour, or {@code defaultValue} when it has none. Lets the machine
-     * recolor any armor piece, not just vanilla's dyeable leather.
+     * Replaces the colour (ARGB int) of the armor draw (see {@code ArmorLayerTransformer.js}) with the stack's {@code rtDye}
+     * colour when it has one. Lets the Dyeing Machine recolor any armor piece, not just vanilla's dyeable leather.
      */
-    public static float armorTintChannel(float value, int channel) {
-        return armorChannel(renderingStack, channel, value);
-    }
-
-    public static float armorChannel(ItemStack stack, int channel, float defaultValue) {
-        if (StackTag.contains(stack, "rtDye")) {
-            int rgb = StackTag.getInt(stack, "rtDye");
-            int shift = channel == 0 ? 16 : (channel == 1 ? 8 : 0);
-
-            return ((rgb >> shift) & 255) / 255F;
+    public static int armorTintColor(int color) {
+        if (renderingStack != null && StackTag.contains(renderingStack, "rtDye")) {
+            return StackTag.getInt(renderingStack, "rtDye") | 0xFF000000;
         }
 
-        return defaultValue;
+        return color;
     }
 }

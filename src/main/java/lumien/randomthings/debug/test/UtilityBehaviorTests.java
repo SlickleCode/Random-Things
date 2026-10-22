@@ -122,7 +122,7 @@ final class UtilityBehaviorTests
 			BlockPos target = c.at(4, 1, 0);
 			c.set(observer, ModBlocks.REDSTONE_OBSERVER);
 			c.set(target, Blocks.STONE);
-			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation("randomthings", "redstone_tool"));
+			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
 			ItemStack tool = new ItemStack(toolItem);
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, tool);
 
@@ -137,7 +137,7 @@ final class UtilityBehaviorTests
 		}));
 
 		tests.add(RTTest.named("behavior.loot.rolled_chest_biome_crystals_carry_a_biome").run(c -> {
-			net.minecraft.world.level.storage.loot.LootTable table = c.world.getServer().reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, new net.minecraft.resources.ResourceLocation("minecraft", "chests/simple_dungeon")));
+			net.minecraft.world.level.storage.loot.LootTable table = c.world.getServer().reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("minecraft", "chests/simple_dungeon")));
 			net.minecraft.world.level.storage.loot.LootParams params = new net.minecraft.world.level.storage.loot.LootParams.Builder(c.world).create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.EMPTY);
 			int crystals = 0;
 
@@ -247,7 +247,7 @@ final class UtilityBehaviorTests
 
 			for (String name : seeThrough)
 			{
-				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation("randomthings", name));
+				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", name));
 
 				if (block == null || block == Blocks.AIR)
 				{
@@ -264,7 +264,7 @@ final class UtilityBehaviorTests
 			BlockPos radar = c.at(0, 1, 0);
 			c.set(radar, ModBlocks.BIOME_RADAR);
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, crystal);
 			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
 			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
@@ -289,7 +289,7 @@ final class UtilityBehaviorTests
 			}
 
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -297,7 +297,7 @@ final class UtilityBehaviorTests
 			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, te.getState(), "a plains crystal in a plains world finishes at once");
 			c.set(c.at(1, 1, 0), Blocks.AIR);
 			ItemStack desert = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:desert")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:desert")));
 			te.setCrystal(desert);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -308,8 +308,8 @@ final class UtilityBehaviorTests
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
-			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation("randomthings", "redstone_tool"));
-			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(new net.minecraft.resources.ResourceLocation("randomthings", "escape_rope"));
+			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
+			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "escape_rope"));
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(ItemStack.EMPTY, vanilla), "empty stack keeps vanilla");
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(Items.DIAMOND_SWORD), vanilla), "an ordinary item keeps vanilla");
 			ItemStack tagged = new ItemStack(Items.IRON_HELMET);

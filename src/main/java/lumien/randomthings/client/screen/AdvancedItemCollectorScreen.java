@@ -22,7 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class AdvancedItemCollectorScreen extends AbstractContainerScreen<AdvancedItemCollectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/advanced_item_collector.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/advanced_item_collector.png");
 
 	public AdvancedItemCollectorScreen(AdvancedItemCollectorContainer screenContainer, Inventory inv, Component titleIn)
 	{

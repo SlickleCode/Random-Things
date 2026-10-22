@@ -135,7 +135,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         if (this.state == STATE.SEARCHING) {
             for (int i = 0; i < 4; i++) {
                 if (antennaBiomes[i] != null) {
-                    Biome biome = lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(antennaBiomes[i]));
+                    Biome biome = lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(antennaBiomes[i]));
 
                     if (biome != null) {
                         spawnAntennaParticle(i, biome);
@@ -258,7 +258,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         this.powered = compound.getBoolean("powered");
 
         if (compound.contains("biomeToSearch")) {
-            this.biomeToSearch = lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(compound.getString("biomeToSearch")));
+            this.biomeToSearch = lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(compound.getString("biomeToSearch")));
         }
 
         this.searchCounter = compound.getInt("searchCounter");

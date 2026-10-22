@@ -25,7 +25,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class IgniterScreen extends AbstractContainerScreen<IgniterContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/igniter.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/igniter.png");
 
 	public IgniterScreen(IgniterContainer screenContainer, Inventory inv, Component titleIn)
 	{

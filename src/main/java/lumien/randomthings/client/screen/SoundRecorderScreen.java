@@ -23,7 +23,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * input slot.
  */
 public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/sound_recorder.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/sound_recorder.png");
 
     private SoundNameList soundList;
 

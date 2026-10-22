@@ -76,7 +76,7 @@ public class SummoningPendulumItem extends Item {
             ListTag tagList = StackTag.get(stack).getList("entitys", 10);
 
             for (int i = 0; i < tagList.size(); i++) {
-                ResourceLocation entityLocation = new ResourceLocation(tagList.getCompound(i).getString("id"));
+                ResourceLocation entityLocation = ResourceLocation.parse(tagList.getCompound(i).getString("id"));
                 EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityLocation);
 
                 if (type != null) {

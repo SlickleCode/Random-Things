@@ -34,7 +34,7 @@ public class DiviningRodItem extends Item {
 
     public int matches(BlockState blockState) {
         for (int i = 0; i < detectingTags.length; i++) {
-            net.minecraft.tags.TagKey<Block> t = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, new ResourceLocation(detectingTags[i]));
+            net.minecraft.tags.TagKey<Block> t = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK, ResourceLocation.parse(detectingTags[i]));
 
             if (blockState.is(t)) {
                 return i;

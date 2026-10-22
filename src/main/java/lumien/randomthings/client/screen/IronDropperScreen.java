@@ -30,7 +30,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class IronDropperScreen extends AbstractContainerScreen<IronDropperContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/iron_dropper.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/iron_dropper.png");
 
 	public IronDropperScreen(IronDropperContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -69,7 +69,7 @@ public class IronDropperScreen extends AbstractContainerScreen<IronDropperContai
 
 	private static ResourceLocation tex(String name)
 	{
-		return new ResourceLocation("randomthings:textures/gui/iron_dropper/" + name + ".png");
+		return ResourceLocation.parse("randomthings:textures/gui/iron_dropper/" + name + ".png");
 	}
 
 	private static String redstoneModeLabel(REDSTONE_MODE mode)

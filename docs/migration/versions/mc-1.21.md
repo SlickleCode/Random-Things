@@ -52,4 +52,4 @@ Primary modern target. Port 1.21.1 first (large ecosystem), then 1.21.11 as the 
 
 ## Work log
 
-*(none yet — add dated notes, findings and links here as work on this version proceeds.)*
+- **2026-10-22: 1.21.1 ported on NeoForge 21.1.264** (branch `1.21.1`, cut from `1.20.6`): about 616 compile errors, all mechanical or small (ResourceLocation factories, vertex-builder rework, data-driven enchantment, plantable API, DimensionTransition, CraftingInput); suites green (server 380/0/4, client 382/0/2), GUI click test and 26 render scenes pass. One coremod needed rework (armor tint: int colour, NeoForge 21 overload split). Not done yet: real NeoForge install, desktop playtest, in-memory terrain-generation test. Plan `plans/1.21.1-port-plan.md`, notes `docs/project/api-gotchas-1.21.1.md`.

@@ -7,6 +7,6 @@ import net.minecraft.network.chat.Component;
 
 public class PortableSoundDampenerScreen extends AbstractSoundDampenerScreen<PortableSoundDampenerContainer> {
     public PortableSoundDampenerScreen(PortableSoundDampenerContainer screenContainer, Inventory inv, Component titleIn) {
-        super(screenContainer, inv, titleIn, new ResourceLocation("randomthings:textures/gui/portable_sound_dampener.png"));
+        super(screenContainer, inv, titleIn, ResourceLocation.parse("randomthings:textures/gui/portable_sound_dampener.png"));
     }
 }

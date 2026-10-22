@@ -146,7 +146,7 @@ public class RTDebugCommand
 		// a bare "igniter" parses as minecraft:igniter - assume this mod
 		if ("minecraft".equals(id.getNamespace()) && !BuiltInRegistries.BLOCK.containsKey(id) && !BuiltInRegistries.ITEM.containsKey(id))
 		{
-			id = new ResourceLocation(ModConstants.MOD_ID, id.getPath());
+			id = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, id.getPath());
 		}
 
 		String[] how = new String[1];
@@ -356,7 +356,7 @@ public class RTDebugCommand
 		}
 
 		String[] entry = ALL_GUIS[r.index++];
-		ResourceLocation id = new ResourceLocation(ModConstants.MOD_ID, entry[0]);
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, entry[0]);
 		String[] how = new String[1];
 		boolean sneak = "sneak".equals(entry[1]);
 		boolean opened = openGui(r.player, id, sneak, r.pos, how);

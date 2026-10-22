@@ -230,14 +230,15 @@ public class EclipsedClockEntity extends HangingEntity {
         }
     }
 
+    /** 1.21 replaced getWidth/getHeight (12x12 pixels = 0.75 blocks) with this box, built exactly like the Item Frame's. */
     @Override
-    public int getWidth() {
-        return 12;
-    }
-
-    @Override
-    public int getHeight() {
-        return 12;
+    protected net.minecraft.world.phys.AABB calculateBoundingBox(net.minecraft.core.BlockPos pos, net.minecraft.core.Direction direction) {
+        net.minecraft.world.phys.Vec3 center = net.minecraft.world.phys.Vec3.atCenterOf(pos).relative(direction, -0.46875D);
+        net.minecraft.core.Direction.Axis axis = direction.getAxis();
+        double x = axis == net.minecraft.core.Direction.Axis.X ? 0.0625D : 0.75D;
+        double y = axis == net.minecraft.core.Direction.Axis.Y ? 0.0625D : 0.75D;
+        double z = axis == net.minecraft.core.Direction.Axis.Z ? 0.0625D : 0.75D;
+        return net.minecraft.world.phys.AABB.ofSize(center, x, y, z);
     }
 
     @Override

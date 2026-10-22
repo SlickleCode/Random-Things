@@ -26,7 +26,7 @@ import net.minecraft.core.BlockPos;
  * {@code LayerSpiritGel} was.
  */
 public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, SlimeModel<SpiritEntity>> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("randomthings", "textures/entity/spirit.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/spirit.png");
 
     public SpiritEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
         super(renderManager, new SlimeModel<>(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.SLIME)), 0.125F);

@@ -9,6 +9,7 @@ import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.lib.ModConstants;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -44,8 +45,8 @@ import net.minecraft.client.Minecraft;
  */
 public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseTileEntity> {
     private static final float UNIT = 1F / 16F;
-    private static final ResourceLocation NOISY = new ResourceLocation(ModConstants.MOD_ID, "textures/block/rune_base.png");
-    private static final ResourceLocation FLAT = new ResourceLocation(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
+    private static final ResourceLocation NOISY = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base.png");
+    private static final ResourceLocation FLAT = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
     private static final Direction[] SIDE_ORDER = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
 
     public RuneBaseTileEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -91,8 +92,7 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+        BufferBuilder buffer = tessellator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
         Random rng = new Random(te.getBlockPos().asLong());
 
@@ -113,7 +113,7 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
                     continue;
                 }
 
-                float[] rgb = color.getTextureDiffuseColors();
+                float[] rgb = lumien.randomthings.util.DyeUtil.diffuse(color);
 
                 // The pixel itself: 2 units wide, centered in its 4-unit cell.
                 addQuad(matrix, buffer, x, y, z, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
@@ -129,7 +129,7 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
             }
         }
 
-        tessellator.end();
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         RenderSystem.enableCull();
         Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
@@ -205,9 +205,9 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
         float v1 = v / 16F;
         float v2 = (v + (float) (y2 - y1)) / 16F;
 
-        buffer.vertex(matrix, (float) lx1, (float) ly, (float) lz1).uv(u1, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.vertex(matrix, (float) lx1, (float) ly, (float) lz2).uv(u1, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.vertex(matrix, (float) lx2, (float) ly, (float) lz2).uv(u2, v2).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
-        buffer.vertex(matrix, (float) lx2, (float) ly, (float) lz1).uv(u2, v1).color(rgb[0], rgb[1], rgb[2], 1.0F).endVertex();
+        buffer.addVertex(matrix, (float) lx1, (float) ly, (float) lz1).setUv(u1, v1).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
+        buffer.addVertex(matrix, (float) lx1, (float) ly, (float) lz2).setUv(u1, v2).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
+        buffer.addVertex(matrix, (float) lx2, (float) ly, (float) lz2).setUv(u2, v2).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
+        buffer.addVertex(matrix, (float) lx2, (float) ly, (float) lz1).setUv(u2, v1).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
     }
 }

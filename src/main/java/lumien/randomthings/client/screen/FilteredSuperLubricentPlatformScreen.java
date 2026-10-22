@@ -19,7 +19,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class FilteredSuperLubricentPlatformScreen extends AbstractContainerScreen<FilteredSuperLubricentPlatformContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/filtered_super_lubricent_platform.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/filtered_super_lubricent_platform.png");
 
 	public FilteredSuperLubricentPlatformScreen(FilteredSuperLubricentPlatformContainer screenContainer, Inventory inv, Component titleIn)
 	{

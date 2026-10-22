@@ -21,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * FilteredSuperLubricentPlatformScreen}.
  */
 public class AdvancedRedstoneInterfaceScreen extends AbstractContainerScreen<AdvancedRedstoneInterfaceContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_interface/advanced.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/redstone_interface/advanced.png");
 
     public AdvancedRedstoneInterfaceScreen(AdvancedRedstoneInterfaceContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);

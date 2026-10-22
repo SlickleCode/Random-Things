@@ -21,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class RedstoneObserverScreen extends AbstractContainerScreen<RedstoneObserverContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_observer.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/redstone_observer.png");
 
 	public RedstoneObserverScreen(RedstoneObserverContainer screenContainer, Inventory inv, Component titleIn)
 	{

@@ -25,7 +25,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class AnalogEmitterScreen extends AbstractContainerScreen<AnalogEmitterContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/analog_emitter.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/analog_emitter.png");
 
 	public AnalogEmitterScreen(AnalogEmitterContainer screenContainer, Inventory inv, Component titleIn)
 	{

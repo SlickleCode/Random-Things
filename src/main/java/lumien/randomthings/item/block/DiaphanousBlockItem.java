@@ -63,7 +63,7 @@ public class DiaphanousBlockItem extends BlockItem {
         Block displayBlock = Blocks.STONE;
 
         if (StackTag.contains(stack, "block")) {
-            Block resolved = BuiltInRegistries.BLOCK.get(new ResourceLocation(StackTag.getString(stack, "block")));
+            Block resolved = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(StackTag.getString(stack, "block")));
 
             if (resolved != null) {
                 displayBlock = resolved;

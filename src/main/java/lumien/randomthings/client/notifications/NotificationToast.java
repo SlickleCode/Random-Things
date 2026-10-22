@@ -17,7 +17,7 @@ import net.minecraft.client.gui.GuiGraphics;
  */
 public class NotificationToast implements Toast
 {
-	private static final net.minecraft.resources.ResourceLocation BACKGROUND_SPRITE = new net.minecraft.resources.ResourceLocation("toast/system");
+	private static final net.minecraft.resources.ResourceLocation BACKGROUND_SPRITE = net.minecraft.resources.ResourceLocation.parse("toast/system");
 	private static final long DISPLAY_TIME_MS = 5000L;
 
 	private final String title;

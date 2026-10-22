@@ -7,7 +7,7 @@ plugins {
 
 version = '5.0'
 group = 'lumien.randomthings'
-base { archivesName = 'RandomThings-MC1.20.6' }
+base { archivesName = 'RandomThings-MC1.21.1' }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -57,7 +57,7 @@ runs {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:20.6.141'
+    implementation 'net.neoforged:neoforge:21.1.264'
 }
 
 jar {

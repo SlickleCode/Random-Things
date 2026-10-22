@@ -19,7 +19,7 @@ public class RTRegistry<T>
 
 	public void register(String name, T value)
 	{
-		register(new ResourceLocation(ModConstants.MOD_ID, name), value);
+		register(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, name), value);
 	}
 
 	public void register(ResourceLocation name, T value)

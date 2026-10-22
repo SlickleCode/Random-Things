@@ -26,7 +26,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * bespoke image-button widget for two on/off toggles.
  */
 public class BlockDestabilizerScreen extends AbstractContainerScreen<BlockDestabilizerContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/block_destabilizer.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/block_destabilizer.png");
 
     public BlockDestabilizerScreen(BlockDestabilizerContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);
@@ -40,12 +40,12 @@ public class BlockDestabilizerScreen extends AbstractContainerScreen<BlockDestab
         super.init();
 
         // Sprite buttons at the original GuiBlockDestabilizer's positions (7/33/58, y7)
-        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 7, this.topPos + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/lazy.png"), () -> this.menu.lazy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"), (button) -> {
+        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 7, this.topPos + 7, 20, 20, ResourceLocation.parse("randomthings:textures/gui/block_destabilizer/lazy.png"), () -> this.menu.lazy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.lazy_on" : "gui.block_destabilizer.lazy_off"), (button) -> {
             this.menu.send(0, (pb) -> {
             });
         }));
 
-        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 33, this.topPos + 7, 20, 20, new ResourceLocation("randomthings:textures/gui/block_destabilizer/fuzzy.png"), () -> this.menu.fuzzy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"), (button) -> {
+        this.addRenderableWidget(new SpriteStateButton(this.leftPos + 33, this.topPos + 7, 20, 20, ResourceLocation.parse("randomthings:textures/gui/block_destabilizer/fuzzy.png"), () -> this.menu.fuzzy.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.block_destabilizer.fuzzy_on" : "gui.block_destabilizer.fuzzy_off"), (button) -> {
             this.menu.send(1, (pb) -> {
             });
         }));

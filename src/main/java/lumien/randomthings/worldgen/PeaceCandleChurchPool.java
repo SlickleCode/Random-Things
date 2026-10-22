@@ -44,7 +44,7 @@ import org.apache.logging.log4j.LogManager;
  * the other biomes' churches and the zombie-village pools are untouched.
  */
 public class PeaceCandleChurchPool extends StructureTemplatePool {
-    private static final ResourceLocation HOUSES = new ResourceLocation("village/plains/houses");
+    private static final ResourceLocation HOUSES = ResourceLocation.parse("village/plains/houses");
 
     /** The vanilla plains church template, matched on its piece description (the template name is not otherwise readable). */
     private static final String VANILLA_CHURCH = "village/plains/houses/plains_temple_4";
@@ -84,7 +84,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
 
         try {
             // the pool registry is frozen by the time the server starts, so the holder's value is swapped in place instead
-            Holder<StructureProcessorList> noProcessors = server.registryAccess().registryOrThrow(Registries.PROCESSOR_LIST).getHolderOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, new ResourceLocation("empty")));
+            Holder<StructureProcessorList> noProcessors = server.registryAccess().registryOrThrow(Registries.PROCESSOR_LIST).getHolderOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, ResourceLocation.parse("empty")));
             StructurePoolElement church = StructurePoolElement.single("randomthings:peace_candle_church", noProcessors).apply(StructureTemplatePool.Projection.RIGID);
 
             HOLDER_VALUE.set(holder, new PeaceCandleChurchPool(vanilla, church));

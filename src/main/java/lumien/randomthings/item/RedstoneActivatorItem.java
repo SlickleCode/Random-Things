@@ -88,7 +88,7 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("duration_index"), new ItemPropertyFunction() {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("duration_index"), new ItemPropertyFunction() {
             @Override
             public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, LivingEntity entityIn, int seed) {
                 return getDurationIndex(stack);

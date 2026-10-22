@@ -24,7 +24,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/chat_detector.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/chat_detector.png");
 
 	private EditBox messageField;
 	private String lastSent;

@@ -144,6 +144,8 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	@Override
 	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
-		return worldIn.getBlockState(pos.below()).canSustainPlant(worldIn, pos.below(), net.minecraft.core.Direction.UP, this);
+		BlockState ground = worldIn.getBlockState(pos.below());
+		net.neoforged.neoforge.common.util.TriState result = ground.canSustainPlant(worldIn, pos.below(), net.minecraft.core.Direction.UP, state);
+		return result.isTrue() || result.isDefault() && (ground.is(net.minecraft.tags.BlockTags.DIRT) || ground.is(net.minecraft.world.level.block.Blocks.FARMLAND));
 	}
 }

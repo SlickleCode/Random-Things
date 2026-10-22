@@ -74,7 +74,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
         CompoundTag compound = StackTag.get(pattern);
 
         if (compound != null && compound.contains("sound")) {
-            return new ResourceLocation(compound.getString("sound"));
+            return ResourceLocation.parse(compound.getString("sound"));
         }
 
         return null;
@@ -88,7 +88,7 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("filled"), new ItemPropertyFunction() {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("filled"), new ItemPropertyFunction() {
             @Override
             public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, net.minecraft.world.entity.LivingEntity entityIn, int seed) {
                 return getSoundLocation(stack) != null ? 1.0F : 0.0F;

@@ -27,7 +27,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/entity_detector.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/entity_detector.png");
 
 	public EntityDetectorScreen(EntityDetectorContainer screenContainer, Inventory inv, Component titleIn)
 	{

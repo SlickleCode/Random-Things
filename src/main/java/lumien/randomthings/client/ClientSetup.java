@@ -223,7 +223,7 @@ public class ClientSetup {
      * ItemStackTileEntityRenderer} without recursing back into itself).
      */
     private static void registerModels(final net.neoforged.neoforge.client.event.ModelEvent.RegisterAdditional event) {
-        event.register(new ResourceLocation(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base"));
+        event.register(net.minecraft.client.resources.model.ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base")));
     }
 
     /**

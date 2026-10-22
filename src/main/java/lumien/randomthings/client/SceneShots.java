@@ -60,7 +60,7 @@ public final class SceneShots
 				RTDebug.log("SceneShots: {} scenes", ids.size());
 				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_plains" })
 				{
-					net.minecraft.world.level.biome.Biome biome = lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation(b));
+					net.minecraft.world.level.biome.Biome biome = lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse(b));
 					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.blockPosition())), biome);
 				}
 				phase = Phase.SCENES;

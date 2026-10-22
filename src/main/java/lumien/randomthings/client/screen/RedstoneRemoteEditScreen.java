@@ -20,7 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * beneath it, and the player inventory (1.12.2's redstoneremoteedit.png layout).
  */
 public class RedstoneRemoteEditScreen extends AbstractContainerScreen<RedstoneRemoteEditContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_edit.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/redstone_remote_edit.png");
 
     public RedstoneRemoteEditScreen(RedstoneRemoteEditContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);

@@ -41,7 +41,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
  * every item has an item model; item model {@code overrides} resolve too</li>
  * <li><b>textures</b> - every texture a model resolves to exists as a png, and no {@code #variable}
  * is left unresolved</li>
- * <li><b>recipes</b> - every recipe file under {@code data/randomthings/recipes} actually loaded,
+ * <li><b>recipes</b> - every recipe file under {@code data/randomthings/recipe} actually loaded,
  * outputs and ingredients are non-empty, and every item/block has at least one recipe that
  * produces it unless it is in {@link #NO_RECIPE_EXPECTED}</li>
  * </ul>
@@ -103,7 +103,7 @@ public class ResourceAudit
 			}
 
 			blocks++;
-			ResourceLocation stateFile = new ResourceLocation(id.getNamespace(), "blockstates/" + id.getPath() + ".json");
+			ResourceLocation stateFile = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "blockstates/" + id.getPath() + ".json");
 			JsonObject state = readJson(assets, stateFile);
 
 			if (state == null)
@@ -191,7 +191,7 @@ public class ResourceAudit
 			return;
 		}
 
-		ResourceLocation modelId = new ResourceLocation(model);
+		ResourceLocation modelId = ResourceLocation.parse(model);
 		Map<String, String> textures = new HashMap<>();
 		Set<String> usedVars = new HashSet<>();
 		boolean builtinEntity = false;
@@ -272,7 +272,7 @@ public class ResourceAudit
 				}
 			}
 
-			current = json.has("parent") ? new ResourceLocation(json.get("parent").getAsString()) : null;
+			current = json.has("parent") ? ResourceLocation.parse(json.get("parent").getAsString()) : null;
 			first = false;
 		}
 
@@ -323,9 +323,9 @@ public class ResourceAudit
 
 		for (String tex : toCheck)
 		{
-			ResourceLocation tid = new ResourceLocation(tex);
+			ResourceLocation tid = ResourceLocation.parse(tex);
 
-			if (assets.getResource(new ResourceLocation(tid.getNamespace(), "textures/" + tid.getPath() + ".png")).isEmpty())
+			if (assets.getResource(ResourceLocation.fromNamespaceAndPath(tid.getNamespace(), "textures/" + tid.getPath() + ".png")).isEmpty())
 			{
 				failures.add("[texture] " + owner + " (" + model + "): missing texture " + tex);
 			}
@@ -340,7 +340,7 @@ public class ResourceAudit
 	private JsonObject modelJson(ResourceLocation id)
 	{
 		return modelCache.computeIfAbsent(id, k -> {
-			ResourceLocation file = new ResourceLocation(k.getNamespace(), "models/" + k.getPath() + ".json");
+			ResourceLocation file = ResourceLocation.fromNamespaceAndPath(k.getNamespace(), "models/" + k.getPath() + ".json");
 
 			if (ModConstants.MOD_ID.equals(k.getNamespace()))
 			{
@@ -424,7 +424,7 @@ public class ResourceAudit
 		}
 
 		// every recipe file must have been accepted by the RecipeManager (a parse failure silently drops it)
-		for (ResourceLocation file : data.listResources("recipes", s -> s.getPath().endsWith(".json")).keySet())
+		for (ResourceLocation file : data.listResources("recipe", s -> s.getPath().endsWith(".json")).keySet())
 		{
 			if (!ModConstants.MOD_ID.equals(file.getNamespace()))
 			{
@@ -432,7 +432,7 @@ public class ResourceAudit
 			}
 
 			String path = file.getPath();
-			ResourceLocation id = new ResourceLocation(file.getNamespace(), path.substring("recipes/".length(), path.length() - ".json".length()));
+			ResourceLocation id = ResourceLocation.fromNamespaceAndPath(file.getNamespace(), path.substring("recipe/".length(), path.length() - ".json".length()));
 
 			if (!loaded.contains(id))
 			{

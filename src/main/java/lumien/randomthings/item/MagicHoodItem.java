@@ -50,7 +50,7 @@ public class MagicHoodItem extends ArmorItem {
     static {
         ArmorMaterial chain = ArmorMaterials.CHAIN.value();
         MATERIAL = Holder.direct(new ArmorMaterial(chain.defense(), chain.enchantmentValue(), chain.equipSound(), chain.repairIngredient(),
-                List.of(new ArmorMaterial.Layer(new ResourceLocation("randomthings", "magic_hood"))), chain.toughness(), chain.knockbackResistance()));
+                List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath("randomthings", "magic_hood"))), chain.toughness(), chain.knockbackResistance()));
     }
 
     public MagicHoodItem(Item.Properties properties) {

@@ -14,7 +14,7 @@ import net.minecraft.util.Mth;
  * 1.12.2's {@code RenderGoldenChicken}.
  */
 public class GoldenChickenEntityRenderer extends MobRenderer<GoldenChickenEntity, ChickenModel<GoldenChickenEntity>> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("randomthings", "textures/entity/golden_chicken.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/golden_chicken.png");
 
     public GoldenChickenEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
         super(renderManager, new ChickenModel<>(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.CHICKEN)), 0.3F);

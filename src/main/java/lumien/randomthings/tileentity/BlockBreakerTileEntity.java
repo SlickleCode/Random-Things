@@ -81,7 +81,7 @@ public class BlockBreakerTileEntity extends BlockEntity {
 
         ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
         pickaxe.set(net.minecraft.core.component.DataComponents.UNBREAKABLE, new net.minecraft.world.item.component.Unbreakable(false));
-        pickaxe.enchant(ModEnchantments.MAGNETIC, 1);
+        pickaxe.enchant(ModEnchantments.holder(level.registryAccess(), ModEnchantments.MAGNETIC), 1);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
         player.setOnGround(true);

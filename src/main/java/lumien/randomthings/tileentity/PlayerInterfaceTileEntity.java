@@ -159,9 +159,15 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 				return true;
 			}
 
-			EquipmentSlot wanted = Mob.getEquipmentSlotForItem(stack);
+			EquipmentSlot wanted = stack.getEquipmentSlot();
 
-			return wanted.getType() == EquipmentSlot.Type.ARMOR && wanted.getIndex() == index - 36;
+			if (wanted == null)
+			{
+				net.minecraft.world.item.Equipable equipable = net.minecraft.world.item.Equipable.get(stack);
+				wanted = equipable != null ? equipable.getEquipmentSlot() : EquipmentSlot.MAINHAND;
+			}
+
+			return wanted.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && wanted.getIndex() == index - 36;
 		}
 
 		@Override

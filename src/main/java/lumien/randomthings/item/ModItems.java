@@ -418,7 +418,7 @@ public class ModItems {
     }
 
     private static Block lookupBlock(String name) {
-        return BuiltInRegistries.BLOCK.get(new ResourceLocation(ModConstants.MOD_ID, name));
+        return BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, name));
     }
 
     private static void registerDiviningRod(RTRegistry<Item> registry, String name, Color[] colors, String[] tags) {

@@ -6,7 +6,7 @@ Facts that differ per branch. The shared skills and agents (identical on every b
 
 _(former skill heading: Mapping and javap lookup (1.18.2: official Mojang names))_
 
-> **Version notes (1.20.6, NeoForge 20.6.141, JDK 21):** this body was written on 1.18.2. On 1.20.6 production uses Mojang names too, so there are no SRG ids and `lookup.py` is not needed; never write `m_`/`f_` ids. Mapped classes for `javap`: `build/neoForm/neoFormJoined1.20.6-*/steps/packRecomp/output.jar`; decompiled sources to grep: `.../steps/patchUserDev/output.jar`; NeoForge sources: `neoforge-20.6.141-sources.jar` in the Gradle cache (`docs/project/api-gotchas-1.20.6.md`, "Toolchain"). Item data lives in data components (`util/StackTag`), registries only in `RegisterEvent`.
+> **Version notes (1.21.1, NeoForge 21.1.264, JDK 21):** names are Mojang names in dev AND production (no SRG ids, `lookup.py` is not needed). `javap` classes: `build/neoForm/neoFormJoined1.21.1-*/steps/packRecomp/output.jar` plus the `neoforge-21.1.264-universal.jar` in the Gradle cache; vanilla data/tags: `.gradle/caches/minecraft/versions/1.21.1/client.jar`. API changes since 1.20.6: `docs/project/api-gotchas-1.21.1.md`. The text below is the older inherited body.
 
 Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory - read the real jar.
 
@@ -40,7 +40,7 @@ Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory 
 
 _(former skill heading: Coremod patching (Forge 40.3.12 text; see version note, JS coremods))_
 
-> **Version notes (1.20.6):** JS coremods still work unchanged in the NeoForge jar (14 transformers, Mojang names in dev AND production, so match the Mojang name only; no SRG ids). A transformer whose anchor vanished silently does nothing: on 1.20.6 three did (ItemRenderer `renderQuadList` anchor now follows `INVOKESTATIC alpha` after `ILOAD 11`; ArmorLayer patches the private `renderModel`; FireBlock `checkBurnOut`). Re-derive each anchor from `steps/packRecomp/output.jar` and confirm with the coremod tests and the render scenes. Registration, JS sandbox rules and the 1.18 glint notes below still apply.
+> **Version notes (1.21.1):** JS coremods still work (14 transformers, Mojang names, match by name only). Two things changed: the armor colour is now an int argument of `renderModel`, and NeoForge 21 renders armor through the 12-argument `renderArmorPiece` overload, so the stack hook must be in both overloads (see `api-gotchas-1.21.1.md`, Coremods). Only the `armor_and_items` render scene showed the breakage; always run the render scenes after a Minecraft bump. The text below is the older inherited body.
 
 Mixins cannot be tested via `runClient` in this setup - the project uses coremods (`META-INF/coremods.json` + `transformer/*.js` + `AsmHandler`/`ClientAsmHandler`). Existing transformers are the best templates; `docs/project/coremods.md` maps what each patches (update it when you add one; note it was written for 1.14.4 and the 1.18.2 retargets are listed in `docs/migration/plans/1.18.2-port-plan.md`).
 
@@ -65,7 +65,7 @@ Mixins cannot be tested via `runClient` in this setup - the project uses coremod
 
 _(former skill heading: Production-jar check (1.20.6; body below is the 1.18.2 text, see the version note))_
 
-> **Version notes (1.20.6):** production = NeoForge 20.6.141 install in `prod-test/1.20.6/` (installer `neoforge-20.6.141-installer.jar`, JDK 21; ask before downloading). There is no SRG production variant: names are Mojang names, so this check now guards the jar packaging, `neoforge.mods.toml`, data-pack paths and coremods, not name mapping. Copy `build/libs/RandomThings-MC1.20.6-*.jar` into `prod-test/1.20.6/mods/` and `client-run/mods/`. Server: `run.sh`/`run.bat` (args file under `libraries/net/neoforged/neoforge/20.6.141/`, `-D` options in `user_jvm_args.txt`); client: `python run-client.py -D...` (`fetch-libs.py`/`run-client.py` are NeoForge-only). Baseline on the real install: server 379/0/3, client 383/0/1 + 26 render scenes.
+> **Version notes (1.21.1):** production = NeoForge 21.1.264 install in `prod-test/1.21.1/` (untracked; installer `neoforge-21.1.264-installer.jar`, JDK 21, ask before downloading). Setup: `java -jar <installer> --installServer`; `mkdir client` + `launcher_profiles.json` `{"profiles":{},"version":3}` + `--installClient client`; copy `docs/testing/prod-test-scripts/*.py` and run `python fetch-libs.py` (58 files, ~58 MB). No SRG variant, so this guards packaging, `neoforge.mods.toml`, data-pack paths and coremods. Copy `build/libs/RandomThings-MC1.21.1-*.jar` into `mods/` and `client-run/mods/`. Server: `java -Drandomthings.debug=true -Drandomthings.autotest=true -Drandomthings.autotest.exit=true @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.264/win_args.txt nogui` (`-D` options BEFORE the args files; `server.properties`: `level-type=flat`, `online-mode=false`, `max-tick-time=-1`). Client: `python run-client.py -Drandomthings.debug=true -Drandomthings.autotest=true ...` (put `onboardAccessibility:false` in `client-run/options.txt` first). Baseline 2026-10-22: server 380/0/4, client 382/0/2 + audit clean, 26 render scenes (armor tint verified). The text below is the older inherited body.
 
 Dev runs (`./gradlew runClient/runServer`) show Mojang names for methods and fields; a real install runs with SRG ids (`m_...`/`f_...`). Coremods and reflection can pass dev and still fail in a release jar. Background: `docs/testing/README.md` ("Production-jar test").
 
@@ -92,7 +92,7 @@ Production server suite 349 passed / 0 failed / 2 skipped; production client sui
 
 _(former skill heading: Scripted playtest (desk.py + scn.py))_
 
-> **Version notes (1.20.6):** `SCN_MC=1.20.6` selects the 1.20.6 helper paths (`sdata`/`stack_nbt` for data-component commands, `EFFECTS_PATH`, `FLUID_WATER`, MC205 flag; pause-menu Save and Quit at y=383; chat commands are limited to 256 chars). All 28 scenarios pass on the dev client and the real install. Needs an unlocked desktop with Minecraft in front; ask for an uninterrupted window first.
+> **Version notes (1.21.1):** `SCN_MC=1.21.1` selects the 1.20.6 helper paths (components via `sdata`/`stack_nbt`, `EFFECTS_PATH`, `FLUID_WATER`, MC205), the tabbed create-world screen (MC20) and, new for 1.21, `MC21`: the title screen's Singleplayer button is at y=203 (y=236 hit Multiplayer), and summon NBT uses `attributes:[{id:"minecraft:generic.max_health",base:...}]` (the old `Name`/`Base` form is silently ignored). All 28 scenarios pass on the dev client (2026-10-22); the `fresh_world_worldgen` check allows the one known skip (the not-ported in-memory terrain test). Component syntax used by `scn.py` (`enchantments={levels:{...}}`, `potion_contents`, `custom_data`) is unchanged in 1.21.1. Needs an unlocked desktop with Minecraft in front; ask for an uninterrupted window first. The text below is the older inherited body.
 
 Source of truth: `docs/testing/desktop-helper/{desk.py,scn.py,README.md}` and the scenario list in `docs/testing/README.md`. Live copies run from the untracked `prod-test/desktop/` (copy changes back to `docs/testing/desktop-helper/` and keep them identical). Windows only (ctypes + Win32).
 
@@ -124,8 +124,8 @@ What the playtest found on 1.18.2 that no suite had: the Item renderer coremod t
 
 ## suites
 
-- Server: `run/server.properties` needs `max-tick-time=-1` or the watchdog kills the long village test (60 s).
-- Normal skips: 3 (ender mailbox unknown receiver, online detector fake player, and the client-only ancient-furnace check on the dedicated server). Baseline `docs/testing/suite-baseline.txt`.
-- Known flakes: `coremod.spawn.peace_candle_denies_monster_spawns_in_range` flaked once (passed on re-run); the Portkey test failed once after a killed run left a stale world, not reproducible in six more runs. After a killed run delete `run/RTServerTest` and `run/saves/RTAutoTest`.
-- Gradle needs the network for its first NeoForm download: `--offline` fails until the caches exist (`suite-all.sh` retries online).
-- Item data pitfall: `StackTag.get/getOrCreate` return COPIES; write with `StackTag.edit`/`set` (an empty tag removes the component). Three tests (`behavior.stack_data.*`) guard this.
+- Server: `run/server.properties` needs `max-tick-time=-1` (long village test); `online-mode=false` is fine for the dev server.
+- Normal skips: server 4 (ender mailbox unknown receiver, online detector fake player, client-only ancient-furnace check, and the glowing-mushroom terrain-generation test that is not ported to the 1.21 chunk pipeline); client 2. Baseline `docs/testing/suite-baseline.txt`.
+- Fresh `run/` for the client suite: put `onboardAccessibility:false` in `run/options.txt` first, otherwise the client waits on the accessibility screen and the run times out.
+- Item data pitfall (carried over from 1.20.6): `StackTag.get/getOrCreate` return COPIES; write with `StackTag.edit`/`set`.
+- Gradle needs the network for the first NeoForm download (`--offline` fails until the caches exist; `suite-all.sh` retries online).

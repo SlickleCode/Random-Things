@@ -137,10 +137,10 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    public void onRemovedFromWorld() {
+    public void onRemovedFromLevel() {
         boolean wasIlluminated = isIlluminated();
 
-        super.onRemovedFromWorld();
+        super.onRemovedFromLevel();
 
         ILLUMINATORS.remove(this);
 

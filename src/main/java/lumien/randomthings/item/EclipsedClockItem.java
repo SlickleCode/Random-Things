@@ -55,7 +55,7 @@ public class EclipsedClockItem extends Item implements IClientItemProperties{
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("time"), (stack, world, entity, seed) -> {
+		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("time"), (stack, world, entity, seed) -> {
             int time = 6000;
 
             if (StackTag.contains(stack, "targetTime")) {

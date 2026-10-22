@@ -28,7 +28,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class PotionVaporizerScreen extends AbstractContainerScreen<PotionVaporizerContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/potion_vaporizer.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/potion_vaporizer.png");
 
 	public PotionVaporizerScreen(PotionVaporizerContainer screenContainer, Inventory inv, Component titleIn)
 	{

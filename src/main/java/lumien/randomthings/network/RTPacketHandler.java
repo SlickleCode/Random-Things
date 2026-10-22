@@ -72,7 +72,7 @@ public class RTPacketHandler
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static void register(PayloadRegistrar registrar, String name, Class messageClass)
 	{
-		CustomPacketPayload.Type type = new CustomPacketPayload.Type<>(new ResourceLocation("randomthings", name));
+		CustomPacketPayload.Type type = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("randomthings", name));
 		TYPES.put(messageClass, type);
 
 		StreamCodec<RegistryFriendlyByteBuf, IRTMessage> codec = StreamCodec.of((buf, msg) -> msg.write(buf), buf -> {

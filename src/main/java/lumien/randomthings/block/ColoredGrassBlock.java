@@ -38,7 +38,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 
 	public static int getTint(DyeColor color)
 	{
-		float[] rgb = color.getTextureDiffuseColors();
+		float[] rgb = lumien.randomthings.util.DyeUtil.diffuse(color);
 		return ((int) (rgb[0] * 255) << 16) | ((int) (rgb[1] * 255) << 8) | (int) (rgb[2] * 255);
 	}
 

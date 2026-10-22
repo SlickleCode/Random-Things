@@ -1,4 +1,4 @@
-# Random Things 1.20.6 - Testing Checklist
+# Random Things 1.21.1 - Testing Checklist
 
 **Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md).
 
@@ -300,3 +300,16 @@ These are the behaviours whose implementation changed in the 1.20.6 port (data c
 | P14 | Load a world saved by the 1.20.1 version: block entity data (Floo network, Ender Mailbox letters, Spectre cubes) survives; stacks keep their data only if saved by this version (item NBT is not converted) |  | *Why:* new world format; no automatic conversion of custom item data |
 | P15 | Blazing Fire catches flammable blocks about 4 times as often as vanilla fire (the coremod now actually applies) |  | *Why:* `checkBurnOut` rename |
 
+## 8. New for 1.21.1 (NeoForge 21.1.264) - all FIXED/new, nothing tested by hand
+
+Behaviours whose implementation changed in the 1.21 port. The suites, the GUI click test and the render scenes pass; these are worth a quick look in the manual world.
+
+| # | Check | Result | Feedback |
+|---|---|---|---|
+| Q1 | Magnetic enchantment: appears on the enchanting table / enchanted books for pickaxes, axes and shovels, anvil cost and name "Magnetic" correct; a Magnetic tool sends block drops straight into the inventory; the Block Breaker still picks up with it |  | *Why:* the enchantment is a data-pack enchantment now (config toggle only disables the effect) |
+| Q2 | Dyeing Machine armor: dyed iron/leather armor on a player and on an armor stand shows the dye colour on every piece; dyed items (sword, diamond) are tinted in hand, in the inventory and on the ground |  | *Why:* the armor tint hook moved (NeoForge 21 armor render overloads) |
+| Q3 | Lotus Seeds and Spectre Sapling plant on dirt/grass/farmland and on Fertilized Dirt (tilled and untilled), not on stone; Fertilized Dirt still grows crops, stems and desert plants as before |  | *Why:* `IPlantable`/`PlantType` are gone, soil checks use the plant block state |
+| Q4 | Spectre key / Spectre dimension: entering and leaving the Spectre dimension (key, Spectre Anchor) and the End via the Artificial End Portal teleports you to the right place with no portal sound/animation glitches |  | *Why:* `changeDimension` takes a `DimensionTransition` now |
+| Q5 | Eclipsed Clock frame hangs on a wall with the right size and drops its item when broken; Golden Chicken and Spirit drops/experience, Spectre Illuminator lights up and un-lights when removed |  | *Why:* hanging-entity bounding box, mob drop/experience and removal hooks were renamed |
+| Q6 | Imbue potions (fire, poison, wither, ...): melee hits apply the effect, arrows and thrown potions do not |  | *Why:* now `LivingIncomingDamageEvent` |
+| Q7 | Crafting-grid special recipes still work: Diaphanous set/invert, Portkey camouflage, Spectre Anchor combine, Golden/Emerald Compass position/target |  | *Why:* recipes take `CraftingInput` now |

@@ -124,7 +124,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
             return;
         }
 
-        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(new net.minecraft.resources.ResourceLocation(tag.getString("block")));
+        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.parse(tag.getString("block")));
 
         if (displayBlock != null) {
             ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBoolean("inverted"));

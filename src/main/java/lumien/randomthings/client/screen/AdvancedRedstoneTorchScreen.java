@@ -27,7 +27,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class AdvancedRedstoneTorchScreen extends AbstractContainerScreen<AdvancedRedstoneTorchContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/advanced_redstone_torch.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/advanced_redstone_torch.png");
 
 	ContainerLevelAccess pos;
 

@@ -284,10 +284,10 @@ public final class ManualTestWorld
 		stacks.add(new ItemStack(Items.IRON_LEGGINGS));
 		stacks.add(new ItemStack(Items.IRON_BOOTS));
 		ItemStack enchanted = new ItemStack(Items.IRON_HELMET);
-		enchanted.enchant(net.minecraft.world.item.enchantment.Enchantments.PROTECTION, 1);
+		enchanted.enchant(player.serverLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION), 1);
 		stacks.add(enchanted);
 		ItemStack magnetic = new ItemStack(Items.DIAMOND_PICKAXE);
-		magnetic.enchant(lumien.randomthings.enchantment.ModEnchantments.MAGNETIC, 1);
+		magnetic.enchant(lumien.randomthings.enchantment.ModEnchantments.holder(player.serverLevel().registryAccess(), lumien.randomthings.enchantment.ModEnchantments.MAGNETIC), 1);
 		stacks.add(magnetic);
 
 		for (net.minecraft.world.item.DyeColor color : net.minecraft.world.item.DyeColor.values())
@@ -311,13 +311,13 @@ public final class ManualTestWorld
 
 	private static ItemStack mod(String path, int count)
 	{
-		return new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(ModConstants.MOD_ID, path)), count);
+		return new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, path)), count);
 	}
 
 	private static ItemStack crystal(String biomeId)
 	{
 		ItemStack stack = new ItemStack(ModItems.BIOME_CRYSTAL);
-		Biome biome = BiomeUtil.byId(new ResourceLocation(biomeId));
+		Biome biome = BiomeUtil.byId(ResourceLocation.parse(biomeId));
 
 		if (biome != null)
 		{

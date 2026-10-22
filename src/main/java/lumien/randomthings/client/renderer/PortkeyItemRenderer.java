@@ -70,7 +70,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * first (+0.5 on all three axes) so the inner call's own -0.5 is the only one that survives.
  */
 public class PortkeyItemRenderer extends BlockEntityWithoutLevelRenderer {
-    private static final ResourceLocation BASE_MODEL = new ResourceLocation("randomthings", "item/portkey_base");
+    private static final net.minecraft.client.resources.model.ModelResourceLocation BASE_MODEL = net.minecraft.client.resources.model.ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("randomthings", "item/portkey_base"));
 
     public PortkeyItemRenderer() {
         super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());

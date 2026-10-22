@@ -22,7 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class NotificationInterfaceScreen extends AbstractContainerScreen<NotificationInterfaceContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/notification_interface.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/notification_interface.png");
 
 	private EditBox titleField;
 	private EditBox descriptionField;

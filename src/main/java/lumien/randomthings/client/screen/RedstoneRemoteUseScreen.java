@@ -31,7 +31,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * Redstone Remote's edit screen, or the Position Filter's own icon if none.
  */
 public class RedstoneRemoteUseScreen extends AbstractContainerScreen<RedstoneRemoteUseContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/redstone_remote_use.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/redstone_remote_use.png");
 
     public RedstoneRemoteUseScreen(RedstoneRemoteUseContainer screenContainer, Inventory inv, Component titleIn) {
         super(screenContainer, inv, titleIn);

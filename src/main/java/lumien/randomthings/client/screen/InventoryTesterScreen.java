@@ -25,7 +25,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTesterContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/inventory_tester.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/inventory_tester.png");
 
 	public InventoryTesterScreen(InventoryTesterContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -41,7 +41,7 @@ public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTest
 		super.init();
 
 		// 20x20 sprite toggle at the original position (93,16)
-		this.addRenderableWidget(new SpriteStateButton(this.leftPos + 93, this.topPos + 16, 20, 20, new net.minecraft.resources.ResourceLocation("randomthings:textures/gui/inventory_tester/invert_signal.png"), () -> this.menu.invertSignal.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"), (button) -> {
+		this.addRenderableWidget(new SpriteStateButton(this.leftPos + 93, this.topPos + 16, 20, 20, net.minecraft.resources.ResourceLocation.parse("randomthings:textures/gui/inventory_tester/invert_signal.png"), () -> this.menu.invertSignal.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"), (button) -> {
 			this.menu.send(0, (pb) -> {
 			});
 		}));

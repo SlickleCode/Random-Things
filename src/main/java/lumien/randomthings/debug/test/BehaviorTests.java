@@ -17,6 +17,7 @@ import lumien.randomthings.tileentity.IgniterTileEntity;
 import lumien.randomthings.tileentity.IronDropperTileEntity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -195,9 +196,9 @@ final class BehaviorTests
 			SpectreAnchorCombineRecipe recipe = new SpectreAnchorCombineRecipe(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
 			ItemStack anchor = new ItemStack(ModItems.SPECTRE_ANCHOR);
 
-			CraftingContainer good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
+			CraftingInput good = grid(3, 3, anchor, new ItemStack(Items.IRON_SWORD));
 			c.check(recipe.matches(good, c.world), "anchor + sword should match");
-			ItemStack result = recipe.assemble(good, net.minecraft.core.RegistryAccess.EMPTY);
+			ItemStack result = recipe.assemble(good, c.world.registryAccess());
 			c.eq(Items.IRON_SWORD, result.getItem(), "result item");
 			c.check(StackTag.contains(result, "spectreAnchor"), "result must carry the spectreAnchor tag");
 			recipe.getRemainingItems(good).forEach(s -> c.check(s.isEmpty(), "anchor and target are both consumed"));
@@ -242,13 +243,13 @@ final class BehaviorTests
 					inv.setItem(slot, stack);
 				}
 
-				if (!crafting.matches(inv, c.world))
+				if (!crafting.matches(inv.asCraftInput(), c.world))
 				{
 					problems.add(holder.id().getPath() + " does not match its own ingredients");
 					continue;
 				}
 
-				ItemStack out = crafting.assemble(inv, net.minecraft.core.RegistryAccess.EMPTY);
+				ItemStack out = crafting.assemble(inv.asCraftInput(), c.world.registryAccess());
 				ItemStack expected = recipe.getResultItem(net.minecraft.core.RegistryAccess.EMPTY);
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
@@ -264,7 +265,7 @@ final class BehaviorTests
 		return tests;
 	}
 
-	private static CraftingContainer grid(int w, int h, ItemStack... stacks)
+	private static CraftingInput grid(int w, int h, ItemStack... stacks)
 	{
 		CraftingContainer inv = new net.minecraft.world.inventory.TransientCraftingContainer(new NoopContainer(), w, h);
 
@@ -273,7 +274,7 @@ final class BehaviorTests
 			inv.setItem(i, stacks[i].copy());
 		}
 
-		return inv;
+		return inv.asCraftInput();
 	}
 
 	private static final class NoopContainer extends AbstractContainerMenu

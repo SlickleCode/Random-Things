@@ -79,7 +79,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         CompoundTag compound = StackTag.get(stack);
 
         if (compound != null && compound.contains("biomeName")) {
-            return lumien.randomthings.util.BiomeUtil.byId(new ResourceLocation(compound.getString("biomeName")));
+            return lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(compound.getString("biomeName")));
         }
 
         return null;

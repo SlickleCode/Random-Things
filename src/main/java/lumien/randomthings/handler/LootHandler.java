@@ -37,10 +37,10 @@ import com.google.gson.JsonDeserializationContext;
  */
 public class LootHandler
 {
-	public static final ResourceLocation SIMPLE_DUNGEON = new ResourceLocation("minecraft", "chests/simple_dungeon");
-	public static final ResourceLocation VILLAGE_WEAPONSMITH = new ResourceLocation("minecraft", "chests/village/village_weaponsmith");
-	public static final ResourceLocation STRONGHOLD_CORRIDOR = new ResourceLocation("minecraft", "chests/stronghold_corridor");
-	public static final ResourceLocation JUNGLE_TEMPLE = new ResourceLocation("minecraft", "chests/jungle_temple");
+	public static final ResourceLocation SIMPLE_DUNGEON = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/simple_dungeon");
+	public static final ResourceLocation VILLAGE_WEAPONSMITH = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/village/village_weaponsmith");
+	public static final ResourceLocation STRONGHOLD_CORRIDOR = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/stronghold_corridor");
+	public static final ResourceLocation JUNGLE_TEMPLE = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/jungle_temple");
 
 	public static void addLoot(LootTableLoadEvent event)
 	{
@@ -95,7 +95,7 @@ public class LootHandler
 
 	public static void registerFunctionTypes()
 	{
-		Registry.register(net.minecraft.core.registries.BuiltInRegistries.LOOT_FUNCTION_TYPE, new ResourceLocation("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
+		Registry.register(net.minecraft.core.registries.BuiltInRegistries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
 	}
 
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */

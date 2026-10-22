@@ -22,7 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class OnlineDetectorScreen extends AbstractContainerScreen<OnlineDetectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/online_detector.png");
+	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/online_detector.png");
 
 	private EditBox usernameField;
 	private String lastSent;

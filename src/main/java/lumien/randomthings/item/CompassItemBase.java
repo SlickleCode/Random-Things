@@ -37,7 +37,7 @@ public abstract class CompassItemBase extends Item implements IClientItemPropert
 	@OnlyIn(Dist.CLIENT)
 	public void registerClientProperties()
 	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, new ResourceLocation("angle"), new ItemPropertyFunction()
+		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("angle"), new ItemPropertyFunction()
 		{
 			private double rotation;
 			private double rota;

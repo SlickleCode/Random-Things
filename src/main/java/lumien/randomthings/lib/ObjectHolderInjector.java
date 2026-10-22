@@ -16,7 +16,6 @@ public class ObjectHolderInjector
 			lumien.randomthings.item.ModItems.class,
 			lumien.randomthings.tileentity.ModTileEntityTypes.class,
 			lumien.randomthings.container.ModContainerTypes.class,
-			lumien.randomthings.enchantment.ModEnchantments.class,
 			lumien.randomthings.entity.ModEntityTypes.class,
 			lumien.randomthings.potion.ModEffects.class,
 			lumien.randomthings.worldgen.ModFeatures.class };
@@ -30,11 +29,11 @@ public class ObjectHolderInjector
 			for (Field field : holder.getDeclaredFields())
 			{
 				ObjectHolder annotation = field.getAnnotation(ObjectHolder.class);
-				if (annotation == null || !Modifier.isStatic(field.getModifiers()) || !new ResourceLocation(annotation.registryName()).equals(registryKey.location()))
+				if (annotation == null || !Modifier.isStatic(field.getModifiers()) || !ResourceLocation.parse(annotation.registryName()).equals(registryKey.location()))
 				{
 					continue;
 				}
-				ResourceLocation id = new ResourceLocation(annotation.value());
+				ResourceLocation id = ResourceLocation.parse(annotation.value());
 				Object value = field.getType() == net.minecraft.core.Holder.class ? registry.getHolder(id).orElseThrow() : registry.get(id);
 				try
 				{

@@ -14,6 +14,6 @@ public class ModDataComponents
 
 	public static void register(RegisterEvent event)
 	{
-		event.register(Registries.DATA_COMPONENT_TYPE, new ResourceLocation(ModConstants.MOD_ID, "fluid"), () -> FLUID);
+		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "fluid"), () -> FLUID);
 	}
 }

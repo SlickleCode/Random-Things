@@ -27,7 +27,7 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  * mod's data pack for the Create World screen too, so (unlike 1.19.2) nothing has to be registered from code except the generator codec.
  */
 public class ModDimensions {
-    public static final ResourceLocation SPECTRE_ID = new ResourceLocation("randomthings", "spectre");
+    public static final ResourceLocation SPECTRE_ID = ResourceLocation.fromNamespaceAndPath("randomthings", "spectre");
     public static final ResourceKey<Level> SPECTRE_WORLD = ResourceKey.create(Registries.DIMENSION, SPECTRE_ID);
     public static final ResourceKey<DimensionType> SPECTRE_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, SPECTRE_ID);
     public static final ResourceKey<LevelStem> SPECTRE_DIMENSION = ResourceKey.create(Registries.LEVEL_STEM, SPECTRE_ID);

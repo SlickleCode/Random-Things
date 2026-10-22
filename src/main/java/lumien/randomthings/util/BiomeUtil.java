@@ -34,20 +34,20 @@ public class BiomeUtil {
     private static final Map<String, ResourceLocation> VANILLA_TAGS = new HashMap<>();
 
     static {
-        VANILLA_TAGS.put("FOREST", new ResourceLocation("minecraft", "is_forest"));
-        VANILLA_TAGS.put("HILLS", new ResourceLocation("minecraft", "is_hill"));
-        VANILLA_TAGS.put("JUNGLE", new ResourceLocation("minecraft", "is_jungle"));
-        VANILLA_TAGS.put("MESA", new ResourceLocation("minecraft", "is_badlands"));
-        VANILLA_TAGS.put("MOUNTAIN", new ResourceLocation("minecraft", "is_mountain"));
-        VANILLA_TAGS.put("NETHER", new ResourceLocation("minecraft", "is_nether"));
-        VANILLA_TAGS.put("END", new ResourceLocation("minecraft", "is_end"));
-        VANILLA_TAGS.put("OCEAN", new ResourceLocation("minecraft", "is_ocean"));
-        VANILLA_TAGS.put("RIVER", new ResourceLocation("minecraft", "is_river"));
-        VANILLA_TAGS.put("MESA", new ResourceLocation("c", "is_badlands"));
-        VANILLA_TAGS.put("CONIFEROUS", new ResourceLocation("c", "is_taiga"));
-        VANILLA_TAGS.put("DENSE", new ResourceLocation("c", "is_dense_vegetation"));
-        VANILLA_TAGS.put("SPARSE", new ResourceLocation("c", "is_sparse_vegetation"));
-        VANILLA_TAGS.put("WATER", new ResourceLocation("c", "is_aquatic"));
+        VANILLA_TAGS.put("FOREST", ResourceLocation.fromNamespaceAndPath("minecraft", "is_forest"));
+        VANILLA_TAGS.put("HILLS", ResourceLocation.fromNamespaceAndPath("minecraft", "is_hill"));
+        VANILLA_TAGS.put("JUNGLE", ResourceLocation.fromNamespaceAndPath("minecraft", "is_jungle"));
+        VANILLA_TAGS.put("MESA", ResourceLocation.fromNamespaceAndPath("minecraft", "is_badlands"));
+        VANILLA_TAGS.put("MOUNTAIN", ResourceLocation.fromNamespaceAndPath("minecraft", "is_mountain"));
+        VANILLA_TAGS.put("NETHER", ResourceLocation.fromNamespaceAndPath("minecraft", "is_nether"));
+        VANILLA_TAGS.put("END", ResourceLocation.fromNamespaceAndPath("minecraft", "is_end"));
+        VANILLA_TAGS.put("OCEAN", ResourceLocation.fromNamespaceAndPath("minecraft", "is_ocean"));
+        VANILLA_TAGS.put("RIVER", ResourceLocation.fromNamespaceAndPath("minecraft", "is_river"));
+        VANILLA_TAGS.put("MESA", ResourceLocation.fromNamespaceAndPath("c", "is_badlands"));
+        VANILLA_TAGS.put("CONIFEROUS", ResourceLocation.fromNamespaceAndPath("c", "is_taiga"));
+        VANILLA_TAGS.put("DENSE", ResourceLocation.fromNamespaceAndPath("c", "is_dense_vegetation"));
+        VANILLA_TAGS.put("SPARSE", ResourceLocation.fromNamespaceAndPath("c", "is_sparse_vegetation"));
+        VANILLA_TAGS.put("WATER", ResourceLocation.fromNamespaceAndPath("c", "is_aquatic"));
     }
 
     /** Every type name {@link #types} can report (the cases of the biome colour switch plus the ones worldgen asks for). */
@@ -167,7 +167,7 @@ public class BiomeUtil {
     }
 
     private static TagKey<Biome> tag(String type) {
-        ResourceLocation id = VANILLA_TAGS.getOrDefault(type, new ResourceLocation("c", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
+        ResourceLocation id = VANILLA_TAGS.getOrDefault(type, ResourceLocation.fromNamespaceAndPath("c", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
 
         return TagKey.create(Registries.BIOME, id);
     }

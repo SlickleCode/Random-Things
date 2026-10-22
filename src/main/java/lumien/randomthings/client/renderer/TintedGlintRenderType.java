@@ -65,7 +65,7 @@ public final class TintedGlintRenderType extends RenderType {
             if (fixedBuffersField == null) {
                 // the map of render type -> dedicated builder; found by its type so the (obfuscated) field name does not matter
                 for (Field f : MultiBufferSource.BufferSource.class.getDeclaredFields()) {
-                    if (Map.class.isAssignableFrom(f.getType()) && f.getGenericType().toString().contains("BufferBuilder") && f.getGenericType().toString().contains("RenderType")) {
+                    if (Map.class.isAssignableFrom(f.getType()) && f.getGenericType().toString().contains("ByteBufferBuilder") && f.getGenericType().toString().contains("RenderType")) {
                         f.setAccessible(true);
                         fixedBuffersField = f;
                         break;
@@ -73,8 +73,8 @@ public final class TintedGlintRenderType extends RenderType {
                 }
             }
 
-            Map<RenderType, BufferBuilder> fixed = (Map<RenderType, BufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().renderBuffers().bufferSource());
-            fixed.put(type, new BufferBuilder(256));
+            Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder> fixed = (Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().renderBuffers().bufferSource());
+            fixed.put(type, new com.mojang.blaze3d.vertex.ByteBufferBuilder(256));
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("cannot register the tinted glint buffer", e);
         }

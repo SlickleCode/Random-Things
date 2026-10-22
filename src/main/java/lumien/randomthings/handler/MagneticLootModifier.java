@@ -44,7 +44,7 @@ public class MagneticLootModifier extends LootModifier
 		Entity harvester = context.getParamOrNull(LootContextParams.THIS_ENTITY);
 		ItemStack tool = context.getParamOrNull(LootContextParams.TOOL);
 
-		if (!(harvester instanceof Player) || tool == null || EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.MAGNETIC, tool) <= 0)
+		if (!(harvester instanceof Player) || tool == null || EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.holder(context.getLevel().registryAccess(), ModEnchantments.MAGNETIC), tool) <= 0)
 		{
 			return generatedLoot;
 		}

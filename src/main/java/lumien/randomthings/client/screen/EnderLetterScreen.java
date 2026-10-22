@@ -26,7 +26,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContainer> {
     public static final int MAX_MESSAGE_LENGTH = 200;
 
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/ender_letter.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/ender_letter.png");
 
     private final boolean received;
 

@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.Fluid;
@@ -48,10 +47,5 @@ public final class RegUtil
 	public static ResourceLocation id(MobEffect e)
 	{
 		return BuiltInRegistries.MOB_EFFECT.getKey(e);
-	}
-
-	public static ResourceLocation id(Enchantment e)
-	{
-		return BuiltInRegistries.ENCHANTMENT.getKey(e);
 	}
 }

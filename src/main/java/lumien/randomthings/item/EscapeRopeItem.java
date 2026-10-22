@@ -35,7 +35,7 @@ public class EscapeRopeItem extends Item {
     }
 
     @Override
-    public int getUseDuration(ItemStack stack) {
+    public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity user) {
         return 20 * 60;
     }
 
@@ -72,7 +72,7 @@ public class EscapeRopeItem extends Item {
             return;
         }
 
-        float alpha = Math.min(1, (getUseDuration(stack) - count) * (1 / 60F));
+        float alpha = Math.min(1, (getUseDuration(stack, entity) - count) * (1 / 60F));
 
         for (int i = 0; i < 7; i += 1) {
             for (int c = 0; c < 20; c += 10) {

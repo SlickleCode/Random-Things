@@ -27,7 +27,7 @@ public class SuperLubricentBootsItem extends ArmorItem
 	static
 	{
 		ArmorMaterial iron = ArmorMaterials.IRON.value();
-		MATERIAL = Holder.direct(new ArmorMaterial(iron.defense(), iron.enchantmentValue(), iron.equipSound(), iron.repairIngredient(), List.of(new ArmorMaterial.Layer(new ResourceLocation("randomthings", "superlubricentboots"))), iron.toughness(), iron.knockbackResistance()));
+		MATERIAL = Holder.direct(new ArmorMaterial(iron.defense(), iron.enchantmentValue(), iron.equipSound(), iron.repairIngredient(), List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath("randomthings", "superlubricentboots"))), iron.toughness(), iron.knockbackResistance()));
 	}
 
 	public SuperLubricentBootsItem(Item.Properties properties)

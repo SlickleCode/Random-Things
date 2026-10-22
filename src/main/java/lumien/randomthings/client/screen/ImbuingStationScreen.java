@@ -22,7 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * texture sheet the original used (byte-identical, confirmed).
  */
 public class ImbuingStationScreen extends AbstractContainerScreen<ImbuingStationContainer> {
-    private static final ResourceLocation GUI_TEXTURES = new ResourceLocation("randomthings:textures/gui/imbuing_station.png");
+    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/imbuing_station.png");
 
     private int progressBubble;
 

@@ -22,11 +22,17 @@ public class DyeUtil {
      * values, so it is rebuilt from the texture diffuse colours (which are exactly r/255, g/255, b/255 of it).
      */
     public static int rgb(DyeColor color) {
-        float[] c = color.getTextureDiffuseColors();
+        float[] c = diffuse(color);
         return Math.round(c[0] * 255F) << 16 | Math.round(c[1] * 255F) << 8 | Math.round(c[2] * 255F);
     }
 
     public static boolean isVanillaDye(ItemStack dyeStack) {
         return DyeColor.getColor(dyeStack) != null;
+    }
+
+    /** The dye's diffuse colour as {r, g, b} floats (1.21 only exposes it as an int). */
+    public static float[] diffuse(DyeColor color) {
+        int c = color.getTextureDiffuseColor();
+        return new float[] { (c >> 16 & 255) / 255.0F, (c >> 8 & 255) / 255.0F, (c & 255) / 255.0F };
     }
 }

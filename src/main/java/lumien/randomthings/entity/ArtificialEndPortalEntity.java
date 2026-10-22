@@ -96,7 +96,7 @@ public class ArtificialEndPortalEntity extends Entity {
         super.playerTouch(entityIn);
 
         if (!this.level().isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
-            entityIn.changeDimension(this.level().getServer().getLevel(Level.END));
+            entityIn.changeDimension(new net.minecraft.world.level.portal.DimensionTransition(this.level().getServer().getLevel(Level.END), entityIn, net.minecraft.world.level.portal.DimensionTransition.DO_NOTHING));
         }
     }
 

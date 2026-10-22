@@ -18,22 +18,21 @@ function initializeCoreMod() {
                     var method = methods[m];
 
                     // Dyeing Machine colour ("rtDye" tag), which 1.12.2 applied to every armor piece:
-                    // 1.20.6: the colour of every armor layer is the three float arguments of the private
-                    // renderModel(PoseStack, MultiBufferSource, int, Model, float r, float g, float b, ResourceLocation)
-                    // (locals 5-7); patching its entry covers leather and every other armor in one place.
-                    if (method.name === "renderModel" && method.desc === "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/model/Model;FFFLnet/minecraft/resources/ResourceLocation;)V") {
+                    // 1.21: the colour of every armor layer is the int (ARGB) argument of the private
+                    // renderModel(PoseStack, MultiBufferSource, int, Model, int color, ResourceLocation) (local 5);
+                    // patching its entry covers leather and every other armor in one place. (1.20.6 passed three floats.)
+                    if (method.name === "renderModel" && method.desc === "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/model/Model;ILnet/minecraft/resources/ResourceLocation;)V") {
                         var tint = new InsnList();
-                        for (var ch = 0; ch < 3; ch++) {
-                            tint.add(new VarInsnNode(Opcodes.FLOAD, 5 + ch));
-                            tint.add(new InsnNode(Opcodes.ICONST_0 + ch));
-                            tint.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorTintChannel", "(FI)F", false));
-                            tint.add(new VarInsnNode(Opcodes.FSTORE, 5 + ch));
-                        }
+                        tint.add(new VarInsnNode(Opcodes.ILOAD, 5));
+                        tint.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "armorTintColor", "(I)I", false));
+                        tint.add(new VarInsnNode(Opcodes.ISTORE, 5));
                         method.instructions.insert(tint);
                         continue;
                     }
 
-                    if (method.name !== "renderArmorPiece" || method.desc !== "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;)V") {
+                    // 1.21 (NeoForge) renders through the 12-argument overload (the 6-argument one only forwards), so both are patched.
+                    var armorPrefix = "(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;";
+                    if (method.name !== "renderArmorPiece" || (method.desc !== armorPrefix + ")V" && method.desc !== armorPrefix + "FFFFFF)V")) {
                         continue;
                     }
 
