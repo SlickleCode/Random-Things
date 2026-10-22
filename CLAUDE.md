@@ -1,6 +1,6 @@
-# Random Things — 1.12.2 → Forge 1.14.4 port
+# Random Things — 1.12.2 → Forge/NeoForge port (one branch per Minecraft version)
 
-Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to Forge 1.14.4, on the
+Porting the Minecraft mod "Random Things" (originally by Lumien) from 1.12.2 to newer Forge versions (one branch per version; this folder is one of them, see `docs/project/branches.md`), on the
 fork [SlickleCode/Random-Things](https://github.com/SlickleCode/Random-Things).
 
 Reusable docs: [docs/testing/](docs/testing/README.md) (automated in-game tests, dev-only) and
@@ -12,15 +12,14 @@ project state from scratch; that file is kept current after every slice.
 
 ## Branches
 
-- `1.14.4` — the 1.14.4 port (Forge 28.2.26, Gradle 5.6.4).
-- `1.16.5` — the 1.16.5 port (Forge 36.2.39, ForgeGradle 4.1, Gradle 6.8.3), branched from `1.14.4`; plan in `docs/migration/plans/1.16.5-port-plan.md`.
-- `master` — untouched original 1.12.2-era source, kept as reference (`git show origin/1.12.2:<path>`
-  to read the real original of any file).
-- `main` — landing-page README only, no code.
+One branch per Minecraft version, each a full port cut from the previous one. The table (loader, build tooling, JDK, naming scheme, plan file) is in
+[docs/project/branches.md](docs/project/branches.md); facts that differ per branch (jar locations, name schemes, API traps, suite flakes, playtest status) are in
+[docs/project/version-notes.md](docs/project/version-notes.md), which the project skills and agents read first. `master` is the untouched 1.12.2-era source
+(`git show origin/1.12.2:<path>`), `main` a README only.
 
 ## One folder per version (git worktrees)
 
-The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/1.14.4`, `<parent>/1.16.5`); you
+The repository lives in the parent folder as a bare store with one **worktree folder per version branch** (`<parent>/<version>`); you
 are in one of them. Each has its own `run/`, `build/`, `prod-test/` and checked-out branch, so there is nothing to clean when changing versions:
 **open the other folder instead of running `git checkout`**. Use `git worktree list` to see them and `git -C <other-folder> ...` for the other branch.
 If you ever do switch the branch inside a folder, clear the old state first (a world from a newer version hangs an older client, an old server world
@@ -33,7 +32,7 @@ rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run
 ## Toolchain
 
 ```
-source env/activate.sh   # pins JDK 8
+source env/activate.sh   # pins the JDK this branch needs (docs/project/branches.md)
 ./gradlew build          # full build; add -x test to skip tests for a quick compile check
 ```
 
@@ -48,7 +47,7 @@ history) lives in `docs/project/` — put new detail there, not back in the root
 
 - **Ground-truth every uncertain Minecraft/Forge API against the real mapped jar with `javap` before writing code that uses it** — never from
   memory of modding guides (this repeatedly caught real bugs: wrong render-layer assumptions, nonexistent methods, APIs that silently do nothing).
-  Jar locations per version, SRG names and bytecode reading: the `mapping-lookup` skill.
+  Jar locations, name schemes and bytecode reading: the `mapping-lookup` skill and `docs/project/version-notes.md`.
 - **Match 1.12.2 behavior exactly by default**, including reading the actual original source via
   `git show origin/1.12.2:<path>` rather than assuming. When the user explicitly states a preference
   that diverges from the original, follow their call and flag the divergence plainly rather than
@@ -67,8 +66,8 @@ history) lives in `docs/project/` — put new detail there, not back in the root
   later.
 - Work in the same local checkout the user runs `./gradlew runClient` in — no need to hand over a
   built jar unless they ask for one directly (e.g. to test on a separate real launcher install).
-- **Mixins cannot be tested via `./gradlew runClient`** in this environment, and this Forge build never
-  actually shipped Mixin's own runtime — see `PORTING_PLAN.md`'s Mixin-investigation history if that
+- **Mixins cannot be tested via `./gradlew runClient`** in this environment (older Forge builds never
+  shipped Mixin's own runtime) — see `PORTING_PLAN.md`'s Mixin-investigation history if that
   ever comes up again. The project converts Mixins to coremods (`META-INF/coremods.json` +
   `transformer/*.js` + `AsmHandler`) instead, which do work self-contained in a shipped jar.
 
@@ -82,24 +81,20 @@ attribution instructions for the current line to use.
   or hooks; read `run/randomthings_audit.txt` and `run/randomthings_tests.txt`. Also run
   `RT_AUTOTEST=true RT_AUTOTEST_EXIT=true ./gradlew runServer` after anything that adds client-class references (dedicated-server boot + suite). Add a behavior test
   (`debug/test/BehaviorTests`) for new redstone/capability/hook logic.
-- All dev tooling must stay behind `DevMode.ENABLED` (`-Drandomthings.debug=true`): no `@Mod.EventBusSubscriber`
-  on dev classes, no references to dev classes from game code except the guarded `DevTools.init()` call, no config
+- All dev tooling must stay behind `DevMode.ENABLED` (`-Drandomthings.debug=true`): no event-bus subscriber
+  annotations on dev classes, no references to dev classes from game code except the guarded `DevTools.init()` call, no config
   options for it. Use `RTDebug.log(...)` for diagnostics, never an unconditional `LOGGER.info` in gameplay code.
 - Before relying on any Forge event, find who posts it in the sources jar (`HarvestDropsEvent` is never posted).
 
-## Project skills (`.claude/skills/`)
+## Shared tooling (`.claude/`, `docs/migration/tools/`)
 
-Procedures that were repeated by hand are packaged as skills - load them instead of re-deriving: `prod-jar-check` (verify the jar on a real SRG-named
-server/client), `scripted-playtest` (drive the real game with `desk.py`/`scn.py`; run or write scenarios), `mapping-lookup` (javap, dev vs SRG names per
-version), `coremod-patching` (writing/debugging JS transformers and their traps), `branch-mirroring` (switching version branches, cherry-picking, what to
-re-verify and re-document).
+This tooling is **identical on every branch** (check with `/drift`); anything version-specific goes in `docs/project/version-notes.md`, never into a skill, agent or command. Change a shared file once, `/mirror` it, run `/drift`.
 
-Project command: `/mirror <sha> <branch...>` (`.claude/commands/mirror.md`, `docs/migration/tools/mirror.sh`) applies a commit's diff to other version worktrees without committing and compiles each.
-
-Cross-version helpers (`docs/migration/tools/`): `/suites [--baseline] [branch...]` (`suite-all.sh`: server suite on every worktree, one table), `/parity` (`test-parity.py`: which tests exist on which branch), `.claude/hooks/remind.py` (PostToolUse reminders after editing coremod transformers, shared build/registry files and tests; wired in `.claude/settings.json`). Line endings are fixed by `.gitattributes` (LF in the repo and the working tree).
-
-Project agents (`.claude/agents/`): `bytecode-scout` (read-only javap/mapping research, returns anchors and signatures, not dumps) and `suite-runner`
-(runs the dev/server/click/production suites and reports only counts and failures). Use them when the raw output would flood the context.
+- Skills: `prod-jar-check` (verify the jar on a real server/client), `scripted-playtest` (drive the real game with `desk.py`/`scn.py`), `mapping-lookup` (javap, name schemes), `coremod-patching` (JS transformers and their traps), `branch-mirroring` (switching branches, carrying changes, what to re-verify and re-document).
+- Agents: `bytecode-scout` (read-only javap/mapping research, returns anchors and signatures, not dumps) and `suite-runner` (runs the dev/server/click/production suites, reports only counts and failures). Use them when the raw output would flood the context.
+- Commands: `/mirror <sha> <branch...>` (`mirror.sh`: apply a commit's diff to other worktrees without committing, compile each), `/suites [--baseline] [branch...]` (`suite-all.sh`: server suite on every worktree, one table, baseline in `docs/testing/suite-baseline.txt`), `/parity` (`test-parity.py`: which tests exist on which branch), `/drift` (`shared-drift.py`: shared files that differ between branches).
+- Hook: `.claude/hooks/remind.py` (PostToolUse, wired in `.claude/settings.json`) reminds after edits to coremod transformers, shared build/registry files and tests.
+- Line endings are fixed by `.gitattributes` (LF in the repository and the working tree).
 
 ## General coding guidelines (Karpathy-style, from multica-ai/andrej-karpathy-skills)
 
