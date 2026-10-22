@@ -12,9 +12,9 @@ import os
 import re
 import sys
 
-BRANCHES = ['1.14.4', '1.16.5', '1.18.2', '1.19.2', '1.20.1', '1.20.6']
 here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 parent = os.path.dirname(here)
+BRANCHES = sorted((d for d in os.listdir(parent) if re.fullmatch(r'\d+\.\d+(\.\d+)?', d)), key=lambda v: [int(x) for x in v.split('.')])
 NAME = re.compile(r'RTTest\s*\.\s*named\(\s*"([^"]+)"')
 
 
