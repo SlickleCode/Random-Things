@@ -14,7 +14,7 @@ if [ "${1:-}" = "--baseline" ]; then baseline=1; shift; fi
 here=$(git rev-parse --show-toplevel) || exit 2
 parent=$(dirname "$here")
 branches=("$@")
-[ ${#branches[@]} -eq 0 ] && branches=(1.14.4 1.16.5 1.18.2 1.19.2 1.20.1 1.20.6)
+[ ${#branches[@]} -eq 0 ] && mapfile -t branches < <(ls "$parent" | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$' | sort -V)
 base_file="$here/docs/testing/suite-baseline.txt"
 
 rows=(); fails=()
