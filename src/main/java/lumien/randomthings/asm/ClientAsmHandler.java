@@ -100,6 +100,7 @@ public class ClientAsmHandler {
                 return 2;
             }
 
+            lumien.randomthings.debug.HookProbe.hit("light_redirect_applied");
             BlockState switchedState = world.getBlockState(switched);
             RenderShape renderType = switchedState.getRenderShape();
 
@@ -161,6 +162,9 @@ public class ClientAsmHandler {
 
     public static float armorChannel(ItemStack stack, int channel, float defaultValue) {
         if (StackTag.contains(stack, "rtDye")) {
+            if (channel == 0) {
+                lumien.randomthings.debug.HookProbe.hit("armor_dye_applied");
+            }
             int rgb = StackTag.getInt(stack, "rtDye");
             int shift = channel == 0 ? 16 : (channel == 1 ? 8 : 0);
 

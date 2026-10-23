@@ -269,6 +269,78 @@ final class CoremodTests
 			c.check(bootedSneaking < 0.7, "sneaking must cancel the boots' effect, was " + bootedSneaking);
 		}));
 
+		// ---- every transformer must have left its hook-site marker -------------------------------------------------------
+		// Each transformer script ends by adding a synthetic field rt$hooks$<Tag>$<count> to its target class (count = calls into
+		// lumien/randomthings/asm it left there). A transformer whose anchor vanished after a Minecraft update applies to nothing and
+		// no behaviour test notices; here it shows up as a missing marker or a count of 0.
+		tests.add(RTTest.named("coremod.applied.every_transformer_left_its_hook_marker_on_its_target_class").run(c -> {
+			ClassLoader loader = CoremodTests.class.getClassLoader();
+			String registry = readRegistry(loader);
+			boolean client = isClientDist();
+
+			java.util.regex.Matcher scripts = java.util.regex.Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"(transformer/[^\"]+\\.js)\"").matcher(registry);
+			List<String> problems = new ArrayList<>();
+			List<String> report = new ArrayList<>();
+			int checked = 0;
+
+			while (scripts.find())
+			{
+				String path = scripts.group(2);
+				String file = path.substring(path.lastIndexOf('/') + 1);
+				String tag = file.endsWith("Transformer.js") ? file.substring(0, file.length() - "Transformer.js".length()) : file.substring(0, file.length() - 3);
+				java.util.regex.Matcher target = java.util.regex.Pattern.compile("'name'\\s*:\\s*'([^']+)'").matcher(readResource(loader, path));
+
+				if (!target.find())
+				{
+					problems.add(file + ": no target class name found in the script");
+					continue;
+				}
+
+				String className = target.group(1);
+
+				if (!client && className.contains(".client."))
+				{
+					continue;
+				}
+
+				int count = -1;
+
+				try
+				{
+					for (java.lang.reflect.Field field : Class.forName(className, false, loader).getDeclaredFields())
+					{
+						String prefix = "rt$hooks$" + tag + "$";
+
+						if (field.getName().startsWith(prefix))
+						{
+							count = Integer.parseInt(field.getName().substring(prefix.length()));
+						}
+					}
+				}
+				catch (ReflectiveOperationException | LinkageError e)
+				{
+					problems.add(file + ": cannot load the target class " + className + " (" + e + ")");
+					continue;
+				}
+
+				checked++;
+				report.add(tag + "=" + count);
+
+				if (count < 0)
+				{
+					problems.add(file + ": " + className + " carries no marker - the transformer did not apply");
+				}
+				else if (count == 0)
+				{
+					problems.add(file + ": " + className + " was patched but contains no hook call");
+				}
+			}
+
+			lumien.randomthings.debug.RTDebug.log("coremod markers: {}", report);
+			c.check(checked >= 8, "the transformer registry should list at least 8 checkable transformers (found " + checked + ")");
+			c.check(problems.isEmpty(), "coremod transformers that did not apply: " + problems);
+		}));
+
 		return tests;
 	}
 
@@ -282,5 +354,85 @@ final class CoremodTests
 		fake.setDeltaMovement(new Vec3(1.0, 0.0, 0.0));
 		fake.travel(Vec3.ZERO);
 		return fake.getDeltaMovement().x;
+	}
+
+	/** Text of a resource on the mod's class path (the coremod registry and its scripts). */
+	private static String readResource(ClassLoader loader, String path)
+	{
+		try (java.io.InputStream in = loader.getResourceAsStream(path))
+		{
+			if (in == null)
+			{
+				throw new TestCtx.Failure("resource not found: " + path);
+			}
+
+			return readAll(in);
+		}
+		catch (java.io.IOException e)
+		{
+			throw new TestCtx.Failure("cannot read " + path + ": " + e);
+		}
+	}
+
+	/** This mod's coremod registry: several jars on the class path carry a META-INF/coremods.json, the right one lists the Random Things scripts. */
+	private static String readRegistry(ClassLoader loader)
+	{
+		try
+		{
+			java.util.Enumeration<java.net.URL> urls = loader.getResources("META-INF/coremods.json");
+
+			while (urls.hasMoreElements())
+			{
+				try (java.io.InputStream in = urls.nextElement().openStream())
+				{
+					String text = readAll(in);
+
+					if (text.contains("transformer/FireBlockTransformer.js"))
+					{
+						return text;
+					}
+				}
+			}
+		}
+		catch (java.io.IOException e)
+		{
+			throw new TestCtx.Failure("cannot read the coremod registry: " + e);
+		}
+
+		throw new TestCtx.Failure("the Random Things coremods.json is not on the class path");
+	}
+
+	/** Java 8 compatible InputStream.readAllBytes. */
+	private static String readAll(java.io.InputStream in) throws java.io.IOException
+	{
+		java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+		byte[] buffer = new byte[4096];
+		int read;
+
+		while ((read = in.read(buffer)) >= 0)
+		{
+			out.write(buffer, 0, read);
+		}
+
+		return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+	}
+
+	/** True on a physical client (Forge's and NeoForge's FMLEnvironment are looked up by name: the package differs per branch). */
+	private static boolean isClientDist()
+	{
+		for (String name : new String[] { "net.neoforged.fml.loading.FMLEnvironment", "net.minecraftforge.fml.loading.FMLEnvironment" })
+		{
+			try
+			{
+				Object dist = Class.forName(name).getField("dist").get(null);
+				return "CLIENT".equals(String.valueOf(dist));
+			}
+			catch (ReflectiveOperationException e)
+			{
+				// try the next loader
+			}
+		}
+
+		throw new TestCtx.Failure("cannot tell the physical side: no FMLEnvironment class found");
 	}
 }
