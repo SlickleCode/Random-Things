@@ -2,7 +2,6 @@ package lumien.randomthings.network.messages;
 
 import lumien.randomthings.entity.EclipsedClockEntity;
 import lumien.randomthings.network.IRTMessage;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.Level;
@@ -36,7 +35,7 @@ public class EclipsedClockAnimationMessage implements IRTMessage {
     @Override
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            Level world = Minecraft.getInstance().level;
+            Level world = lumien.randomthings.client.ClientHooks.level();
 
             if (world == null) {
                 return;
