@@ -29,6 +29,19 @@ stops the server at a registry confirmation):
 rm -rf run/saves/RTAutoTest run/RTServerTest run/logs run/randomthings_*.txt run/screenshots/randomthings_debug run/saves/Scn_*
 ```
 
+## Porting
+
+### Version-specific API (per branch)
+- Each worktree targets a different MC/Forge version (see `docs/project/branches.md`). Before using a Forge or MC API, grep the decompiled sources or existing code on THAT branch to confirm it exists. For example, 1.14.4 has no `enqueueWork`.
+- When I ask about "the Java version" or similar without naming a branch, assume the branch I'm currently working on, or ask.
+- New items, blocks and tooltips: add every lang key to `en_us.json` in the same change, and grep the code for the exact key string to confirm it matches.
+
+## Environment
+
+### Shell on Windows
+- Don't use complex heredocs or `python -` stdin scripts. Write multi-line scripts to a temp file and run that file.
+- Quote Windows paths carefully. Drive letters (`C:`) break naive splits on ':'.
+
 ## Toolchain
 
 ```
