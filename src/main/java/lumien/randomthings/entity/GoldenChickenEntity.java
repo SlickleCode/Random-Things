@@ -110,7 +110,7 @@ public class GoldenChickenEntity extends Animal {
 
         if (!this.level().isClientSide && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
             this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.5F);
-            this.spawnAtLocation(Items.GOLD_INGOT, 3);
+            this.spawnAtLocation(new ItemStack(Items.GOLD_INGOT, 3));
         }
 
         if (this.ingotDropTimer == 0) {
