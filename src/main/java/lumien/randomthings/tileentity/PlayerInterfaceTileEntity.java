@@ -163,8 +163,7 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 
 			if (wanted == null)
 			{
-				net.minecraft.world.item.Equipable equipable = net.minecraft.world.item.Equipable.get(stack);
-				wanted = equipable != null ? equipable.getEquipmentSlot() : EquipmentSlot.MAINHAND;
+				wanted = EquipmentSlot.MAINHAND;
 			}
 
 			return wanted.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && wanted.getIndex() == index - 36;

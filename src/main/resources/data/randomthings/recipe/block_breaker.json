@@ -6,15 +6,9 @@
     "CCC"
   ],
   "key": {
-    "C": {
-      "tag": "c:cobblestones"
-    },
-    "P": {
-      "item": "minecraft:iron_pickaxe"
-    },
-    "R": {
-      "item": "minecraft:redstone_torch"
-    }
+    "C": "#c:cobblestones",
+    "P": "minecraft:iron_pickaxe",
+    "R": "minecraft:redstone_torch"
   },
   "result": {
     "id": "randomthings:block_breaker"

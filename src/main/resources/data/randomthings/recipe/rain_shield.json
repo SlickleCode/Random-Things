@@ -6,15 +6,9 @@
     "NNN"
   ],
   "key": {
-    "F": {
-      "item": "minecraft:flint"
-    },
-    "B": {
-      "item": "minecraft:blaze_rod"
-    },
-    "N": {
-      "item": "minecraft:netherrack"
-    }
+    "F": "minecraft:flint",
+    "B": "minecraft:blaze_rod",
+    "N": "minecraft:netherrack"
   },
   "result": {
     "id": "randomthings:rain_shield"

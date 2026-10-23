@@ -1,72 +1,47 @@
 package lumien.randomthings.item.spectretools;
 
-import java.util.UUID;
-
-import lumien.randomthings.item.ModItems;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
+import lumien.randomthings.lib.ModConstants;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ToolMaterial;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 
 /**
- * Ported from 1.12.2's {@code EnumHelper.addToolMaterial("spectre", 3, 2000, 8, 3, 22)} (repair item
- * Spectre Ingot) - 1.14.4 replaced the enum-extension trick with a plain {@link IItemTier}
- * implementation, modeled directly on vanilla's own {@code ItemTier} enum constants. The repair
- * {@link Ingredient} is wrapped in a lazily exactly like every vanilla tier, since
- * {@code ModItems#SPECTRE_INGOT} isn't populated by its {@code ObjectHolder} until after the item
- * registry event this tier is constructed during has finished.
+ * Ported from 1.12.2's {@code EnumHelper.addToolMaterial("spectre", 3, 2000, 8, 3, 22)} (repair item Spectre Ingot, via the item tag
+ * {@code randomthings:spectre_repair}). 1.21.2 turned tool tiers into the {@link ToolMaterial} record.
  */
-public class SpectreItemTier implements Tier {
-    public static final SpectreItemTier INSTANCE = new SpectreItemTier();
+public final class SpectreItemTier
+{
+	public static final TagKey<Item> REPAIR_TAG = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_repair"));
 
-    /**
-     * Shared by every Spectre tool but the sword - matches 1.12.2's +3 block reach on pickaxe/axe/shovel.
-     *
-     * <p>The tooltip line this modifier produces needs {@code lang/en_us.json}'s
-     * {@code attribute.name.generic.reachDistance} entry - ground-truthed that this exact build's own
-     * {@code forge/lang/en_us.json} ships a mismatched key for it ({@code generic.reachDistance} with no
-     * {@code attribute.name.} prefix, plus an unrelated {@code attribute.name.generic.reach_distance}
-     * snake_case key that doesn't match {@link net.minecraft.world.entity.player.Player#REACH_DISTANCE}'s
-     * real camelCase name either), so without our own entry the tooltip showed the raw untranslated key
-     * instead of "Reach Distance".
-     */
-    public static final net.minecraft.resources.ResourceLocation REACH_MODIFIER_ID = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "spectre_range_modifier");
+	public static final ToolMaterial MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 2000, 8.0F, 3.0F, 22, REPAIR_TAG);
 
-    private Ingredient repairMaterial;
+	/**
+	 * Shared by the pickaxe, axe and shovel - matches 1.12.2's +3 block reach. The tool constructors of 1.21.2+ build the whole attribute component themselves, so the
+	 * reach is added through {@link ItemAttributeModifierEvent} instead (the tooltip line needs {@code attribute.name.block_interaction_range} from vanilla's lang file).
+	 */
+	public static final ResourceLocation REACH_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_range_modifier");
 
-    /** The +3 block reach of the pickaxe, axe and shovel while held in the main hand, added to their normal tool attributes. */
-    public static net.minecraft.world.item.component.ItemAttributeModifiers withReach(net.minecraft.world.item.component.ItemAttributeModifiers base) {
-        return base.withModifierAdded(net.minecraft.world.entity.ai.attributes.Attributes.BLOCK_INTERACTION_RANGE, new net.minecraft.world.entity.ai.attributes.AttributeModifier(REACH_MODIFIER_ID, 3, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE), net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND);
-    }
+	private SpectreItemTier()
+	{
+	}
 
-    @Override
-    public int getUses() {
-        return 2000;
-    }
+	public static void addReach(ItemAttributeModifierEvent event)
+	{
+		if (event.getItemStack().getItem() instanceof SpectreReachTool)
+		{
+			event.addModifier(Attributes.BLOCK_INTERACTION_RANGE, new AttributeModifier(REACH_MODIFIER_ID, 3, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND);
+		}
+	}
 
-    @Override
-    public float getSpeed() {
-        return 8.0F;
-    }
-
-    @Override
-    public float getAttackDamageBonus() {
-        return 3.0F;
-    }
-
-    @Override
-    public net.minecraft.tags.TagKey<net.minecraft.world.level.block.Block> getIncorrectBlocksForDrops() {
-        return net.minecraft.tags.BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
-    }
-
-    @Override
-    public int getEnchantmentValue() {
-        return 22;
-    }
-
-    @Override
-    public Ingredient getRepairIngredient() {
-        if (repairMaterial == null) {
-            repairMaterial = Ingredient.of(ModItems.SPECTRE_INGOT);
-        }
-        return repairMaterial;
-    }
+	/** Marks the spectre tools that carry the extra reach. */
+	public interface SpectreReachTool
+	{
+	}
 }

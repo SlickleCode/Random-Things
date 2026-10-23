@@ -6,12 +6,8 @@
     "DDD"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:paper"
-    },
-    "D": {
-      "item": "randomthings:floo_powder"
-    }
+    "P": "minecraft:paper",
+    "D": "randomthings:floo_powder"
   },
   "result": {
     "id": "randomthings:floo_token",

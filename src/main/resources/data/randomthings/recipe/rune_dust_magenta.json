@@ -1,15 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:clay_ball"
-    },
-    {
-      "item": "randomthings:luminous_powder"
-    },
-    {
-      "item": "minecraft:magenta_dye"
-    }
+    "minecraft:clay_ball",
+    "randomthings:luminous_powder",
+    "minecraft:magenta_dye"
   ],
   "result": {
     "id": "randomthings:rune_dust_magenta",

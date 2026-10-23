@@ -6,15 +6,9 @@
     "OGO"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "E": {
-      "item": "minecraft:ghast_tear"
-    }
+    "O": "minecraft:obsidian",
+    "G": "minecraft:gold_ingot",
+    "E": "minecraft:ghast_tear"
   },
   "result": {
     "id": "randomthings:eclipsed_clock"

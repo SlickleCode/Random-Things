@@ -151,7 +151,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
                 }
 
                 int rgb = lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, this.worldPosition);
-                this.level.addParticle(new DustParticleOptions(new org.joml.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 3.1, this.worldPosition.getZ() + 0.5, 0, 0, 0);
+                this.level.addParticle(new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, ((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 3.1, this.worldPosition.getZ() + 0.5, 0, 0, 0);
             }
         }
     }
@@ -162,7 +162,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         double x = i < 2 ? this.worldPosition.getX() + 1.5 - i * 2 : this.worldPosition.getX() + 0.5;
         double z = i > 1 ? this.worldPosition.getZ() + 1.5 - (i - 2) * 2 : this.worldPosition.getZ() + 0.5;
 
-        this.level.addParticle(new DustParticleOptions(new org.joml.Vector3f(((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), x, this.worldPosition.getY() + 4.1, z, 0, 0, 0);
+        this.level.addParticle(new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, ((rgb >> 16 & 255) / 255F), ((rgb >> 8 & 255) / 255F), ((rgb & 255) / 255F)), 1.0F), x, this.worldPosition.getY() + 4.1, z, 0, 0, 0);
     }
 
     /**
@@ -177,7 +177,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         ResourceLocation key = lumien.randomthings.util.BiomeUtil.id(biome);
 
         if (key == null && this.level instanceof net.minecraft.server.level.ServerLevel) {
-            key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).getKey(biome);
+            key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.BIOME).getKey(biome);
         }
 
         return key;

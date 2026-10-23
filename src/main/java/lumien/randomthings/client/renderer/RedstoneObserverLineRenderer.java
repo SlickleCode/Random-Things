@@ -60,7 +60,7 @@ public class RedstoneObserverLineRenderer
 		Vec3 camera = ari.getPosition();
 		BlockPos playerPos = player.blockPosition();
 
-		RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
+		RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.RENDERTYPE_LINES);
 		RenderSystem.lineWidth(4F);
 
 		matrixStack.pushPose();

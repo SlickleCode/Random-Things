@@ -6,15 +6,9 @@
     "EEE"
   ],
   "key": {
-    "E": {
-      "item": "minecraft:end_stone"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "E": "minecraft:end_stone",
+    "R": "minecraft:redstone",
+    "S": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:ender_bridge"

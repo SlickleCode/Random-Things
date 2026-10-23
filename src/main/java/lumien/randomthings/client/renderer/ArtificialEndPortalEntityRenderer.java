@@ -29,7 +29,12 @@ import org.joml.Matrix4f;
  * (unchanged) renderer bytecode rather than guessed at, since the immediate-
  * mode GL surface this needs is otherwise fully deprecated.
  */
-public class ArtificialEndPortalEntityRenderer extends EntityRenderer<ArtificialEndPortalEntity> {
+public class ArtificialEndPortalEntityRenderer extends EntityRenderer<ArtificialEndPortalEntity, ArtificialEndPortalEntityRenderer.State> {
+    public static class State extends net.minecraft.client.renderer.entity.state.EntityRenderState {
+        public int actionTimer;
+        public float partialTicks;
+    }
+
     private static final Random RANDOM = new Random(31100L);
 
     public ArtificialEndPortalEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
@@ -44,10 +49,23 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
      * quad, the number of passes shrinks with distance.
      */
     @Override
-    public void render(ArtificialEndPortalEntity portal, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-        double size = Math.min(3, 3.0 / 115 * (portal.getActionTimer() + partialTicks - 85));
+    public State createRenderState() {
+        return new State();
+    }
 
-        if (portal.getActionTimer() > 85) {
+    @Override
+    public void extractRenderState(ArtificialEndPortalEntity portal, State state, float partialTicks) {
+        super.extractRenderState(portal, state, partialTicks);
+
+        state.actionTimer = portal.getActionTimer();
+        state.partialTicks = partialTicks;
+    }
+
+    @Override
+    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+        double size = Math.min(3, 3.0 / 115 * (state.actionTimer + state.partialTicks - 85));
+
+        if (state.actionTimer > 85) {
             RANDOM.setSeed(31100L);
             float height = this.getOffset();
             Matrix4f matrix = matrixStack.last().pose();
@@ -87,10 +105,5 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
 
     protected float getOffset() {
         return 1F;
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(ArtificialEndPortalEntity entity) {
-        return null;
     }
 }

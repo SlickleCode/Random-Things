@@ -6,15 +6,9 @@
     "ESE"
   ],
   "key": {
-    "E": {
-      "item": "randomthings:ectoplasm"
-    },
-    "S": {
-      "item": "minecraft:string"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    }
+    "E": "randomthings:ectoplasm",
+    "S": "minecraft:string",
+    "D": "minecraft:diamond"
   },
   "result": {
     "id": "randomthings:spectre_string",

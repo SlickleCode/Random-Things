@@ -34,7 +34,7 @@ public class PotionVaporizerItemHandler extends ItemStackHandler {
     public boolean isItemValid(int slot, ItemStack stack) {
         switch (slot) {
             case 0:
-                return AbstractFurnaceBlockEntity.isFuel(stack);
+                return lumien.randomthings.util.FuelHelper.burnTime(stack) > 0;
             case 1:
                 List<MobEffectInstance> effects = lumien.randomthings.util.PotionHelper.effects(stack);
                 return stack.getItem() == Items.POTION && !effects.isEmpty() && !effects.get(0).getEffect().value().isInstantenous();

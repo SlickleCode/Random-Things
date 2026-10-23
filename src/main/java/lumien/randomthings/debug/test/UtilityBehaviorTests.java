@@ -122,7 +122,7 @@ final class UtilityBehaviorTests
 			BlockPos target = c.at(4, 1, 0);
 			c.set(observer, ModBlocks.REDSTONE_OBSERVER);
 			c.set(target, Blocks.STONE);
-			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
+			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
 			ItemStack tool = new ItemStack(toolItem);
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, tool);
 
@@ -247,7 +247,7 @@ final class UtilityBehaviorTests
 
 			for (String name : seeThrough)
 			{
-				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", name));
+				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", name));
 
 				if (block == null || block == Blocks.AIR)
 				{
@@ -308,8 +308,8 @@ final class UtilityBehaviorTests
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
-			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
-			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "escape_rope"));
+			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
+			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "escape_rope"));
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(ItemStack.EMPTY, vanilla), "empty stack keeps vanilla");
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(Items.DIAMOND_SWORD), vanilla), "an ordinary item keeps vanilla");
 			ItemStack tagged = new ItemStack(Items.IRON_HELMET);
@@ -410,7 +410,7 @@ final class UtilityBehaviorTests
 			te.itemHandler().setStackInSlot(0, new ItemStack(Items.COAL, 4));
 			te.itemHandler().setStackInSlot(1, lumien.randomthings.util.PotionHelper.potion(Potions.SWIFTNESS));
 
-			Pig pig = EntityType.PIG.create(c.world);
+			Pig pig = EntityType.PIG.create(c.world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 			pig.setNoAi(true);
 			pig.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			c.world.addFreshEntity(pig);

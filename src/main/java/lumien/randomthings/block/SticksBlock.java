@@ -30,7 +30,7 @@ public class SticksBlock extends Block
 
 	public SticksBlock(boolean returning)
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().noOcclusion().strength(0.5F).sound(SoundType.WOOD));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().noOcclusion().strength(0.5F).sound(SoundType.WOOD));
 
 		this.returning = returning;
 	}

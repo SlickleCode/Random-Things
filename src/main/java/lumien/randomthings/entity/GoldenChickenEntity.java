@@ -73,6 +73,25 @@ public class GoldenChickenEntity extends Animal {
         this.setPathfindingMalus(PathType.WATER, 0.0F);
     }
 
+    /** The vanilla chicken loot (1.21.2 made Mob#getLootTable final, so the table is picked here instead; body as LivingEntity#dropFromLootTable). */
+    @Override
+    protected void dropFromLootTable(ServerLevel level, net.minecraft.world.damagesource.DamageSource source, boolean playerKill) {
+        net.minecraft.world.entity.EntityType.CHICKEN.getDefaultLootTable().ifPresent(key -> {
+            net.minecraft.world.level.storage.loot.LootParams.Builder builder = new net.minecraft.world.level.storage.loot.LootParams.Builder(level)
+                    .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.THIS_ENTITY, this)
+                    .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ORIGIN, this.position())
+                    .withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.DAMAGE_SOURCE, source)
+                    .withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ATTACKING_ENTITY, source.getEntity())
+                    .withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.DIRECT_ATTACKING_ENTITY, source.getDirectEntity());
+
+            if (playerKill && this.lastHurtByPlayer != null) {
+                builder = builder.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER, this.lastHurtByPlayer).withLuck(this.lastHurtByPlayer.getLuck());
+            }
+
+            level.getServer().reloadableRegistries().getLootTable(key).getRandomItems(builder.create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.ENTITY), this.getLootTableSeed(), stack -> this.spawnAtLocation(level, stack));
+        });
+    }
+
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
@@ -110,7 +129,7 @@ public class GoldenChickenEntity extends Animal {
 
         if (!this.level().isClientSide && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
             this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.5F);
-            this.spawnAtLocation(Items.GOLD_INGOT, 3);
+            this.spawnAtLocation((ServerLevel) this.level(), Items.GOLD_INGOT, 3);
         }
 
         if (this.ingotDropTimer == 0) {
@@ -156,11 +175,6 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    protected net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> getDefaultLootTable() {
-        return net.minecraft.world.entity.EntityType.CHICKEN.getDefaultLootTable();
-    }
-
-    @Override
     public GoldenChickenEntity getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
         return new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level());
     }
@@ -171,8 +185,8 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    public int getBaseExperienceReward() {
-        return this.isChickenJockey() ? 10 : super.getBaseExperienceReward();
+    protected int getBaseExperienceReward(ServerLevel level) {
+        return this.isChickenJockey() ? 10 : super.getBaseExperienceReward(level);
     }
 
     @Override

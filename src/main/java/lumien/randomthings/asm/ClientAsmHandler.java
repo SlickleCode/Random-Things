@@ -53,6 +53,13 @@ public class ClientAsmHandler {
         renderingStack = entity.getItemBySlot(slot);
     }
 
+    /** Head of {@code ItemStackRenderState.render} (ItemStackRenderTransformer): the stack this state was built from decides its glint tint. */
+    public static void beginItemRender(net.minecraft.client.renderer.item.ItemStackRenderState state) {
+        renderingStack = glintStacks.getOrDefault(state, ItemStack.EMPTY);
+    }
+
+    private static final java.util.Map<net.minecraft.client.renderer.item.ItemStackRenderState, ItemStack> glintStacks = new java.util.WeakHashMap<>();
+
     public static void clearRenderingStack() {
         renderingStack = ItemStack.EMPTY;
     }
@@ -64,6 +71,10 @@ public class ClientAsmHandler {
      */
     public static net.minecraft.client.renderer.RenderType tintGlint(net.minecraft.client.renderer.RenderType original) {
         int color = GlintColors.colorFor(renderingStack, GlintColors.VANILLA);
+
+        if (color != GlintColors.VANILLA) {
+            lumien.randomthings.debug.HookProbe.hit("glint_tint_applied");
+        }
 
         return color == GlintColors.VANILLA ? original : lumien.randomthings.client.renderer.TintedGlintRenderType.of(original, color);
     }
@@ -156,11 +167,62 @@ public class ClientAsmHandler {
      * colour when it has one. Lets the Dyeing Machine recolor any armor piece, not just vanilla's dyeable leather.
      */
     public static int armorTintColor(int color) {
-        if (renderingStack != null && StackTag.contains(renderingStack, "rtDye")) {
+        if (color != 0 && renderingStack != null && StackTag.contains(renderingStack, "rtDye")) {
             lumien.randomthings.debug.HookProbe.hit("armor_dye_applied");
             return StackTag.getInt(renderingStack, "rtDye") | 0xFF000000;
         }
 
         return color;
+    }
+
+    private static java.lang.reflect.Field layersField;
+    private static java.lang.reflect.Field activeLayerCountField;
+    private static java.lang.reflect.Field layerModelField;
+
+    /**
+     * Redirect target for {@code ItemModelResolver.appendItemLayers} (see {@code ItemRendererTransformer.js}): when the stack carries the Dyeing
+     * Machine colour ({@code rtDye}), every layer of its render state is drawn in that colour. 1.12.2 did this per quad regardless of the model's
+     * tint index; 1.21.4's item renderer only knows tint arrays, so the layer's model is wrapped to give all its quads tint index 0 and tint 0 is set.
+     */
+    public static void dyeItemLayers(net.minecraft.client.renderer.item.ItemStackRenderState state, ItemStack stack) {
+        // the enchant glint is chosen later, inside ItemStackRenderState.render, which no longer sees the stack: remember it per render state
+        if (!stack.isEmpty() && GlintColors.colorFor(stack, GlintColors.VANILLA) != GlintColors.VANILLA) {
+            glintStacks.put(state, stack);
+        } else {
+            glintStacks.remove(state);
+        }
+
+        if (stack.isEmpty() || !StackTag.contains(stack, "rtDye")) {
+            return;
+        }
+
+        try {
+            if (layersField == null) {
+                layersField = net.minecraft.client.renderer.item.ItemStackRenderState.class.getDeclaredField("layers");
+                activeLayerCountField = net.minecraft.client.renderer.item.ItemStackRenderState.class.getDeclaredField("activeLayerCount");
+                layerModelField = net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState.class.getDeclaredField("model");
+                layersField.setAccessible(true);
+                activeLayerCountField.setAccessible(true);
+                layerModelField.setAccessible(true);
+            }
+
+            Object[] layers = (Object[]) layersField.get(state);
+            int active = activeLayerCountField.getInt(state);
+            int color = StackTag.getInt(stack, "rtDye") | 0xFF000000;
+
+            for (int i = 0; i < active; i++) {
+                net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState layer = (net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState) layers[i];
+                Object model = layerModelField.get(layer);
+
+                if (model instanceof BakedModel baked && !(model instanceof lumien.randomthings.client.DyedModel)) {
+                    layerModelField.set(layer, new lumien.randomthings.client.DyedModel(baked));
+                }
+
+                java.util.Arrays.fill(layer.prepareTintLayers(1), color);
+                lumien.randomthings.debug.HookProbe.hit("item_dye_applied");
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("cannot dye the item layers", e);
+        }
     }
 }

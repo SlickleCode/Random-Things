@@ -5,8 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
@@ -35,13 +34,13 @@ public class BottleOfAirItem extends Item
 	}
 
 	@Override
-	public UseAnim getUseAnimation(ItemStack stack)
+	public ItemUseAnimation getUseAnimation(ItemStack stack)
 	{
-		return UseAnim.DRINK;
+		return ItemUseAnimation.DRINK;
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand)
+	public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand)
 	{
 		ItemStack itemStack = playerIn.getItemInHand(hand);
 
@@ -49,10 +48,10 @@ public class BottleOfAirItem extends Item
 		{
 			playerIn.startUsingItem(hand);
 
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStack);
+			return InteractionResult.SUCCESS;
 		}
 
-		return new InteractionResultHolder<>(InteractionResult.FAIL, itemStack);
+		return InteractionResult.FAIL;
 	}
 
 	@Override

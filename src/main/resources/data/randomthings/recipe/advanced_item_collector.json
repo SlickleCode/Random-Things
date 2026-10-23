@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["R  ","GIG"],
   "key": {
-    "R": { "item": "minecraft:redstone_torch" },
-    "G": { "item": "minecraft:glowstone_dust" },
-    "I": { "item": "randomthings:item_collector" }
+    "R": "minecraft:redstone_torch",
+    "G": "minecraft:glowstone_dust",
+    "I": "randomthings:item_collector"
   },
   "result": {
     "id": "randomthings:advanced_item_collector"

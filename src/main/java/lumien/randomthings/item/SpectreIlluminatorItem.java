@@ -45,7 +45,7 @@ public class SpectreIlluminatorItem extends Item {
             if (alreadyLit) {
                 RTDebug.log("[SpectreIlluminator] placement at {} refused: chunk {} already has an illuminated orb", pos, cp);
             } else {
-                AABB scanBox = lumien.randomthings.util.AABBs.of(new BlockPos(cp.getMinBlockX() - 2, world.getMinBuildHeight(), cp.getMinBlockZ() - 2), new BlockPos(cp.getMaxBlockX() + 2, world.getMaxBuildHeight() - 1, cp.getMaxBlockZ() + 2));
+                AABB scanBox = lumien.randomthings.util.AABBs.of(new BlockPos(cp.getMinBlockX() - 2, world.getMinY(), cp.getMinBlockZ() - 2), new BlockPos(cp.getMaxBlockX() + 2, world.getMaxY() + 1 - 1, cp.getMaxBlockZ() + 2));
                 java.util.List<SpectreIlluminatorEntity> nearby = world.getEntitiesOfClass(SpectreIlluminatorEntity.class, scanBox);
 
                 if (!nearby.isEmpty()) {

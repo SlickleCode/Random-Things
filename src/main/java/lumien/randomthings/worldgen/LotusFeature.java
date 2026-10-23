@@ -42,7 +42,7 @@ public class LotusFeature extends Feature<NoneFeatureConfiguration> {
             return false;
         }
 
-        if (pos.getY() < worldIn.getMinBuildHeight()) {
+        if (pos.getY() < worldIn.getMinY()) {
             return false;
         }
 

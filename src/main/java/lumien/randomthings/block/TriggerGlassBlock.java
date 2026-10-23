@@ -63,7 +63,7 @@ public class TriggerGlassBlock extends Block
 
 	public TriggerGlassBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> !state.getValue(TRIGGERED)));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> !state.getValue(TRIGGERED)));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(TRIGGERED, false));
 	}
@@ -90,7 +90,7 @@ public class TriggerGlassBlock extends Block
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving)
 	{
 		if (!worldIn.isClientSide && !state.getValue(TRIGGERED) && worldIn.hasNeighborSignal(pos))
 		{

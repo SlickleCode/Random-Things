@@ -3,6 +3,8 @@ package lumien.randomthings.lib;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import java.util.function.Supplier;
+
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 /** Registration handle for one registry during {@link RegisterEvent}; replaces the old {@code IForgeRegistry} parameter of the {@code ModXxx.registerXxx} methods. */
@@ -25,5 +27,26 @@ public class RTRegistry<T>
 	public void register(ResourceLocation name, T value)
 	{
 		event.register(key, name, () -> value);
+	}
+
+	/** Builds the object lazily with its registry id published to {@link RTIds}; use this for blocks and items (1.21.2+ needs the id inside their properties). */
+	public void register(String name, Supplier<? extends T> factory)
+	{
+		register(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, name), factory);
+	}
+
+	public void register(ResourceLocation name, Supplier<? extends T> factory)
+	{
+		ResourceLocation previous = RTIds.swap(name);
+
+		try
+		{
+			T value = factory.get();
+			event.register(key, name, () -> value);
+		}
+		finally
+		{
+			RTIds.swap(previous);
+		}
 	}
 }

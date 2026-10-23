@@ -105,7 +105,7 @@ public class SpectreHandler extends SavedData {
         ServerLevel spectreWorld = getWorld();
 
         if (!ModDimensions.isSpectre(player.level()) && spectreWorld != null) {
-            player.changeDimension(SpectreTeleporter.transition(player, spectreWorld));
+            player.teleport(SpectreTeleporter.transition(player, spectreWorld));
         }
 
         player.connection.teleport(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.getYRot(), player.getXRot());
@@ -133,7 +133,7 @@ public class SpectreHandler extends SavedData {
         }
 
         if (player.level() != destination) {
-            player.changeDimension(SpectreTeleporter.transition(player, destination));
+            player.teleport(SpectreTeleporter.transition(player, destination));
         }
 
         player.connection.teleport(spectrePosX, spectrePosY, spectrePosZ, player.getYRot(), player.getXRot());

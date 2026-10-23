@@ -2,11 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["CTC","IUI","CFC"],
   "key": {
-    "C": { "tag": "c:cobblestones" },
-    "T": { "item": "minecraft:iron_trapdoor" },
-    "I": { "tag": "c:ingots/iron" },
-    "U": { "item": "minecraft:cauldron" },
-    "F": { "item": "minecraft:furnace" }
+    "C": "#c:cobblestones",
+    "T": "minecraft:iron_trapdoor",
+    "I": "#c:ingots/iron",
+    "U": "minecraft:cauldron",
+    "F": "minecraft:furnace"
   },
   "result": {
     "id": "randomthings:potion_vaporizer"

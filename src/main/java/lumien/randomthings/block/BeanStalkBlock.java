@@ -41,7 +41,7 @@ public class BeanStalkBlock extends Block
 
 	public BeanStalkBlock(boolean strongMagic)
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollission().sound(SoundType.GRASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollission().sound(SoundType.GRASS));
 
 		this.strongMagic = strongMagic;
 	}
@@ -78,12 +78,12 @@ public class BeanStalkBlock extends Block
 
 		BlockPos up = pos.above();
 
-		if (up.getY() >= worldIn.getMaxBuildHeight() - 1)
+		if (up.getY() >= worldIn.getMaxY() + 1 - 1)
 		{
 			return;
 		}
 
-		if (strongMagic && up.getY() >= worldIn.getMaxBuildHeight() - 3)
+		if (strongMagic && up.getY() >= worldIn.getMaxY() + 1 - 3)
 		{
 			worldIn.setBlock(up, ModBlocks.BEAN_POD.defaultBlockState(), 3);
 			return;
@@ -117,9 +117,9 @@ public class BeanStalkBlock extends Block
 	}
 
 	@Override
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos)
+	public BlockState updateShape(BlockState stateIn, net.minecraft.world.level.LevelReader worldIn, net.minecraft.world.level.ScheduledTickAccess tickAccess, BlockPos currentPos, Direction facing, BlockPos facingPos, BlockState facingState, net.minecraft.util.RandomSource random)
 	{
-		return !stateIn.canSurvive(worldIn, currentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(stateIn, facing, facingState, worldIn, currentPos, facingPos);
+		return !stateIn.canSurvive(worldIn, currentPos) ? Blocks.AIR.defaultBlockState() : super.updateShape(stateIn, worldIn, tickAccess, currentPos, facing, facingPos, facingState, random);
 	}
 
 	@Override

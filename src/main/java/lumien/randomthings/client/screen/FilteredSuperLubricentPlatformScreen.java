@@ -39,11 +39,10 @@ public class FilteredSuperLubricentPlatformScreen extends AbstractContainerScree
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

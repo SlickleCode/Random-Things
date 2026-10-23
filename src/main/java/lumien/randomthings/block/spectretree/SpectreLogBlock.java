@@ -13,6 +13,6 @@ public class SpectreLogBlock extends RotatedPillarBlock
 {
 	public SpectreLogBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().noOcclusion().strength(2.0F).sound(SoundType.WOOD));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().noOcclusion().strength(2.0F).sound(SoundType.WOOD));
 	}
 }

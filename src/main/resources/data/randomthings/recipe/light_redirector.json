@@ -6,12 +6,8 @@
     "PGP"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "P": {
-      "tag": "minecraft:planks"
-    }
+    "G": "minecraft:glass",
+    "P": "#minecraft:planks"
   },
   "result": {
     "id": "randomthings:light_redirector"

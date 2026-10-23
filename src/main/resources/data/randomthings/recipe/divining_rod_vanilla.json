@@ -2,33 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["CSD", "IBE", "GLR"],
   "key": {
-    "C": {
-      "item": "randomthings:divining_rod_coal"
-    },
-    "I": {
-      "item": "randomthings:divining_rod_iron"
-    },
-    "G": {
-      "item": "randomthings:divining_rod_gold"
-    },
-    "L": {
-      "item": "randomthings:divining_rod_lapis"
-    },
-    "R": {
-      "item": "randomthings:divining_rod_redstone"
-    },
-    "E": {
-      "item": "randomthings:divining_rod_emerald"
-    },
-    "D": {
-      "item": "randomthings:divining_rod_diamond"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    },
-    "B": {
-      "item": "minecraft:slime_ball"
-    }
+    "C": "randomthings:divining_rod_coal",
+    "I": "randomthings:divining_rod_iron",
+    "G": "randomthings:divining_rod_gold",
+    "L": "randomthings:divining_rod_lapis",
+    "R": "randomthings:divining_rod_redstone",
+    "E": "randomthings:divining_rod_emerald",
+    "D": "randomthings:divining_rod_diamond",
+    "S": "minecraft:stick",
+    "B": "minecraft:slime_ball"
   },
   "result": {
     "id": "randomthings:divining_rod_vanilla"

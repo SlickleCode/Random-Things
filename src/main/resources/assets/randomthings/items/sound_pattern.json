@@ -1,0 +1,14 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "randomthings:filled",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/sound_pattern_full"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/sound_pattern"
+    }
+  }
+}

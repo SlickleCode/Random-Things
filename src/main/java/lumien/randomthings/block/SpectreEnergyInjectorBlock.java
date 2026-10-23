@@ -25,7 +25,7 @@ import net.minecraft.world.level.Level;
  */
 public class SpectreEnergyInjectorBlock extends Block implements EntityBlock {
     public SpectreEnergyInjectorBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(3.0F).sound(SoundType.GLASS));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(3.0F).sound(SoundType.GLASS));
     }
 
     @Override

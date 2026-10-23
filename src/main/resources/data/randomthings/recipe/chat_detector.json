@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["SRS","RTR","SRS"],
   "key": {
-    "S": { "tag": "c:stones" },
-    "R": { "item": "minecraft:repeater" },
-    "T": { "tag": "c:dyes/red" }
+    "S": "#c:stones",
+    "R": "minecraft:repeater",
+    "T": "#c:dyes/red"
   },
   "result": {
     "id": "randomthings:chat_detector"

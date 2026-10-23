@@ -6,12 +6,8 @@
     "  I"
   ],
   "key": {
-    "I": {
-      "item": "randomthings:spectre_ingot"
-    },
-    "P": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "I": "randomthings:spectre_ingot",
+    "P": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:spectre_key"

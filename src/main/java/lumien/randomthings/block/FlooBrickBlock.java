@@ -35,7 +35,7 @@ import java.util.UUID;
  */
 public class FlooBrickBlock extends Block implements EntityBlock {
     public FlooBrickBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(2.0F, 10.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(2.0F, 10.0F));
     }
 
     @Override

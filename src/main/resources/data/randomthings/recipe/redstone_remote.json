@@ -6,15 +6,9 @@
     "OOO"
   ],
   "key": {
-    "A": {
-      "item": "randomthings:redstone_activator"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "S": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "A": "randomthings:redstone_activator",
+    "O": "minecraft:obsidian",
+    "S": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:redstone_remote"

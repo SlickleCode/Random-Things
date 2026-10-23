@@ -27,7 +27,7 @@ public class SpectreLeafBlock extends LeavesBlock
 {
 	public SpectreLeafBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).ignitedByLava().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).ignitedByLava().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
 	}
 
 	@Override

@@ -1,0 +1,26 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "randomthings:duration_index",
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/redstone_activator"
+    },
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/redstone_activator_1"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/redstone_activator_2"
+        }
+      }
+    ]
+  }
+}

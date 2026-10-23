@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["SW","B "],
   "key": {
-    "S": { "item": "minecraft:wheat_seeds" },
-    "W": { "type": "neoforge:components", "items": "minecraft:potion", "components": { "minecraft:potion_contents": { "potion": "minecraft:water" } } },
-    "B": { "item": "randomthings:beans" }
+    "S": "minecraft:wheat_seeds",
+    "W": { "neoforge:ingredient_type": "neoforge:components", "items": "minecraft:potion", "components": { "minecraft:potion_contents": { "potion": "minecraft:water" } } },
+    "B": "randomthings:beans"
   },
   "result": {
     "id": "randomthings:super_lubricent_tincture",

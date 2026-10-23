@@ -25,7 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
@@ -56,14 +56,14 @@ import net.minecraft.world.InteractionResult;
  * named recipient's inbox. Direct port of 1.12.2's {@code BlockEnderMailbox}.
  */
 public class EnderMailboxBlock extends Block implements EntityBlock {
-    public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
+    public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.Plane.HORIZONTAL);
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     private static final VoxelShape SHAPE_NORTH_SOUTH = Block.box(5, 0, 1, 11, 22, 15);
     private static final VoxelShape SHAPE_EAST_WEST = Block.box(1, 0, 5, 15, 22, 11);
 
     public EnderMailboxBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 10.0F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 10.0F).noCollission());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }

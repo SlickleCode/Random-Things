@@ -6,15 +6,9 @@
     "III"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "T": {
-      "item": "minecraft:redstone_torch"
-    }
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "T": "minecraft:redstone_torch"
   },
   "result": {
     "id": "randomthings:redstone_activator"

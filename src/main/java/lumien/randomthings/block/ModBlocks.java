@@ -291,128 +291,128 @@ public class ModBlocks
 	public static void registerBlocks(RTRegistry<Block> registry)
 	{
 
-		registry.register("fertilized_dirt", new FertilizedDirtBlock());
-		registry.register("rainbow_lamp", new RainbowLampBlock());
+		registry.register("fertilized_dirt", () -> new FertilizedDirtBlock());
+		registry.register("rainbow_lamp", () -> new RainbowLampBlock());
 
-		registry.register("advanced_redstone_torch", new AdvancedRedstoneTorchBlock());
-		registry.register("advanced_redstone_wall_torch", new AdvancedRedstoneWallTorchBlock());
+		registry.register("advanced_redstone_torch", () -> new AdvancedRedstoneTorchBlock());
+		registry.register("advanced_redstone_wall_torch", () -> new AdvancedRedstoneWallTorchBlock());
 
-		registry.register("block_of_sticks", new SticksBlock(false));
-		registry.register("block_of_sticks_returning", new SticksBlock(true));
+		registry.register("block_of_sticks", () -> new SticksBlock(false));
+		registry.register("block_of_sticks_returning", () -> new SticksBlock(true));
 
-		registry.register("super_lubricent_stone", new SuperLubricentStoneBlock());
+		registry.register("super_lubricent_stone", () -> new SuperLubricentStoneBlock());
 
-		registry.register("platform_oak", new PlatformBlock());
-		registry.register("platform_spruce", new PlatformBlock());
-		registry.register("platform_birch", new PlatformBlock());
-		registry.register("platform_jungle", new PlatformBlock());
-		registry.register("platform_acacia", new PlatformBlock());
-		registry.register("platform_darkoak", new PlatformBlock());
+		registry.register("platform_oak", () -> new PlatformBlock());
+		registry.register("platform_spruce", () -> new PlatformBlock());
+		registry.register("platform_birch", () -> new PlatformBlock());
+		registry.register("platform_jungle", () -> new PlatformBlock());
+		registry.register("platform_acacia", () -> new PlatformBlock());
+		registry.register("platform_darkoak", () -> new PlatformBlock());
 
-		registry.register("lapis_glass", new LapisGlassBlock());
-		registry.register("lapis_lamp", new LapisLampBlock());
-		registry.register("quartz_glass", new QuartzGlassBlock());
-		registry.register("quartz_lamp", new QuartzLampBlock());
-		registry.register("super_lubricent_ice", new SuperLubricentIceBlock());
-		registry.register("super_lubricent_platform", new SuperLubricentPlatformBlock());
-		registry.register("trigger_glass", new TriggerGlassBlock());
-		registry.register("compressed_slime_block", new CompressedSlimeBlock());
-		registry.register("contact_button", new ContactButtonBlock());
-		registry.register("contact_lever", new ContactLeverBlock());
-		registry.register("spectre_block", new SpectreBlock());
+		registry.register("lapis_glass", () -> new LapisGlassBlock());
+		registry.register("lapis_lamp", () -> new LapisLampBlock());
+		registry.register("quartz_glass", () -> new QuartzGlassBlock());
+		registry.register("quartz_lamp", () -> new QuartzLampBlock());
+		registry.register("super_lubricent_ice", () -> new SuperLubricentIceBlock());
+		registry.register("super_lubricent_platform", () -> new SuperLubricentPlatformBlock());
+		registry.register("trigger_glass", () -> new TriggerGlassBlock());
+		registry.register("compressed_slime_block", () -> new CompressedSlimeBlock());
+		registry.register("contact_button", () -> new ContactButtonBlock());
+		registry.register("contact_lever", () -> new ContactLeverBlock());
+		registry.register("spectre_block", () -> new SpectreBlock());
 
-		registry.register("spectre_log", new SpectreLogBlock());
-		registry.register("spectre_plank", new SpectrePlankBlock());
-		registry.register("spectre_leaf", new SpectreLeafBlock());
-		registry.register("spectre_sapling", new SpectreSaplingBlock());
-		registry.register("spectre_core", new SpectreCoreBlock());
+		registry.register("spectre_log", () -> new SpectreLogBlock());
+		registry.register("spectre_plank", () -> new SpectrePlankBlock());
+		registry.register("spectre_leaf", () -> new SpectreLeafBlock());
+		registry.register("spectre_sapling", () -> new SpectreSaplingBlock());
+		registry.register("spectre_core", () -> new SpectreCoreBlock());
 
-		registry.register("glowing_mushroom", new GlowingMushroomBlock());
-		registry.register("sided_redstone", new SidedRedstoneBlock());
+		registry.register("glowing_mushroom", () -> new GlowingMushroomBlock());
+		registry.register("sided_redstone", () -> new SidedRedstoneBlock());
 
-		registry.register("colored_grass", new ColoredGrassBlock());
+		registry.register("colored_grass", () -> new ColoredGrassBlock());
 
 		for (DyeColor color : DyeColor.values())
 		{
-			registry.register(stainedBrickRegistryName(color, false), new StainedBrickBlock(false));
-			registry.register(stainedBrickRegistryName(color, true), new StainedBrickBlock(true));
+			registry.register(stainedBrickRegistryName(color, false), () -> new StainedBrickBlock(false));
+			registry.register(stainedBrickRegistryName(color, true), () -> new StainedBrickBlock(true));
 
-			registry.register(luminousBlockRegistryName(color, false), new LuminousBlock());
-			registry.register(luminousBlockRegistryName(color, true), new LuminousTranslucentBlock());
+			registry.register(luminousBlockRegistryName(color, false), () -> new LuminousBlock());
+			registry.register(luminousBlockRegistryName(color, true), () -> new LuminousTranslucentBlock());
 		}
 
-		registry.register("bean_sprout", new BeanSproutBlock());
-		registry.register("bean_stalk", new BeanStalkBlock(true));
-		registry.register("lesser_bean_stalk", new BeanStalkBlock(false));
-		registry.register("bean_pod", new PodBlock());
+		registry.register("bean_sprout", () -> new BeanSproutBlock());
+		registry.register("bean_stalk", () -> new BeanStalkBlock(true));
+		registry.register("lesser_bean_stalk", () -> new BeanStalkBlock(false));
+		registry.register("bean_pod", () -> new PodBlock());
 
-		registry.register("lotus", new LotusBlock());
+		registry.register("lotus", () -> new LotusBlock());
 
-		registry.register("blazing_fire", new BlazingFireBlock());
+		registry.register("blazing_fire", () -> new BlazingFireBlock());
 
-		registry.register("analog_emitter", new AnalogEmitterBlock());
-		registry.register("igniter", new IgniterBlock());
-		registry.register("online_detector", new OnlineDetectorBlock());
-		registry.register("item_collector", new ItemCollectorBlock());
+		registry.register("analog_emitter", () -> new AnalogEmitterBlock());
+		registry.register("igniter", () -> new IgniterBlock());
+		registry.register("online_detector", () -> new OnlineDetectorBlock());
+		registry.register("item_collector", () -> new ItemCollectorBlock());
 
-		registry.register("advanced_redstone_repeater", new AdvancedRedstoneRepeaterBlock());
-		registry.register("iron_dropper", new IronDropperBlock());
+		registry.register("advanced_redstone_repeater", () -> new AdvancedRedstoneRepeaterBlock());
+		registry.register("iron_dropper", () -> new IronDropperBlock());
 
-		registry.register("player_interface", new PlayerInterfaceBlock());
-		registry.register("inventory_tester", new InventoryTesterBlock());
-		registry.register("chat_detector", new ChatDetectorBlock());
-		registry.register("redstone_observer", new RedstoneObserverBlock());
-		registry.register("basic_redstone_interface", new lumien.randomthings.block.redstoneinterface.BasicRedstoneInterfaceBlock());
-		registry.register("advanced_redstone_interface", new lumien.randomthings.block.redstoneinterface.AdvancedRedstoneInterfaceBlock());
-		registry.register("potion_vaporizer", new PotionVaporizerBlock());
+		registry.register("player_interface", () -> new PlayerInterfaceBlock());
+		registry.register("inventory_tester", () -> new InventoryTesterBlock());
+		registry.register("chat_detector", () -> new ChatDetectorBlock());
+		registry.register("redstone_observer", () -> new RedstoneObserverBlock());
+		registry.register("basic_redstone_interface", () -> new lumien.randomthings.block.redstoneinterface.BasicRedstoneInterfaceBlock());
+		registry.register("advanced_redstone_interface", () -> new lumien.randomthings.block.redstoneinterface.AdvancedRedstoneInterfaceBlock());
+		registry.register("potion_vaporizer", () -> new PotionVaporizerBlock());
 
-		registry.register("entity_detector", new EntityDetectorBlock());
-		registry.register("slime_cube", new SlimeCubeBlock());
-		registry.register("advanced_item_collector", new AdvancedItemCollectorBlock());
-		registry.register("filtered_super_lubricent_platform", new FilteredSuperLubricentPlatformBlock());
-		registry.register("notification_interface", new NotificationInterfaceBlock());
-		registry.register("global_chat_detector", new GlobalChatDetectorBlock());
+		registry.register("entity_detector", () -> new EntityDetectorBlock());
+		registry.register("slime_cube", () -> new SlimeCubeBlock());
+		registry.register("advanced_item_collector", () -> new AdvancedItemCollectorBlock());
+		registry.register("filtered_super_lubricent_platform", () -> new FilteredSuperLubricentPlatformBlock());
+		registry.register("notification_interface", () -> new NotificationInterfaceBlock());
+		registry.register("global_chat_detector", () -> new GlobalChatDetectorBlock());
 
-		registry.register("biome_radar", new BiomeRadarBlock());
+		registry.register("biome_radar", () -> new BiomeRadarBlock());
 
-		registry.register("sound_box", new SoundBoxBlock());
-		registry.register("sound_dampener", new SoundDampenerBlock());
+		registry.register("sound_box", () -> new SoundBoxBlock());
+		registry.register("sound_dampener", () -> new SoundDampenerBlock());
 
-		registry.register("rune_base", new RuneBaseBlock());
+		registry.register("rune_base", () -> new RuneBaseBlock());
 
-		registry.register("imbuing_station", new ImbuingStationBlock());
+		registry.register("imbuing_station", () -> new ImbuingStationBlock());
 
-		registry.register("floo_brick", new FlooBrickBlock());
+		registry.register("floo_brick", () -> new FlooBrickBlock());
 
-		registry.register("ender_mailbox", new EnderMailboxBlock());
+		registry.register("ender_mailbox", () -> new EnderMailboxBlock());
 
-		registry.register("fluid_display", new FluidDisplayBlock());
+		registry.register("fluid_display", () -> new FluidDisplayBlock());
 
-		registry.register("creative_player_interface", new CreativePlayerInterfaceBlock());
+		registry.register("creative_player_interface", () -> new CreativePlayerInterfaceBlock());
 
-		registry.register("ender_bridge", new EnderBridgeBlock());
-		registry.register("prismarine_ender_bridge", new PrismarineEnderBridgeBlock());
-		registry.register("ender_anchor", new EnderAnchorBlock());
+		registry.register("ender_bridge", () -> new EnderBridgeBlock());
+		registry.register("prismarine_ender_bridge", () -> new PrismarineEnderBridgeBlock());
+		registry.register("ender_anchor", () -> new EnderAnchorBlock());
 
-		registry.register("rain_shield", new RainShieldBlock());
+		registry.register("rain_shield", () -> new RainShieldBlock());
 
-		registry.register("peace_candle", new PeaceCandleBlock());
-		registry.register("ancient_furnace", new AncientFurnaceBlock());
+		registry.register("peace_candle", () -> new PeaceCandleBlock());
+		registry.register("ancient_furnace", () -> new AncientFurnaceBlock());
 
-		registry.register("block_breaker", new BlockBreakerBlock());
-		registry.register("block_destabilizer", new BlockDestabilizerBlock());
+		registry.register("block_breaker", () -> new BlockBreakerBlock());
+		registry.register("block_destabilizer", () -> new BlockDestabilizerBlock());
 
-		registry.register("spectre_energy_injector", new SpectreEnergyInjectorBlock());
-		registry.register("spectre_coil_normal", new SpectreCoilBlock(SpectreCoilBlock.CoilType.NORMAL));
-		registry.register("spectre_coil_redstone", new SpectreCoilBlock(SpectreCoilBlock.CoilType.REDSTONE));
-		registry.register("spectre_coil_ender", new SpectreCoilBlock(SpectreCoilBlock.CoilType.ENDER));
-		registry.register("spectre_coil_genesis", new SpectreCoilBlock(SpectreCoilBlock.CoilType.GENESIS));
+		registry.register("spectre_energy_injector", () -> new SpectreEnergyInjectorBlock());
+		registry.register("spectre_coil_normal", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.NORMAL));
+		registry.register("spectre_coil_redstone", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.REDSTONE));
+		registry.register("spectre_coil_ender", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.ENDER));
+		registry.register("spectre_coil_genesis", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.GENESIS));
 
-		registry.register("spectre_lens", new SpectreLensBlock());
+		registry.register("spectre_lens", () -> new SpectreLensBlock());
 
-		registry.register("light_redirector", new LightRedirectorBlock());
-		registry.register("diaphanous_block", new DiaphanousBlock());
+		registry.register("light_redirector", () -> new LightRedirectorBlock());
+		registry.register("diaphanous_block", () -> new DiaphanousBlock());
 
-		registry.register("dyeing_machine", new DyeingMachineBlock());
+		registry.register("dyeing_machine", () -> new DyeingMachineBlock());
 	}
 }

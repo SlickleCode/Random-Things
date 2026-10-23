@@ -6,12 +6,8 @@
     " D "
   ],
   "key": {
-    "D": {
-      "item": "minecraft:purple_dye"
-    },
-    "P": {
-      "item": "minecraft:paper"
-    }
+    "D": "minecraft:purple_dye",
+    "P": "minecraft:paper"
   },
   "result": {
     "id": "randomthings:position_filter"

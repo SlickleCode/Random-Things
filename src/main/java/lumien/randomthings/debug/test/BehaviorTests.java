@@ -217,7 +217,7 @@ final class BehaviorTests
 			{
 				Recipe<?> recipe = holder.value();
 
-				if (!"randomthings".equals(holder.id().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
+				if (!"randomthings".equals(holder.id().location().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
 				{
 					continue;
 				}
@@ -225,12 +225,12 @@ final class BehaviorTests
 				checked++;
 				CraftingRecipe crafting = (CraftingRecipe) recipe;
 				CraftingContainer inv = new net.minecraft.world.inventory.TransientCraftingContainer(new NoopContainer(), 3, 3);
-				List<Ingredient> ingredients = recipe.getIngredients();
+				List<java.util.Optional<Ingredient>> ingredients = RecipeProbe.ingredientsOf(recipe);
 				int width = recipe instanceof ShapedRecipe ? ((ShapedRecipe) recipe).getWidth() : 3;
 
 				for (int i = 0; i < ingredients.size(); i++)
 				{
-					ItemStack[] options = ingredients.get(i).getItems();
+					ItemStack[] options = ingredients.get(i).map(RecipeProbe::optionsOf).orElse(new ItemStack[0]);
 
 					if (options.length == 0)
 					{
@@ -245,16 +245,16 @@ final class BehaviorTests
 
 				if (!crafting.matches(inv.asCraftInput(), c.world))
 				{
-					problems.add(holder.id().getPath() + " does not match its own ingredients");
+					problems.add(holder.id().location().getPath() + " does not match its own ingredients");
 					continue;
 				}
 
 				ItemStack out = crafting.assemble(inv.asCraftInput(), c.world.registryAccess());
-				ItemStack expected = recipe.getResultItem(net.minecraft.core.RegistryAccess.EMPTY);
+				ItemStack expected = RecipeProbe.resultOf(recipe, c.world.registryAccess());
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
 				{
-					problems.add(holder.id().getPath() + " crafts " + out + " but declares " + expected);
+					problems.add(holder.id().location().getPath() + " crafts " + out + " but declares " + expected);
 				}
 			}
 

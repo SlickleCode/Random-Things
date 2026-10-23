@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/colored_grass",
+    "tints": [
+      {
+        "type": "randomthings:tint",
+        "index": 0
+      }
+    ]
+  }
+}

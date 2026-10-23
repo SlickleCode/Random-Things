@@ -4,7 +4,7 @@ package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.AbstractBoat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -173,7 +173,7 @@ public final class SuperLubricentPhysics
 	 */
 	public static float slipperinessFor(Entity entity, float defaultValue)
 	{
-		return entity instanceof Boat ? BOAT_CRUISE_SLIPPERINESS : defaultValue;
+		return entity instanceof AbstractBoat ? BOAT_CRUISE_SLIPPERINESS : defaultValue;
 	}
 
 	public static void capHorizontalSpeed(Entity entity)
@@ -195,7 +195,7 @@ public final class SuperLubricentPhysics
 	 * javadoc) - the two independent things {@code BoatEntity#updateMotion}
 	 * multiplies by the underfoot block's slipperiness every tick.
 	 */
-	public static void capBoatMotion(Boat boat)
+	public static void capBoatMotion(AbstractBoat boat)
 	{
 		capHorizontalSpeed(boat);
 
@@ -231,7 +231,7 @@ public final class SuperLubricentPhysics
 		try
 		{
 			// field_184475_as = deltaRotation 
-			deltaRotationField = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(Boat.class, "deltaRotation");
+			deltaRotationField = net.neoforged.fml.util.ObfuscationReflectionHelper.findField(AbstractBoat.class, "deltaRotation");
 		}
 		catch (net.neoforged.fml.util.ObfuscationReflectionHelper.UnableToFindFieldException e)
 		{

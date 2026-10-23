@@ -6,7 +6,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +24,7 @@ import net.minecraft.world.level.Level;
  * exactly, which returns an all-empty list.
  */
 public class SpectreAnchorCombineRecipe extends CustomRecipe {
-    public static final RecipeSerializer<SpectreAnchorCombineRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(SpectreAnchorCombineRecipe::new);
+    public static final RecipeSerializer<SpectreAnchorCombineRecipe> SERIALIZER = new CustomRecipe.Serializer<>(SpectreAnchorCombineRecipe::new);
 
     public SpectreAnchorCombineRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category) {
         super(category);
@@ -83,13 +82,9 @@ public class SpectreAnchorCombineRecipe extends CustomRecipe {
         return NonNullList.withSize(inv.size(), ItemStack.EMPTY);
     }
 
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends CustomRecipe> getSerializer() {
         return SERIALIZER;
     }
 }

@@ -45,10 +45,9 @@ public abstract class AbstractSoundDampenerScreen<T extends AbstractSoundDampene
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, guiTextures);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(guiTextures, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, guiTextures, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 }

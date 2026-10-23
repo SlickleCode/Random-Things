@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["BBB","W  ","O  "],
   "key": {
-    "B": { "item": "randomthings:beans" },
-    "W": { "item": "minecraft:wheat" },
-    "O": { "item": "minecraft:bowl" }
+    "B": "randomthings:beans",
+    "W": "minecraft:wheat",
+    "O": "minecraft:bowl"
   },
   "result": {
     "id": "randomthings:bean_stew"

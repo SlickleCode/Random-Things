@@ -8,7 +8,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +23,7 @@ import net.minecraft.world.level.Level;
  */
 public class GoldenCompassSetPositionRecipe extends CustomRecipe
 {
-	public static final RecipeSerializer<GoldenCompassSetPositionRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(GoldenCompassSetPositionRecipe::new);
+	public static final RecipeSerializer<GoldenCompassSetPositionRecipe> SERIALIZER = new CustomRecipe.Serializer<>(GoldenCompassSetPositionRecipe::new);
 
 	public GoldenCompassSetPositionRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category)
 	{
@@ -125,14 +124,9 @@ public class GoldenCompassSetPositionRecipe extends CustomRecipe
 		return remaining;
 	}
 
-	@Override
-	public boolean canCraftInDimensions(int width, int height)
-	{
-		return true;
-	}
 
 	@Override
-	public RecipeSerializer<?> getSerializer()
+	public RecipeSerializer<? extends CustomRecipe> getSerializer()
 	{
 		return SERIALIZER;
 	}

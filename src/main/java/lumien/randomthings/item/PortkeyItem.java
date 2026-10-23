@@ -184,20 +184,4 @@ public class PortkeyItem extends Item {
         StackTag.edit(updated, t -> t.putInt("dropCounter", counter + 1));
         entityItem.setItem(updated);
     }
-
-    @Override
-    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientItemExtensions> consumer) {
-        consumer.accept(new net.neoforged.neoforge.client.extensions.common.IClientItemExtensions() {
-            private lumien.randomthings.client.renderer.PortkeyItemRenderer renderer;
-
-            @Override
-            public net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                if (renderer == null) {
-                    renderer = new lumien.randomthings.client.renderer.PortkeyItemRenderer();
-                }
-
-                return renderer;
-            }
-        });
-    }
 }

@@ -6,18 +6,10 @@
     "III"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:iron_bars"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "L": {
-      "item": "minecraft:lapis_lazuli"
-    }
+    "B": "minecraft:iron_bars",
+    "G": "minecraft:glass",
+    "I": "minecraft:iron_ingot",
+    "L": "minecraft:lapis_lazuli"
   },
   "result": {
     "id": "randomthings:sound_recorder"

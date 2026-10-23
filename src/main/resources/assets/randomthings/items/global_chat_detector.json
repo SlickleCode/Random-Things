@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/global_chat_detector"
+  }
+}

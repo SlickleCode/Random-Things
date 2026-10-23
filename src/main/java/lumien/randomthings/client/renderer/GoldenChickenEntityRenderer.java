@@ -13,22 +13,29 @@ import net.minecraft.util.Mth;
  * Chicken's own texture and wing-flap animation values. Direct port of
  * 1.12.2's {@code RenderGoldenChicken}.
  */
-public class GoldenChickenEntityRenderer extends MobRenderer<GoldenChickenEntity, ChickenModel<GoldenChickenEntity>> {
+public class GoldenChickenEntityRenderer extends MobRenderer<GoldenChickenEntity, net.minecraft.client.renderer.entity.state.ChickenRenderState, ChickenModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/golden_chicken.png");
 
     public GoldenChickenEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
-        super(renderManager, new ChickenModel<>(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.CHICKEN)), 0.3F);
+        super(renderManager, new ChickenModel(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.CHICKEN)), 0.3F);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(GoldenChickenEntity entity) {
+    public ResourceLocation getTextureLocation(net.minecraft.client.renderer.entity.state.ChickenRenderState state) {
         return TEXTURE;
     }
 
     @Override
-    protected float getBob(GoldenChickenEntity livingBase, float partialTicks) {
-        float f = livingBase.oFlap + (livingBase.wingRotation - livingBase.oFlap) * partialTicks;
-        float f1 = livingBase.oFlapSpeed + (livingBase.destPos - livingBase.oFlapSpeed) * partialTicks;
-        return (Mth.sin(f) + 1.0F) * f1;
+    public net.minecraft.client.renderer.entity.state.ChickenRenderState createRenderState() {
+        return new net.minecraft.client.renderer.entity.state.ChickenRenderState();
+    }
+
+    /** The vanilla chicken model derives the wing angle {@code (sin(flap) + 1) * flapSpeed} (this renderer's former getBob) from these two values. */
+    @Override
+    public void extractRenderState(GoldenChickenEntity entity, net.minecraft.client.renderer.entity.state.ChickenRenderState state, float partialTicks) {
+        super.extractRenderState(entity, state, partialTicks);
+
+        state.flap = Mth.lerp(partialTicks, entity.oFlap, entity.wingRotation);
+        state.flapSpeed = Mth.lerp(partialTicks, entity.oFlapSpeed, entity.destPos);
     }
 }

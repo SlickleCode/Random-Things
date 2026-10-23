@@ -160,7 +160,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
         int cz = center.getZ();
 
         Set<LevelChunk> touchedChunks = new HashSet<>();
-        Registry<Biome> biomeRegistry = world.registryAccess().registryOrThrow(Registries.BIOME);
+        Registry<Biome> biomeRegistry = world.registryAccess().lookupOrThrow(Registries.BIOME);
 
         // Every column is classified before any biome is written: a biome cell is 4x4 blocks wide, so writing one column
         // converts its 15 neighbours too, and they would otherwise look already warm and keep their snow and ice.
@@ -173,7 +173,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
                     continue;
                 }
 
-                BlockPos columnPos = new BlockPos(cx + dx, world.getMinBuildHeight(), cz + dz);
+                BlockPos columnPos = new BlockPos(cx + dx, world.getMinY(), cz + dz);
 
                 if (!world.hasChunkAt(columnPos)) {
                     continue;
@@ -181,7 +181,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
 
                 ResourceKey<Biome> coldKey = world.getBiome(columnPos).unwrapKey().orElse(null);
                 ResourceKey<Biome> warmKey = coldKey == null ? null : COLD_TO_WARM.get(coldKey);
-                Holder<Biome> warmBiome = warmKey == null ? null : biomeRegistry.getHolder(warmKey).orElse(null);
+                Holder<Biome> warmBiome = warmKey == null ? null : biomeRegistry.get(warmKey).orElse(null);
 
                 if (warmBiome != null) {
                     columns.add(columnPos);
@@ -196,12 +196,12 @@ public class AncientFurnaceTileEntity extends BlockEntity {
             int z = columnPos.getZ();
             LevelChunk chunk = world.getChunkAt(columnPos);
             setBiomeColumn(chunk, x, z, warmBiomes.get(i));
-            chunk.setUnsaved(true);
+            chunk.markUnsaved();
             touchedChunks.add(chunk);
 
             int top = world.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
 
-            for (int y = Math.min(top + 2, world.getMaxBuildHeight() - 1); y >= Math.max(top - 4, world.getMinBuildHeight()); y--) {
+            for (int y = Math.min(top + 2, world.getMaxY() + 1 - 1); y >= Math.max(top - 4, world.getMinY()); y--) {
                 BlockPos p = new BlockPos(x, y, z);
                 Block block = world.getBlockState(p).getBlock();
 

@@ -23,7 +23,7 @@ public class ObjectHolderInjector
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void inject(ResourceKey<? extends Registry<?>> registryKey)
 	{
-		Registry registry = (Registry) BuiltInRegistries.REGISTRY.get(registryKey.location());
+		Registry registry = (Registry) BuiltInRegistries.REGISTRY.getValue(registryKey.location());
 		for (Class<?> holder : HOLDERS)
 		{
 			for (Field field : holder.getDeclaredFields())
@@ -34,7 +34,7 @@ public class ObjectHolderInjector
 					continue;
 				}
 				ResourceLocation id = ResourceLocation.parse(annotation.value());
-				Object value = field.getType() == net.minecraft.core.Holder.class ? registry.getHolder(id).orElseThrow() : registry.get(id);
+				Object value = field.getType() == net.minecraft.core.Holder.class ? registry.get(id).orElseThrow() : registry.getValue(id);
 				try
 				{
 					field.set(null, value);

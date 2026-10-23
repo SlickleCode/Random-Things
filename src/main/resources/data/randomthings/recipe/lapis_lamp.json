@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["L  ","LAL","L  "],
   "key": {
-    "L": { "tag": "c:gems/lapis" },
-    "A": { "item": "minecraft:redstone_lamp" }
+    "L": "#c:gems/lapis",
+    "A": "minecraft:redstone_lamp"
   },
   "result": {
     "id": "randomthings:lapis_lamp"

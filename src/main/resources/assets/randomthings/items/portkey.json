@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "randomthings:portkey",
+    "base": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/portkey_base"
+    }
+  }
+}

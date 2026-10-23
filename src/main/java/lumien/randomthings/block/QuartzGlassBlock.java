@@ -15,7 +15,7 @@ public class QuartzGlassBlock extends Block
 {
 	public QuartzGlassBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> false));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.3F).sound(SoundType.GLASS).isSuffocating((state, world, pos) -> false));
 	}
 
 	/**

@@ -86,7 +86,7 @@ public class DiaphanousBlockTileEntity extends BlockEntity {
         super.loadAdditional(compound, registries);
 
         if (compound.contains("block")) {
-            this.displayState = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(compound.getString("block"))).defaultBlockState();
+            this.displayState = BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(compound.getString("block"))).defaultBlockState();
         } else {
             this.displayState = Blocks.STONE.defaultBlockState();
         }

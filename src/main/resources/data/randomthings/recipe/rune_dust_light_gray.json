@@ -1,15 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:clay_ball"
-    },
-    {
-      "item": "randomthings:luminous_powder"
-    },
-    {
-      "item": "minecraft:light_gray_dye"
-    }
+    "minecraft:clay_ball",
+    "randomthings:luminous_powder",
+    "minecraft:light_gray_dye"
   ],
   "result": {
     "id": "randomthings:rune_dust_light_gray",

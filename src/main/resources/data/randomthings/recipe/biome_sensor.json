@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["III","RCI","IRI"],
   "key": {
-    "I": { "tag": "c:ingots/iron" },
-    "R": { "item": "minecraft:redstone" },
-    "C": { "item": "randomthings:biome_crystal" }
+    "I": "#c:ingots/iron",
+    "R": "minecraft:redstone",
+    "C": "randomthings:biome_crystal"
   },
   "result": {
     "id": "randomthings:biome_sensor"

@@ -97,7 +97,7 @@ public class RedstoneSignalHandler extends SavedData {
 
     private static void updatePosition(Level world, BlockPos pos) {
         BlockState state = world.getBlockState(pos);
-        state.handleNeighborChanged(world, pos, Blocks.REDSTONE_BLOCK, pos, false);
+        state.handleNeighborChanged(world, pos, Blocks.REDSTONE_BLOCK, null, false);
         world.updateNeighborsAt(pos, Blocks.REDSTONE_BLOCK);
     }
 

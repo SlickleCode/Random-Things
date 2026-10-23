@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/compressed_slime_block",
+    "tints": [
+      {
+        "type": "randomthings:tint",
+        "index": 0
+      }
+    ]
+  }
+}

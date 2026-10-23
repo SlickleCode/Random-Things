@@ -6,11 +6,11 @@
     " Y "
   ],
   "key": {
-    "R": { "item": "minecraft:red_stained_glass" },
-    "G": { "item": "minecraft:green_stained_glass" },
-    "B": { "item": "minecraft:blue_stained_glass" },
-    "Y": { "item": "minecraft:yellow_stained_glass" },
-    "Q": { "item": "randomthings:quartz_glass" }
+    "R": "minecraft:red_stained_glass",
+    "G": "minecraft:green_stained_glass",
+    "B": "minecraft:blue_stained_glass",
+    "Y": "minecraft:yellow_stained_glass",
+    "Q": "randomthings:quartz_glass"
   },
   "result": {
     "id": "randomthings:diaphanous_block",

@@ -6,21 +6,11 @@
     "LEL"
   ],
   "key": {
-    "W": {
-      "item": "minecraft:water_bucket"
-    },
-    "V": {
-      "item": "minecraft:vine"
-    },
-    "C": {
-      "item": "minecraft:terracotta"
-    },
-    "L": {
-      "item": "minecraft:lily_pad"
-    },
-    "E": {
-      "item": "minecraft:emerald"
-    }
+    "W": "minecraft:water_bucket",
+    "V": "minecraft:vine",
+    "C": "minecraft:terracotta",
+    "L": "minecraft:lily_pad",
+    "E": "minecraft:emerald"
   },
   "result": {
     "id": "randomthings:imbuing_station"

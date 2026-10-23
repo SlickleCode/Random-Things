@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["S  ","SNS","S  "],
   "key": {
-    "S": { "item": "minecraft:slime_ball" },
-    "N": { "item": "minecraft:nether_star" }
+    "S": "minecraft:slime_ball",
+    "N": "minecraft:nether_star"
   },
   "result": {
     "id": "randomthings:slime_cube"

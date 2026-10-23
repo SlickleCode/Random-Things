@@ -9,7 +9,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -62,11 +61,11 @@ public class EnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return Component.translatable(this.getDescriptionId(stack) + ".filled", contained.getDisplayName());
+        return Component.translatable(this.getDescriptionId() + ".filled", contained.getDisplayName());
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         FluidStack contained = getContainedFluid(stack);
 
@@ -77,46 +76,46 @@ public class EnderBucketItem extends Item {
         return pickUp(world, player, stack);
     }
 
-    private InteractionResultHolder<ItemStack> place(Level world, Player player, InteractionHand hand, ItemStack stack, FluidStack contained) {
+    private InteractionResult place(Level world, Player player, InteractionHand hand, ItemStack stack, FluidStack contained) {
         HitResult result = getPlayerPOVHitResult(world, player, ClipContext.Fluid.NONE);
 
         if (result == null || result.getType() != HitResult.Type.BLOCK) {
-            return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+            return InteractionResult.PASS;
         }
 
         BlockHitResult blockResult = (BlockHitResult) result;
         BlockPos clickPos = blockResult.getBlockPos();
 
         if (!world.mayInteract(player, clickPos)) {
-            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+            return InteractionResult.FAIL;
         }
 
         BlockPos targetPos = clickPos.relative(blockResult.getDirection());
 
         if (!player.mayUseItemAt(targetPos, blockResult.getDirection(), stack)) {
-            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+            return InteractionResult.FAIL;
         }
 
         FluidActionResult placeResult = FluidUtil.tryPlaceFluid(player, world, hand, targetPos, stack, contained);
 
         if (placeResult.isSuccess()) {
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, placeResult.getResult());
+            return InteractionResult.SUCCESS.heldItemTransformedTo(placeResult.getResult());
         }
 
-        return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+        return InteractionResult.FAIL;
     }
 
-    private InteractionResultHolder<ItemStack> pickUp(Level world, Player player, ItemStack stack) {
+    private InteractionResult pickUp(Level world, Player player, ItemStack stack) {
         HitResult result = getPlayerPOVHitResult(world, player, ClipContext.Fluid.ANY);
 
         if (result == null || result.getType() != HitResult.Type.BLOCK) {
-            return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+            return InteractionResult.PASS;
         }
 
         BlockPos hitPos = ((BlockHitResult) result).getBlockPos();
 
         if (!isFluidBlock(world.getBlockState(hitPos).getBlock())) {
-            return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+            return InteractionResult.PASS;
         }
 
         List<BlockPos> toCheck = new ArrayList<>();
@@ -157,7 +156,7 @@ public class EnderBucketItem extends Item {
             }
         }
 
-        return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+        return InteractionResult.PASS;
     }
 
     private static boolean isFluidBlock(Block block) {
@@ -186,7 +185,7 @@ public class EnderBucketItem extends Item {
         return null;
     }
 
-    private InteractionResultHolder<ItemStack> finishPickup(Player player, ItemStack stack, FluidStack drained) {
+    private InteractionResult finishPickup(Player player, ItemStack stack, FluidStack drained) {
         ItemStack filled = stack.copy();
         filled.setCount(1);
         net.neoforged.neoforge.fluids.capability.IFluidHandlerItem filledHandler = filled.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
@@ -202,10 +201,10 @@ public class EnderBucketItem extends Item {
                 player.drop(filled, false);
             }
 
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, remaining);
+            return InteractionResult.SUCCESS;
         }
 
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, filled);
+        return InteractionResult.SUCCESS.heldItemTransformedTo(filled);
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {

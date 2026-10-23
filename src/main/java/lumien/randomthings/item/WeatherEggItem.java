@@ -5,7 +5,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 
 import lumien.randomthings.entity.ThrownWeatherEggEntity;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -39,7 +38,7 @@ public class WeatherEggItem extends Item implements net.minecraft.world.item.Pro
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
         ItemStack itemstack = playerIn.getItemInHand(handIn);
 
         if (!playerIn.getAbilities().instabuild) {
@@ -56,6 +55,6 @@ public class WeatherEggItem extends Item implements net.minecraft.world.item.Pro
 
         playerIn.awardStat(Stats.ITEM_USED.get(this));
 
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemstack);
+        return InteractionResult.SUCCESS;
     }
 }

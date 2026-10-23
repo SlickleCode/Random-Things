@@ -5,7 +5,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
@@ -49,9 +48,9 @@ public class FlooPouchItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
         if (!playerIn.isShiftKeyDown()) {
-            return new InteractionResultHolder<>(InteractionResult.PASS, playerIn.getItemInHand(handIn));
+            return InteractionResult.PASS;
         }
 
         ItemStack me = playerIn.getItemInHand(handIn);
@@ -72,7 +71,7 @@ public class FlooPouchItem extends Item {
             setFlooCount(me, flooCount);
         }
 
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, me);
+        return InteractionResult.SUCCESS;
     }
 
     public static void setFlooCount(ItemStack stack, int count) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Activates a JDK 21 toolchain for this session (Git Bash / POSIX shell), like a Python venv's `bin/activate`.
-# This branch (NeoGradle 7 + Gradle 8.13, NeoForge 21.1.264) needs a Java 21 compiler; other default JDKs
+# This branch (NeoGradle 7 + Gradle 8.13, NeoForge 21.4.161) needs a Java 21 compiler; other default JDKs
 # (e.g. 23) are not supported by Gradle 8.13. It does NOT touch your system JAVA_HOME, only the CURRENT shell.
 #
 # Usage:  source ./env/activate.sh   then   ./gradlew compileJava

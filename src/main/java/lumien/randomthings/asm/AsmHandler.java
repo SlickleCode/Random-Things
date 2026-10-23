@@ -300,7 +300,7 @@ public class AsmHandler {
 
         for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
-                return world.registryAccess().registryOrThrow(net.minecraft.core.registries.Registries.BIOME).getHolderOrThrow(net.minecraft.world.level.biome.Biomes.DESERT);
+                return world.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.BIOME).getOrThrow(net.minecraft.world.level.biome.Biomes.DESERT);
             }
         }
 

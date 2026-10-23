@@ -138,8 +138,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 
 			if (!fuelStack.isEmpty() && durationLeft > 0)
 			{
-				Integer burnTime = AbstractFurnaceBlockEntity.getFuel().get(fuelStack.getItem());
-				fuelBurnTime = fuelBurn = burnTime != null ? burnTime : 0;
+				fuelBurnTime = fuelBurn = lumien.randomthings.util.FuelHelper.burnTime(fuelStack);
 
 				itemHandler.extractItem(0, 1, false);
 			}
@@ -259,7 +258,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 		float g = ((color >> 8) & 0xFF) / 255F;
 		float b = (color & 0xFF) / 255F;
 
-		DustParticleOptions data = new DustParticleOptions(new org.joml.Vector3f(r, g, b), 1.0F);
+		DustParticleOptions data = new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, r, g, b), 1.0F);
 
 		for (BlockPos p : affectedBlocks)
 		{

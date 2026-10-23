@@ -6,15 +6,9 @@
     "PWP"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:oak_planks"
-    },
-    "D": {
-      "item": "randomthings:portable_sound_dampener"
-    },
-    "W": {
-      "item": "minecraft:white_wool"
-    }
+    "P": "minecraft:oak_planks",
+    "D": "randomthings:portable_sound_dampener",
+    "W": "minecraft:white_wool"
   },
   "result": {
     "id": "randomthings:sound_dampener"

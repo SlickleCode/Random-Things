@@ -39,36 +39,40 @@ public class ModEntityTypes {
     @ObjectHolder(registryName = "minecraft:entity_type", value = "randomthings:spirit")
     public static EntityType<SpiritEntity> SPIRIT;
 
+    private static net.minecraft.resources.ResourceKey<EntityType<?>> key(String name) {
+        return net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(lumien.randomthings.lib.ModConstants.MOD_ID, name));
+    }
+
     public static void registerEntityTypes(RTRegistry<EntityType<?>> registry) {
 
         EntityType.Builder<FlooFireplaceEntity> flooBuilder = EntityType.Builder.of(FlooFireplaceEntity::new, MobCategory.MISC);
-        registry.register("floo_fireplace", flooBuilder.sized(2.0F, 1.0F).noSummon().build("floo_fireplace"));
+        registry.register("floo_fireplace", flooBuilder.sized(2.0F, 1.0F).noSummon().build(key("floo_fireplace")));
 
         EntityType.Builder<EclipsedClockEntity> clockBuilder = EntityType.Builder.of(EclipsedClockEntity::new, MobCategory.MISC);
-        registry.register("eclipsed_clock", clockBuilder.sized(0.5F, 0.5F).noSummon().build("eclipsed_clock"));
+        registry.register("eclipsed_clock", clockBuilder.sized(0.5F, 0.5F).noSummon().build(key("eclipsed_clock")));
 
         EntityType.Builder<ThrownWeatherEggEntity> eggBuilder = EntityType.Builder.of(ThrownWeatherEggEntity::new, MobCategory.MISC);
-        registry.register("thrown_weather_egg", eggBuilder.sized(0.25F, 0.25F).setTrackingRange(64).setUpdateInterval(10).build("thrown_weather_egg"));
+        registry.register("thrown_weather_egg", eggBuilder.sized(0.25F, 0.25F).setTrackingRange(64).setUpdateInterval(10).build(key("thrown_weather_egg")));
 
         EntityType.Builder<WeatherCloudEntity> cloudBuilder = EntityType.Builder.of(WeatherCloudEntity::new, MobCategory.MISC);
-        registry.register("weather_cloud", cloudBuilder.sized(0.5F, 0.5F).noSummon().build("weather_cloud"));
+        registry.register("weather_cloud", cloudBuilder.sized(0.5F, 0.5F).noSummon().build(key("weather_cloud")));
 
         EntityType.Builder<TimeAcceleratorEntity> acceleratorBuilder = EntityType.Builder.of(TimeAcceleratorEntity::new, MobCategory.MISC);
-        registry.register("time_accelerator", acceleratorBuilder.sized(0.1F, 0.1F).noSummon().build("time_accelerator"));
+        registry.register("time_accelerator", acceleratorBuilder.sized(0.1F, 0.1F).noSummon().build(key("time_accelerator")));
 
         EntityType.Builder<ThrownGoldenEggEntity> goldenEggBuilder = EntityType.Builder.of(ThrownGoldenEggEntity::new, MobCategory.MISC);
-        registry.register("thrown_golden_egg", goldenEggBuilder.sized(0.25F, 0.25F).setTrackingRange(64).setUpdateInterval(10).build("thrown_golden_egg"));
+        registry.register("thrown_golden_egg", goldenEggBuilder.sized(0.25F, 0.25F).setTrackingRange(64).setUpdateInterval(10).build(key("thrown_golden_egg")));
 
         EntityType.Builder<GoldenChickenEntity> goldenChickenBuilder = EntityType.Builder.of(GoldenChickenEntity::new, MobCategory.CREATURE);
-        registry.register("golden_chicken", goldenChickenBuilder.sized(0.4F, 0.7F).build("golden_chicken"));
+        registry.register("golden_chicken", goldenChickenBuilder.sized(0.4F, 0.7F).build(key("golden_chicken")));
 
         EntityType.Builder<ArtificialEndPortalEntity> endPortalBuilder = EntityType.Builder.of(ArtificialEndPortalEntity::new, MobCategory.MISC);
-        registry.register("artificial_end_portal", endPortalBuilder.sized(3.0F, 1.0F).noSummon().build("artificial_end_portal"));
+        registry.register("artificial_end_portal", endPortalBuilder.sized(3.0F, 1.0F).noSummon().build(key("artificial_end_portal")));
 
         EntityType.Builder<SpectreIlluminatorEntity> illuminatorBuilder = EntityType.Builder.of(SpectreIlluminatorEntity::new, MobCategory.MISC);
-        registry.register("spectre_illuminator", illuminatorBuilder.sized(0.5F, 0.5F).noSummon().build("spectre_illuminator"));
+        registry.register("spectre_illuminator", illuminatorBuilder.sized(0.5F, 0.5F).noSummon().build(key("spectre_illuminator")));
 
         EntityType.Builder<SpiritEntity> spiritBuilder = EntityType.Builder.of(SpiritEntity::new, MobCategory.MISC);
-        registry.register("spirit", spiritBuilder.sized(0.25F, 0.25F).setTrackingRange(80).setUpdateInterval(1).noSummon().build("spirit"));
+        registry.register("spirit", spiritBuilder.sized(0.25F, 0.25F).setTrackingRange(80).setUpdateInterval(1).noSummon().build(key("spirit")));
     }
 }

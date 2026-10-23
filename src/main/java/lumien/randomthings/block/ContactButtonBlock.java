@@ -6,7 +6,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
@@ -24,11 +24,11 @@ import net.minecraft.server.level.ServerLevel;
  * ButtonBlock.
  */
 public class ContactButtonBlock extends Block {
-    public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
+    public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.values());
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
     public ContactButtonBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F).randomTicks());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F).randomTicks());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
     }
@@ -90,7 +90,7 @@ public class ContactButtonBlock extends Block {
     @Override
     public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
         LivingEntity placer = context.getPlayer();
-        Direction facing = placer != null ? Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z) : Direction.NORTH;
+        Direction facing = placer != null ? Direction.getApproximateNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z) : Direction.NORTH;
 
         return this.defaultBlockState().setValue(FACING, facing);
     }
@@ -98,7 +98,7 @@ public class ContactButtonBlock extends Block {
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            Direction facing = Direction.getNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z);
+            Direction facing = Direction.getApproximateNearest((float) placer.getLookAngle().x, (float) placer.getLookAngle().y, (float) placer.getLookAngle().z);
             worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
         }
     }

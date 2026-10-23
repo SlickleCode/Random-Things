@@ -1,4 +1,4 @@
-# Version notes (branch 1.20.6)
+# Version notes (branch 1.21.4)
 
 Facts that differ per branch. The shared skills and agents (identical on every branch, see `docs/project/branches.md`) read the section named after them first. The section texts below were moved here unchanged from this branch's former per-branch skills; where a section says it was written for another version, treat versions, jar paths and counts in it as unverified for this branch.
 
@@ -7,6 +7,12 @@ Facts that differ per branch. The shared skills and agents (identical on every b
 _(former skill heading: Mapping and javap lookup (1.18.2: official Mojang names))_
 
 > **Version notes (1.21.1, NeoForge 21.1.264, JDK 21):** names are Mojang names in dev AND production (no SRG ids, `lookup.py` is not needed). `javap` classes: `build/neoForm/neoFormJoined1.21.1-*/steps/packRecomp/output.jar` plus the `neoforge-21.1.264-universal.jar` in the Gradle cache; vanilla data/tags: `.gradle/caches/minecraft/versions/1.21.1/client.jar`. API changes since 1.20.6: `docs/project/api-gotchas-1.21.1.md`. The text below is the older inherited body.
+
+> **Version notes (1.21.4, NeoForge 21.4.161, JDK 21):** same layout as 1.21.1 (Mojang names, jar under `build/neoForm/neoFormJoined1.21.4-*/steps/packRecomp/output.jar` plus the `neoforge-21.4.161-universal.jar`). Use the **packRecomp** jar for `javap`: `steps/decompile/output.jar` is source before NeoForge's patches and misses their hook calls. API changes: `docs/project/api-gotchas-1.21.4.md`.
+
+> **Version notes (1.21.4) scripted-playtest:** `SCN_MC=1.21.4` uses the 1.21.1 helper paths plus `MC212` (attribute ids without the `generic.` prefix, so the burning pig of `rain_shield` needs `minecraft:max_health`; the worn-armor glint check accepts a smaller red/blue drop, 0.05). All 28 scenarios pass on the dev client (2026-10-23). The Singleplayer button is at y=203 as in 1.21.1.
+
+> **Version notes (1.21.4) prod-jar-check:** production = NeoForge 21.4.161 install in `prod-test/1.21.4/` (untracked; installer `neoforge-21.4.161-installer.jar` from `maven.neoforged.net`, JDK 21, ask before downloading). Same setup as 1.21.1 (`--installServer`, `client/` + `--installClient client`, `fetch-libs.py`: 73 files, ~63 MB); server args `@libraries/net/neoforged/neoforge/21.4.161/win_args.txt` after the `-D` options; reuse the dev `run/server.properties` (flat with full `generator-settings`, `pause-when-empty-seconds=-1`). Baseline 2026-10-23: server 381/0/4, client 383/0/2 + audit clean, 26 scenes, 6 render hook checks.
 
 Project rule (CLAUDE.md): never write against a Minecraft/Forge API from memory - read the real jar.
 
@@ -129,3 +135,4 @@ What the playtest found on 1.18.2 that no suite had: the Item renderer coremod t
 - Fresh `run/` for the client suite: put `onboardAccessibility:false` in `run/options.txt` first, otherwise the client waits on the accessibility screen and the run times out.
 - Item data pitfall (carried over from 1.20.6): `StackTag.get/getOrCreate` return COPIES; write with `StackTag.edit`/`set`.
 - Gradle needs the network for the first NeoForm download (`--offline` fails until the caches exist; `suite-all.sh` retries online).
+- 1.21.4: `run/server.properties` needs a flat world with a full `generator-settings` JSON (with `layers`) and `pause-when-empty-seconds=-1`; `generator-settings={}` is rejected and the default pause freezes ticks so no report is written. Baselines: server 381/0/4 (`1.21.4`), normal-world pass 1/0/0, dev client 383/0/2.

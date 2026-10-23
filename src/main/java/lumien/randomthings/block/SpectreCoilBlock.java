@@ -21,7 +21,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
@@ -62,12 +62,12 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
         }
     }
 
-    public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
+    public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.values());
 
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollission());
 
         this.coilType = coilType;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
@@ -110,7 +110,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         if (!worldIn.isClientSide && !hasEnergyCapableSupport(worldIn, pos, state.getValue(FACING))) {
             worldIn.destroyBlock(pos, true);
         }

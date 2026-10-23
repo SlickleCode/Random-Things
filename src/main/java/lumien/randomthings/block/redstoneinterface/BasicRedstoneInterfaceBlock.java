@@ -26,7 +26,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class BasicRedstoneInterfaceBlock extends Block implements EntityBlock {
     public BasicRedstoneInterfaceBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class BasicRedstoneInterfaceBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity) {

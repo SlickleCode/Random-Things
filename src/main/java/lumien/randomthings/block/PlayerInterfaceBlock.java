@@ -21,7 +21,7 @@ import net.minecraft.world.level.Level;
 public class PlayerInterfaceBlock extends Block implements EntityBlock {
 	public PlayerInterfaceBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(4.0F).sound(SoundType.STONE));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(4.0F).sound(SoundType.STONE));
 	}
 
 	@Override

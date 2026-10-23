@@ -24,7 +24,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class DyeingMachineBlock extends Block {
     public DyeingMachineBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().strength(0.7F).sound(SoundType.WOOD));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().strength(0.7F).sound(SoundType.WOOD));
     }
 
     @Override

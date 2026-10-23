@@ -79,7 +79,7 @@ public class FluidDisplayTileEntityRenderer implements BlockEntityRenderer<Fluid
             b = (color & 0xFF) / 255F;
         }
 
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_BLOCKS);
         // Real bug (1.18.2, 2026-10-18): the cube was drawn over blocks in front of it, so depth state is set explicitly
         RenderSystem.enableDepthTest();

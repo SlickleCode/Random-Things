@@ -189,6 +189,6 @@ public class ModTileEntityTypes
 
 	private static void registerSimple(RTRegistry<BlockEntityType<?>> registry, String name, BlockEntityType.BlockEntitySupplier<? extends BlockEntity> factoryIn, Block... validBlocks)
 	{
-		registry.register(name, BlockEntityType.Builder.of(factoryIn, validBlocks).build(null));
+		registry.register(name, new BlockEntityType<>(factoryIn, java.util.Set.of(validBlocks)));
 	}
 }

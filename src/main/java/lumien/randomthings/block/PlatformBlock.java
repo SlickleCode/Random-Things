@@ -15,7 +15,7 @@ public class PlatformBlock extends Block {
     protected static final VoxelShape SHAPE = Block.box(0, 14, 0, 16, 16, 16);
 
     public PlatformBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().strength(2.0F, 3.0F).sound(SoundType.WOOD));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().strength(2.0F, 3.0F).sound(SoundType.WOOD));
     }
 
     @Override

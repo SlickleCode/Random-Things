@@ -36,7 +36,7 @@ public class BeanSproutFeature extends Feature<NoneFeatureConfiguration> {
         BlockPos pos = context.origin();
         RandomSource rand = context.random();
 
-        if (pos.getY() <= worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight() - 1 || !worldIn.isEmptyBlock(pos)) {
+        if (pos.getY() <= worldIn.getMinY() || pos.getY() >= worldIn.getMaxY() + 1 - 1 || !worldIn.isEmptyBlock(pos)) {
             return false;
         }
 

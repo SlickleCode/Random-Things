@@ -2,11 +2,9 @@ package lumien.randomthings.item;
 
 import lumien.randomthings.util.StackTag;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
@@ -28,25 +26,25 @@ import net.neoforged.api.distmarker.OnlyIn;
  * that (from {@link CompassItemBase}) is an {@code IItemPropertyGetter}
  * predicate driving the item model JSON's {@code overrides}.
  */
-public class SoundPatternItem extends Item implements IClientItemProperties{
+public class SoundPatternItem extends Item {
     public SoundPatternItem(Item.Properties properties) {
         super(properties);
 
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand handIn) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand handIn) {
         if (playerIn.isShiftKeyDown()) {
             ItemStack me = playerIn.getItemInHand(handIn);
 
             if (getSoundLocation(me) != null) {
                 StackTag.set(me, null);
 
-                return new InteractionResultHolder<>(InteractionResult.SUCCESS, me);
+                return InteractionResult.SUCCESS;
             }
         }
 
-        return new InteractionResultHolder<>(InteractionResult.PASS, playerIn.getItemInHand(handIn));
+        return InteractionResult.PASS;
     }
 
     @Override
@@ -83,16 +81,4 @@ public class SoundPatternItem extends Item implements IClientItemProperties{
     public static void setSoundLocation(ItemStack pattern, String sound) {
         StackTag.edit(pattern, t -> t.putString("sound", sound));
     }
-
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void registerClientProperties()
-	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("filled"), new ItemPropertyFunction() {
-            @Override
-            public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, net.minecraft.world.entity.LivingEntity entityIn, int seed) {
-                return getSoundLocation(stack) != null ? 1.0F : 0.0F;
-            }
-        });
-	}
 }

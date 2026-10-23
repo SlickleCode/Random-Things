@@ -27,11 +27,11 @@ public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile
     }
 
     public ThrownGoldenEggEntity(Level world, LivingEntity thrower) {
-        super(ModEntityTypes.THROWN_GOLDEN_EGG, thrower, world);
+        super(ModEntityTypes.THROWN_GOLDEN_EGG, thrower, world, new net.minecraft.world.item.ItemStack(ModItems.GOLDEN_EGG));
     }
 
     public ThrownGoldenEggEntity(Level world, double x, double y, double z) {
-        super(ModEntityTypes.THROWN_GOLDEN_EGG, x, y, z, world);
+        super(ModEntityTypes.THROWN_GOLDEN_EGG, x, y, z, world, new net.minecraft.world.item.ItemStack(ModItems.GOLDEN_EGG));
     }
 
     @Override

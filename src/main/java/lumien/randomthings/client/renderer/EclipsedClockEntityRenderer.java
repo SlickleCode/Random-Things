@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -43,37 +44,52 @@ import net.minecraft.network.chat.Component;
  * accounting for it, landing the label roughly a block higher than intended.
  * Both now subtract that same 1.0 to compensate.
  */
-public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEntity> {
+public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEntity, EclipsedClockEntityRenderer.State> {
+    public static class State extends net.minecraft.client.renderer.entity.state.EntityRenderState {
+        public final net.minecraft.client.renderer.item.ItemStackRenderState item = new net.minecraft.client.renderer.item.ItemStackRenderState();
+        public double offX;
+        public double offY;
+        public double offZ;
+        public float yRot;
+        /** The target time label, or null when it is not shown; {@code nameTagAttachment} carries its height. */
+        public String label;
+    }
+
+    private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
+
     public EclipsedClockEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
+
+        this.itemModelResolver = renderManager.getItemModelResolver();
     }
 
     @Override
-    public void render(EclipsedClockEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-        matrixStack.pushPose();
+    public State createRenderState() {
+        return new State();
+    }
 
-        // the matrix is already translated to the entity; the clock hangs centered on its block
+    @Override
+    public void extractRenderState(EclipsedClockEntity entity, State state, float partialTicks) {
+        super.extractRenderState(entity, state, partialTicks);
+
+        // the matrix is translated to the entity; the clock hangs centered on its block
         BlockPos blockpos = entity.getPos();
-        double d0 = (double) blockpos.getX() - entity.getX();
-        double d1 = (double) blockpos.getY() - entity.getY();
-        double d2 = (double) blockpos.getZ() - entity.getZ();
-
-        matrixStack.translate(d0 + 0.5D, d1 + 0.5D, d2 + 0.5D);
-        matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F - entity.getYRot()));
-        matrixStack.translate(0.0D, 0.0D, 0.4375D);
-        matrixStack.scale(0.5F, 0.5F, 0.5F);
+        state.offX = (double) blockpos.getX() - entity.getX() + 0.5D;
+        state.offY = (double) blockpos.getY() - entity.getY() + 0.5D;
+        state.offZ = (double) blockpos.getZ() - entity.getZ() + 0.5D;
+        state.yRot = entity.getYRot();
 
         ItemStack stack = new ItemStack(ModItems.ECLIPSED_CLOCK);
         CompoundTag tag = new CompoundTag();
         tag.putInt("targetTime", entity.getTargetTime());
         StackTag.set(stack, tag);
+        this.itemModelResolver.updateForNonLiving(state.item, stack, ItemDisplayContext.FIXED, entity);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
-
-        matrixStack.popPose();
+        state.label = null;
 
         if (entity.shouldDisplayTime()) {
-            drawLabel(entity, -0.55D, matrixStack, buffer, packedLight);
+            state.label = entity.getStringTargetTime();
+            state.nameTagAttachment = new Vec3(0.0D, -0.55D + 0.5D, 0.0D);
         } else if (this.entityRenderDispatcher.crosshairPickEntity == entity) {
             // Also show the target time whenever this clock is the one under the crosshair, even without a
             // recent interaction - matches 1.12.2's separate renderName override.
@@ -81,20 +97,27 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
             float range = entity.isShiftKeyDown() ? 32.0F : 64.0F;
 
             if (distanceSq < (double) (range * range)) {
-                drawLabel(entity, -1.0D, matrixStack, buffer, packedLight);
+                state.label = entity.getStringTargetTime();
+                state.nameTagAttachment = new Vec3(0.0D, -1.0D + 0.5D, 0.0D);
             }
         }
     }
 
-    private void drawLabel(EclipsedClockEntity entity, double yOffset, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-        matrixStack.pushPose();
-        matrixStack.translate(0.0D, yOffset, 0.0D);
-        this.renderNameTag(entity, Component.literal(entity.getStringTargetTime()), matrixStack, buffer, packedLight, 0.0F);
-        matrixStack.popPose();
-    }
-
     @Override
-    public ResourceLocation getTextureLocation(EclipsedClockEntity entity) {
-        return null;
+    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+        matrixStack.pushPose();
+        matrixStack.translate(state.offX, state.offY, state.offZ);
+        matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F - state.yRot));
+        matrixStack.translate(0.0D, 0.0D, 0.4375D);
+        matrixStack.scale(0.5F, 0.5F, 0.5F);
+
+        state.item.render(matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
+
+        matrixStack.popPose();
+
+        if (state.label != null) {
+            // renderNameTag lifts the text 0.5 above the attachment point (the 1.12.2 offsets were relative to the entity)
+            this.renderNameTag(state, Component.literal(state.label), matrixStack, buffer, packedLight);
+        }
     }
 }

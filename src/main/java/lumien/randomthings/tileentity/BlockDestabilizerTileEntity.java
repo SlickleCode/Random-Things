@@ -281,11 +281,11 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
             alreadyChecked = readPosSet(compound.getList("alreadyChecked", 10));
             toCheck = readPosList(compound.getList("toCheck", 10));
             targetBlocks = readPosSet(compound.getList("targetBlocks", 10));
-            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK.asLookup(), compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
         } else if (state == State.DROPPING) {
             dropCounter = compound.getInt("dropCounter");
             targetBlocksSorted = readPosList(compound.getList("targetBlocksSorted", 10));
-            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK.asLookup(), compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
         }
     }
 

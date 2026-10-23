@@ -6,18 +6,10 @@
     " F "
   ],
   "key": {
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "H": {
-      "item": "minecraft:hopper"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "F": {
-      "item": "minecraft:oak_fence"
-    }
+    "E": "minecraft:ender_pearl",
+    "H": "minecraft:hopper",
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:oak_fence"
   },
   "result": {
     "id": "randomthings:ender_mailbox"

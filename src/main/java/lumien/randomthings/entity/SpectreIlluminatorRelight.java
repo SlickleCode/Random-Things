@@ -107,7 +107,7 @@ public class SpectreIlluminatorRelight {
     public static void queue(Level world, BlockPos center) {
         LevelChunk chunk = world.getChunk(center.getX() >> 4, center.getZ() >> 4);
 
-        int highest = world.getMinBuildHeight();
+        int highest = world.getMinY();
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -119,8 +119,8 @@ public class SpectreIlluminatorRelight {
             }
         }
 
-        int minY = world.getMinBuildHeight();
-        int maxY = Math.min(world.getMaxBuildHeight() - 1, highest + HEIGHT_BUFFER);
+        int minY = world.getMinY();
+        int maxY = Math.min(world.getMaxY() + 1 - 1, highest + HEIGHT_BUFFER);
 
         ChunkPos chunkPos = new ChunkPos(center);
         Job job = new Job(chunkPos.getMinBlockX() - PADDING, chunkPos.getMaxBlockX() + PADDING, chunkPos.getMinBlockZ() - PADDING, chunkPos.getMaxBlockZ() + PADDING, minY, maxY);

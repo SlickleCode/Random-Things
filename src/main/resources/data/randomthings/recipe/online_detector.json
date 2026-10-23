@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["SRS","RTR","SRS"],
   "key": {
-    "S": { "tag": "c:stones" },
-    "R": { "item": "minecraft:repeater" },
-    "T": { "tag": "c:dyes/blue" }
+    "S": "#c:stones",
+    "R": "minecraft:repeater",
+    "T": "#c:dyes/blue"
   },
   "result": {
     "id": "randomthings:online_detector"

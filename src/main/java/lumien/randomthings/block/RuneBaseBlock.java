@@ -45,7 +45,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 0.1, 16);
 
     public RuneBaseBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.SAND).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE).strength(0.2F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.SAND).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE).strength(0.2F).noCollission());
     }
 
     @Override
@@ -78,7 +78,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         if (!Block.canSupportCenter(worldIn, pos.below(), Direction.UP)) {
             worldIn.removeBlock(pos, false);
         }

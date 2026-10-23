@@ -17,6 +17,6 @@ public class QuartzLampBlock extends Block
 {
 	public QuartzLampBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.QUARTZ).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS));
 	}
 }

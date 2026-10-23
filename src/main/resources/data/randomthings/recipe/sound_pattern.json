@@ -6,15 +6,9 @@
     " L "
   ],
   "key": {
-    "S": {
-      "item": "minecraft:string"
-    },
-    "P": {
-      "item": "minecraft:paper"
-    },
-    "L": {
-      "item": "minecraft:lapis_lazuli"
-    }
+    "S": "minecraft:string",
+    "P": "minecraft:paper",
+    "L": "minecraft:lapis_lazuli"
   },
   "result": {
     "id": "randomthings:sound_pattern"

@@ -24,7 +24,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class SoundDampenerBlock extends Block implements EntityBlock {
     public SoundDampenerBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
     }
 
     @Override

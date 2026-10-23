@@ -6,18 +6,10 @@
     "OWO"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "C": {
-      "item": "minecraft:fire_charge"
-    },
-    "L": {
-      "item": "minecraft:lapis_lazuli"
-    },
-    "W": {
-      "item": "minecraft:potion"
-    }
+    "O": "minecraft:obsidian",
+    "C": "minecraft:fire_charge",
+    "L": "minecraft:lapis_lazuli",
+    "W": "minecraft:potion"
   },
   "result": {
     "id": "randomthings:weather_egg_rain",

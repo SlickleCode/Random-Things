@@ -6,15 +6,9 @@
     "IRI"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "S": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:basic_redstone_interface"

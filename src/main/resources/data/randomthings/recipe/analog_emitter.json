@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["TIR","III","RIT"],
   "key": {
-    "T": { "item": "minecraft:redstone_torch" },
-    "I": { "tag": "c:ingots/iron" },
-    "R": { "item": "minecraft:redstone" }
+    "T": "minecraft:redstone_torch",
+    "I": "#c:ingots/iron",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "randomthings:analog_emitter"

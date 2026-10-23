@@ -25,13 +25,13 @@ import net.minecraft.core.BlockPos;
  * separate hand-rolled layer class is needed here the way 1.12.2's bespoke
  * {@code LayerSpiritGel} was.
  */
-public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, SlimeModel<SpiritEntity>> {
+public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, net.minecraft.client.renderer.entity.state.SlimeRenderState, SlimeModel> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/spirit.png");
 
     public SpiritEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
-        super(renderManager, new SlimeModel<>(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.SLIME)), 0.125F);
+        super(renderManager, new SlimeModel(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.SLIME)), 0.125F);
 
-        this.addLayer(new SlimeOuterLayer<>(this, renderManager.getModelSet()));
+        this.addLayer(new SlimeOuterLayer(this, renderManager.getModelSet()));
     }
 
     /** 1.14.4 switched lighting and the lightmap off while drawing the spirit (it glows); full block light does the same here. */
@@ -41,12 +41,17 @@ public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, SlimeModel<S
     }
 
     @Override
-    protected void scale(SpiritEntity entity, PoseStack matrixStack, float partialTickTime) {
+    protected void scale(net.minecraft.client.renderer.entity.state.SlimeRenderState state, PoseStack matrixStack) {
         matrixStack.scale(0.5F, 0.5F, 0.5F);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(SpiritEntity entity) {
+    public ResourceLocation getTextureLocation(net.minecraft.client.renderer.entity.state.SlimeRenderState state) {
         return TEXTURE;
+    }
+
+    @Override
+    public net.minecraft.client.renderer.entity.state.SlimeRenderState createRenderState() {
+        return new net.minecraft.client.renderer.entity.state.SlimeRenderState();
     }
 }

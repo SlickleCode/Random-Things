@@ -6,12 +6,8 @@
     "TTT"
   ],
   "key": {
-    "T": {
-      "item": "minecraft:bricks"
-    },
-    "D": {
-      "item": "minecraft:yellow_dye"
-    }
+    "T": "minecraft:bricks",
+    "D": "minecraft:yellow_dye"
   },
   "result": {
     "id": "randomthings:stained_brick_yellow",

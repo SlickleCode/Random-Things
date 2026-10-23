@@ -1,10 +1,10 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "minecraft:ender_pearl" },
-    { "item": "minecraft:redstone" },
-    { "item": "minecraft:gunpowder" },
-    { "item": "randomthings:beans" }
+    "minecraft:ender_pearl",
+    "minecraft:redstone",
+    "minecraft:gunpowder",
+    "randomthings:beans"
   ],
   "result": {
     "id": "randomthings:floo_powder",

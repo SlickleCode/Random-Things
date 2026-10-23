@@ -80,15 +80,14 @@ public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineCo
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
         Color c = new Color(currentColor);
         RenderSystem.setShaderColor(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue(), 1.0F);
-        graphics.blit(GUI_TEXTURES, x + 102, y + 23, 176, 21, 22, 15);
+        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x + 102, y + 23, 176, 21, 22, 15, 256, 256);
         // 1.20.5+ draws slot items after renderBg without resetting the colour: leave it white or every item shows the swatch tint
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }

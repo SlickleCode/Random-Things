@@ -30,7 +30,7 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class GlowingMushroomBlock extends Block
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving)
 	{
 		super.neighborChanged(state, worldIn, pos, blockIn, fromPos, isMoving);
 		this.checkAndDropBlock(worldIn, pos, state);
@@ -121,7 +121,7 @@ public class GlowingMushroomBlock extends Block
 	 */
 	public static boolean canGrowDuringWorldgen(LevelReader worldIn, BlockPos pos)
 	{
-		if (pos.getY() < worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight())
+		if (pos.getY() < worldIn.getMinY() || pos.getY() >= worldIn.getMaxY() + 1)
 		{
 			return false;
 		}
@@ -132,7 +132,7 @@ public class GlowingMushroomBlock extends Block
 
 	public static boolean canBlockStay(LevelReader worldIn, BlockPos pos)
 	{
-		if (pos.getY() < worldIn.getMinBuildHeight() || pos.getY() >= worldIn.getMaxBuildHeight())
+		if (pos.getY() < worldIn.getMinY() || pos.getY() >= worldIn.getMaxY() + 1)
 		{
 			return false;
 		}

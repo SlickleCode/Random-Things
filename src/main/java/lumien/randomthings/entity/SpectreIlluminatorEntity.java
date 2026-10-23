@@ -175,7 +175,7 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
         if (!this.level().isClientSide) {
             this.discard();
 
-            this.spawnAtLocation(new net.minecraft.world.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
+            this.spawnAtLocation((net.minecraft.server.level.ServerLevel) this.level(), new net.minecraft.world.item.ItemStack(ModItems.SPECTRE_ILLUMINATOR), 0.0F);
         }
 
         return InteractionResult.SUCCESS;
@@ -281,4 +281,8 @@ public class SpectreIlluminatorEntity extends Entity implements ItemSupplier {
         compound.putBoolean("illuminated", isIlluminated());
     }
 
+    @Override
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
+    }
 }

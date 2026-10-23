@@ -46,7 +46,7 @@ public class RainShieldBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 16, 10);
 
     public RainShieldBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(2.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(2.0F));
     }
 
     @Override
@@ -75,7 +75,7 @@ public class RainShieldBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         if (!canSurvive(state, worldIn, pos)) {
             dropResources(state, worldIn, pos);
             worldIn.removeBlock(pos, isMoving);

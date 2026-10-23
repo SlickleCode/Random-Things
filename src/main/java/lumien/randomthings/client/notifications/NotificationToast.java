@@ -5,7 +5,8 @@ import net.minecraft.client.renderer.GameRenderer;
 import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.gui.components.toasts.Toast;
-import net.minecraft.client.gui.components.toasts.ToastComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,6 +27,7 @@ public class NotificationToast implements Toast
 
 	private long firstDrawTime;
 	private boolean newDisplay = true;
+	private Visibility visibility = Visibility.SHOW;
 
 	public NotificationToast(String title, String description, ItemStack icon)
 	{
@@ -35,25 +37,34 @@ public class NotificationToast implements Toast
 	}
 
 	@Override
-	public Visibility render(GuiGraphics graphics, ToastComponent toastGui, long delta)
+	public Visibility getWantedVisibility()
+	{
+		return visibility;
+	}
+
+	@Override
+	public void update(ToastManager toastManager, long time)
 	{
 		if (newDisplay)
 		{
-			firstDrawTime = delta;
+			firstDrawTime = time;
 			newDisplay = false;
 		}
 
-				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		graphics.blitSprite(BACKGROUND_SPRITE, 0, 0, 160, 32);
+		visibility = time - firstDrawTime < DISPLAY_TIME_MS ? Visibility.SHOW : Visibility.HIDE;
+	}
 
-		graphics.drawString(toastGui.getMinecraft().font, title, 30, 7, 0xFFFFFF00, false);
-		graphics.drawString(toastGui.getMinecraft().font, description, 30, 18, 0xFFFFFFFF, false);
+	@Override
+	public void render(GuiGraphics graphics, Font font, long time)
+	{
+		graphics.blitSprite(net.minecraft.client.renderer.RenderType::guiTextured, BACKGROUND_SPRITE, 0, 0, 160, 32);
+
+		graphics.drawString(font, title, 30, 7, 0xFFFFFF00, false);
+		graphics.drawString(font, description, 30, 18, 0xFFFFFFFF, false);
 
 		if (!icon.isEmpty())
 		{
 			graphics.renderItem(icon, 8, 8);
 		}
-
-		return delta - firstDrawTime < DISPLAY_TIME_MS ? Visibility.SHOW : Visibility.HIDE;
 	}
 }

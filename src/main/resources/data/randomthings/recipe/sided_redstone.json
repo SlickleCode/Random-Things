@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["GGR","GGR","GGR"],
   "key": {
-    "R": { "item": "minecraft:redstone" },
-    "G": { "item": "minecraft:gunpowder" }
+    "R": "minecraft:redstone",
+    "G": "minecraft:gunpowder"
   },
   "result": {
     "id": "randomthings:sided_redstone"

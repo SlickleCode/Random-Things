@@ -10,7 +10,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +33,7 @@ import net.minecraft.world.level.Level;
  * directly).
  */
 public class DiaphanousSetRecipe extends CustomRecipe {
-    public static final RecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(DiaphanousSetRecipe::new);
+    public static final RecipeSerializer<DiaphanousSetRecipe> SERIALIZER = new CustomRecipe.Serializer<>(DiaphanousSetRecipe::new);
 
     public DiaphanousSetRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category) {
         super(category);
@@ -130,13 +129,9 @@ public class DiaphanousSetRecipe extends CustomRecipe {
         return remaining;
     }
 
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
-    }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends CustomRecipe> getSerializer() {
         return SERIALIZER;
     }
 }

@@ -56,7 +56,7 @@ public class BasicRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEntit
     }
 
     private void notifyOne(BlockPos targetPos, net.minecraft.world.level.block.Block neighborBlock) {
-        this.level.getBlockState(targetPos).handleNeighborChanged(this.level, targetPos, neighborBlock, this.worldPosition, false);
+        this.level.getBlockState(targetPos).handleNeighborChanged(this.level, targetPos, neighborBlock, null, false);
         this.level.updateNeighborsAt(targetPos, neighborBlock);
     }
 

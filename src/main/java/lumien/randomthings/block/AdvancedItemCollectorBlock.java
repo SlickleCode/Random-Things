@@ -19,7 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
@@ -39,7 +39,7 @@ import net.minecraft.world.InteractionResult;
  * {@link ItemCollectorBlock}; same six-way mountable-nub shape, larger.
  */
 public class AdvancedItemCollectorBlock extends Block implements EntityBlock {
-	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
+	public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.values());
 
 	private static final VoxelShape SHAPE_UP = Block.box(6, 0, 6, 10, 5, 10);
 	private static final VoxelShape SHAPE_DOWN = Block.box(6, 11, 6, 10, 16, 10);
@@ -50,7 +50,7 @@ public class AdvancedItemCollectorBlock extends Block implements EntityBlock {
 
 	public AdvancedItemCollectorBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}

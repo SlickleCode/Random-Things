@@ -7,6 +7,6 @@ public class LuminousTranslucentBlock extends Block
 {
 	public LuminousTranslucentBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).noOcclusion().strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOL).noOcclusion().strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }

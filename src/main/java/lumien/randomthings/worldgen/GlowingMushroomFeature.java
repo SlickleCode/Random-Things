@@ -47,7 +47,7 @@ public class GlowingMushroomFeature extends Feature<NoneFeatureConfiguration> {
 
         // the original rolled the patch centre between bedrock (y 0) and the surface; 1.18 digs down to -64, which would mostly
         // pick solid deepslate, so the roll keeps starting at y 0
-        int minY = Math.max(0, worldIn.getMinBuildHeight());
+        int minY = Math.max(0, worldIn.getMinY());
         int maxY = pos.getY() - 4;
 
         if (maxY <= minY) {
@@ -60,7 +60,7 @@ public class GlowingMushroomFeature extends Feature<NoneFeatureConfiguration> {
         for (int i = 0; i < 64; ++i) {
             BlockPos target = center.offset(rand.nextInt(8) - rand.nextInt(8), rand.nextInt(4) - rand.nextInt(4), rand.nextInt(8) - rand.nextInt(8));
 
-            if (target.getY() > minY && target.getY() < worldIn.getMaxBuildHeight() - 1 && worldIn.isEmptyBlock(target) && GlowingMushroomBlock.canGrowDuringWorldgen(worldIn, target) && !worldIn.canSeeSkyFromBelowWater(target)) {
+            if (target.getY() > minY && target.getY() < worldIn.getMaxY() + 1 - 1 && worldIn.isEmptyBlock(target) && GlowingMushroomBlock.canGrowDuringWorldgen(worldIn, target) && !worldIn.canSeeSkyFromBelowWater(target)) {
                 worldIn.setBlock(target, mushroom, 2);
             }
         }

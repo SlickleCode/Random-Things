@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [" X ", "X#X", " S "],
   "key": {
-    "#": {
-      "tag": "c:ingots/iron"
-    },
-    "X": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
+    "#": "#c:ingots/iron",
+    "X": "minecraft:redstone",
+    "S": "minecraft:stick"
   },
   "result": {
     "id": "randomthings:advanced_redstone_torch"

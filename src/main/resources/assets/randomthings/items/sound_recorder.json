@@ -1,0 +1,14 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "property": "randomthings:recording",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/sound_recorder_active"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/sound_recorder"
+    }
+  }
+}

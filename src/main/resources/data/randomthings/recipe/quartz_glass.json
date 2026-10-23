@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["GGG","GQG","GGG"],
   "key": {
-    "G": { "tag": "c:glass_blocks" },
-    "Q": { "item": "minecraft:quartz_block" }
+    "G": "#c:glass_blocks",
+    "Q": "minecraft:quartz_block"
   },
   "result": {
     "id": "randomthings:quartz_glass",

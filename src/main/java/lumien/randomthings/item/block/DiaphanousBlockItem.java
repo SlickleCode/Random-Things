@@ -52,18 +52,13 @@ public class DiaphanousBlockItem extends BlockItem {
      * prefix.
      */
     @Override
-    public String getDescriptionId(ItemStack stack) {
-        return super.getDescriptionId(stack) + (StackTag.getBoolean(stack, "inverted") ? "_inverted" : "");
-    }
-
-    @Override
     public Component getName(ItemStack stack) {
-        Component name = super.getName(stack);
+        Component name = StackTag.getBoolean(stack, "inverted") ? Component.translatable(this.getDescriptionId() + "_inverted") : super.getName(stack);
 
         Block displayBlock = Blocks.STONE;
 
         if (StackTag.contains(stack, "block")) {
-            Block resolved = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(StackTag.getString(stack, "block")));
+            Block resolved = BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(StackTag.getString(stack, "block")));
 
             if (resolved != null) {
                 displayBlock = resolved;

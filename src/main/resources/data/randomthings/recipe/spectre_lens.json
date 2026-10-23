@@ -6,18 +6,10 @@
     "SES"
   ],
   "key": {
-    "S": {
-      "item": "randomthings:spectre_ingot"
-    },
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    }
+    "S": "randomthings:spectre_ingot",
+    "E": "minecraft:emerald",
+    "D": "minecraft:diamond",
+    "G": "minecraft:glass"
   },
   "result": {
     "id": "randomthings:spectre_lens"

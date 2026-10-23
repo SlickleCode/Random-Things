@@ -49,7 +49,7 @@ public class LotusBlock extends BushBlock
 
 	public LotusBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
 	}
@@ -114,7 +114,7 @@ public class LotusBlock extends BushBlock
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state)
+	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader worldIn, BlockPos pos, BlockState state, boolean includeData)
 	{
 		return new ItemStack(ModItems.LOTUS_SEEDS);
 	}

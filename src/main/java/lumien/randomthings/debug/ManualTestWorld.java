@@ -56,7 +56,7 @@ public final class ManualTestWorld
 		ServerLevel level = player.serverLevel();
 		List<String> report = new ArrayList<>();
 		BlockPos spawn = player.blockPosition();
-		int oy = Math.min(level.getMaxBuildHeight() - 30, Math.max(spawn.getY(), level.getSeaLevel()) + 30);
+		int oy = Math.min(level.getMaxY() + 1 - 30, Math.max(spawn.getY(), level.getSeaLevel()) + 30);
 		BlockPos o = new BlockPos(spawn.getX() - 40, oy, spawn.getZ() - 20);
 
 		// platform 96 x 70 and clear air above it
@@ -83,7 +83,7 @@ public final class ManualTestWorld
 		player.setGameMode(net.minecraft.world.level.GameType.CREATIVE);
 		level.setDayTime(6000);
 		level.setWeatherParameters(6000, 0, false, false);
-		player.teleportTo(level, o.getX() + 20.5, o.getY() + 1, o.getZ() + 49.5, 180.0F, 10.0F);
+		player.teleportTo(level, o.getX() + 20.5, o.getY() + 1, o.getZ() + 49.5, java.util.Set.of(), 180.0F, 10.0F, true);
 		report.add("platform at " + o.getX() + " " + o.getY() + " " + o.getZ() + " (x east, z south); museum in the north half, set-ups and item chests along the south edge");
 		return report;
 	}
@@ -101,7 +101,7 @@ public final class ManualTestWorld
 				continue;
 			}
 
-			Block block = BuiltInRegistries.BLOCK.get(id);
+			Block block = BuiltInRegistries.BLOCK.getValue(id);
 			BlockPos pos = origin.offset((index % 14) * 6, 0, (index / 14) * 4);
 			level.setBlock(pos.above(0), block.defaultBlockState(), FLAGS);
 			sign(level, pos.offset(0, 0, 2), id.getPath());
@@ -199,7 +199,7 @@ public final class ManualTestWorld
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
-				items.add(BuiltInRegistries.ITEM.get(id));
+				items.add(BuiltInRegistries.ITEM.getValue(id));
 			}
 		}
 
@@ -311,7 +311,7 @@ public final class ManualTestWorld
 
 	private static ItemStack mod(String path, int count)
 	{
-		return new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, path)), count);
+		return new ItemStack(BuiltInRegistries.ITEM.getValue(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, path)), count);
 	}
 
 	private static ItemStack crystal(String biomeId)

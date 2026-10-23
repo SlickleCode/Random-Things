@@ -135,6 +135,8 @@ MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT
 DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
 MC20 = _MCV.startswith('1.20') or _MCV.startswith('1.21')   # 1.20.1+: tabbed create-world screen (Game / World / More); 1.21.1 uses the same layout
 MC21 = _MCV.startswith('1.21')                   # 1.21: the title screen has no splash gap, Singleplayer is at y=203
+_VPARTS = [int(x) for x in re.findall(r'\d+', _MCV)] + [0, 0, 0]
+MC212 = _VPARTS[:3] >= [1, 21, 2]               # 1.21.2+: attribute ids lost their 'generic.' prefix (minecraft:max_health); the 1.21.4 armor glint adds less red, so its tint check is looser
 MC205 = _MCV.startswith('1.20.6') or _MCV.startswith('1.21')   # 1.20.5+: item data components instead of NBT, count/id stack tags, active_effects
 MC19 = _MCV.startswith('1.19') or MC20                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
 
@@ -333,7 +335,7 @@ def pig_fire(g, label):
     after the rain has had time to act: rain puts the fire out and the pig keeps full health, a shielded pig keeps burning and loses health."""
     g.cmd('kill @e[type=minecraft:pig]')
     if MC21:      # 1.20.5+ attribute NBT: lower-case keys and namespaced ids (the old Name/Base form is silently ignored: the pig keeps 10 max health)
-        g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,attributes:[{id:"minecraft:generic.max_health",base:1000d}],Health:1000f}')
+        g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,attributes:[{id:"minecraft:%smax_health",base:1000d}],Health:1000f}' % ('' if MC212 else 'generic.'))
     else:
         g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,Attributes:[{Name:"generic.%s",Base:1000d}],Health:1000f}' % ('max_health' if MC16 else 'maxHealth'))
     g.wait(6)
@@ -900,7 +902,7 @@ def worn_armor(g):
     vanilla, nv = sheen('worn_glint_vanilla', base)
     wear(sdata('minecraft:iron_chestplate', 'enchantmentColor:3949738', True), sdata('minecraft:iron_helmet', 'enchantmentColor:3949738', True))
     tinted, nt = sheen('worn_glint_blue', base)
-    g.check(0 < tinted < vanilla - 0.1, 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
+    g.check(0 < tinted < vanilla - (0.05 if MC212 else 0.1), 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
     g.key('f5'); g.wait(0.5)                                   # back to first person
     g.cmd('clear @s')
     g.cmd(item_cmd('armor.chest', 'minecraft:air'), 0.3)

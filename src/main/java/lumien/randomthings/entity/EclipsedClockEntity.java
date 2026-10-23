@@ -242,15 +242,15 @@ public class EclipsedClockEntity extends HangingEntity {
     }
 
     @Override
-    public void dropItem(Entity brokenEntity) {
-        if (this.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
+    public void dropItem(net.minecraft.server.level.ServerLevel serverLevel, Entity brokenEntity) {
+        if (serverLevel.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
             this.playSound(net.minecraft.sounds.SoundEvents.PAINTING_BREAK, 1.0F, 1.0F);
 
             if (brokenEntity instanceof Player && ((Player) brokenEntity).getAbilities().instabuild) {
                 return;
             }
 
-            this.spawnAtLocation(new ItemStack(ModItems.ECLIPSED_CLOCK), 0.0F);
+            this.spawnAtLocation(serverLevel, new ItemStack(ModItems.ECLIPSED_CLOCK), 0.0F);
         }
     }
 

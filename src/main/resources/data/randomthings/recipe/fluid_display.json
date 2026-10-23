@@ -6,12 +6,8 @@
     "GGG"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "B": {
-      "item": "minecraft:glass_bottle"
-    }
+    "G": "minecraft:glass",
+    "B": "minecraft:glass_bottle"
   },
   "result": {
     "id": "randomthings:fluid_display"

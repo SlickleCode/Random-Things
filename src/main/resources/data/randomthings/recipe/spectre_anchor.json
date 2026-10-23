@@ -6,12 +6,8 @@
     "III"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "E": {
-      "item": "randomthings:ectoplasm"
-    }
+    "I": "minecraft:iron_ingot",
+    "E": "randomthings:ectoplasm"
   },
   "result": {
     "id": "randomthings:spectre_anchor"

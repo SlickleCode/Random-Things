@@ -2,10 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["#X#","ISI"],
   "key": {
-    "#": { "item": "minecraft:redstone_torch" },
-    "X": { "item": "minecraft:redstone" },
-    "S": { "item": "minecraft:stone" },
-    "I": { "tag": "c:ingots/iron" }
+    "#": "minecraft:redstone_torch",
+    "X": "minecraft:redstone",
+    "S": "minecraft:stone",
+    "I": "#c:ingots/iron"
   },
   "result": {
     "id": "randomthings:advanced_redstone_repeater"

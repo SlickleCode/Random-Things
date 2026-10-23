@@ -124,7 +124,7 @@ final class RoundTripTests
 
 	private static void entity(TestCtx c, EntityType<?> type)
 	{
-		Entity original = type.create(c.world);
+		Entity original = type.create(c.world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 
 		if (original == null)
 		{
@@ -134,7 +134,7 @@ final class RoundTripTests
 		original.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 
 		CompoundTag first = original.saveWithoutId(new CompoundTag());
-		Entity copy = type.create(c.world);
+		Entity copy = type.create(c.world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 		copy.load(first);
 		CompoundTag second = copy.saveWithoutId(new CompoundTag());
 

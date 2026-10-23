@@ -77,7 +77,7 @@ public class SummoningPendulumItem extends Item {
 
             for (int i = 0; i < tagList.size(); i++) {
                 ResourceLocation entityLocation = ResourceLocation.parse(tagList.getCompound(i).getString("id"));
-                EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityLocation);
+                EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getValue(entityLocation);
 
                 if (type != null) {
                     tooltip.add(Component.literal("- ").append(type.getDescription()));
@@ -133,7 +133,7 @@ public class SummoningPendulumItem extends Item {
                     tagList.remove(0);
 
 
-                    EntityType.create(entityNBT, world).ifPresent(entity -> {
+                    EntityType.create(entityNBT, world, net.minecraft.world.entity.EntitySpawnReason.LOAD).ifPresent(entity -> {
                         entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
                         world.addFreshEntity(entity);
                         player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 0.5F);

@@ -43,13 +43,13 @@ public class AncientFurnaceFeature extends Feature<NoneFeatureConfiguration> {
 
         BlockPos ground = pos.below();
 
-        if (ground.getY() <= worldIn.getMinBuildHeight() || ground.getY() >= worldIn.getMaxBuildHeight() - 1) {
+        if (ground.getY() <= worldIn.getMinY() || ground.getY() >= worldIn.getMaxY() + 1 - 1) {
             return false;
         }
 
         Biome biome = worldIn.getBiome(ground).value();
 
-        if (biome.warmEnoughToRain(ground)) {
+        if (biome.warmEnoughToRain(ground, worldIn.getSeaLevel())) {
             return false;
         }
 

@@ -25,7 +25,7 @@ public class RenderUtils
 	{
 		Tesselator t = Tesselator.getInstance();
 
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_COLOR);
 
 		matrixStack.pushPose();
 		matrixStack.translate(posX, posY, posZ);
@@ -78,7 +78,7 @@ public class RenderUtils
 		Tesselator t = Tesselator.getInstance();
 		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
 
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_COLOR);
 		GL11.glPointSize(1.0f);
 		BufferBuilder wr = t.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
 

@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["GGG","GLG","GGG"],
   "key": {
-    "G": { "tag": "c:glass_blocks" },
-    "L": { "item": "minecraft:lapis_block" }
+    "G": "#c:glass_blocks",
+    "L": "minecraft:lapis_block"
   },
   "result": {
     "id": "randomthings:lapis_glass",

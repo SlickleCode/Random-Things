@@ -53,7 +53,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class LightRedirectorBlock extends Block implements EntityBlock {
     public LightRedirectorBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(2.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(2.0F));
 
         this.registerDefaultState(this.getStateDefinition().any()
                 .setValue(BlockStateProperties.NORTH, true)

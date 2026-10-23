@@ -5,13 +5,11 @@ import lumien.randomthings.container.SoundRecorderContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
@@ -30,14 +28,14 @@ import net.neoforged.api.distmarker.OnlyIn;
  * recorded sounds onto a blank {@link SoundPatternItem}. Direct port of
  * 1.12.2's {@code ItemSoundRecorder}.
  */
-public class SoundRecorderItem extends Item implements MenuProvider, IClientItemProperties{
+public class SoundRecorderItem extends Item implements MenuProvider{
     public SoundRecorderItem(Item.Properties properties) {
         super(properties);
 
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide) {
@@ -53,7 +51,7 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
             }
         }
 
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+        return InteractionResult.SUCCESS;
     }
 
     public static boolean isRecording(ItemStack stack) {
@@ -112,16 +110,4 @@ public class SoundRecorderItem extends Item implements MenuProvider, IClientItem
     public Component getDisplayName() {
         return Component.translatable("item.randomthings.sound_recorder");
     }
-
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void registerClientProperties()
-	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("recording"), new ItemPropertyFunction() {
-            @Override
-            public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, net.minecraft.world.entity.LivingEntity entityIn, int seed) {
-                return isRecording(stack) ? 1.0F : 0.0F;
-            }
-        });
-	}
 }

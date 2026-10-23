@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["WWW", " E "],
   "key": {
-    "W": {
-      "item": "minecraft:jungle_planks"
-    },
-    "E": {
-      "item": "minecraft:ender_pearl"
-    }
+    "W": "minecraft:jungle_planks",
+    "E": "minecraft:ender_pearl"
   },
   "result": {
     "id": "randomthings:platform_jungle",

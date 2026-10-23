@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/rune_dust_gray",
+    "tints": [
+      {
+        "type": "randomthings:tint",
+        "index": 0
+      }
+    ]
+  }
+}

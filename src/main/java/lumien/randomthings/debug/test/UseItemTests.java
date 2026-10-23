@@ -21,7 +21,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -54,7 +53,7 @@ final class UseItemTests
 
 	private static Item item(String path)
 	{
-		Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("randomthings", path));
+		Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.fromNamespaceAndPath("randomthings", path));
 		return item;
 	}
 
@@ -282,9 +281,9 @@ final class UseItemTests
 			standAt(c, 0, 1, 0);
 			hold(c, new ItemStack(rope));
 
-			InteractionResultHolder<ItemStack> result = rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
+			InteractionResult result = rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
 
-			c.check(result.getResult() == InteractionResult.FAIL, "use result with sky overhead should be FAIL but was " + result.getResult() + " (pos " + c.player.blockPosition() + ", canSeeSkyFromBelowWater " + c.world.canSeeSkyFromBelowWater(c.player.blockPosition()) + ", canSeeSky " + c.world.canSeeSky(c.player.blockPosition()) + ", empty " + c.world.isEmptyBlock(c.player.blockPosition()) + ", hasSkyLight " + c.world.dimensionType().hasSkyLight() + ")");
+			c.check(result == InteractionResult.FAIL, "use result with sky overhead should be FAIL but was " + result + " (pos " + c.player.blockPosition() + ", canSeeSkyFromBelowWater " + c.world.canSeeSkyFromBelowWater(c.player.blockPosition()) + ", canSeeSky " + c.world.canSeeSky(c.player.blockPosition()) + ", empty " + c.world.isEmptyBlock(c.player.blockPosition()) + ", hasSkyLight " + c.world.dimensionType().hasSkyLight() + ")");
 			c.check(!c.player.isUsingItem(), "the player must not start charging the rope under open sky");
 			c.eq(0, ropeTasks().size(), "no search task may be queued");
 			release(c);
@@ -298,9 +297,9 @@ final class UseItemTests
 			standAt(c, 0, 1, 0);
 			hold(c, new ItemStack(rope));
 
-			InteractionResultHolder<ItemStack> result = rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
+			InteractionResult result = rope.use(c.world, c.player, InteractionHand.MAIN_HAND);
 
-			c.check(result.getResult() == InteractionResult.SUCCESS, "use inside a roofed room should succeed but was " + result.getResult() + " (" + sky(c) + ")");
+			c.check(result == InteractionResult.SUCCESS, "use inside a roofed room should succeed but was " + result + " (" + sky(c) + ")");
 			c.check(c.player.isUsingItem(), "the player must be charging the rope");
 			c.eq(1, ropeTasks().size(), "one search task queued");
 		}).waitTicks(120).run(c -> {
@@ -471,9 +470,9 @@ final class UseItemTests
 			ItemStack stack = new ItemStack(ModItems.LOTUS_BLOSSOM, 2);
 			hold(c, stack);
 
-			InteractionResultHolder<ItemStack> result = stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND);
+			InteractionResult result = stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND);
 
-			c.eq(InteractionResult.SUCCESS, result.getResult(), "use result");
+			c.eq(InteractionResult.SUCCESS, result, "use result");
 			c.check(c.player.isUsingItem(), "eating starts");
 			stack.getItem().finishUsingItem(stack, c.world, c.player);
 
@@ -516,7 +515,7 @@ final class UseItemTests
 			ItemStack stack = new ItemStack(ModItems.BOTTLE_OF_AIR, 2);
 			hold(c, stack);
 
-			c.eq(InteractionResult.FAIL, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND).getResult(), "use out of water");
+			c.eq(InteractionResult.FAIL, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND), "use out of water");
 			c.check(!c.player.isUsingItem(), "no drinking out of water");
 
 			c.player.setAirSupply(0);
@@ -534,7 +533,7 @@ final class UseItemTests
 			ItemStack stack = new ItemStack(ModItems.GOLDEN_EGG, 2);
 			hold(c, stack);
 
-			c.eq(InteractionResult.SUCCESS, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND).getResult(), "use result");
+			c.eq(InteractionResult.SUCCESS, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND), "use result");
 			c.eq(1, stack.getCount(), "one egg thrown");
 			c.eq(1, c.world.getEntitiesOfClass(ThrownGoldenEggEntity.class, c.area()).size(), "thrown egg entities");
 			release(c);
@@ -546,7 +545,7 @@ final class UseItemTests
 			ItemStack stack = new ItemStack(ModItems.WEATHER_EGG_RAIN, 2);
 			hold(c, stack);
 
-			c.eq(InteractionResult.SUCCESS, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND).getResult(), "use result");
+			c.eq(InteractionResult.SUCCESS, stack.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND), "use result");
 			c.eq(1, stack.getCount(), "one egg thrown");
 			c.eq(1, c.world.getEntitiesOfClass(ThrownWeatherEggEntity.class, c.area()).size(), "thrown egg entities");
 			release(c);

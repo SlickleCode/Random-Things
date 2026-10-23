@@ -133,7 +133,7 @@ public class SpectreLensHandler extends SavedData {
             int primaryId = tag.getInt("primary");
             int secondaryId = tag.getInt("secondary");
 
-            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getHolder(primaryId).orElse(null) : null, secondaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getHolder(secondaryId).orElse(null) : null);
+            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(primaryId).orElse(null) : null, secondaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(secondaryId).orElse(null) : null);
         }
     }
 }

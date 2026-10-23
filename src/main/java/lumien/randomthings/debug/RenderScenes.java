@@ -379,6 +379,10 @@ public final class RenderScenes
 				groundItem(world, rtDye(new ItemStack(Items.DIAMOND), 0xFF2222), x0 + 5, y0 + 0.3, z0 + 4.5);
 				groundItem(world, rtDye(new ItemStack(Items.IRON_SWORD), 0x2222FF), x0 + 6, y0 + 0.3, z0 + 4.5);
 				groundItem(world, new ItemStack(ModItems.PORTKEY), x0 + 7, y0 + 0.3, z0 + 4.5);
+				ItemStack glinting = new ItemStack(Items.DIAMOND);
+				glinting.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+				StackTag.edit(glinting, t -> t.putInt("enchantmentColor", 0x22FF22));
+				groundItem(world, glinting, x0 + 3, y0 + 0.3, z0 + 4.5);
 				ItemStack camo = new ItemStack(ModItems.PORTKEY);
 				StackTag.edit(camo, t -> t.put("camo", StackTag.saveStack(new ItemStack(Items.DIAMOND_PICKAXE))));
 				groundItem(world, camo, x0 + 8, y0 + 0.3, z0 + 4.5);

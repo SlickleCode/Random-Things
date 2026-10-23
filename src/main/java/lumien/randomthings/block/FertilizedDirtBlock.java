@@ -31,7 +31,7 @@ public class FertilizedDirtBlock extends Block
 
 	public FertilizedDirtBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL).randomTicks());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL).randomTicks());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(TILLED, false));
 	}

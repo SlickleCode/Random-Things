@@ -6,12 +6,8 @@
     " O "
   ],
   "key": {
-    "S": {
-      "item": "randomthings:spectre_ingot"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
-    }
+    "S": "randomthings:spectre_ingot",
+    "O": "minecraft:obsidian"
   },
   "result": {
     "id": "randomthings:spectre_pickaxe"

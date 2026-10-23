@@ -8,33 +8,17 @@ function initializeCoreMod() {
             'transformer': function (classNode) {
                 var Opcodes = Java.type("org.objectweb.asm.Opcodes");
 
+                var VarInsnNode = Java.type("org.objectweb.asm.tree.VarInsnNode");
                 var methods = classNode.methods;
 
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "travel" && method.name !== "m_7023_") {
-                        continue;
-                    }
-
+                    // 1.21.2+: the friction lookup moved out of travel() into the private travelInAir(Vec3). NeoForge's patched LivingEntity calls
+                    // BlockState.getFriction(LevelReader, BlockPos, Entity) there (vanilla's own is Block.getFriction()), whose 3rd argument is already `this`.
+                    // Restores real 1.12.2 Super Lubricent Boots behavior: while worn and not sneaking EVERY block is maximally slippery.
                     var instructions = method.instructions;
 
-                    // Restores real 1.12.2 Super Lubricent Boots behavior,
-                    // ground-truthed from AsmHandler.slipFix in the original source:
-                    // while worn and not sneaking, EVERY block is treated as
-                    // maximally slippery, not just the three Super Lubricent blocks.
-                    // Reproducing "every surface" requires intercepting the single
-                    // friction lookup inside LivingEntity.travel itself - there's no
-                    // Forge event for block slipperiness in this version to hook
-                    // instead. Replaces the SpongePowered Mixin this project
-                    // previously used for the exact same redirect (couldn't be made
-                    // to work self-contained in a mods-folder jar on this Forge
-                    // version - see the plan file's "Batch 7" section).
-                    //
-                    // The single BlockState.getSlipperiness call in travel already
-                    // passes `this` (the LivingEntity executing travel) as its own
-                    // 3rd argument (the "entity standing on this block" parameter) -
-                    // no extra push needed, just retarget the call itself.
                     for (var i = 0; i < instructions.size(); i++) {
                         var insn = instructions.get(i);
 
@@ -47,8 +31,6 @@ function initializeCoreMod() {
                             break;
                         }
                     }
-
-                    break;
                 }
 
                 // hook-site marker: how many calls into lumien/randomthings/asm this transformer left in the class, as a synthetic field

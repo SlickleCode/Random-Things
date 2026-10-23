@@ -6,12 +6,8 @@
     " G "
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "C": {
-      "item": "minecraft:compass"
-    }
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:compass"
   },
   "result": {
     "id": "randomthings:golden_compass"

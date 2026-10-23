@@ -6,15 +6,9 @@
     " E "
   ],
   "key": {
-    "L": {
-      "item": "minecraft:lapis_lazuli"
-    },
-    "I": {
-      "item": "minecraft:gold_ingot"
-    },
-    "E": {
-      "item": "randomthings:ectoplasm"
-    }
+    "L": "minecraft:lapis_lazuli",
+    "I": "minecraft:gold_ingot",
+    "E": "randomthings:ectoplasm"
   },
   "result": {
     "id": "randomthings:spectre_ingot"

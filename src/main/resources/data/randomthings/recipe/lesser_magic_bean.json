@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["NNN","NBN","NNN"],
   "key": {
-    "B": { "item": "randomthings:beans" },
-    "N": { "tag": "c:nuggets/gold" }
+    "B": "randomthings:beans",
+    "N": "#c:nuggets/gold"
   },
   "result": {
     "id": "randomthings:lesser_magic_bean"

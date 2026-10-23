@@ -5,15 +5,9 @@
     " D "
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gunpowder"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "S": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "G": "minecraft:gunpowder",
+    "D": "minecraft:diamond",
+    "S": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:portkey"

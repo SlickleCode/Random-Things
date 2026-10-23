@@ -25,7 +25,7 @@ final class SceneHookChecks
 
 	static
 	{
-		EXPECT.put("armor_and_items", new String[] { "armor_dye_applied", "item_dye_applied" });
+		EXPECT.put("armor_and_items", new String[] { "armor_dye_applied", "item_dye_applied", "glint_tint_applied" });
 		EXPECT.put("light_redirector", new String[] { "light_redirect_applied" });
 		EXPECT.put("magic_hood", new String[] { "hood_name_hidden" });
 		EXPECT.put("rain_with_shield", new String[] { "rain_shield_render" });

@@ -10,7 +10,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +27,7 @@ import net.minecraft.world.level.Level;
  */
 public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 {
-	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(EmeraldCompassSetTargetRecipe::new);
+	public static final RecipeSerializer<EmeraldCompassSetTargetRecipe> SERIALIZER = new CustomRecipe.Serializer<>(EmeraldCompassSetTargetRecipe::new);
 
 	public EmeraldCompassSetTargetRecipe(net.minecraft.world.item.crafting.CraftingBookCategory category)
 	{
@@ -126,14 +125,9 @@ public class EmeraldCompassSetTargetRecipe extends CustomRecipe
 		return remaining;
 	}
 
-	@Override
-	public boolean canCraftInDimensions(int width, int height)
-	{
-		return true;
-	}
 
 	@Override
-	public RecipeSerializer<?> getSerializer()
+	public RecipeSerializer<? extends CustomRecipe> getSerializer()
 	{
 		return SERIALIZER;
 	}

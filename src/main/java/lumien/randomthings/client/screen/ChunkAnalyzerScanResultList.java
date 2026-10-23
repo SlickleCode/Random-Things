@@ -41,7 +41,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
 
     /**
      * Found via the debug GUI screenshots 2026-10-03: {@code AbstractList.getRowWidth()} defaults to
-     * a hardcoded 220 (vanilla's full-screen list width) and {@code getScrollbarPosition()} to
+     * a hardcoded 220 (vanilla's full-screen list width) and {@code scrollBarX()} to
      * {@code width / 2 + 124} measured from the screen's left edge, so rows were centered on a 220px
      * column (icons spilled out of the GUI's left edge) and the scrollbar drew through the middle of
      * the text. The list is laid out like 1.12.2's {@code GuiScanResultList}: rows start at the
@@ -53,7 +53,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
     }
 
     @Override
-    protected int getScrollbarPosition() {
+    protected int scrollBarX() {
         return this.getX() + this.width - 6;
     }
 
@@ -61,7 +61,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 
         int rowLeft = this.getRowLeft();
-        int rowTop = this.getY() + 4 - (int) this.getScrollAmount();
+        int rowTop = this.getY() + 4 - (int) this.scrollAmount();
 
         // Rows scrolled past the top/bottom must be clipped to the list's own box (1.12.2's
         // GuiScanResultList glScissor'd the same way) - otherwise they draw over the title,
@@ -70,10 +70,10 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
         this.renderListItems(graphics, mouseX, mouseY, partialTicks);
         ListClip.end();
 
-        renderScrollbar(graphics);
+        renderCustomScrollbar(graphics);
     }
 
-    private void renderScrollbar(GuiGraphics graphics) {
+    private void renderCustomScrollbar(GuiGraphics graphics) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.getBottom() - this.getY();
 
@@ -81,10 +81,10 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
             return;
         }
 
-        int scrollbarX = this.getScrollbarPosition();
+        int scrollbarX = this.scrollBarX();
         int maxScroll = totalHeight - visibleHeight;
         int thumbHeight = Math.max(32, visibleHeight * visibleHeight / totalHeight);
-        int thumbY = this.getY() + (int) ((visibleHeight - thumbHeight) * (this.getScrollAmount() / maxScroll));
+        int thumbY = this.getY() + (int) ((visibleHeight - thumbHeight) * (this.scrollAmount() / maxScroll));
 
         graphics.fill(scrollbarX, this.getY(), scrollbarX + 6, this.getBottom(), 0xFF000000);
         graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF808080);

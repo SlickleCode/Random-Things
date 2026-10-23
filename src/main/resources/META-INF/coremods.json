@@ -11,6 +11,7 @@
 	"BlockRendererDispatcherTransformer": "transformer/BlockRendererDispatcherTransformer.js",
 	"WorldRendererTransformer": "transformer/WorldRendererTransformer.js",
 	"ItemRendererTransformer": "transformer/ItemRendererTransformer.js",
+	"ItemStackRenderTransformer": "transformer/ItemStackRenderTransformer.js",
 	"ArmorLayerTransformer": "transformer/ArmorLayerTransformer.js",
 	"RenderTypeTransformer": "transformer/RenderTypeTransformer.js"
 }

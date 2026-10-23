@@ -57,10 +57,9 @@ public class BlockDestabilizerScreen extends AbstractContainerScreen<BlockDestab
         }) {
             @Override
             public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-                RenderSystem.setShader(GameRenderer::getPositionTexShader);
                 RenderSystem.setShaderTexture(0, GUI_TEXTURES);
                 RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                graphics.blit(GUI_TEXTURES, this.getX(), this.getY(), 85, this.isHovered ? 20 : 0, 20, 20);
+                graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, this.getX(), this.getY(), 85, this.isHovered ? 20 : 0, 20, 20, 256, 256);
             }
         });
     }
@@ -72,11 +71,10 @@ public class BlockDestabilizerScreen extends AbstractContainerScreen<BlockDestab
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        graphics.blit(GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
     @Override

@@ -6,21 +6,11 @@
     "SID"
   ],
   "key": {
-    "B": {
-      "item": "minecraft:iron_bars"
-    },
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "S": {
-      "item": "minecraft:stone"
-    },
-    "D": {
-      "item": "minecraft:dirt"
-    }
+    "B": "minecraft:iron_bars",
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:glass",
+    "S": "minecraft:stone",
+    "D": "minecraft:dirt"
   },
   "result": {
     "id": "randomthings:chunk_analyzer"

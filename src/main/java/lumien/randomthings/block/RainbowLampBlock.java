@@ -15,7 +15,7 @@ public class RainbowLampBlock extends Block
 
 	public RainbowLampBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).lightLevel(state -> 15).strength(0.3F).sound(SoundType.GLASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).lightLevel(state -> 15).strength(0.3F).sound(SoundType.GLASS));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, DyeColor.WHITE));
 	}
@@ -38,7 +38,7 @@ public class RainbowLampBlock extends Block
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean what)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, net.minecraft.world.level.redstone.Orientation changedPos, boolean what)
 	{
 		if (!worldIn.isClientSide)
 		{

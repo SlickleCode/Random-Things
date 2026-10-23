@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.WallTorchBlock;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.core.Direction;
@@ -33,21 +33,13 @@ import net.minecraft.core.particles.ParticleTypes;
 
 public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 {
-	public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+	public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 	public static final EnumProperty<AdvancedRedstoneTorchBlock.COLOR> COLOR_PROPERTY = AdvancedRedstoneTorchBlock.COLOR_PROPERTY;
 
 	protected AdvancedRedstoneWallTorchBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD).overrideDescription("block.randomthings.advanced_redstone_torch"));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
-	}
-
-	/**
-	 * Returns the unlocalized name of the block with "tile." appended to the front.
-	 */
-	public String getDescriptionId()
-	{
-		return this.asItem().getDescriptionId();
 	}
 
 	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
@@ -63,9 +55,9 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	/**
 	 * Update the provided state given the provided neighbor facing and neighbor state, returning a new state. For example, fences make their connections to the passed in state if possible, and wet concrete powder immediately returns its solidified counterpart. Note that this method should ideally consider only the specific face passed in.
 	 */
-	public BlockState updateShape(BlockState stateIn, Direction facing, BlockState facingState, LevelAccessor worldIn, BlockPos currentPos, BlockPos facingPos)
+	public BlockState updateShape(BlockState stateIn, net.minecraft.world.level.LevelReader worldIn, net.minecraft.world.level.ScheduledTickAccess tickAccess, BlockPos currentPos, Direction facing, BlockPos facingPos, BlockState facingState, net.minecraft.util.RandomSource random)
 	{
-		return Blocks.WALL_TORCH.defaultBlockState().setValue(FACING, stateIn.getValue(FACING)).updateShape(facing, facingState, worldIn, currentPos, facingPos).is(Blocks.AIR) ? Blocks.AIR.defaultBlockState() : stateIn;
+		return Blocks.WALL_TORCH.defaultBlockState().setValue(FACING, stateIn.getValue(FACING)).updateShape(worldIn, tickAccess, currentPos, facing, facingPos, facingState, random).is(Blocks.AIR) ? Blocks.AIR.defaultBlockState() : stateIn;
 	}
 
 	@Nullable

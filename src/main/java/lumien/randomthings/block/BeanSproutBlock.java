@@ -25,7 +25,7 @@ public class BeanSproutBlock extends CropBlock
 {
 	public BeanSproutBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().randomTicks().strength(0.0F).sound(SoundType.GRASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().randomTicks().strength(0.0F).sound(SoundType.GRASS));
 	}
 
 	@Override

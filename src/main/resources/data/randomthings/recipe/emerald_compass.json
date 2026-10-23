@@ -6,12 +6,8 @@
     " E "
   ],
   "key": {
-    "E": {
-      "item": "minecraft:emerald"
-    },
-    "C": {
-      "item": "minecraft:compass"
-    }
+    "E": "minecraft:emerald",
+    "C": "minecraft:compass"
   },
   "result": {
     "id": "randomthings:emerald_compass"

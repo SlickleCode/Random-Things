@@ -6,12 +6,8 @@
     "LLL"
   ],
   "key": {
-    "L": {
-      "item": "minecraft:leather"
-    },
-    "F": {
-      "item": "randomthings:floo_powder"
-    }
+    "L": "minecraft:leather",
+    "F": "randomthings:floo_powder"
   },
   "result": {
     "id": "randomthings:floo_pouch"

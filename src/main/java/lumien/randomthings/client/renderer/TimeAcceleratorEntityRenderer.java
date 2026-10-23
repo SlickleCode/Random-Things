@@ -34,19 +34,39 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
  * does it, just repeated once per {@link Direction} with a small offset
  * instead of once at the entity's own position.
  */
-public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAcceleratorEntity> {
+public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAcceleratorEntity, TimeAcceleratorEntityRenderer.State> {
+    /** The icon of the entity's item, resolved once per frame in {@link #extractRenderState}. */
+    public static class State extends net.minecraft.client.renderer.entity.state.EntityRenderState {
+        public final net.minecraft.client.renderer.item.ItemStackRenderState item = new net.minecraft.client.renderer.item.ItemStackRenderState();
+    }
+
     /** How far past the block's own half-width (0.5) each icon sits. */
     private static final float SURFACE_GAP = 0.05F;
 
+    private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
+
     public TimeAcceleratorEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
+
+        this.itemModelResolver = renderManager.getItemModelResolver();
 
         this.shadowRadius = 0F;
     }
 
     @Override
-    public void render(TimeAcceleratorEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-        ItemStack stack = entity.getItem();
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(TimeAcceleratorEntity entity, State state, float partialTicks) {
+        super.extractRenderState(entity, state, partialTicks);
+
+        this.itemModelResolver.updateForNonLiving(state.item, entity.getItem(), ItemDisplayContext.GROUND, entity);
+    }
+
+    @Override
+    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
         float offset = 0.5F + SURFACE_GAP;
 
         for (Direction direction : Direction.values()) {
@@ -56,14 +76,9 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
             matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
             matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
+            state.item.render(matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
 
             matrixStack.popPose();
         }
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(TimeAcceleratorEntity entity) {
-        return null;
     }
 }

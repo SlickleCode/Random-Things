@@ -1,8 +1,8 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    { "item": "randomthings:grass_seeds" },
-    { "item": "minecraft:magenta_dye" }
+    "randomthings:grass_seeds",
+    "minecraft:magenta_dye"
   ],
   "result": { "id": "randomthings:grass_seeds_magenta" }
 }

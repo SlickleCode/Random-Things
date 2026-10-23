@@ -45,7 +45,7 @@ public class SpectreCoreBlock extends Block {
     public static final EnumProperty<CoreOrientation> ORIENTATION = EnumProperty.create("orientation", CoreOrientation.class);
 
     public SpectreCoreBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noLootTable());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(net.minecraft.world.level.block.SoundType.GLASS).noLootTable());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(ORIENTATION, CoreOrientation.NW));
     }
@@ -56,18 +56,18 @@ public class SpectreCoreBlock extends Block {
     }
 
     @Override
-    public net.minecraft.world.ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
+    public net.minecraft.world.InteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {
         InteractionResult result = legacyUse(state, worldIn, pos, playerIn, hand, hit);
         if (result == InteractionResult.SUCCESS) {
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
         if (result == InteractionResult.CONSUME) {
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
         if (result == InteractionResult.FAIL) {
-            return net.minecraft.world.ItemInteractionResult.FAIL;
+            return net.minecraft.world.InteractionResult.FAIL;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     private InteractionResult legacyUse(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hit) {

@@ -96,7 +96,7 @@ public class ArtificialEndPortalEntity extends Entity {
         super.playerTouch(entityIn);
 
         if (!this.level().isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
-            entityIn.changeDimension(new net.minecraft.world.level.portal.DimensionTransition(this.level().getServer().getLevel(Level.END), entityIn, net.minecraft.world.level.portal.DimensionTransition.DO_NOTHING));
+            entityIn.teleport(new net.minecraft.world.level.portal.TeleportTransition(this.level().getServer().getLevel(Level.END), entityIn, net.minecraft.world.level.portal.TeleportTransition.DO_NOTHING));
         }
     }
 
@@ -157,5 +157,10 @@ public class ArtificialEndPortalEntity extends Entity {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
     }
 }

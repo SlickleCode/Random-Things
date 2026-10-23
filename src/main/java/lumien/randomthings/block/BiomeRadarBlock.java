@@ -39,7 +39,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock {
     public BiomeRadarBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).noOcclusion().strength(5.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).noOcclusion().strength(5.0F));
     }
 
     @Override
@@ -82,7 +82,7 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, BlockPos changedPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, net.minecraft.world.level.redstone.Orientation changedPos, boolean isMoving) {
         BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof BiomeRadarTileEntity) {
@@ -91,18 +91,18 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
     }
 
     @Override
-    public net.minecraft.world.ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public net.minecraft.world.InteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         InteractionResult result = legacyUse(state, worldIn, pos, player, hand, hit);
         if (result == InteractionResult.SUCCESS) {
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
         if (result == InteractionResult.CONSUME) {
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
         if (result == InteractionResult.FAIL) {
-            return net.minecraft.world.ItemInteractionResult.FAIL;
+            return net.minecraft.world.InteractionResult.FAIL;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     private InteractionResult legacyUse(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {

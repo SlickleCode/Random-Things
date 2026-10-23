@@ -6,15 +6,9 @@
     "RBR"
   ],
   "key": {
-    "R": {
-      "item": "minecraft:rotten_flesh"
-    },
-    "B": {
-      "item": "minecraft:bone_meal"
-    },
-    "D": {
-      "item": "minecraft:dirt"
-    }
+    "R": "minecraft:rotten_flesh",
+    "B": "minecraft:bone_meal",
+    "D": "minecraft:dirt"
   },
   "result": {
     "id": "randomthings:fertilized_dirt",

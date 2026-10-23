@@ -1,0 +1,467 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "randomthings:time",
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/eclipsed_clock"
+    },
+    "entries": [
+      {
+        "threshold": 0.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock"
+        }
+      },
+      {
+        "threshold": 0.0078125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_01"
+        }
+      },
+      {
+        "threshold": 0.0234375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_02"
+        }
+      },
+      {
+        "threshold": 0.0390625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_03"
+        }
+      },
+      {
+        "threshold": 0.0546875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_04"
+        }
+      },
+      {
+        "threshold": 0.0703125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_05"
+        }
+      },
+      {
+        "threshold": 0.0859375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_06"
+        }
+      },
+      {
+        "threshold": 0.1015625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_07"
+        }
+      },
+      {
+        "threshold": 0.1171875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_08"
+        }
+      },
+      {
+        "threshold": 0.1328125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_09"
+        }
+      },
+      {
+        "threshold": 0.1484375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_10"
+        }
+      },
+      {
+        "threshold": 0.1640625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_11"
+        }
+      },
+      {
+        "threshold": 0.1796875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_12"
+        }
+      },
+      {
+        "threshold": 0.1953125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_13"
+        }
+      },
+      {
+        "threshold": 0.2109375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_14"
+        }
+      },
+      {
+        "threshold": 0.2265625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_15"
+        }
+      },
+      {
+        "threshold": 0.2421875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_16"
+        }
+      },
+      {
+        "threshold": 0.2578125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_17"
+        }
+      },
+      {
+        "threshold": 0.2734375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_18"
+        }
+      },
+      {
+        "threshold": 0.2890625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_19"
+        }
+      },
+      {
+        "threshold": 0.3046875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_20"
+        }
+      },
+      {
+        "threshold": 0.3203125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_21"
+        }
+      },
+      {
+        "threshold": 0.3359375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_22"
+        }
+      },
+      {
+        "threshold": 0.3515625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_23"
+        }
+      },
+      {
+        "threshold": 0.3671875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_24"
+        }
+      },
+      {
+        "threshold": 0.3828125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_25"
+        }
+      },
+      {
+        "threshold": 0.3984375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_26"
+        }
+      },
+      {
+        "threshold": 0.4140625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_27"
+        }
+      },
+      {
+        "threshold": 0.4296875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_28"
+        }
+      },
+      {
+        "threshold": 0.4453125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_29"
+        }
+      },
+      {
+        "threshold": 0.4609375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_30"
+        }
+      },
+      {
+        "threshold": 0.4765625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_31"
+        }
+      },
+      {
+        "threshold": 0.4921875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_32"
+        }
+      },
+      {
+        "threshold": 0.5078125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_33"
+        }
+      },
+      {
+        "threshold": 0.5234375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_34"
+        }
+      },
+      {
+        "threshold": 0.5390625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_35"
+        }
+      },
+      {
+        "threshold": 0.5546875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_36"
+        }
+      },
+      {
+        "threshold": 0.5703125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_37"
+        }
+      },
+      {
+        "threshold": 0.5859375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_38"
+        }
+      },
+      {
+        "threshold": 0.6015625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_39"
+        }
+      },
+      {
+        "threshold": 0.6171875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_40"
+        }
+      },
+      {
+        "threshold": 0.6328125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_41"
+        }
+      },
+      {
+        "threshold": 0.6484375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_42"
+        }
+      },
+      {
+        "threshold": 0.6640625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_43"
+        }
+      },
+      {
+        "threshold": 0.6796875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_44"
+        }
+      },
+      {
+        "threshold": 0.6953125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_45"
+        }
+      },
+      {
+        "threshold": 0.7109375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_46"
+        }
+      },
+      {
+        "threshold": 0.7265625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_47"
+        }
+      },
+      {
+        "threshold": 0.7421875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_48"
+        }
+      },
+      {
+        "threshold": 0.7578125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_49"
+        }
+      },
+      {
+        "threshold": 0.7734375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_50"
+        }
+      },
+      {
+        "threshold": 0.7890625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_51"
+        }
+      },
+      {
+        "threshold": 0.8046875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_52"
+        }
+      },
+      {
+        "threshold": 0.8203125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_53"
+        }
+      },
+      {
+        "threshold": 0.8359375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_54"
+        }
+      },
+      {
+        "threshold": 0.8515625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_55"
+        }
+      },
+      {
+        "threshold": 0.8671875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_56"
+        }
+      },
+      {
+        "threshold": 0.8828125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_57"
+        }
+      },
+      {
+        "threshold": 0.8984375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_58"
+        }
+      },
+      {
+        "threshold": 0.9140625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_59"
+        }
+      },
+      {
+        "threshold": 0.9296875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_60"
+        }
+      },
+      {
+        "threshold": 0.9453125,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_61"
+        }
+      },
+      {
+        "threshold": 0.9609375,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_62"
+        }
+      },
+      {
+        "threshold": 0.9765625,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock_63"
+        }
+      },
+      {
+        "threshold": 0.9921875,
+        "model": {
+          "type": "minecraft:model",
+          "model": "randomthings:item/eclipsedclock/eclipsedclock"
+        }
+      }
+    ]
+  }
+}

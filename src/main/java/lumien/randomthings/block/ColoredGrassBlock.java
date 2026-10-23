@@ -25,7 +25,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 
 	public ColoredGrassBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.GRASS).noOcclusion().strength(0.6F).sound(SoundType.GRASS).randomTicks());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.GRASS).noOcclusion().strength(0.6F).sound(SoundType.GRASS).randomTicks());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, DyeColor.WHITE));
 	}
@@ -92,7 +92,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 		BlockPos up = pos.above();
 		BlockState upState = worldIn.getBlockState(up);
 
-		if (worldIn.getMaxLocalRawBrightness(up) < 4 && upState.getLightBlock(worldIn, up) > 2)
+		if (worldIn.getMaxLocalRawBrightness(up) < 4 && upState.getLightBlock() > 2)
 		{
 			worldIn.setBlockAndUpdate(pos, Blocks.DIRT.defaultBlockState());
 		}
@@ -110,7 +110,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 				BlockPos targetUp = target.above();
 				BlockState aboveTarget = worldIn.getBlockState(targetUp);
 
-				if (worldIn.getBlockState(target).getBlock() == Blocks.DIRT && worldIn.getMaxLocalRawBrightness(targetUp) >= 4 && aboveTarget.getLightBlock(worldIn, targetUp) <= 2)
+				if (worldIn.getBlockState(target).getBlock() == Blocks.DIRT && worldIn.getMaxLocalRawBrightness(targetUp) >= 4 && aboveTarget.getLightBlock() <= 2)
 				{
 					worldIn.setBlockAndUpdate(target, state);
 				}

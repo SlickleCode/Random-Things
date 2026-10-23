@@ -87,7 +87,7 @@ public class AutoTest
 					{
 						// a flat creative world: the behavior tests wipe and rebuild their test area
 						net.minecraft.world.level.levelgen.WorldOptions options = new net.minecraft.world.level.levelgen.WorldOptions(MANUAL ? 424242L : 4242L, MANUAL, false);
-						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(), net.minecraft.world.level.WorldDataConfiguration.DEFAULT);
+						LevelSettings settings = new LevelSettings(WORLD, GameType.CREATIVE, false, Difficulty.NORMAL, true, new GameRules(net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS), net.minecraft.world.level.WorldDataConfiguration.DEFAULT);
 						mc.createWorldOpenFlows().createFreshLevel(WORLD, settings, options, registries -> {
 							if (MANUAL)
 							{

@@ -52,7 +52,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	protected AdvancedRedstoneTorchBlock()
 	{
-		super(ParticleTypes.FLAME, Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD));
+		super(ParticleTypes.FLAME, lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD));
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR_PROPERTY, COLOR.RED));
 	}
 
@@ -169,7 +169,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	}
 
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving)
 	{
 		if (state.getValue(COLOR_PROPERTY) == COLOR.RED == this.shouldBeGreen(worldIn, pos, state) && !worldIn.getBlockTicks().willTickThisTick(pos, this))
 		{
@@ -196,7 +196,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 		return true;
 	}
 
-	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(new org.joml.Vector3f(0.0F, 1.0F, 0.0F), 1.0F);
+	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, 0.0F, 1.0F, 0.0F), 1.0F);
 
 	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)

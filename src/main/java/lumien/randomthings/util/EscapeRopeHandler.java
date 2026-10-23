@@ -103,7 +103,7 @@ public class EscapeRopeHandler {
 
                                 boolean foundSolid = false;
 
-                                for (int y = nextPos.getY(); y >= world.getMinBuildHeight(); y--) {
+                                for (int y = nextPos.getY(); y >= world.getMinY(); y--) {
                                     BlockPos target = new BlockPos(nextPos.getX(), y, nextPos.getZ());
 
                                     if (world.getBlockState(target).canOcclude()) {

@@ -5,12 +5,10 @@ import lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
@@ -29,7 +27,7 @@ import net.neoforged.api.distmarker.OnlyIn;
  * {@code addPropertyOverride} pattern as {@link SoundRecorderItem}). Direct
  * port of 1.12.2's {@code ItemRedstoneActivator}.
  */
-public class RedstoneActivatorItem extends Item implements IClientItemProperties{
+public class RedstoneActivatorItem extends Item {
     private static final int[] DURATIONS = new int[] { 2, 20, 100 };
 
     public RedstoneActivatorItem(Item.Properties properties) {
@@ -44,7 +42,7 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         int current = getDurationIndex(stack);
@@ -60,7 +58,7 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
 
         setDurationIndex(stack, next);
 
-        return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -83,16 +81,4 @@ public class RedstoneActivatorItem extends Item implements IClientItemProperties
     public static void setDurationIndex(ItemStack stack, int index) {
         StackTag.edit(stack, t -> t.putInt("durationIndex", index));
     }
-
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void registerClientProperties()
-	{
-		net.minecraft.client.renderer.item.ItemProperties.register(this, ResourceLocation.parse("duration_index"), new ItemPropertyFunction() {
-            @Override
-            public float call(ItemStack stack, net.minecraft.client.multiplayer.ClientLevel worldIn, LivingEntity entityIn, int seed) {
-                return getDurationIndex(stack);
-            }
-        });
-	}
 }

@@ -6,15 +6,9 @@
     "EEE"
   ],
   "key": {
-    "L": {
-      "item": "minecraft:lapis_block"
-    },
-    "I": {
-      "item": "minecraft:gold_block"
-    },
-    "E": {
-      "item": "randomthings:ectoplasm"
-    }
+    "L": "minecraft:lapis_block",
+    "I": "minecraft:gold_block",
+    "E": "randomthings:ectoplasm"
   },
   "result": {
     "id": "randomthings:spectre_ingot",

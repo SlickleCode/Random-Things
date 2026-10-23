@@ -6,15 +6,9 @@
     "ROR"
   ],
   "key": {
-    "R": {
-      "item": "minecraft:redstone_block"
-    },
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "I": {
-      "item": "randomthings:basic_redstone_interface"
-    }
+    "R": "minecraft:redstone_block",
+    "O": "minecraft:obsidian",
+    "I": "randomthings:basic_redstone_interface"
   },
   "result": {
     "id": "randomthings:advanced_redstone_interface"

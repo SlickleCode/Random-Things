@@ -387,8 +387,8 @@ public class ResourceAudit
 		for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : all)
 		{
 			Recipe<?> recipe = holder.value();
-			ResourceLocation id = holder.id();
-			ItemStack out = recipe.getResultItem(mc.level.registryAccess());
+			ResourceLocation id = holder.id().location();
+			ItemStack out = lumien.randomthings.debug.test.RecipeProbe.resultOf(recipe, mc.level.registryAccess());
 
 			if (!out.isEmpty())
 			{
@@ -413,9 +413,9 @@ public class ResourceAudit
 				failures.add("[recipe] " + id + ": empty output");
 			}
 
-			for (Ingredient ing : recipe.getIngredients())
+			for (java.util.Optional<Ingredient> optional : lumien.randomthings.debug.test.RecipeProbe.ingredientsOf(recipe))
 			{
-				if (ing.getItems().length == 0 && ing != Ingredient.EMPTY)
+				if (optional.isPresent() && optional.get().items().findAny().isEmpty())
 				{
 					failures.add("[recipe] " + id + ": ingredient matches no items (bad item/tag?)");
 					break;

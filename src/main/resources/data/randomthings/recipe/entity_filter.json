@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["D  ","DPD","D  "],
   "key": {
-    "D": { "tag": "c:dyes/blue" },
-    "P": { "item": "minecraft:paper" }
+    "D": "#c:dyes/blue",
+    "P": "minecraft:paper"
   },
   "result": {
     "id": "randomthings:entity_filter"

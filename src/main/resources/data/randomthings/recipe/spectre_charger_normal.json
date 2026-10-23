@@ -6,18 +6,10 @@
     "SOB"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "B": {
-      "item": "minecraft:iron_bars"
-    },
-    "I": {
-      "item": "randomthings:spectre_ingot"
-    },
-    "S": {
-      "item": "randomthings:spectre_string"
-    }
+    "O": "minecraft:obsidian",
+    "B": "minecraft:iron_bars",
+    "I": "randomthings:spectre_ingot",
+    "S": "randomthings:spectre_string"
   },
   "result": {
     "id": "randomthings:spectre_charger_normal"

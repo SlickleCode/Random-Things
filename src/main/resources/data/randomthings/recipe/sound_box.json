@@ -6,12 +6,8 @@
     "PPP"
   ],
   "key": {
-    "P": {
-      "item": "minecraft:oak_planks"
-    },
-    "L": {
-      "item": "minecraft:lapis_lazuli"
-    }
+    "P": "minecraft:oak_planks",
+    "L": "minecraft:lapis_lazuli"
   },
   "result": {
     "id": "randomthings:sound_box"

@@ -6,15 +6,9 @@
     "SCS"
   ],
   "key": {
-    "S": {
-      "item": "minecraft:prismarine_shard"
-    },
-    "C": {
-      "item": "minecraft:prismarine_crystals"
-    },
-    "B": {
-      "item": "randomthings:ender_bridge"
-    }
+    "S": "minecraft:prismarine_shard",
+    "C": "minecraft:prismarine_crystals",
+    "B": "randomthings:ender_bridge"
   },
   "result": {
     "id": "randomthings:prismarine_ender_bridge"

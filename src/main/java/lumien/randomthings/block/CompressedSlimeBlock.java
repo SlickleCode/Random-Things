@@ -26,7 +26,7 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 
 	public CompressedSlimeBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_LIGHT_GRAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).sound(SoundType.SLIME_BLOCK));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_LIGHT_GRAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).sound(SoundType.SLIME_BLOCK));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(COMPRESSION, 0));
 	}

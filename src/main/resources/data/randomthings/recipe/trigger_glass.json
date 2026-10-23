@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["L  ","QAQ","L  "],
   "key": {
-    "L": { "item": "randomthings:lapis_glass" },
-    "Q": { "item": "randomthings:quartz_glass" },
-    "A": { "item": "minecraft:redstone" }
+    "L": "randomthings:lapis_glass",
+    "Q": "randomthings:quartz_glass",
+    "A": "minecraft:redstone"
   },
   "result": {
     "id": "randomthings:trigger_glass",

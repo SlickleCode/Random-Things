@@ -42,7 +42,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 
 	public SpectreSaplingBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(STAGE, 0));
 	}

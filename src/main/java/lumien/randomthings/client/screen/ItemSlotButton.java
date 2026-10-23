@@ -40,11 +40,10 @@ public class ItemSlotButton extends Button implements TooltipButton
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, TEXTURE);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
-		graphics.blit(TEXTURE, this.getX(), this.getY(), 0, this.isHovered ? 18 : 0, 18, 18);
+		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, TEXTURE, this.getX(), this.getY(), 0, this.isHovered ? 18 : 0, 18, 18, 256, 256);
 
 		if (!this.stack.isEmpty())
 		{

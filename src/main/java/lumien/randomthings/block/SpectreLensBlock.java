@@ -41,7 +41,7 @@ public class SpectreLensBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 1, 16);
 
     public SpectreLensBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS).dynamicShape());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).sound(SoundType.GLASS).dynamicShape());
     }
 
     @Override
@@ -71,7 +71,7 @@ public class SpectreLensBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         if (!worldIn.isClientSide && !isOnBeacon(worldIn, pos)) {
             worldIn.destroyBlock(pos, true);
         }

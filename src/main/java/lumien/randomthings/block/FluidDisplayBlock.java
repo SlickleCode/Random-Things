@@ -33,7 +33,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
  */
 public class FluidDisplayBlock extends Block implements EntityBlock {
     public FluidDisplayBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(SoundType.GLASS).strength(0.3F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(SoundType.GLASS).strength(0.3F));
     }
 
     @Override

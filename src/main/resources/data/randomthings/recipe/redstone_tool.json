@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["R","S","S"],
   "key": {
-    "R": { "item": "minecraft:redstone" },
-    "S": { "tag": "c:rods/wooden" }
+    "R": "minecraft:redstone",
+    "S": "#c:rods/wooden"
   },
   "result": {
     "id": "randomthings:redstone_tool"

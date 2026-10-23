@@ -260,7 +260,7 @@ final class RemainingBehaviorTests
 		// ---- Magic Hood -----------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.magic_hood.hides_the_nametag_and_the_potion_particles_only_while_worn").run(c -> {
 			ItemStack before = c.player.getItemBySlot(EquipmentSlot.HEAD);
-			Pig pig = EntityType.PIG.create(c.world);
+			Pig pig = EntityType.PIG.create(c.world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 
 			try
 			{

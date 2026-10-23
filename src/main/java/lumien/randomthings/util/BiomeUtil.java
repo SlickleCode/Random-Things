@@ -81,11 +81,11 @@ public class BiomeUtil {
         List<RegistryAccess> accesses = accesses();
 
         for (RegistryAccess access : accesses) {
-            Registry<Biome> registry = access.registryOrThrow(Registries.BIOME);
+            Registry<Biome> registry = access.lookupOrThrow(Registries.BIOME);
             Optional<ResourceKey<Biome>> key = registry.getResourceKey(biome);
 
             if (key.isPresent()) {
-                return registry.getHolder(key.get()).map(h -> (Holder<Biome>) h);
+                return registry.get(key.get()).map(h -> (Holder<Biome>) h);
             }
         }
 
@@ -93,7 +93,7 @@ public class BiomeUtil {
 
         if (id != null) {
             for (RegistryAccess access : accesses) {
-                Optional<Holder<Biome>> holder = access.registryOrThrow(Registries.BIOME).getHolder(ResourceKey.create(Registries.BIOME, id)).map(h -> (Holder<Biome>) h);
+                Optional<Holder<Biome>> holder = access.lookupOrThrow(Registries.BIOME).get(ResourceKey.create(Registries.BIOME, id)).map(h -> (Holder<Biome>) h);
 
                 if (holder.isPresent()) {
                     return holder;
@@ -107,7 +107,7 @@ public class BiomeUtil {
     /** A biome by id from the current world's registry (1.19.3+: biomes are data-pack entries, {@code ForgeRegistries.BIOMES} is empty). */
     public static Biome byId(ResourceLocation id) {
         for (RegistryAccess access : accesses()) {
-            Biome biome = access.registryOrThrow(Registries.BIOME).get(id);
+            Biome biome = access.lookupOrThrow(Registries.BIOME).getValue(id);
 
             if (biome != null) {
                 return biome;
@@ -120,7 +120,7 @@ public class BiomeUtil {
     /** Every biome id of the current world's registry (empty when no world is loaded). */
     public static Set<ResourceLocation> ids() {
         for (RegistryAccess access : accesses()) {
-            return access.registryOrThrow(Registries.BIOME).keySet();
+            return access.lookupOrThrow(Registries.BIOME).keySet();
         }
 
         return Set.of();

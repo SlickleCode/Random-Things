@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["S","I","W"],
   "key": {
-    "S": { "tag": "c:slimeballs" },
-    "I": { "item": "minecraft:ice" },
-    "W": { "item": "minecraft:water_bucket" }
+    "S": "#c:slime_balls",
+    "I": "minecraft:ice",
+    "W": "minecraft:water_bucket"
   },
   "result": {
     "id": "randomthings:super_lubricent_ice",

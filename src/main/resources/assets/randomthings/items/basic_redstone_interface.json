@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/basic_redstone_interface"
+  }
+}

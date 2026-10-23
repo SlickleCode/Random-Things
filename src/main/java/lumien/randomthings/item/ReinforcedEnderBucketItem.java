@@ -9,7 +9,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -86,17 +85,17 @@ public class ReinforcedEnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return Component.translatable(this.getDescriptionId(stack) + ".filled", contained.getDisplayName());
+        return Component.translatable(this.getDescriptionId() + ".filled", contained.getDisplayName());
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         HitResult result = getPlayerPOVHitResult(world, player, ClipContext.Fluid.ANY);
 
         if (result == null || result.getType() != HitResult.Type.BLOCK) {
-            return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+            return InteractionResult.PASS;
         }
 
         BlockHitResult blockResult = (BlockHitResult) result;
@@ -112,32 +111,32 @@ public class ReinforcedEnderBucketItem extends Item {
             return place(world, player, hand, stack, blockResult, contained);
         }
 
-        return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+        return InteractionResult.FAIL;
     }
 
-    private InteractionResultHolder<ItemStack> place(Level world, Player player, InteractionHand hand, ItemStack stack, BlockHitResult blockResult, FluidStack contained) {
+    private InteractionResult place(Level world, Player player, InteractionHand hand, ItemStack stack, BlockHitResult blockResult, FluidStack contained) {
         BlockPos clickPos = blockResult.getBlockPos();
 
         if (!world.mayInteract(player, clickPos)) {
-            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+            return InteractionResult.FAIL;
         }
 
         BlockPos targetPos = clickPos.relative(blockResult.getDirection());
 
         if (!player.mayUseItemAt(targetPos, blockResult.getDirection(), stack)) {
-            return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+            return InteractionResult.FAIL;
         }
 
         FluidActionResult placeResult = FluidUtil.tryPlaceFluid(player, world, hand, targetPos, stack, contained);
 
         if (placeResult.isSuccess()) {
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, placeResult.getResult());
+            return InteractionResult.SUCCESS.heldItemTransformedTo(placeResult.getResult());
         }
 
-        return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+        return InteractionResult.FAIL;
     }
 
-    private InteractionResultHolder<ItemStack> pickUp(Level world, Player player, ItemStack stack, BlockPos startPos) {
+    private InteractionResult pickUp(Level world, Player player, ItemStack stack, BlockPos startPos) {
         boolean collectAll = player.isShiftKeyDown();
         boolean pickedAny = false;
 
@@ -194,7 +193,7 @@ public class ReinforcedEnderBucketItem extends Item {
             }
         }
 
-        return new InteractionResultHolder<>(pickedAny ? InteractionResult.SUCCESS : InteractionResult.PASS, stack);
+        return pickedAny ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 
     private static boolean isFluidBlock(Block block) {

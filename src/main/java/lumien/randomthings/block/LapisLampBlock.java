@@ -31,6 +31,6 @@ public class LapisLampBlock extends Block
 {
 	public LapisLampBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).strength(0.3F).lightLevel(state -> 15).sound(SoundType.GLASS));
 	}
 }

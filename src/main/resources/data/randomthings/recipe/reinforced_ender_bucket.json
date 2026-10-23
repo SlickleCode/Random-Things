@@ -5,15 +5,9 @@
     " E "
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "B": {
-      "item": "randomthings:ender_bucket"
-    },
-    "E": {
-      "item": "randomthings:stable_enderpearl"
-    }
+    "O": "minecraft:obsidian",
+    "B": "randomthings:ender_bucket",
+    "E": "randomthings:stable_enderpearl"
   },
   "result": {
     "id": "randomthings:reinforced_ender_bucket"

@@ -1,9 +1,7 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "randomthings:spectre_log"
-    }
+    "randomthings:spectre_log"
   ],
   "result": {
     "id": "randomthings:spectre_plank",

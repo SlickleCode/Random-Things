@@ -61,7 +61,7 @@ public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseT
         }
 
         Minecraft.getInstance().gameRenderer.lightTexture().turnOffLightLayer();
-        RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
         Matrix4f matrix = matrixStack.last().pose();
         double x = 0, y = 0, z = 0;

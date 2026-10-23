@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["SIS","SBS","SSS"],
   "key": {
-    "S": { "tag": "c:stones" },
-    "I": { "item": "minecraft:iron_bars" },
-    "B": { "item": "minecraft:lever" }
+    "S": "#c:stones",
+    "I": "minecraft:iron_bars",
+    "B": "minecraft:lever"
   },
   "result": {
     "id": "randomthings:contact_lever"

@@ -6,18 +6,10 @@
     "EST"
   ],
   "key": {
-    "T": {
-      "item": "randomthings:stable_enderpearl"
-    },
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "C": {
-      "item": "randomthings:spectre_charger_redstone"
-    },
-    "S": {
-      "item": "randomthings:spectre_string"
-    }
+    "T": "randomthings:stable_enderpearl",
+    "E": "minecraft:ender_pearl",
+    "C": "randomthings:spectre_charger_redstone",
+    "S": "randomthings:spectre_string"
   },
   "result": {
     "id": "randomthings:spectre_charger_ender"

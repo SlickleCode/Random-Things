@@ -6,18 +6,10 @@
     "OSO"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "L": {
-      "item": "randomthings:spectre_lens"
-    },
-    "B": {
-      "item": "minecraft:beacon"
-    },
-    "S": {
-      "item": "randomthings:spectre_string"
-    }
+    "O": "minecraft:obsidian",
+    "L": "randomthings:spectre_lens",
+    "B": "minecraft:beacon",
+    "S": "randomthings:spectre_string"
   },
   "result": {
     "id": "randomthings:spectre_energy_injector"

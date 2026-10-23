@@ -60,7 +60,7 @@ import net.minecraft.server.level.ServerLevel;
  */
 public class DiaphanousBlock extends Block implements EntityBlock {
     public DiaphanousBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
     }
 
     @Override
@@ -124,7 +124,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
             return;
         }
 
-        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.parse(tag.getString("block")));
+        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.ResourceLocation.parse(tag.getString("block")));
 
         if (displayBlock != null) {
             ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBoolean("inverted"));
@@ -166,22 +166,20 @@ public class DiaphanousBlock extends Block implements EntityBlock {
         return true;
     }
 
-    @Override
-    public void initializeClient(java.util.function.Consumer<net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions> consumer) {
-        consumer.accept(new net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions() {
-            @Override
-            public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine manager) {
-                BlockEntity te = world.getBlockEntity(pos);
+    /** Client side of the break particles (registered through RegisterClientExtensionsEvent in ClientSetup, 1.21.4 moved it out of the block). */
+    public static final class ClientExtensions implements net.neoforged.neoforge.client.extensions.common.IClientBlockExtensions {
+        @Override
+        public boolean addDestroyEffects(BlockState state, Level world, BlockPos pos, ParticleEngine manager) {
+            BlockEntity te = world.getBlockEntity(pos);
 
-                if (!(te instanceof DiaphanousBlockTileEntity)) {
-                    return false;
-                }
-
-                BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
-                manager.destroy(pos, display);
-
-                return true;
+            if (!(te instanceof DiaphanousBlockTileEntity)) {
+                return false;
             }
-        });
+
+            BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
+            manager.destroy(pos, display);
+
+            return true;
+        }
     }
 }

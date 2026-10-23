@@ -114,6 +114,7 @@ public class RandomThings {
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON, lumien.randomthings.config.RTConfig.SPEC);
 
         NeoForge.EVENT_BUS.addListener(lumien.randomthings.handler.LootHandler::addLoot);
+        NeoForge.EVENT_BUS.addListener(lumien.randomthings.item.spectretools.SpectreItemTier::addReach);
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
@@ -322,9 +323,9 @@ public class RandomThings {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(EntityType.BOAT, e -> true)) {
-                if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((Boat) entity);
+            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(net.minecraft.world.entity.vehicle.AbstractBoat.class), e -> true)) {
+                if (entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.AbstractBoat) entity);
                 }
             }
         });
@@ -416,7 +417,7 @@ public class RandomThings {
 
             for (int modX = -2; modX <= 2; modX++) {
                 for (int modZ = -2; modZ <= 2; modZ++) {
-                    for (int y = targetY; y >= ei.level().getMinBuildHeight() && y >= targetY - 10; y--) {
+                    for (int y = targetY; y >= ei.level().getMinY() && y >= targetY - 10; y--) {
                         BlockPos evPos = new BlockPos(targetX + modX, y, targetZ + modZ);
                         BlockState belowState = ei.level().getBlockState(evPos);
 
@@ -449,7 +450,7 @@ public class RandomThings {
         // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
         // inventory only - Baubles isn't present in this port).
         NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.HIGHEST, (net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone event) -> {
-            if (!event.isWasDeath() || event.getOriginal() == null || event.getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || event.getEntity().level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
+            if (!event.isWasDeath() || event.getOriginal() == null || event.getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || ((ServerLevel) event.getEntity().level()).getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
                 return;
             }
 

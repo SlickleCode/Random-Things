@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -46,7 +46,7 @@ final class CoremodTests
 
 	private static boolean canSpawn(TestCtx c, EntityType<?> type, BlockPos pos)
 	{
-		return SpawnPlacements.checkSpawnRules(type, c.world, MobSpawnType.NATURAL, pos, c.world.random);
+		return SpawnPlacements.checkSpawnRules(type, c.world, EntitySpawnReason.NATURAL, pos, c.world.random);
 	}
 
 	/** Vanilla's light check is randomised against the sky light, so "can spawn" is true if any of several tries is. */
@@ -228,8 +228,8 @@ final class CoremodTests
 			fake.getInventory().setItem(1, new ItemStack(Items.COBBLESTONE, 5));
 
 			// func_213337_cE = PlayerEntity.dropInventory (SRG name, resolves in dev and in a production jar)
-			Method drop = net.neoforged.fml.util.ObfuscationReflectionHelper.findMethod(Player.class, "dropEquipment");
-			drop.invoke(fake);
+			Method drop = net.neoforged.fml.util.ObfuscationReflectionHelper.findMethod(Player.class, "dropEquipment", net.minecraft.server.level.ServerLevel.class);
+			drop.invoke(fake, c.world);
 
 			c.eq(Items.IRON_SWORD, fake.getInventory().getItem(0).getItem(), "anchored item must stay in its slot");
 			c.check(fake.getInventory().getItem(1).isEmpty(), "an ordinary item must be removed from the inventory");

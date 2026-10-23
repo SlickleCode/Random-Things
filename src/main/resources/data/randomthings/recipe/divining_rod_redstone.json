@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["RSR", "SES", "S S"],
   "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    },
-    "E": {
-      "item": "minecraft:spider_eye"
-    }
+    "R": "minecraft:redstone",
+    "S": "minecraft:stick",
+    "E": "minecraft:spider_eye"
   },
   "result": {
     "id": "randomthings:divining_rod_redstone"

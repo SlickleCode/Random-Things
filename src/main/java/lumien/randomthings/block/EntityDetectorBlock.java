@@ -34,7 +34,7 @@ import net.minecraft.world.InteractionResult;
 public class EntityDetectorBlock extends Block implements EntityBlock {
 	public EntityDetectorBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
 	}
 
 	@Override

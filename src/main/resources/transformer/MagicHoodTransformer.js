@@ -16,7 +16,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    // canRenderName(T)Z - the generic, bounded-by-LivingEntity overload (not the
+                    // shouldShowName(T, double)Z - the generic, bounded-by-LivingEntity overload (not the
                     // Entity-typed bridge method that just delegates to it). Hides a player's
                     // nametag while wearing a Magic Hood, regardless of sneaking - no clean Forge
                     // event exists for this in this version (RenderNameplateEvent doesn't exist
@@ -25,7 +25,7 @@ function initializeCoreMod() {
                     // early-exit branches means multiple ireturn sites (6 total) instead of the
                     // single-ireturn case FireBlockTransformer/SpawnPlacementTransformer had - same
                     // wrap-the-value-before-it-returns pattern, just applied at each one.
-                    if (method.name !== "shouldShowName" && method.name !== "m_6512_" || method.desc !== "(Lnet/minecraft/world/entity/LivingEntity;)Z") {
+                    if (method.name !== "shouldShowName" && method.name !== "m_6512_" || method.desc !== "(Lnet/minecraft/world/entity/LivingEntity;D)Z") {
                         continue;
                     }
 

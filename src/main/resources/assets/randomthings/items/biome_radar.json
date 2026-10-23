@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/biome_radar",
+    "tints": [
+      {
+        "type": "randomthings:tint",
+        "index": 0
+      },
+      {
+        "type": "randomthings:tint",
+        "index": 1
+      }
+    ]
+  }
+}

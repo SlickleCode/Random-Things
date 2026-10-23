@@ -1,14 +1,16 @@
 package lumien.randomthings.item;
 
-import java.util.List;
+import java.util.EnumMap;
 
-import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.ArmorMaterials;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterials;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.EquipmentAssets;
 
 /**
  * While worn (and not sneaking), makes every surface as slippery as a Super
@@ -21,17 +23,18 @@ import net.minecraft.world.item.Rarity;
  */
 public class SuperLubricentBootsItem extends ArmorItem
 {
-	/** Iron stats, but the boots' own armor texture ({@code textures/models/armor/superlubricentboots_layer_1.png}). */
-	private static final Holder<ArmorMaterial> MATERIAL;
+	/** Iron stats, but the boots' own worn model ({@code assets/randomthings/equipment/superlubricentboots.json}). */
+	private static final ArmorMaterial MATERIAL;
 
 	static
 	{
-		ArmorMaterial iron = ArmorMaterials.IRON.value();
-		MATERIAL = Holder.direct(new ArmorMaterial(iron.defense(), iron.enchantmentValue(), iron.equipSound(), iron.repairIngredient(), List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath("randomthings", "superlubricentboots"))), iron.toughness(), iron.knockbackResistance()));
+		ArmorMaterial iron = ArmorMaterials.IRON;
+		MATERIAL = new ArmorMaterial(iron.durability(), new EnumMap<>(iron.defense()), iron.enchantmentValue(), iron.equipSound(), iron.toughness(), iron.knockbackResistance(), iron.repairIngredient(),
+				ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.fromNamespaceAndPath("randomthings", "superlubricentboots")));
 	}
 
 	public SuperLubricentBootsItem(Item.Properties properties)
 	{
-		super(MATERIAL, ArmorItem.Type.BOOTS, properties.rarity(Rarity.UNCOMMON).durability(ArmorItem.Type.BOOTS.getDurability(15)));
+		super(MATERIAL, ArmorType.BOOTS, properties.rarity(Rarity.UNCOMMON));
 	}
 }

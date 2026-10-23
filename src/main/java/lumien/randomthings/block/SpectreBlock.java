@@ -12,6 +12,6 @@ public class SpectreBlock extends Block
 {
 	public SpectreBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLACK).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noLootTable());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLACK).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(-1.0F, 3600000.0F).sound(SoundType.GLASS).noLootTable());
 	}
 }

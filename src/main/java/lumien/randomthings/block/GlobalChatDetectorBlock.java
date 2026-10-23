@@ -39,7 +39,7 @@ public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 
 	public GlobalChatDetectorBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(2.0F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}

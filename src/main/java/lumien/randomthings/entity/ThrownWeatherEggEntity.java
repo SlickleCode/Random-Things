@@ -29,15 +29,11 @@ public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectil
     }
 
     public ThrownWeatherEggEntity(Level world, LivingEntity thrower, Item eggItem) {
-        super(ModEntityTypes.THROWN_WEATHER_EGG, thrower, world);
-
-        this.setItem(new ItemStack(eggItem));
+        super(ModEntityTypes.THROWN_WEATHER_EGG, thrower, world, new ItemStack(eggItem));
     }
 
     public ThrownWeatherEggEntity(Level world, double x, double y, double z, Item eggItem) {
-        super(ModEntityTypes.THROWN_WEATHER_EGG, x, y, z, world);
-
-        this.setItem(new ItemStack(eggItem));
+        super(ModEntityTypes.THROWN_WEATHER_EGG, x, y, z, world, new ItemStack(eggItem));
     }
 
     @Override

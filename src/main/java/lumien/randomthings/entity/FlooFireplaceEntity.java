@@ -73,4 +73,8 @@ public class FlooFireplaceEntity extends Entity {
         compound.putInt("age", age);
     }
 
+    @Override
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
+    }
 }

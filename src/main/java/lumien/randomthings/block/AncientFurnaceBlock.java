@@ -50,7 +50,7 @@ public class AncientFurnaceBlock extends Block implements EntityBlock {
     public static final BooleanProperty HEATING = BooleanProperty.create("heating");
 
     public AncientFurnaceBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(50.0F, 10.0F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(50.0F, 10.0F));
 
         this.registerDefaultState(this.stateDefinition.any().setValue(HEATING, false));
     }
@@ -73,18 +73,18 @@ public class AncientFurnaceBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public net.minecraft.world.ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+    public net.minecraft.world.InteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         InteractionResult result = legacyUse(state, worldIn, pos, player, handIn, hit);
         if (result == InteractionResult.SUCCESS) {
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
         if (result == InteractionResult.CONSUME) {
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
         if (result == InteractionResult.FAIL) {
-            return net.minecraft.world.ItemInteractionResult.FAIL;
+            return net.minecraft.world.InteractionResult.FAIL;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     private InteractionResult legacyUse(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {

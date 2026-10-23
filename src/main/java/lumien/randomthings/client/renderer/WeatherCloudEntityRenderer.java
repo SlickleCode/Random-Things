@@ -3,7 +3,6 @@ package lumien.randomthings.client.renderer;
 import lumien.randomthings.entity.WeatherCloudEntity;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 
@@ -14,7 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * WeatherCloudEntity}'s javadoc for the one dropped exception (the Sun
  * variant's decorative sunburst overlay).
  */
-public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntity> {
+public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntity, net.minecraft.client.renderer.entity.state.EntityRenderState> {
     public WeatherCloudEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
 
@@ -22,11 +21,11 @@ public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntit
     }
 
     @Override
-    public void render(WeatherCloudEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+    public net.minecraft.client.renderer.entity.state.EntityRenderState createRenderState() {
+        return new net.minecraft.client.renderer.entity.state.EntityRenderState();
     }
 
     @Override
-    public ResourceLocation getTextureLocation(WeatherCloudEntity entity) {
-        return null;
+    public void render(net.minecraft.client.renderer.entity.state.EntityRenderState state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
     }
 }

@@ -47,6 +47,6 @@ public class NotificationMessage implements IRTMessage
 	@Override
 	public void handle(IPayloadContext context)
 	{
-		Minecraft.getInstance().getToasts().addToast(new NotificationToast(title, description, icon));
+		Minecraft.getInstance().getToastManager().addToast(new NotificationToast(title, description, icon));
 	}
 }

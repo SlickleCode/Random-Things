@@ -71,14 +71,14 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     /**
      * Real bug, found from the user's F2 screenshots 2026-10-04: {@code getEntryAtPosition} (which drives
      * both the hover highlight and click hit-testing) only accepts a mouse x below {@code
-     * getScrollbarPosition()}, which defaults to {@code width / 2 + 124} measured from the screen's
+     * scrollBarX()}, which defaults to {@code width / 2 + 124} measured from the screen's
      * left edge - not this list's own {@code x0}. With the list offset into the GUI, the right part of
      * every row (and the whole list at some window sizes) was neither highlighted nor clickable. Same
      * fix as {@link ChunkAnalyzerScanResultList}: put the scrollbar at the list's own right edge
      * (vanilla's scrollbar dragging and the row hit-test both key off this value).
      */
     @Override
-    protected int getScrollbarPosition() {
+    protected int scrollBarX() {
         return this.getX() + this.width - 6;
     }
 
@@ -89,14 +89,14 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int rowLeft = this.getRowLeft();
-        int rowTop = this.getY() + 4 - (int) this.getScrollAmount();
+        int rowTop = this.getY() + 4 - (int) this.scrollAmount();
 
         ListClip.begin(this.minecraft, this.getX(), this.getY(), this.getRight(), this.getBottom());
         this.renderListItems(graphics, mouseX, mouseY, partialTicks);
         ListClip.end();
 
         renderBorder(graphics);
-        renderScrollbar(graphics);
+        renderCustomScrollbar(graphics);
 
     }
 
@@ -108,7 +108,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         this.draggingScrollbar = button == 0 && this.isMouseOver(mouseX, mouseY)
-                && mouseX >= this.getScrollbarPosition() && mouseX < this.getScrollbarPosition() + 6;
+                && mouseX >= this.scrollBarX() && mouseX < this.scrollBarX() + 6;
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -134,7 +134,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     }
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
-    private void renderScrollbar(GuiGraphics graphics) {
+    private void renderCustomScrollbar(GuiGraphics graphics) {
         int totalHeight = this.getItemCount() * this.itemHeight;
         int visibleHeight = this.getBottom() - this.getY();
 
@@ -145,10 +145,10 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         // same geometry as vanilla's AbstractList scrollbar (its max scroll includes a 4px pad, and
         // its drag math assumes this thumb height) - using a different formula let the thumb run
         // past the bottom border and made dragging drift
-        int scrollbarX = this.getScrollbarPosition();
-        int maxScroll = Math.max(1, this.getMaxPosition() - (visibleHeight - 4));
-        int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.getMaxPosition())));
-        int thumbY = Math.max(this.getY(), Math.min(this.getBottom() - thumbHeight, (int) this.getScrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.getY()));
+        int scrollbarX = this.scrollBarX();
+        int maxScroll = Math.max(1, this.contentHeight() - (visibleHeight - 4));
+        int thumbHeight = Math.max(32, Math.min(visibleHeight - 8, (int) ((float) (visibleHeight * visibleHeight) / this.contentHeight())));
+        int thumbY = Math.max(this.getY(), Math.min(this.getBottom() - thumbHeight, (int) this.scrollAmount() * (visibleHeight - thumbHeight) / maxScroll + this.getY()));
 
         graphics.fill(scrollbarX, this.getY(), scrollbarX + 6, this.getBottom(), 0xFF373737);
         graphics.fill(scrollbarX, thumbY, scrollbarX + 6, thumbY + thumbHeight, 0xFF8B8B8B);

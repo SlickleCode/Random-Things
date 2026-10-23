@@ -36,13 +36,13 @@ public class MagneticLootModifier extends LootModifier
 	protected ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context)
 	{
 		// block loot with a harvester has both parameters; entity / chest / fishing loot lacks the tool
-		if (!context.hasParam(LootContextParams.TOOL) || !context.hasParam(LootContextParams.THIS_ENTITY) || !RTConfig.MAGNETIC_ENCHANTMENT.get())
+		if (!context.hasParameter(LootContextParams.TOOL) || !context.hasParameter(LootContextParams.THIS_ENTITY) || !RTConfig.MAGNETIC_ENCHANTMENT.get())
 		{
 			return generatedLoot;
 		}
 
-		Entity harvester = context.getParamOrNull(LootContextParams.THIS_ENTITY);
-		ItemStack tool = context.getParamOrNull(LootContextParams.TOOL);
+		Entity harvester = context.getOptionalParameter(LootContextParams.THIS_ENTITY);
+		ItemStack tool = context.getOptionalParameter(LootContextParams.TOOL);
 
 		if (!(harvester instanceof Player) || tool == null || EnchantmentHelper.getItemEnchantmentLevel(ModEnchantments.holder(context.getLevel().registryAccess(), ModEnchantments.MAGNETIC), tool) <= 0)
 		{

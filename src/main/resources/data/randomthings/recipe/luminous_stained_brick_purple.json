@@ -1,12 +1,8 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "randomthings:stained_brick_purple"
-    },
-    {
-      "item": "randomthings:luminous_powder"
-    }
+    "randomthings:stained_brick_purple",
+    "randomthings:luminous_powder"
   ],
   "result": {
     "id": "randomthings:luminous_stained_brick_purple"

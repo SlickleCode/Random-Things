@@ -2,7 +2,6 @@ package lumien.randomthings.debug;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -17,18 +16,18 @@ public final class BlockUse
 
 	public static InteractionResult use(BlockState state, Level level, Player player, InteractionHand hand, BlockHitResult hit)
 	{
-		ItemInteractionResult itemResult = state.useItemOn(player.getItemInHand(hand), level, player, hand, hit);
+		InteractionResult itemResult = state.useItemOn(player.getItemInHand(hand), level, player, hand, hit);
 
 		if (itemResult.consumesAction())
 		{
-			return itemResult.result();
+			return itemResult;
 		}
 
-		if (itemResult == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && hand == InteractionHand.MAIN_HAND)
+		if (itemResult == InteractionResult.TRY_WITH_EMPTY_HAND && hand == InteractionHand.MAIN_HAND)
 		{
 			return state.useWithoutItem(level, player, hit);
 		}
 
-		return itemResult.result();
+		return itemResult;
 	}
 }

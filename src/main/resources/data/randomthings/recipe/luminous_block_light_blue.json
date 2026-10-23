@@ -5,12 +5,8 @@
     "LL"
   ],
   "key": {
-    "L": {
-      "item": "randomthings:luminous_powder"
-    },
-    "D": {
-      "item": "minecraft:light_blue_dye"
-    }
+    "L": "randomthings:luminous_powder",
+    "D": "minecraft:light_blue_dye"
   },
   "result": {
     "id": "randomthings:luminous_block_light_blue"

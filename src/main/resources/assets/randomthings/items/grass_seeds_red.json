@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "randomthings:item/grass_seeds_red",
+    "tints": [
+      {
+        "type": "randomthings:tint",
+        "index": 0
+      }
+    ]
+  }
+}

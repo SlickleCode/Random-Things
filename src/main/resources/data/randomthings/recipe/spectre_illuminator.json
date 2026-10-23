@@ -6,15 +6,9 @@
     "EGE"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glowstone_dust"
-    },
-    "E": {
-      "item": "randomthings:ectoplasm"
-    },
-    "L": {
-      "item": "randomthings:luminous_powder"
-    }
+    "G": "minecraft:glowstone_dust",
+    "E": "randomthings:ectoplasm",
+    "L": "randomthings:luminous_powder"
   },
   "result": {
     "id": "randomthings:spectre_illuminator"

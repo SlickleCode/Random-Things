@@ -48,11 +48,10 @@ public class PotionVaporizerScreen extends AbstractContainerScreen<PotionVaporiz
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int x = (this.width - this.imageWidth) / 2;
 		int y = (this.height - this.imageHeight) / 2;
-		graphics.blit(GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight);
+		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
 		int duration = this.menu.duration.get();
 
@@ -63,11 +62,11 @@ public class PotionVaporizerScreen extends AbstractContainerScreen<PotionVaporiz
 
 			Color c = new Color(this.menu.color.get());
 			RenderSystem.setShaderColor(c.getRed() / 255F, c.getGreen() / 255F, c.getBlue() / 255F, 1.0F);
-			graphics.blit(GUI_TEXTURES, x + 81, y + 18 + tankProgress, 176, 30, 14, 14 - tankProgress);
+			graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x + 81, y + 18 + tankProgress, 176, 30, 14, 14 - tankProgress, 256, 256);
 			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		}
 
-		graphics.blit(GUI_TEXTURES, x + 80, y + 17, 176, 14, 16, 16);
+		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x + 80, y + 17, 176, 14, 16, 16, 256, 256);
 
 		int fuelBurnTime = this.menu.fuelBurnTime.get();
 
@@ -75,7 +74,7 @@ public class PotionVaporizerScreen extends AbstractContainerScreen<PotionVaporiz
 		{
 			int fuelBurn = this.menu.fuelBurn.get();
 			int fuelProgress = 15 - (int) Math.floor(14F - (14F / fuelBurn * fuelBurnTime));
-			graphics.blit(GUI_TEXTURES, x + 81, y + 50 - fuelProgress, 176, 14 - fuelProgress, 14, fuelProgress);
+			graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x + 81, y + 50 - fuelProgress, 176, 14 - fuelProgress, 14, fuelProgress, 256, 256);
 		}
 	}
 

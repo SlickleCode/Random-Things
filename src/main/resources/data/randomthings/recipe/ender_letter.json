@@ -6,12 +6,8 @@
     " P "
   ],
   "key": {
-    "P": {
-      "item": "minecraft:paper"
-    },
-    "E": {
-      "item": "minecraft:ender_pearl"
-    }
+    "P": "minecraft:paper",
+    "E": "minecraft:ender_pearl"
   },
   "result": {
     "id": "randomthings:ender_letter"

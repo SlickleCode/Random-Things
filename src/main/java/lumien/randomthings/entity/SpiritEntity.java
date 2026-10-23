@@ -69,19 +69,19 @@ public class SpiritEntity extends FlyingMob {
         spiritAge++;
 
         if (!this.level().isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
-            this.kill();
+            this.kill((net.minecraft.server.level.ServerLevel) this.level());
         }
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() != null) {
             if (source.is(net.minecraft.world.damagesource.DamageTypes.PLAYER_ATTACK) && source.getEntity() instanceof Player) {
                 Player player = (Player) source.getEntity();
                 ItemStack equipped = player.getMainHandItem();
 
                 if (!equipped.isEmpty() && equipped.getItem() == ModItems.SPECTRE_SWORD) {
-                    return super.hurt(source, amount);
+                    return super.hurtServer(level, source, amount);
                 }
             }
         }
@@ -90,7 +90,7 @@ public class SpiritEntity extends FlyingMob {
             return false;
         }
 
-        return super.hurt(source, amount);
+        return super.hurtServer(level, source, amount);
     }
 
     public static AttributeSupplier.Builder registerAttributes() {
@@ -115,8 +115,8 @@ public class SpiritEntity extends FlyingMob {
     }
 
     @Override
-    protected void customServerAiStep() {
-        super.customServerAiStep();
+    protected void customServerAiStep(net.minecraft.server.level.ServerLevel level) {
+        super.customServerAiStep(level);
 
         if (spawnPosition == null) {
             this.spawnPosition = this.blockPosition();
@@ -163,7 +163,7 @@ public class SpiritEntity extends FlyingMob {
         }
 
         for (int i = 0; i < count; i++) {
-            this.spawnAtLocation(ModItems.ECTOPLASM);
+            this.spawnAtLocation((net.minecraft.server.level.ServerLevel) this.level(), ModItems.ECTOPLASM);
         }
     }
 

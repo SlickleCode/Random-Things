@@ -43,11 +43,10 @@ public class SpriteStateButton extends Button implements TooltipButton
 	@Override
 	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, this.texture);
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.enableBlend();
-		graphics.blit(this.texture, this.getX(), this.getY(), this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height);
+		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, this.texture, this.getX(), this.getY(), this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height, 256, 256);
 	}
 
 	@Override

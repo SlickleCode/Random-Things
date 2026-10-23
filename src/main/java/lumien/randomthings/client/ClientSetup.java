@@ -98,10 +98,9 @@ public class ClientSetup {
         modBus.addListener(ClientSetup::setupClient);
         modBus.addListener(ClientSetup::registerDimensionEffects);
         modBus.addListener(ClientSetup::registerRenderers);
-        modBus.addListener(ClientSetup::registerModels);
         modBus.addListener(ClientSetup::onBlockColorHandler);
-        modBus.addListener(ClientSetup::onItemColorHandler);
-        modBus.addListener(ClientSetup::onPlainItemColorHandler);
+        RTItemModels.init(modBus);
+        modBus.addListener((net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent event) -> event.registerBlock(new lumien.randomthings.block.DiaphanousBlock.ClientExtensions(), lumien.randomthings.block.ModBlocks.DIAPHANOUS_BLOCK));
 
         // Spectre Anchor's tooltip: "Anchored" on any stack carrying the
         // "spectreAnchor" NBT tag, regardless of which item it is. Matches
@@ -121,8 +120,8 @@ public class ClientSetup {
             }
 
             for (Entity entity : Minecraft.getInstance().level.entitiesForRendering()) {
-                if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((Boat) entity);
+                if (entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.AbstractBoat) entity);
                 }
             }
         });
@@ -193,14 +192,6 @@ public class ClientSetup {
     private static void setupClient(final FMLClientSetupEvent event) {
         RenderLayerSetup.apply();
 
-        event.enqueueWork(() -> {
-            for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
-                if (item instanceof lumien.randomthings.item.IClientItemProperties) {
-                    ((lumien.randomthings.item.IClientItemProperties) item).registerClientProperties();
-                }
-            }
-        });
-
         NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent rwl) -> {
             if (rwl.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) {
                 return;
@@ -211,19 +202,6 @@ public class ClientSetup {
         });
 
         NeoForge.EVENT_BUS.addListener(ClientSetup::onPlaySound);
-    }
-
-    /**
-     * Registers {@code randomthings:portkey_base} as an extra "special"
-     * model - not tied to any block or item's own auto-resolved model, just
-     * an auxiliary resource {@link lumien.randomthings.client.renderer.PortkeyItemRenderer}
-     * fetches directly via {@code ModelManager#getModel} at render time. See
-     * that class's javadoc for why this indirection exists (rendering the
-     * plain, uncamouflaged Portkey appearance from inside its own {@code
-     * ItemStackTileEntityRenderer} without recursing back into itself).
-     */
-    private static void registerModels(final net.neoforged.neoforge.client.event.ModelEvent.RegisterAdditional event) {
-        event.register(net.minecraft.client.resources.model.ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath(lumien.randomthings.lib.ModConstants.MOD_ID, "item/portkey_base")));
     }
 
     /**
@@ -307,52 +285,6 @@ public class ClientSetup {
         for (Block block : BuiltInRegistries.BLOCK) {
             if (block instanceof IRTBlockColor && RegUtil.id(block) != null && ModConstants.MOD_ID.equals(RegUtil.id(block).getNamespace())) {
                 event.getBlockColors().register((state, worldIn, pos, tintIndex) -> ((IRTBlockColor) block).colorMultiplier(state, worldIn, pos, tintIndex), block);
-            }
-        }
-    }
-
-    /**
-     * Same bridge for item icon tinting: any randomthings {@link BlockItem}
-     * whose block implements {@link IRTBlockColor} gets its inventory icon
-     * tinted using the client player's current world/position, matching the
-     * 1.12.2 behavior of {@code ItemBlockColored}.
-     */
-    @SubscribeEvent
-    public static void onItemColorHandler(final RegisterColorHandlersEvent.Item event) {
-        for (Item item : BuiltInRegistries.ITEM) {
-            if (item instanceof BlockItem && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
-                Block block = ((BlockItem) item).getBlock();
-
-                if (block instanceof IRTBlockColor) {
-                    event.getItemColors().register((stack, tintIndex) -> {
-                        if (block instanceof lumien.randomthings.block.ColoredGrassBlock) {
-                            return lumien.randomthings.block.ColoredGrassBlock.getTint(lumien.randomthings.block.ColoredGrassBlock.getColor(stack));
-                        }
-
-                        Minecraft mc = Minecraft.getInstance();
-
-                        if (mc.level == null || mc.player == null) {
-                            return 0xFFFFFF;
-                        }
-
-                        return ((IRTBlockColor) block).colorMultiplier(block.defaultBlockState(), mc.level, mc.player.blockPosition(), tintIndex);
-                    }, item);
-                }
-            }
-        }
-    }
-
-    /**
-     * Same bridge, but for a plain {@link Item} that implements
-     * {@link IRTItemColor} directly (not a {@link BlockItem}) - e.g.
-     * {@link lumien.randomthings.item.BiomeCrystalItem}, which tints
-     * itself from its own stored biome rather than from a block.
-     */
-    @SubscribeEvent
-    public static void onPlainItemColorHandler(final RegisterColorHandlersEvent.Item event) {
-        for (Item item : BuiltInRegistries.ITEM) {
-            if (item instanceof IRTItemColor && RegUtil.id(item) != null && ModConstants.MOD_ID.equals(RegUtil.id(item).getNamespace())) {
-                event.getItemColors().register((stack, tintIndex) -> ((IRTItemColor) item).getColorFromItemstack(stack, tintIndex), item);
             }
         }
     }

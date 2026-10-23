@@ -63,7 +63,7 @@ public class SoundBoxTileEntity extends BlockEntity {
             ResourceLocation soundLocation = SoundPatternItem.getSoundLocation(this.pattern);
 
             if (soundLocation != null) {
-                SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(soundLocation);
+                SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.getValue(soundLocation);
 
                 if (soundEvent != null) {
                     this.level.playSound(null, this.worldPosition, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);

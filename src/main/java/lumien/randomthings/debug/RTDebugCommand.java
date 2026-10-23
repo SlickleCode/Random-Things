@@ -24,7 +24,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
@@ -190,7 +189,7 @@ public class RTDebugCommand
 
 			if (isBlock)
 			{
-				Block block = BuiltInRegistries.BLOCK.get(id);
+				Block block = BuiltInRegistries.BLOCK.getValue(id);
 
 				world.setBlock(blockPos, block.defaultBlockState(), 3);
 
@@ -206,7 +205,7 @@ public class RTDebugCommand
 			}
 			else
 			{
-				Item item = BuiltInRegistries.ITEM.get(id);
+				Item item = BuiltInRegistries.ITEM.getValue(id);
 				ItemStack previous = player.getMainHandItem();
 
 				ItemStack stack = new ItemStack(item);
@@ -217,9 +216,9 @@ public class RTDebugCommand
 					player.getInventory().placeItemBackInInventory(previous);
 				}
 
-				InteractionResultHolder<ItemStack> result = item.use(world, player, InteractionHand.MAIN_HAND);
+				net.minecraft.world.InteractionResult result = item.use(world, player, InteractionHand.MAIN_HAND);
 
-				how[0] = "used item, result " + result.getResult();
+				how[0] = "used item, result " + result;
 			}
 
 			boolean opened = player.containerMenu != before && player.containerMenu != player.inventoryMenu;

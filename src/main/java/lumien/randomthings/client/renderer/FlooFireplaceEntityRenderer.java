@@ -3,7 +3,6 @@ package lumien.randomthings.client.renderer;
 import lumien.randomthings.entity.FlooFireplaceEntity;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.resources.ResourceLocation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 
@@ -13,7 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
  * registered {@link net.minecraft.world.entity.EntityType} still needs a bound
  * renderer client-side, so this one simply draws nothing.
  */
-public class FlooFireplaceEntityRenderer extends EntityRenderer<FlooFireplaceEntity> {
+public class FlooFireplaceEntityRenderer extends EntityRenderer<FlooFireplaceEntity, net.minecraft.client.renderer.entity.state.EntityRenderState> {
     public FlooFireplaceEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
         super(renderManager);
 
@@ -21,11 +20,11 @@ public class FlooFireplaceEntityRenderer extends EntityRenderer<FlooFireplaceEnt
     }
 
     @Override
-    public void render(FlooFireplaceEntity entity, float entityYaw, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+    public net.minecraft.client.renderer.entity.state.EntityRenderState createRenderState() {
+        return new net.minecraft.client.renderer.entity.state.EntityRenderState();
     }
 
     @Override
-    public ResourceLocation getTextureLocation(FlooFireplaceEntity entity) {
-        return null;
+    public void render(net.minecraft.client.renderer.entity.state.EntityRenderState state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
     }
 }

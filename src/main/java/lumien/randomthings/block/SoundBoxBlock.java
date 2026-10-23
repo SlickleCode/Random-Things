@@ -28,7 +28,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
     public static final BooleanProperty HAS_PATTERN = BooleanProperty.create("has_pattern");
 
     public SoundBoxBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(0.8F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.WOOD).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASS).ignitedByLava().sound(SoundType.WOOD).strength(0.8F));
 
         this.registerDefaultState(this.stateDefinition.any().setValue(HAS_PATTERN, false));
     }
@@ -62,18 +62,18 @@ public class SoundBoxBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public net.minecraft.world.ItemInteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    public net.minecraft.world.InteractionResult useItemOn(ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         InteractionResult result = legacyUse(state, worldIn, pos, player, hand, hit);
         if (result == InteractionResult.SUCCESS) {
-            return net.minecraft.world.ItemInteractionResult.SUCCESS;
+            return net.minecraft.world.InteractionResult.SUCCESS;
         }
         if (result == InteractionResult.CONSUME) {
-            return net.minecraft.world.ItemInteractionResult.CONSUME;
+            return net.minecraft.world.InteractionResult.CONSUME;
         }
         if (result == InteractionResult.FAIL) {
-            return net.minecraft.world.ItemInteractionResult.FAIL;
+            return net.minecraft.world.InteractionResult.FAIL;
         }
-        return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return net.minecraft.world.InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     private InteractionResult legacyUse(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
@@ -115,7 +115,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
         BlockEntity te = worldIn.getBlockEntity(pos);
 
         if (te instanceof SoundBoxTileEntity) {

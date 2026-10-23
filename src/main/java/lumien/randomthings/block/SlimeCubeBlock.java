@@ -27,7 +27,7 @@ public class SlimeCubeBlock extends Block implements EntityBlock {
 
 	public SlimeCubeBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.CLAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).noOcclusion().noCollission().strength(0.5F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.CLAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).noOcclusion().noCollission().strength(0.5F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}
@@ -57,7 +57,7 @@ public class SlimeCubeBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving)
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving)
 	{
 		boolean powered = worldIn.hasNeighborSignal(pos);
 

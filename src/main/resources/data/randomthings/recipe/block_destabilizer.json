@@ -6,18 +6,10 @@
     "ORO"
   ],
   "key": {
-    "O": {
-      "item": "minecraft:obsidian"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "S": {
-      "item": "minecraft:sand"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    }
+    "O": "minecraft:obsidian",
+    "R": "minecraft:redstone",
+    "S": "minecraft:sand",
+    "D": "minecraft:diamond"
   },
   "result": {
     "id": "randomthings:block_destabilizer"

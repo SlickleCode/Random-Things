@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -78,12 +77,12 @@ public class RunePatternItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         if (playerIn.isShiftKeyDown()) {
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, new ItemStack(Items.PAPER));
+            return InteractionResult.SUCCESS.heldItemTransformedTo(new ItemStack(Items.PAPER));
         }
 
-        return new InteractionResultHolder<>(InteractionResult.PASS, playerIn.getItemInHand(hand));
+        return InteractionResult.PASS;
     }
 
     @Override

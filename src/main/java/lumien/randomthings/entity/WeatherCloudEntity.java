@@ -72,7 +72,7 @@ public class WeatherCloudEntity extends Entity {
 
         if (this.age < 200) {
             this.setDeltaMovement(this.getDeltaMovement().x, 0.007, this.getDeltaMovement().z);
-        } else if (this.getY() < this.level().getMaxBuildHeight()) {
+        } else if (this.getY() < this.level().getMaxY() + 1) {
             this.setDeltaMovement(this.getDeltaMovement().x, (this.getDeltaMovement().y + 0.001) * 1.02, this.getDeltaMovement().z);
         } else if (!this.level().isClientSide) {
             int duration = (300 + new Random().nextInt(600)) * 20;
@@ -130,7 +130,7 @@ public class WeatherCloudEntity extends Entity {
             double a = 0.25 / (1.5 + Math.random());
             double b = 0.35 / (1.5 + Math.random());
 
-            this.level().addParticle(new DustParticleOptions(new org.joml.Vector3f(1F, 1F, 0F), 1F), this.getX() + a * Math.cos(t), this.getY(), this.getZ() + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
+            this.level().addParticle(new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, 1F, 1F, 0F), 1F), this.getX() + a * Math.cos(t), this.getY(), this.getZ() + b * Math.sin(t), Math.random() * 0.1 - 0.05, Math.random() * 0.2 - 0.1, Math.random() * 0.1 - 0.05);
         }
     }
 
@@ -157,4 +157,8 @@ public class WeatherCloudEntity extends Entity {
         compound.putInt("age", age);
     }
 
+    @Override
+    public boolean hurtServer(net.minecraft.server.level.ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
+    }
 }

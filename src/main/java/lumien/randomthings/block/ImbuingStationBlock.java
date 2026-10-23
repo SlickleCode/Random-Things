@@ -30,7 +30,7 @@ import net.minecraft.world.InteractionResult;
  */
 public class ImbuingStationBlock extends Block implements EntityBlock {
     public ImbuingStationBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.25F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.25F));
     }
 
     @Override

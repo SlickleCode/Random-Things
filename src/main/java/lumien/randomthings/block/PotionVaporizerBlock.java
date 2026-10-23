@@ -16,7 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
@@ -32,11 +32,11 @@ import net.minecraft.world.InteractionResult;
  * fuelled the same way a furnace is.
  */
 public class PotionVaporizerBlock extends Block implements EntityBlock {
-	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
+	public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.values());
 
 	public PotionVaporizerBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).strength(3.0F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.METAL).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.IRON_XYLOPHONE).strength(3.0F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}

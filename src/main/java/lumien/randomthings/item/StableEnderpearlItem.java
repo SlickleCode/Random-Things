@@ -17,7 +17,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.sounds.SoundSource;
@@ -132,7 +131,7 @@ public class StableEnderpearlItem extends Item
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand)
+	public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand)
 	{
 		ItemStack itemStackIn = playerIn.getItemInHand(hand);
 
@@ -146,6 +145,6 @@ public class StableEnderpearlItem extends Item
 			});
 		}
 
-		return new InteractionResultHolder<>(InteractionResult.SUCCESS, itemStackIn);
+		return InteractionResult.SUCCESS;
 	}
 }

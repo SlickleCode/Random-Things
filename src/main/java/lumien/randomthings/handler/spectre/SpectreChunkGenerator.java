@@ -47,7 +47,7 @@ public class SpectreChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void applyCarvers(WorldGenRegion region, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk, GenerationStep.Carving step) {
+    public void applyCarvers(WorldGenRegion region, long seed, RandomState randomState, BiomeManager biomeManager, StructureManager structureManager, ChunkAccess chunk) {
     }
 
     @Override
@@ -85,7 +85,7 @@ public class SpectreChunkGenerator extends ChunkGenerator {
 
     @Override
     public NoiseColumn getBaseColumn(int x, int z, LevelHeightAccessor level, RandomState randomState) {
-        return new NoiseColumn(level.getMinBuildHeight(), new BlockState[0]);
+        return new NoiseColumn(level.getMinY(), new BlockState[0]);
     }
 
     @Override

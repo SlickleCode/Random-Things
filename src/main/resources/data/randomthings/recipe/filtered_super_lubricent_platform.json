@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["P","R","S"],
   "key": {
-    "P": { "item": "minecraft:paper" },
-    "R": { "item": "randomthings:super_lubricent_platform" },
-    "S": { "item": "minecraft:string" }
+    "P": "minecraft:paper",
+    "R": "randomthings:super_lubricent_platform",
+    "S": "minecraft:string"
   },
   "result": {
     "id": "randomthings:filtered_super_lubricent_platform"

@@ -5,15 +5,9 @@
     " M"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "D": {
-      "item": "minecraft:glowstone_dust"
-    },
-    "M": {
-      "item": "randomthings:glowing_mushroom"
-    }
+    "G": "minecraft:glass",
+    "D": "minecraft:glowstone_dust",
+    "M": "randomthings:glowing_mushroom"
   },
   "result": {
     "id": "randomthings:luminous_powder",

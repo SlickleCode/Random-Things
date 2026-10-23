@@ -37,7 +37,7 @@ import net.neoforged.api.distmarker.OnlyIn;
  */
 public class EnderAnchorBlock extends Block implements EntityBlock {
     public EnderAnchorBlock() {
-        super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
     }
 
     @Override

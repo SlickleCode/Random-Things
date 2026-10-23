@@ -9,7 +9,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
@@ -31,7 +30,7 @@ public class PortableSoundDampenerItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level worldIn, Player playerIn, InteractionHand hand) {
+    public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
         if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
@@ -47,10 +46,10 @@ public class PortableSoundDampenerItem extends Item {
                 }
             });
 
-            return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+            return InteractionResult.SUCCESS;
         }
 
-        return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+        return InteractionResult.FAIL;
     }
 
     public static ItemInventoryHandler getInventory(ItemStack dampener) {

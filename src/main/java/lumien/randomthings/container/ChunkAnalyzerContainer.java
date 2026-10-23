@@ -108,7 +108,7 @@ public class ChunkAnalyzerContainer extends AbstractContainerMenu implements ISi
             // and missing a block freshly placed on top of it).
             int top = c.getHeight(Heightmap.Types.WORLD_SURFACE, nextX, nextZ) + 1;
 
-            for (int y = c.getMinBuildHeight(); y < top; y++) {
+            for (int y = c.getMinY(); y < top; y++) {
                 BlockPos pos = new BlockPos(chunkBaseX + nextX, y, chunkBaseZ + nextZ);
                 BlockState state = c.getBlockState(pos);
 

@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "pattern": ["S  ","SCS","I  "],
   "key": {
-    "S": { "item": "minecraft:stone" },
-    "C": { "item": "minecraft:comparator" },
-    "I": { "item": "minecraft:chest" }
+    "S": "minecraft:stone",
+    "C": "minecraft:comparator",
+    "I": "minecraft:chest"
   },
   "result": {
     "id": "randomthings:inventory_tester",

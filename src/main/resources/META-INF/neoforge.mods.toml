@@ -15,13 +15,13 @@ issueTrackerURL="https://github.com/lumien231/Random-Things"
 [[dependencies.randomthings]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1.264,)"
+    versionRange="[21.4.161,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.randomthings]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.1]"
+    versionRange="[1.21.4]"
     ordering="NONE"
     side="BOTH"
