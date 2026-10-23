@@ -115,6 +115,19 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor {
                 }
             }
         } else if (biomeRadar.getState() == STATE.FINISHED) {
+            // Deliberate divergence from 1.12.2 (user request, 2026-10-23): an empty hand also takes the crystal back out of a radar that has finished
+            // searching (the original only accepted paper in this state), which sets the radar back to idle.
+            if (equipped.isEmpty() && !biomeRadar.getCurrentCrystal().isEmpty()) {
+                if (!worldIn.isRemote) {
+                    ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
+                    player.inventory.setInventorySlotContents(player.inventory.currentItem, currentCrystal);
+                    biomeRadar.takeCrystal();
+                    worldIn.addBlockEvent(pos, this, 1036, 0);
+                }
+
+                return true;
+            }
+
             if (!equipped.isEmpty() && equipped.getItem() == Items.PAPER) {
                 if (!worldIn.isRemote) {
                     ItemStack positionFilter = biomeRadar.generatePositionFilter();
