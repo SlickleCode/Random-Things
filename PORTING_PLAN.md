@@ -15,7 +15,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | `1.20.1` | Forge 47.4.28 port (complete apart from the signed-chat check) | `docs/migration/plans/1.20.1-port-plan.md` |
 | `1.20.6` | NeoForge 20.6.141 port (complete; JDK 21, NeoGradle 7, Gradle 8.13, Mojang names also in production) | `docs/migration/plans/1.20.6-port-plan.md`, `docs/project/api-gotchas-1.20.6.md` |
 | `1.21.1` | NeoForge 21.1.264 port (complete; same toolchain as 1.20.6) | `docs/migration/plans/1.21.1-port-plan.md`, `docs/project/api-gotchas-1.21.1.md` |
-| `1.21.4` | NeoForge 21.4.161 port (this branch, complete: compiles, server suite 381/0/4 + normal pass 1/0/0, client suite 383/0/2, audit clean, GUI click test 28 GUIs/0 failures, render hook checks 5/5; real NeoForge 21.4.161 install passes server 381/0/4 and client 383/0/2; all 28 scripted scenarios pass on the dev client) | `docs/migration/plans/1.21.4-port-plan.md`, `docs/project/api-gotchas-1.21.4.md` |
+| `1.21.4` | NeoForge 21.4.161 port (this branch, complete: compiles, server suite 424/0/4 + normal pass 1/0/0, client suite 383/0/2, audit clean, GUI click test 28 GUIs/0 failures, render hook checks 5/5; real NeoForge 21.4.161 install passes server 381/0/4 and client 383/0/2; all 28 scripted scenarios pass on the dev client) | `docs/migration/plans/1.21.4-port-plan.md`, `docs/project/api-gotchas-1.21.4.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 

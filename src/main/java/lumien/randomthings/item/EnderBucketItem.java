@@ -201,7 +201,7 @@ public class EnderBucketItem extends Item {
                 player.drop(filled, false);
             }
 
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS.heldItemTransformedTo(remaining);
         }
 
         return InteractionResult.SUCCESS.heldItemTransformedTo(filled);

@@ -35,7 +35,7 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Block Breaker | BlockBlockBreaker, TileEntityBlockBreaker | DONE-UNTESTED (#289-291, 2026-09-28) | No (uses the Magnetic loot modifier instead of a coremod - see Magnetic Enchantment's own row) |
 | Block Destabilizer | BlockBlockDestabilizer, TileEntityBlockDestabilizer, EntityFallingBlockSpecial | DONE-UNTESTED (#292-296, 2026-09-28) | No (spawns vanilla's own `FallingBlockEntity` directly - see its own note below; dropped the cosmetic VertexLighterFlat glow overlay as a disclosed simplification) |
 | Block of Sticks | BlockBlockOfSticks | DONE-UNTESTED | No |
-| Chat Detector | BlockChatDetector, TileEntityChatDetector | BUGGY (#93 GUI-close bug) | No |
+| Chat Detector | BlockChatDetector, TileEntityChatDetector | DONE (#93 PASS 2026-10-04; GUI click test and behavior tests pass on 1.21.4) | No |
 | Chunk Analyzer | ItemChunkAnalyzer | DONE (#145) | No |
 | Colored Grass | BlockColoredGrass, ItemGrassSeeds | DONE-UNTESTED (2026-09-29: all 16 colors + 17 Grass Seeds items/recipes + spread, was PARTIAL) | No |
 | Compressed Slime Block | BlockCompressedSlimeBlock | DONE (#33) | No |

@@ -72,6 +72,7 @@ public final class RTTestRunner
 		all.addAll(MoreBehaviorTests.create());
 		all.addAll(UtilityBehaviorTests.create());
 		all.addAll(RemainingBehaviorTests.create());
+		all.addAll(RetestBehaviorTests.create());
 		all.addAll(CoremodTests.create());
 		all.addAll(UseItemTests.create());
 		all.addAll(WorldgenTests.create());
@@ -247,7 +248,7 @@ public final class RTTestRunner
 		}
 
 		StackTraceElement[] trace = t.getStackTrace();
-		return t + (trace.length > 0 ? " at " + trace[0] : "");
+		return t + (trace.length > 0 ? " at " + java.util.Arrays.stream(trace).filter(e -> e.getClassName().startsWith("lumien") || e.getClassName().startsWith("net.minecraft")).limit(8).collect(java.util.stream.Collectors.toList()) : "");
 	}
 
 	private static void endTest()
