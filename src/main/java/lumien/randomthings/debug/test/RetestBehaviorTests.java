@@ -76,6 +76,58 @@ final class RetestBehaviorTests
 			c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
 		}));
 
+		// ---- Spectre Illuminator: the block-light engine really lights a dark block in the chunk (1.20.1+ engine bypasses BlockGetter.getLightEmission) ----
+		tests.add(RTTest.named("retest.spectre_illuminator.lights_a_dark_air_block_in_its_chunk_and_stops_when_collected").run(c -> {
+			c.floor();
+			net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(c.origin);
+			double x = chunk.getMinBlockX() + 8.5;
+			double z = chunk.getMinBlockZ() + 8.5;
+			lumien.randomthings.entity.SpectreIlluminatorEntity orb = new lumien.randomthings.entity.SpectreIlluminatorEntity(c.world, x, c.origin.getY() + 2, z);
+			orb.setPos(x, c.origin.getY() + 2, z);
+			c.world.addFreshEntity(orb);
+		}).waitUntil("the light engine to light a dark air block in the chunk", c -> {
+			net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(c.origin);
+			return c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, new net.minecraft.core.BlockPos(chunk.getMinBlockX() + 3, c.origin.getY() + 6, chunk.getMinBlockZ() + 3)) >= 12;
+		}, 1200).run(c -> {
+			for (lumien.randomthings.entity.SpectreIlluminatorEntity orb : c.world.getEntitiesOfClass(lumien.randomthings.entity.SpectreIlluminatorEntity.class, c.area().inflate(32)))
+			{
+				orb.discard();
+			}
+		}).waitUntil("the chunk to go dark again", c -> {
+			net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(c.origin);
+			return c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, new net.minecraft.core.BlockPos(chunk.getMinBlockX() + 3, c.origin.getY() + 6, chunk.getMinBlockZ() + 3)) < 6;
+		}, 2400));
+
+		// ---- Lang entries: every mod item and block has a name ----------------------------------------------
+		tests.add(RTTest.named("retest.lang.every_mod_item_and_block_has_a_name_in_en_us_json").run(c -> {
+			com.google.gson.JsonObject lang;
+
+			try (java.io.InputStream in = RetestBehaviorTests.class.getResourceAsStream("/assets/randomthings/lang/en_us.json"))
+			{
+				lang = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+			}
+
+			List<String> missing = new ArrayList<>();
+
+			for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM)
+			{
+				if ("randomthings".equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getNamespace()) && !lang.has(item.getDescriptionId()))
+				{
+					missing.add(item.getDescriptionId());
+				}
+			}
+
+			for (net.minecraft.world.level.block.Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK)
+			{
+				if ("randomthings".equals(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getNamespace()) && !lang.has(block.getDescriptionId()))
+				{
+					missing.add(block.getDescriptionId());
+				}
+			}
+
+			c.check(missing.isEmpty(), missing.size() + " names missing from en_us.json: " + missing);
+		}));
+
 		return tests;
 	}
 }
