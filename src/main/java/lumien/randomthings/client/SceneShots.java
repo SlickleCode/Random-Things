@@ -31,6 +31,7 @@ public final class SceneShots
 	private static int index;
 	private static int wait;
 	private static boolean requested;
+	private static java.util.Map<String, Integer> sceneBefore;
 	private static boolean hoodPlayersAdded;
 	private static final java.util.List<Integer> remotePlayers = new java.util.ArrayList<>();
 	private static int creativePage;
@@ -95,10 +96,12 @@ public final class SceneShots
 				{
 					mc.player.chat("/rtdebug scene " + id);
 					requested = true;
+					sceneBefore = lumien.randomthings.debug.HookProbe.snapshot();
 					wait = RenderScenes.waitTicks(id);
 					return false;
 				}
 
+				SceneHookChecks.check(id, sceneBefore);
 				save(mc, new File(mc.gameDirectory, "screenshots/randomthings_debug/scenes/" + id + ".png"));
 
 				if (hoodPlayersAdded)

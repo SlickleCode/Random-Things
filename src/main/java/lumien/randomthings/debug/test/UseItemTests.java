@@ -83,6 +83,12 @@ final class UseItemTests
 		BlockPos p = c.at(x, y, z);
 		c.player.setPos(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
 		c.player.setDeltaMovement(Vec3.ZERO);
+
+		if (c.player.connection != null)
+		{
+			// a real client player keeps sending its own position and would pull the server-side position straight back
+			c.player.connection.teleport(p.getX() + 0.5, p.getY(), p.getZ() + 0.5, c.player.getYRot(), c.player.getXRot());
+		}
 	}
 
 	private static void hold(TestCtx c, ItemStack stack)
