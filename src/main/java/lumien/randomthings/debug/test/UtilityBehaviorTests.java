@@ -305,6 +305,33 @@ final class UtilityBehaviorTests
 			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.SEARCHING, te.getState(), "a biome that does not exist here keeps the radar searching (no crash)");
 		}));
 
+		// ---- Biome Radar: an empty hand takes the crystal back out of a finished radar too (user request 2026-10-23) ----
+		tests.add(RTTest.named("behavior.biome_radar.an_empty_hand_takes_the_crystal_back_out_of_a_radar_that_finished_searching").run(c -> {
+			c.floor();
+			BlockPos radar = c.at(0, 1, 0);
+			c.set(radar, ModBlocks.BIOME_RADAR);
+			int[][] bars = { { 0, 2, 0 }, { 0, 3, 0 }, { 1, 3, 0 }, { -1, 3, 0 }, { 1, 4, 0 }, { -1, 4, 0 }, { 0, 3, 1 }, { 0, 3, -1 }, { 0, 4, 1 }, { 0, 4, -1 } };
+
+			for (int[] b : bars)
+			{
+				c.set(c.at(b[0], b[1], b[2]), Blocks.IRON_BARS);
+			}
+
+			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(new net.minecraft.resources.ResourceLocation("minecraft:plains")));
+			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
+			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
+		}).waitUntil("the radar to finish", c -> c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.BiomeRadarTileEntity.class).getState() == lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, 200).run(c -> {
+			BlockPos radar = c.at(0, 1, 0);
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
+			c.check(c.player.getMainHandItem().getItem() == ModItems.BIOME_CRYSTAL, "the crystal is in the player's hand");
+			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
+			c.check(te.getCurrentCrystal().isEmpty(), "the radar is empty");
+			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.IDLE, te.getState(), "and back to idle");
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+		}));
+
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;

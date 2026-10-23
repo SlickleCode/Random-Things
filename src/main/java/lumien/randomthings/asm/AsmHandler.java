@@ -308,6 +308,14 @@ public class AsmHandler {
     }
 
     /**
+     * Target of BlockLightEngineTransformer (1.20.1 and later): the block-light engine calls BlockState.getLightEmission(level, pos) directly instead of
+     * BlockGetter.getLightEmission, so this wraps that call and applies the Spectre Illuminator override to its result.
+     */
+    public static int getLightEmissionOverridden(BlockState state, BlockGetter world, BlockPos pos) {
+        return overrideLightValue(state.getLightEmission(world, pos), world, pos);
+    }
+
+    /**
      * Redirect target for the {@code ireturn} in {@code IBlockReader
      * .getLightValue(BlockPos)}'s default body - see {@code
      * IBlockReaderTransformer.js}. Ground-truthed via {@code javap -c} that
@@ -328,11 +336,8 @@ public class AsmHandler {
      * message - both sides just scan the same live-entity set).
      */
     public static int overrideLightValue(int original, BlockGetter world, BlockPos pos) {
-        if (!(world instanceof LevelChunk)) {
-            return original;
-        }
-
-        Level realWorld = ((LevelChunk) world).getLevel();
+        // BlockGetter.getLightEmission hands in the chunk, the block-light engine's own lookup the level itself
+        Level realWorld = world instanceof LevelChunk ? ((LevelChunk) world).getLevel() : world instanceof Level ? (Level) world : null;
 
         if (realWorld == null) {
             return original;
