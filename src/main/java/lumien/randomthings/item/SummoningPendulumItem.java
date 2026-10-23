@@ -131,6 +131,8 @@ public class SummoningPendulumItem extends Item {
                 if (tagList.size() > 0) {
                     CompoundTag entityNBT = tagList.getCompound(0);
                     tagList.remove(0);
+                    compound.put("entitys", tagList);
+                    StackTag.set(stack, compound);
 
 
                     EntityType.create(entityNBT, world).ifPresent(entity -> {
