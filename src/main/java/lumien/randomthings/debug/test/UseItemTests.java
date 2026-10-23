@@ -82,6 +82,12 @@ final class UseItemTests
 		BlockPos p = c.at(x, y, z);
 		c.player.setPosition(p.getX() + 0.5, p.getY(), p.getZ() + 0.5);
 		c.player.setMotion(Vec3d.ZERO);
+
+		if (c.player.connection != null)
+		{
+			// a real client player keeps sending its own position and would pull the server-side position straight back
+			c.player.connection.setPlayerLocation(p.getX() + 0.5, p.getY(), p.getZ() + 0.5, c.player.rotationYaw, c.player.rotationPitch);
+		}
 	}
 
 	private static void hold(TestCtx c, ItemStack stack)

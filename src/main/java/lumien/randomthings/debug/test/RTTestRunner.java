@@ -36,6 +36,7 @@ public final class RTTestRunner
 	private static int wait;
 	private static TestCtx ctx;
 	private static ServerPlayerEntity player;
+	private static boolean savedInstabuild;
 
 	private static int passed;
 	private static final List<String> failures = new ArrayList<>();
@@ -89,6 +90,9 @@ public final class RTTestRunner
 		}
 
 		player = starter;
+		// a real (creative) player in a client run would not use up items or durability; the dedicated-server runs use a survival fake player
+		savedInstabuild = starter.abilities.isCreativeMode;
+		starter.abilities.isCreativeMode = false;
 		BlockPos base = starter.getPosition();
 		ctx = new TestCtx(world, new BlockPos(base.getX() + 14, 100, base.getZ()), starter);
 		ctx.clear();
@@ -137,6 +141,14 @@ public final class RTTestRunner
 	{
 		if (!running || event.phase != TickEvent.Phase.END)
 		{
+			return;
+		}
+
+		if (ctx != null && ctx.world.getServer() != net.minecraftforge.fml.server.ServerLifecycleHooks.getCurrentServer())
+		{
+			// the world this run started in was closed (client: Save and Quit); ticking its stale level from the next world's server blocks forever
+			running = false;
+			player.abilities.isCreativeMode = savedInstabuild;
 			return;
 		}
 
@@ -254,6 +266,11 @@ public final class RTTestRunner
 	private static void finish()
 	{
 		running = false;
+
+		if (player != null)
+		{
+			player.abilities.isCreativeMode = savedInstabuild;
+		}
 		failureCount = failures.size();
 
 		List<String> lines = new ArrayList<>();

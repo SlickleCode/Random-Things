@@ -102,6 +102,7 @@ public class ClientAsmHandler {
                 return 2;
             }
 
+            lumien.randomthings.debug.HookProbe.hit("light_redirect_applied");
             BlockState switchedState = world.getBlockState(switched);
             BlockRenderType renderType = switchedState.getRenderType();
 
@@ -168,6 +169,7 @@ public class ClientAsmHandler {
      */
     public static void armorColorHook(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("rtDye")) {
+            lumien.randomthings.debug.HookProbe.hit("armor_dye_applied");
             int rgb = stack.getTag().getInt("rtDye");
 
             float r = ((rgb >> 16) & 255) / 255F;

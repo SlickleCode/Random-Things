@@ -183,6 +183,51 @@ final class UtilityBehaviorTests
 			c.player.setHeldItem(Hand.MAIN_HAND, ItemStack.EMPTY);
 		}));
 
+		tests.add(RTTest.named("behavior.render.see_through_blocks_are_not_solid_so_neighbours_keep_their_faces").run(c -> {
+			String[] seeThrough = { "fluid_display", "lapis_glass", "quartz_glass", "trigger_glass", "diaphanous_block", "spectre_block", "super_lubricent_ice", "slime_cube", "biome_radar", "rain_shield", "item_collector" };
+
+			for (String name : seeThrough)
+			{
+				net.minecraft.block.Block block = net.minecraftforge.registries.ForgeRegistries.BLOCKS.getValue(new net.minecraft.util.ResourceLocation("randomthings", name));
+
+				if (block == null || block == Blocks.AIR)
+				{
+					continue;
+				}
+
+				c.check(!block.getDefaultState().isSolid(), name + " must not be solid: a solid neighbour state makes the next block cull its touching face (a hole)");
+			}
+		}));
+
+		// ---- Biome Radar search (1.16: world biomes are data-pack instances, not the ForgeRegistries ones; the search used to throw an NPE) ----
+		tests.add(RTTest.named("behavior.biome_radar.search_finds_the_crystals_biome_and_a_missing_biome_keeps_searching").run(c -> {
+			c.floor();
+			BlockPos radar = c.at(0, 1, 0);
+			c.set(radar, ModBlocks.BIOME_RADAR);
+			int[][] bars = { { 0, 2, 0 }, { 0, 3, 0 }, { 1, 3, 0 }, { -1, 3, 0 }, { 1, 4, 0 }, { -1, 4, 0 }, { 0, 3, 1 }, { 0, 3, -1 }, { 0, 4, 1 }, { 0, 4, -1 } };
+
+			for (int[] b : bars)
+			{
+				c.set(c.at(b[0], b[1], b[2]), Blocks.IRON_BARS);
+			}
+
+			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation("minecraft:plains")));
+			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
+			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
+		}).waitTicks(40).run(c -> {
+			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
+			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, te.getState(), "a plains crystal in a plains world finishes at once");
+			c.set(c.at(1, 1, 0), Blocks.AIR);
+			ItemStack desert = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, net.minecraftforge.registries.ForgeRegistries.BIOMES.getValue(new net.minecraft.util.ResourceLocation("minecraft:desert")));
+			te.setCrystal(desert);
+			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
+		}).waitTicks(40).run(c -> {
+			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
+			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.SEARCHING, te.getState(), "a biome that does not exist here keeps the radar searching (no crash)");
+		}));
+
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
