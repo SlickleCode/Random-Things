@@ -57,9 +57,12 @@ public final class RTTestRunner
 
 		ServerLevel world = starter.serverLevel();
 
-		if (!(world.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.FlatLevelSource))
+		boolean flat = world.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.FlatLevelSource;
+
+		// Normal-terrain world (second suite pass, -Drandomthings.autotest.normalworld=true): only the worldgen.* tests run, they do not use the wiped test area.
+		if (!flat && !Boolean.getBoolean("randomthings.autotest.normalworld"))
 		{
-			return "refusing to run: the test area is wiped between tests, so use a flat world (e.g. the RTAutoTest world)";
+			return "refusing to run: the test area is wiped between tests, so use a flat world (e.g. the RTAutoTest world); -Drandomthings.autotest.normalworld=true runs only the worldgen.* tests in a normal world";
 		}
 
 		controlWorld(world);
@@ -79,7 +82,7 @@ public final class RTTestRunner
 
 		for (RTTest test : all)
 		{
-			if (test.name.toLowerCase().contains(f))
+			if (test.name.toLowerCase().contains(f) && (flat || test.name.startsWith("worldgen.")))
 			{
 				queue.add(test);
 			}

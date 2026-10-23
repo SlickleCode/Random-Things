@@ -52,6 +52,8 @@ runs {
         systemProperty 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
         systemProperty 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
         systemProperty 'randomthings.autotest.exit', System.getenv('RT_AUTOTEST_EXIT') ?: 'false'
+        // RT_AUTOTEST_NORMAL=true: allow a normal-terrain world, running only the worldgen.* tests (second suite pass, docs/testing/normal-world-pass.txt)
+        systemProperty 'randomthings.autotest.normalworld', System.getenv('RT_AUTOTEST_NORMAL') ?: 'false'
         programArgument '--nogui'
     }
 }

@@ -24,17 +24,18 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 ## Current state on this branch (`1.21.1`, 2026-10-22)
 
 - **Branch:** cut from `1.20.6` (`b0291e3`); NeoForge 21.1.264 / NeoGradle 7.0.192 / Gradle 8.13 / JDK 21, Mojang names everywhere. Plan: `docs/migration/plans/1.21.1-port-plan.md`; every API change: `docs/project/api-gotchas-1.21.1.md`.
-- **Automated (dev, 2026-10-22):** dedicated-server suite 380 passed / 0 failed / 4 skipped (of 384); client suite 382 / 0 / 2, resource audit 147 blocks / 241 items / 222 recipes, 0 failures; GUI click test 28 GUIs / 37 clicks / 0 failures; 26 render scenes (checked by eye: dyed armor and items, light redirector, rain shield, blazing fire, magic hood); the manual world (`RT_MANUAL=true`) builds and prints the biome distances.
+- **Automated (dev, 2026-10-22):** dedicated-server suite 380 passed / 0 failed / 4 skipped (of 384; the 4th is the real-terrain test that needs a normal world) plus a normal-world pass 1 / 0 / 0; client suite 383 / 0 / 1, resource audit 147 blocks / 241 items / 222 recipes, 0 failures; GUI click test 28 GUIs / 37 clicks / 0 failures; 26 render scenes (checked by eye: dyed armor and items, light redirector, rain shield, blazing fire, magic hood); the manual world (`RT_MANUAL=true`) builds and prints the biome distances.
 - **What changed:** see the gotchas file. Main items: `ResourceLocation` factories, the vertex-builder rework, data-driven Magnetic enchantment (config toggle now only disables the effect), plantable API replaced by `canSustainPlant(..., plantState)` + `TriState`, `DimensionTransition` for Spectre/End portal teleports, `CraftingInput` recipes, singular data folders and `pack_format` 34.
 - **Found by a render scene only:** NeoForge 21 draws armor through the 12-argument `renderArmorPiece`, so the Dyeing Machine armor tint stayed off with the old hook placement; fixed (both overloads patched, colour is an int now).
+- **Terrain-generation test (2026-10-22):** `worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground` loads real chunks (16 areas of 3x3, 9 mushrooms in 5 chunks, mutation-checked) and therefore needs a normal-terrain world: it skips in the flat suite and runs in the second server pass that `suite-all.sh` does when `docs/testing/normal-world-pass.txt` exists (`level-type=minecraft:normal`, seed 424242, `RT_AUTOTEST_NORMAL=true`). Details: `api-gotchas-1.21.1.md`, Tests.
 - **Real install (2026-10-22):** NeoForge 21.1.264 installer downloaded to `prod-test/1.21.1/` (untracked); the built jar on the real server: suite 380 / 0 / 4, on the real client 382 / 0 / 2 with the audit clean and 26 render scenes (armor tint correct).
 - **Desktop playtest (2026-10-22, `SCN_MC=1.21.1`): all 28 scenarios pass on the dev client.** `scn.py` needed two 1.21 helper fixes (Singleplayer button y=203; summon attribute NBT in the new `attributes:[{id,base}]` form, otherwise the rain-shield pig kept 10 max health); no mod bug turned up.
-- **Not done / not verified:** `WorldgenTests.generateTerrainAndCount` (in-memory overworld generation) is not ported, so `worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground` skips; nothing committed yet on this branch.
+- **Not done / not verified:** nothing outstanding except the manual checklist rows.
+- **Coremod guards + render probes (2026-10-23):** every transformer script adds a hook-site marker field (`rt$hooks$<Tag>$<count>`) read by the new `coremod.applied.every_transformer_left_its_hook_marker_on_its_target_class` test (found that the Light Redirector transformer silently did not apply on the NeoForge branches 1.20.6/1.21.1: the `ModelData` descriptor still used the Forge package); render hooks call `HookProbe.hit`, and the scene run (`RT_AUTOTEST_SCENES=true`) writes `randomthings_scenes.txt` with per-scene checks (dyed armor/items, light redirector, magic hood nameplate, rain shield visuals; 5/5 on every branch). Mutation-checked on 1.21.1 (re-creating the armor-overload bug fails `armor_dye_applied`).
 
 ## What to do next
 
-1. Port the in-memory terrain generation test to the 1.21 chunk pipeline.
-2. Manual checks: `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` (`docs/testing/manual-test-world.md`), TESTING_CHECKLIST section 8 (1.21 rows).
+1. Manual checks: `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` (`docs/testing/manual-test-world.md`), TESTING_CHECKLIST section 8 (1.21 rows).
 
 ## Where things are
 

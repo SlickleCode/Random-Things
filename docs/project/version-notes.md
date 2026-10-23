@@ -125,7 +125,7 @@ What the playtest found on 1.18.2 that no suite had: the Item renderer coremod t
 ## suites
 
 - Server: `run/server.properties` needs `max-tick-time=-1` (long village test); `online-mode=false` is fine for the dev server.
-- Normal skips: server 4 (ender mailbox unknown receiver, online detector fake player, client-only ancient-furnace check, and the glowing-mushroom terrain-generation test that is not ported to the 1.21 chunk pipeline); client 2. Baseline `docs/testing/suite-baseline.txt`.
+- Normal skips: server 4 in the flat pass (ender mailbox unknown receiver, online detector fake player, client-only ancient-furnace check, and the real-terrain mushroom test, which needs a normal world); client 1. Second pass: `docs/testing/normal-world-pass.txt` (filter `real_terrain_generation`) makes `suite-all.sh` run that test in a normal-terrain server world (seed 424242, `RT_AUTOTEST_NORMAL=true`), row `1.21.1+normal`, about 45 s. Baselines in `docs/testing/suite-baseline.txt`.
 - Fresh `run/` for the client suite: put `onboardAccessibility:false` in `run/options.txt` first, otherwise the client waits on the accessibility screen and the run times out.
 - Item data pitfall (carried over from 1.20.6): `StackTag.get/getOrCreate` return COPIES; write with `StackTag.edit`/`set`.
 - Gradle needs the network for the first NeoForm download (`--offline` fails until the caches exist; `suite-all.sh` retries online).

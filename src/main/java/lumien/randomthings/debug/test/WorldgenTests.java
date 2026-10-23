@@ -177,18 +177,59 @@ final class WorldgenTests
 		return seeds;
 	}
 
+	private static final int INNER = 3;
+
 	/**
-	 * Generates a real vanilla-overworld patch of 7x7 chunks (terrain, surface, caves - the same steps {@code ChunkStatus} runs) and
-	 * decorates the inner 5x5 chunks with the real decorator, so every registered feature - ours included - gets its normal chance.
-	 * Nothing is written to the test world. Returns {mushrooms, inner chunks that received mushrooms, mushrooms at or above the surface}.
+	 * Loads real vanilla-overworld chunks (a 3x3 patch the real generator fully decorates, so every registered feature - ours included -
+	 * gets its normal chance) and counts the Glowing Mushrooms in them. Needs a normal-terrain overworld, which the default (flat) suite
+	 * world is not: it skips there, and the second suite pass ({@code docs/testing/normal-world-pass.txt}, run by {@code suite-all.sh})
+	 * runs it in a normal-terrain server world. Returns {mushrooms, chunks that received mushrooms, mushrooms at or above the surface}.
 	 */
 	private static int[] generateTerrainAndCount(TestCtx c, int chunkX, int chunkZ)
 	{
-		// 1.21 rebuilt the chunk pipeline (ChunkStep/StaticCache2D/GenerationChunkHolder); the hand-driven in-memory generation of 1.18-1.20.6 cannot be ported 1:1.
-		throw new TestCtx.Skip("hand-driven terrain generation not ported to the 1.21 chunk pipeline yet (see PORTING_PLAN.md)");
-	}
+		int mushrooms = 0;
+		int chunksWithMushrooms = 0;
+		int exposed = 0;
 
-	/** The (2r+1)^2 chunks around grid chunk (x, z): patch chunks where the patch has them, blank placeholders elsewhere. */
+		for (int z = 0; z < INNER; z++)
+		{
+			for (int x = 0; x < INNER; x++)
+			{
+				ChunkAccess chunk = c.world.getChunk(chunkX + x, chunkZ + z, ChunkStatus.FULL, true);
+				int here = 0;
+
+				for (int bx = 0; bx < 16; bx++)
+				{
+					for (int bz = 0; bz < 16; bz++)
+					{
+						int surface = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, bx, bz);
+
+						for (int y = chunk.getMinBuildHeight() + 1; y < chunk.getMaxBuildHeight() - 1; y++)
+						{
+							if (chunk.getBlockState(new BlockPos(bx, y, bz)).getBlock() == ModBlocks.GLOWING_MUSHROOM)
+							{
+								here++;
+
+								if (y >= surface)
+								{
+									exposed++;
+								}
+							}
+						}
+					}
+				}
+
+				mushrooms += here;
+
+				if (here > 0)
+				{
+					chunksWithMushrooms++;
+				}
+			}
+		}
+
+		return new int[] { mushrooms, chunksWithMushrooms, exposed };
+	}
 
 	private static StructureTemplatePool housesPool(TestCtx c)
 	{
@@ -481,10 +522,16 @@ final class WorldgenTests
 
 		tests.add(RTTest.named("worldgen.glowing_mushroom.real_terrain_generation_places_patches_underground").run(c -> {
 			skipWithoutBiomeModifiers(c);
+
+			if (!(c.world.getChunkSource().getGenerator() instanceof NoiseBasedChunkGenerator))
+			{
+				throw new TestCtx.Skip("needs a normal-terrain overworld (the default suite world is flat): runs in the second suite pass, see docs/testing/normal-world-pass.txt");
+			}
+
 			int mushrooms = 0;
 			int chunks = 0;
 			int exposed = 0;
-			int areas = 12;
+			int areas = 16;
 			final int[] calls = new int[1];
 			BooleanSupplier before = GlowingMushroomFeature.enabled;
 			GlowingMushroomFeature.enabled = () -> {
@@ -504,6 +551,7 @@ final class WorldgenTests
 				}
 				catch (RuntimeException e)
 				{
+					GlowingMushroomFeature.enabled = before;
 					Throwable root = e;
 					while (root.getCause() != null)
 					{
@@ -512,14 +560,15 @@ final class WorldgenTests
 					StackTraceElement[] trace = root.getStackTrace();
 					throw new TestCtx.Failure("terrain generation failed: " + root + " at " + java.util.Arrays.stream(trace).filter(t -> !t.getClassName().startsWith("java.")).limit(10).map(StackTraceElement::toString).collect(java.util.stream.Collectors.joining(" / ")));
 				}
+				RTDebug.log("worldgen test: area {} ({}, {}): {} mushrooms in {} chunks", area, 400 + area * 37, -300 - area * 41, result[0], result[1]);
 				mushrooms += result[0];
 				chunks += result[1];
 				exposed += result[2];
 			}
 			GlowingMushroomFeature.enabled = before;
 			RTDebug.log("worldgen test: the patch feature was asked to generate {} times", calls[0]);
-			RTDebug.log("worldgen test: real terrain generation, {} areas of 5x5 decorated chunks: {} Glowing Mushrooms in {} chunks, {} not under a roof", areas, mushrooms, chunks, exposed);
-			c.check(mushrooms > 0, "real terrain generation must place Glowing Mushrooms underground (found none in " + areas * 25 + " chunks)");
+			RTDebug.log("worldgen test: real terrain generation, {} areas of {}x{} decorated chunks: {} Glowing Mushrooms in {} chunks, {} not under a roof", areas, INNER, INNER, mushrooms, chunks, exposed);
+			c.check(mushrooms > 0, "real terrain generation must place Glowing Mushrooms underground (found none in " + areas * INNER * INNER + " chunks)");
 			c.check(chunks >= 2, "mushroom patches must show up in several chunks (got " + chunks + ")");
 		}));
 
