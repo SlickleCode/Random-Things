@@ -34,6 +34,21 @@ function initializeCoreMod() {
                     }
                 }
 
+                // hook-site marker: how many calls into lumien/randomthings/asm this transformer left in the class, as a synthetic field
+                // rt$hooks$<Tag>$<count> (the coremod.applied test reads it, so a transformer whose anchor vanished fails a test instead of passing silently)
+                var rtNames = ["tintGlint"];
+                var rtHooks = 0;
+                for (var rtM = 0; rtM < classNode.methods.size(); rtM++) {
+                    var rtIt = classNode.methods.get(rtM).instructions.iterator();
+                    while (rtIt.hasNext()) {
+                        var rtN = rtIt.next();
+                        if (rtN.getType() === 5 && rtN.owner.indexOf("lumien/randomthings/asm/") === 0 && (rtNames.length === 0 || rtNames.indexOf(rtN.name) >= 0)) {
+                            rtHooks++;
+                        }
+                    }
+                }
+                classNode.fields.add(new (Java.type("org.objectweb.asm.tree.FieldNode"))(0x0019, "rt$hooks$RenderType$" + rtHooks, "Z", null, null));
+
                 return classNode;
             }
         }

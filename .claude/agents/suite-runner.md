@@ -20,6 +20,8 @@ Pass `--offline` to Gradle when the caches are warm. Gradle prints a non-zero "B
 
 Afterwards remove test worlds (`rm -rf run/saves/RTAutoTest run/RTServerTest`) and kill leftover `java`.
 
+For rendering work also report the render-scene hook report (`run/randomthings_scenes.txt` after `RT_AUTOTEST=true RT_AUTOTEST_SCENES=true RT_AUTOTEST_EXIT=true ./gradlew runClient`): its first line is the pass/fail count and every `FAIL` line names a coremod hook that never fired while its scene rendered. The client suite runs its worlds from a fresh `run/saves/RTAutoTest`; on 1.19.2 a freshly created world makes the biome-modifier worldgen tests skip (reuse the world to run them).
+
 Known flakes, normal skips, required server settings and baseline counts for this branch: `docs/project/version-notes.md`, section "suites" (and `docs/testing/suite-baseline.txt`). Re-run a suspected flake once before reporting it as a failure. A leftover `java` from an aborted run is the usual cause of a hang.
 
 Report (max ~25 lines): branch; for each suite `passed/failed/skipped (of N)`; every FAIL line with its one-line reason (verbatim, shortened); audit failure/warning counts; any crash-report first line + the first mod stack frame; whether a failure is a known flake.
