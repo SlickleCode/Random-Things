@@ -14,7 +14,7 @@ Mixins cannot be tested via `runClient` in this setup - the project uses coremod
 2. Prefer a Forge/NeoForge event or API when one exists; a coremod is the last resort.
 3. Write the transformer, anchored on a unique call or constant (owner, name, descriptor), and redirect to a static helper in `AsmHandler`/`ClientAsmHandler`. Never inject an `INVOKEVIRTUAL` of a vanilla method by name from the transformer.
 4. Register it in `META-INF/coremods.json`, document it in `docs/project/coremods.md`.
-5. Verify: a test in `debug/test/CoremodTests` that fails without the patch, the render scenes for rendering patches, then `prod-jar-check`.
+5. Verify: a test in `debug/test/CoremodTests` that fails without the patch, the render scenes for rendering patches, then `prod-jar-check`. Two automatic guards exist on every branch: the `coremod.applied` test (every transformer script ends by adding a synthetic field `rt$hooks$<Tag>$<count>` to its target class; a transformer whose anchor vanished leaves no marker or a count of 0) and the render-scene hook checks (`HookProbe.hit("...")` in the hooks, `SceneHookChecks` asserts per scene that they fired, report `randomthings_scenes.txt` in the game directory after `RT_AUTOTEST_SCENES=true`). A new transformer needs its marker snippet (copy the end of an existing script) and, when it draws something, a probe and a scene expectation.
 
 ## Traps (all happened)
 - **A transformer whose target class name, method or anchor is wrong applies to nothing and no suite notices.** After every Minecraft bump re-derive every anchor from the new jar; three silently stopped working on 1.20.6 alone.
