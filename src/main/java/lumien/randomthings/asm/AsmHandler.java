@@ -230,7 +230,12 @@ public class AsmHandler {
 
         ItemStack helmet = entity.getItemStackFromSlot(EquipmentSlotType.HEAD);
 
-        return helmet.getItem() instanceof MagicHoodItem ? false : original;
+        if (helmet.getItem() instanceof MagicHoodItem) {
+            lumien.randomthings.debug.HookProbe.hit("hood_name_hidden");
+            return false;
+        }
+
+        return original;
     }
 
     /**
@@ -252,6 +257,7 @@ public class AsmHandler {
 
         for (RainShieldTileEntity shield : RainShieldTileEntity.snapshot()) {
             if (shield.isInRange(world, pos, RAIN_SHIELD_RANGE)) {
+                lumien.randomthings.debug.HookProbe.hit("rain_shield_render");
                 return false;
             }
         }
@@ -437,6 +443,7 @@ public class AsmHandler {
      */
     public static int getColorFromItemStack(ItemStack stack, int originalColor) {
         if (!stack.isEmpty() && stack.hasTag() && stack.getTag().contains("rtDye")) {
+            lumien.randomthings.debug.HookProbe.hit("item_dye_applied");
             return stack.getTag().getInt("rtDye") | 0xFF000000;
         }
 
