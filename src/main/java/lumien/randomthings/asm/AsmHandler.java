@@ -328,11 +328,8 @@ public class AsmHandler {
      * message - both sides just scan the same live-entity set).
      */
     public static int overrideLightValue(int original, BlockGetter world, BlockPos pos) {
-        if (!(world instanceof LevelChunk)) {
-            return original;
-        }
-
-        Level realWorld = ((LevelChunk) world).getLevel();
+        // BlockGetter.getLightEmission hands in the chunk, BlockLightEngine.getEmission (1.21.4) the level itself
+        Level realWorld = world instanceof LevelChunk ? ((LevelChunk) world).getLevel() : world instanceof Level ? (Level) world : null;
 
         if (realWorld == null) {
             return original;

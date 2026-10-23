@@ -249,7 +249,7 @@ public class ModItems {
         registerItemForBlock(registry, ModBlocks.FERTILIZED_DIRT);
         registerItemForBlock(registry, ModBlocks.RAINBOW_LAMP);
         registerItemForBlock(registry, ModBlocks.SUPER_LUBRICENT_STONE);
-        registry.register(RegUtil.id(ModBlocks.ADVANCED_REDSTONE_TORCH), () -> new StandingAndWallBlockItem(ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH, net.minecraft.core.Direction.DOWN, lumien.randomthings.lib.RTIds.item()));
+        registry.register(RegUtil.id(ModBlocks.ADVANCED_REDSTONE_TORCH), () -> new StandingAndWallBlockItem(ModBlocks.ADVANCED_REDSTONE_TORCH, ModBlocks.ADVANCED_WALL_REDSTONE_TORCH, net.minecraft.core.Direction.DOWN, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
         registerItemForBlock(registry, ModBlocks.BLOCK_OF_STICKS, ModBlocks.BLOCK_OF_STICKS_RETURNING);
         registerItemForBlock(registry, ModBlocks.PLATFORM_OAK, ModBlocks.PLATFORM_SPRUCE, ModBlocks.PLATFORM_BIRCH, ModBlocks.PLATFORM_JUNGLE, ModBlocks.PLATFORM_ACACIA, ModBlocks.PLATFORM_DARKOAK);
 
@@ -264,7 +264,7 @@ public class ModItems {
         // Block with a shovel (see RandomThings.java), not meant to be handed out
         // directly.
         {
-            registry.register(RegUtil.id(ModBlocks.COMPRESSED_SLIME_BLOCK), () -> new BlockItem(ModBlocks.COMPRESSED_SLIME_BLOCK, lumien.randomthings.lib.RTIds.item()));
+            registry.register(RegUtil.id(ModBlocks.COMPRESSED_SLIME_BLOCK), () -> new BlockItem(ModBlocks.COMPRESSED_SLIME_BLOCK, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
         }
         registerItemForBlock(registry, ModBlocks.CONTACT_BUTTON);
         registerItemForBlock(registry, ModBlocks.CONTACT_LEVER);
@@ -412,7 +412,7 @@ public class ModItems {
 
         registerItemForBlock(registry, ModBlocks.LIGHT_REDIRECTOR);
 
-        registry.register("diaphanous_block", () -> new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, lumien.randomthings.lib.RTIds.item()));
+        registry.register("diaphanous_block", () -> new lumien.randomthings.item.block.DiaphanousBlockItem(ModBlocks.DIAPHANOUS_BLOCK, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
 
         registerItemForBlock(registry, ModBlocks.DYEING_MACHINE);
     }
@@ -434,7 +434,7 @@ public class ModItems {
 
     private static void registerItemForBlock(RTRegistry<Item> registry, Block... blocks) {
         for (Block block : blocks) {
-            registry.register(RegUtil.id(block), () -> new BlockItem(block, lumien.randomthings.lib.RTIds.item()));
+            registry.register(RegUtil.id(block), () -> new BlockItem(block, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
         }
     }
 

@@ -145,6 +145,13 @@ final class RetestBehaviorTests
 		return net.minecraft.world.item.crafting.CraftingInput.of(3, 3, java.util.Arrays.asList(java.util.Arrays.copyOf(stacks, 9)).stream().map(st -> st == null ? ItemStack.EMPTY : st).toList());
 	}
 
+	/** A dark air block high above the test spot, in the chunk the Spectre Illuminator is placed in. */
+	private static BlockPos illuminatorProbe(TestCtx c)
+	{
+		net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(c.origin);
+		return new BlockPos(chunk.getMinBlockX() + 3, c.origin.getY() + 6, chunk.getMinBlockZ() + 3);
+	}
+
 	static List<RTTest> create()
 	{
 		List<RTTest> tests = new ArrayList<>();
@@ -719,6 +726,10 @@ final class RetestBehaviorTests
 			net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(orbs.get(0).blockPosition());
 			c.check(orbs.get(0).isInChunk(c.world, chunk), "it lights its own chunk");
 			c.check(!orbs.get(0).isInChunk(c.world, new net.minecraft.world.level.ChunkPos(chunk.x + 1, chunk.z)), "but not the chunk next to it");
+		}).waitUntil("the light engine to light a dark air block in the chunk", c -> {
+			return c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, illuminatorProbe(c)) >= 12;
+		}, 600).run(c -> {
+			List<lumien.randomthings.entity.SpectreIlluminatorEntity> orbs = c.world.getEntitiesOfClass(lumien.randomthings.entity.SpectreIlluminatorEntity.class, c.area().inflate(32));
 			c.check(orbs.get(0).interact(c.player, InteractionHand.MAIN_HAND).consumesAction(), "right-click collects it");
 		}).waitTicks(3).run(c -> {
 			c.eq(0, c.world.getEntitiesOfClass(lumien.randomthings.entity.SpectreIlluminatorEntity.class, c.area().inflate(32)).size(), "the orb is gone");
@@ -734,7 +745,7 @@ final class RetestBehaviorTests
 			}
 
 			c.check(items == 1 || c.player.getInventory().contains(new ItemStack(ModItems.SPECTRE_ILLUMINATOR)), "the item came back");
-		}));
+		}).waitUntil("the chunk to go dark again", c -> c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, illuminatorProbe(c)) < 6, 2400));
 
 		// ---- Rune Dust and Rune Base (#161, #163-165) --------------------------------------------------
 		tests.add(RTTest.named("retest.rune_dust.right_click_on_a_solid_top_places_a_rune_base_with_one_pixel_in_the_clicked_corner").run(c -> {
@@ -994,6 +1005,77 @@ final class RetestBehaviorTests
 			ItemStack result = recipe.assemble(grid(anchor, sword), c.world.registryAccess());
 			c.check(StackTag.get(result).contains("spectreAnchor"), "the result is anchored");
 			c.check(!recipe.matches(grid(anchor, result), c.world), "an already anchored item is refused");
+		}));
+
+		// ---- Lang entries (#118) ---------------------------------------------------------------------------
+		tests.add(RTTest.named("retest.lang.every_mod_item_and_block_has_a_name_in_en_us_json").run(c -> {
+			com.google.gson.JsonObject lang;
+
+			try (java.io.InputStream in = RetestBehaviorTests.class.getResourceAsStream("/assets/randomthings/lang/en_us.json"))
+			{
+				lang = com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+			}
+
+			List<String> missing = new ArrayList<>();
+
+			for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM)
+			{
+				if ("randomthings".equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).getNamespace()) && !lang.has(item.getDescriptionId()))
+				{
+					missing.add(item.getDescriptionId());
+				}
+			}
+
+			for (net.minecraft.world.level.block.Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK)
+			{
+				if ("randomthings".equals(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).getNamespace()) && !lang.has(block.getDescriptionId()))
+				{
+					missing.add(block.getDescriptionId());
+				}
+			}
+
+			c.check(missing.isEmpty(), missing.size() + " names missing from en_us.json: " + missing);
+		}));
+
+		// ---- Biome Radar: an empty hand takes the crystal back (idle and finished) ------------------------------------
+		tests.add(RTTest.named("retest.biome_radar.an_empty_hand_takes_the_crystal_back_out_of_an_idle_radar").run(c -> {
+			c.floor();
+			BlockPos radar = c.at(0, 1, 0);
+			c.set(radar, lumien.randomthings.block.ModBlocks.BIOME_RADAR);
+			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:snowy_plains")));
+			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
+			hold(c, ItemStack.EMPTY);
+			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
+			c.check(c.player.getMainHandItem().getItem() == ModItems.BIOME_CRYSTAL, "the crystal is in the player's hand");
+			c.check(c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).getCurrentCrystal().isEmpty(), "the radar is empty");
+			release(c);
+		}));
+
+		tests.add(RTTest.named("retest.biome_radar.an_empty_hand_takes_the_crystal_back_out_of_a_radar_that_finished_searching").run(c -> {
+			c.floor();
+			BlockPos radar = c.at(0, 1, 0);
+			c.set(radar, lumien.randomthings.block.ModBlocks.BIOME_RADAR);
+			int[][] bars = { { 0, 2, 0 }, { 0, 3, 0 }, { 1, 3, 0 }, { -1, 3, 0 }, { 1, 4, 0 }, { -1, 4, 0 }, { 0, 3, 1 }, { 0, 3, -1 }, { 0, 4, 1 }, { 0, 4, -1 } };
+
+			for (int[] b : bars)
+			{
+				c.set(c.at(b[0], b[1], b[2]), net.minecraft.world.level.block.Blocks.IRON_BARS);
+			}
+
+			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
+			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
+			c.set(c.at(1, 1, 0), net.minecraft.world.level.block.Blocks.REDSTONE_BLOCK);
+		}).waitUntil("the radar to finish", c -> c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.BiomeRadarTileEntity.class).getState() == lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, 200).run(c -> {
+			BlockPos radar = c.at(0, 1, 0);
+			hold(c, ItemStack.EMPTY);
+			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
+			c.check(c.player.getMainHandItem().getItem() == ModItems.BIOME_CRYSTAL, "the crystal is in the player's hand");
+			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
+			c.check(te.getCurrentCrystal().isEmpty(), "the radar is empty");
+			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.IDLE, te.getState(), "and back to idle");
+			release(c);
 		}));
 
 		return tests;
