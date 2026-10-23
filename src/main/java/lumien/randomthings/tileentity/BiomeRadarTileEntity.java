@@ -324,6 +324,13 @@ public class BiomeRadarTileEntity extends BlockEntity {
         this.syncTE();
     }
 
+    /** Empties the radar and sets it back to idle (used when the crystal is taken out after a finished search). */
+    public void takeCrystal() {
+        this.currentCrystal = ItemStack.EMPTY;
+        this.state = STATE.IDLE;
+        this.syncTE();
+    }
+
     public STATE getState() {
         return state;
     }
