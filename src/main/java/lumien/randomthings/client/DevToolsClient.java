@@ -14,6 +14,7 @@ public final class DevToolsClient
 		MinecraftForge.EVENT_BUS.register(GuiDebugScreenshots.class);
 		MinecraftForge.EVENT_BUS.register(GuiOpenTriggerLog.class);
 		MinecraftForge.EVENT_BUS.register(ParticleProbe.class);
+		MinecraftForge.EVENT_BUS.register(CommandChannel.class);
 
 		if (Boolean.getBoolean("randomthings.autotest"))
 		{
