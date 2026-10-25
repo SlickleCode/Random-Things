@@ -54,7 +54,7 @@ public class ResourceAudit
 	{
 		// none of these has a crafting recipe in 1.12.2 either (checked against ModRecipes + assets/recipes):
 		// loot / worldgen / mob drops / grown / imbuing-station results / ritual or creative-only items
-		for (String s : new String[] { "beans", "magic_bean", "lotus_blossom", "lotus_seeds", "ectoplasm", "bottle_of_air", "compressed_slime_block", "spectre_block", "spectre_log", "spectre_leaf", "spectre_sapling", "glowing_mushroom", "colored_grass", "biome_crystal", "rune_pattern", "imbue_fire", "imbue_poison", "imbue_experience", "imbue_wither", "summoning_pendulum", "golden_egg", "creative_player_interface", "magic_hood", "peace_candle", "ancient_furnace", "spectre_coil_genesis", "spectre_charger_genesis" })
+		for (String s : new String[] { "beans", "spirit_spawn_egg", "magic_bean", "lotus_blossom", "lotus_seeds", "ectoplasm", "bottle_of_air", "compressed_slime_block", "spectre_block", "spectre_log", "spectre_leaf", "spectre_sapling", "glowing_mushroom", "colored_grass", "biome_crystal", "rune_pattern", "imbue_fire", "imbue_poison", "imbue_experience", "imbue_wither", "summoning_pendulum", "golden_egg", "creative_player_interface", "magic_hood", "peace_candle", "ancient_furnace", "spectre_coil_genesis", "spectre_charger_genesis" })
 		{
 			NO_RECIPE_EXPECTED.add(s);
 		}

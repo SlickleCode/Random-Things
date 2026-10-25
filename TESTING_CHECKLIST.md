@@ -275,3 +275,13 @@ The scenarios assert state and pixel measurements for these, but only your eyes/
 | 1.18+ torch | Advanced Redstone Torch (red/green, floor and wall): no black box around the texture (`RenderLayerSetup`: cutout) - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
 | 1.18+ recorder | Sound Recorder: the row under the mouse gets the dark highlight bar - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
 | 1.18+ fluid display | Fluid Display with a fluid is hidden behind blocks in front of it - FIXED (mirrored from 1.18.2, scenario `render_fixes_18` passes 2/2 on this branch 2026-10-18) |  |  |
+
+## Museum report 2026-10-24 (all branches)
+
+| # | Check | Result | Notes |
+| --- | --- | --- | --- |
+| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
+| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (flame shape and height, not a solid box) - FIXED (`BlazingFireBlock` was missing from `RenderLayerSetup` cutout; render scene `blazing_fire` checked 2026-10-24) |  |  |
+| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
+| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
+| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |

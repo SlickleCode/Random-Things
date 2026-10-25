@@ -376,6 +376,7 @@ public class ModItems {
 
         registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().tab(RT_ITEM_GROUP).stacksTo(1)));
         registry.register("golden_egg", new GoldenEggItem(new Item.Properties().tab(RT_ITEM_GROUP)));
+        registry.register("spirit_spawn_egg", new net.minecraftforge.common.ForgeSpawnEggItem(() -> lumien.randomthings.entity.ModEntityTypes.SPIRIT, 0x000000, 0x0009F6, new Item.Properties().tab(RT_ITEM_GROUP)));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
         registry.register("evil_tear", new EvilTearItem(new Item.Properties().tab(RT_ITEM_GROUP)));
