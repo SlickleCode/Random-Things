@@ -14,6 +14,7 @@ public final class DevToolsClient
 		NeoForge.EVENT_BUS.register(GuiDebugScreenshots.class);
 		NeoForge.EVENT_BUS.register(GuiOpenTriggerLog.class);
 		NeoForge.EVENT_BUS.register(ParticleProbe.class);
+		NeoForge.EVENT_BUS.register(CommandChannel.class);
 
 		if (Boolean.getBoolean("randomthings.autotest"))
 		{

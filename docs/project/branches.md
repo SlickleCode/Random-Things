@@ -13,6 +13,7 @@ One branch (and one worktree folder `<parent>/<version>`) per Minecraft version;
 | `1.20.6` | NeoForge 20.6.141, NeoGradle 7, Gradle 8.13 | 21 | Mojang everywhere (no SRG) | 1.20.1 | `docs/migration/plans/1.20.6-port-plan.md`, `docs/project/api-gotchas-1.20.6.md` |
 | `1.21.1` | NeoForge 21.1.264, NeoGradle 7, Gradle 8.13 | 21 | Mojang everywhere (no SRG) | 1.20.6 | `docs/migration/plans/1.21.1-port-plan.md`, `docs/project/api-gotchas-1.21.1.md` |
 | `1.21.4` | NeoForge 21.4.161, NeoGradle 7, Gradle 8.13 | 21 | Mojang everywhere (no SRG) | 1.21.1 | `docs/migration/plans/1.21.4-port-plan.md`, `docs/project/api-gotchas-1.21.4.md` |
+| `1.21.11` | NeoForge 21.11.48, NeoGradle 7, Gradle 8.13 | 21 | Mojang everywhere (no SRG) | 1.21.4 | `docs/migration/plans/1.21.11-port-plan.md`, `docs/project/api-gotchas-1.21.11.md` |
 
 `master` = untouched 1.12.2-era source (`git show origin/1.12.2:<path>`), `main` = README only.
 

@@ -378,6 +378,7 @@ public class ModItems {
 
         registry.register("summoning_pendulum", new SummoningPendulumItem(new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
         registry.register("golden_egg", new GoldenEggItem(new Item.Properties()));
+        registry.register("spirit_spawn_egg", new net.neoforged.neoforge.common.DeferredSpawnEggItem(() -> lumien.randomthings.entity.ModEntityTypes.SPIRIT, 0x000000, 0x0009F6, new Item.Properties()));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
         registry.register("evil_tear", new EvilTearItem(new Item.Properties()));

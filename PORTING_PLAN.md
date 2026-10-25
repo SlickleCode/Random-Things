@@ -33,6 +33,8 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Not done / not verified:** nothing outstanding except the manual checklist rows.
 - **Coremod guards + render probes (2026-10-23):** every transformer script adds a hook-site marker field (`rt$hooks$<Tag>$<count>`) read by the new `coremod.applied.every_transformer_left_its_hook_marker_on_its_target_class` test (found that the Light Redirector transformer silently did not apply on the NeoForge branches 1.20.6/1.21.1: the `ModelData` descriptor still used the Forge package); render hooks call `HookProbe.hit`, and the scene run (`RT_AUTOTEST_SCENES=true`) writes `randomthings_scenes.txt` with per-scene checks (dyed armor/items, light redirector, magic hood nameplate, rain shield visuals; 5/5 on every branch). Mutation-checked on 1.21.1 (re-creating the armor-overload bug fails `armor_dye_applied`).
 
+- **Museum report fixes (2026-10-24):** Super Lubricent blocks use the glass (ice) sound type; Blazing Fire is a cutout block like vanilla fire (`RenderLayerSetup`). Also: Spirit Spawn Egg, Time in a Bottle icons full-bright, Spectre Illuminator client playtest scenario. Checklist rows M1-M6.
+
 ## What to do next
 
 1. Manual checks: `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` (`docs/testing/manual-test-world.md`), TESTING_CHECKLIST section 8 (1.21 rows).
