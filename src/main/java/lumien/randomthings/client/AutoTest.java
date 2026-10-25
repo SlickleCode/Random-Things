@@ -23,7 +23,7 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.minecraft.world.level.levelgen.WorldGenSettings;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.DataPackConfig;
 
 /**
@@ -67,7 +67,7 @@ public class AutoTest
 		if (!MANUAL && !Boolean.getBoolean("randomthings.autotest.sound"))
 		{
 			// runtime only (the saved options are untouched): the unattended run is otherwise noisy
-			mc.getSoundManager().updateSourceVolume(net.minecraft.sounds.SoundSource.MASTER, 0.0F);
+			mc.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MASTER).set(0.0);
 		}
 
 		switch (state)
@@ -112,7 +112,7 @@ public class AutoTest
 					{
 						if (listener instanceof net.minecraft.client.gui.components.Button)
 						{
-							((net.minecraft.client.gui.components.Button) listener).onPress();
+							((net.minecraft.client.gui.components.Button) listener).onPress(new net.minecraft.client.input.MouseButtonEvent(0, 0, new net.minecraft.client.input.MouseButtonInfo(0, 0)));
 							break;
 						}
 					}
@@ -129,7 +129,7 @@ public class AutoTest
 					{
 						if (listener instanceof net.minecraft.client.gui.components.Button && index++ == 1)
 						{
-							((net.minecraft.client.gui.components.Button) listener).onPress();
+							((net.minecraft.client.gui.components.Button) listener).onPress(new net.minecraft.client.input.MouseButtonEvent(0, 0, new net.minecraft.client.input.MouseButtonInfo(0, 0)));
 							break;
 						}
 					}
@@ -150,8 +150,8 @@ public class AutoTest
 				{
 					if (ticks > 100)
 					{
-						mc.player.connection.sendUnsignedCommand("gamemode creative");
-						mc.player.connection.sendUnsignedCommand("rtdebug manual");
+						mc.player.connection.sendCommand("gamemode creative");
+						mc.player.connection.sendCommand("rtdebug manual");
 						state = State.DONE;
 						ticks = 0;
 					}
@@ -178,8 +178,8 @@ public class AutoTest
 					RTDebug.log("AutoTest: resource audit done, {} failure(s)", audit.failures.size());
 
 					RTDebug.log("AutoTest: running /rtdebug test");
-					mc.player.connection.sendUnsignedCommand("gamemode creative");
-					mc.player.connection.sendUnsignedCommand(("rtdebug test " + System.getProperty("randomthings.autotest.filter", "")).trim());
+					mc.player.connection.sendCommand("gamemode creative");
+					mc.player.connection.sendCommand(("rtdebug test " + System.getProperty("randomthings.autotest.filter", "")).trim());
 
 					state = State.TESTING;
 					ticks = 0;
@@ -202,7 +202,7 @@ public class AutoTest
 					}
 
 					RTDebug.log("AutoTest: running /rtdebug allguis");
-					mc.player.connection.sendUnsignedCommand("rtdebug allguis 40");
+					mc.player.connection.sendCommand("rtdebug allguis 40");
 
 					state = State.RUNNING;
 					ticks = 0;

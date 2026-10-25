@@ -67,7 +67,7 @@ public class PotionVaporizerBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

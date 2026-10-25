@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries;
 import lumien.randomthings.handler.spectre.SpectreChunkGenerator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -27,7 +27,7 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  * mod's data pack for the Create World screen too, so (unlike 1.19.2) nothing has to be registered from code except the generator codec.
  */
 public class ModDimensions {
-    public static final ResourceLocation SPECTRE_ID = ResourceLocation.fromNamespaceAndPath("randomthings", "spectre");
+    public static final Identifier SPECTRE_ID = Identifier.fromNamespaceAndPath("randomthings", "spectre");
     public static final ResourceKey<Level> SPECTRE_WORLD = ResourceKey.create(Registries.DIMENSION, SPECTRE_ID);
     public static final ResourceKey<DimensionType> SPECTRE_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, SPECTRE_ID);
     public static final ResourceKey<LevelStem> SPECTRE_DIMENSION = ResourceKey.create(Registries.LEVEL_STEM, SPECTRE_ID);

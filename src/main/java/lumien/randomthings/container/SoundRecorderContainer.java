@@ -9,8 +9,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
+import lumien.randomthings.itemhandler.SlotItemHandler;
 
 /**
  * Two temporary slots (a blank {@link SoundPatternItem} in, a stamped one
@@ -85,7 +85,7 @@ public class SoundRecorderContainer extends AbstractContainerMenu implements ISi
     public void removed(Player playerIn) {
         super.removed(playerIn);
 
-        if (!playerIn.level().isClientSide) {
+        if (!playerIn.level().isClientSide()) {
             for (int i = 0; i < patternHandler.getSlots(); i++) {
                 ItemStack stack = patternHandler.extractItem(i, patternHandler.getSlotLimit(i), false);
 

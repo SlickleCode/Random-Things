@@ -43,6 +43,9 @@ import java.util.UUID;
  */
 public class FlooNetworkHandler extends SavedData {
     private static final String ID = "randomthings_floo_handler";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<FlooNetworkHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, FlooNetworkHandler::new,
+            CompoundTag.CODEC.xmap(tag -> FlooNetworkHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final List<FlooFireplace> firePlaces = new ArrayList<>();
 
@@ -56,7 +59,7 @@ public class FlooNetworkHandler extends SavedData {
     }
 
     public static FlooNetworkHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(FlooNetworkHandler::new, FlooNetworkHandler::loadFrom, null), ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(TYPE);
     }
 
     public String getNameFromUUID(UUID uuid) {
@@ -142,17 +145,16 @@ public class FlooNetworkHandler extends SavedData {
     }
 
     public void readData(CompoundTag nbt) {
-        ListTag firePlaceTags = nbt.getList("firePlaces", 10);
+        ListTag firePlaceTags = nbt.getListOrEmpty("firePlaces");
 
         for (int i = 0; i < firePlaceTags.size(); i++) {
             FlooFireplace firePlace = new FlooFireplace();
-            firePlace.read(firePlaceTags.getCompound(i));
+            firePlace.read(firePlaceTags.getCompoundOrEmpty(i));
             this.firePlaces.add(firePlace);
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag firePlaceTags = new ListTag();
 
         for (FlooFireplace firePlace : firePlaces) {

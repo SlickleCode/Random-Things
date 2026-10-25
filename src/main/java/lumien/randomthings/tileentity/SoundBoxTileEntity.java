@@ -11,7 +11,7 @@ import lumien.randomthings.item.SoundPatternItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -60,7 +60,7 @@ public class SoundBoxTileEntity extends BlockEntity {
         this.powered = newPowered;
 
         if (!oldPowered && newPowered && !this.pattern.isEmpty()) {
-            ResourceLocation soundLocation = SoundPatternItem.getSoundLocation(this.pattern);
+            Identifier soundLocation = SoundPatternItem.getSoundLocation(this.pattern);
 
             if (soundLocation != null) {
                 SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.getValue(soundLocation);
@@ -73,8 +73,15 @@ public class SoundBoxTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (!pattern.isEmpty()) {
             compound.put("pattern", StackTag.saveStack(pattern));
@@ -83,9 +90,26 @@ public class SoundBoxTileEntity extends BlockEntity {
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
-
-        this.pattern = compound.contains("pattern") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("pattern")) : ItemStack.EMPTY;
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
     }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        this.pattern = compound.contains("pattern") ? lumien.randomthings.util.StackTag.loadStack(compound.getCompoundOrEmpty("pattern")) : ItemStack.EMPTY;
+    }
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.SoundBoxBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
+	}
 }

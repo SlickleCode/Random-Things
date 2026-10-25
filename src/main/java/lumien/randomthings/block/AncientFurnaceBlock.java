@@ -98,7 +98,7 @@ public class AncientFurnaceBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
 
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 

@@ -17,8 +17,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Cow;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.cow.Cow;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -33,6 +33,29 @@ final class RetestBehaviorTests
 {
 	private RetestBehaviorTests()
 	{
+	}
+
+	/** Reads the client level's block light; only loaded (and only answers) on a client, dedicated servers get "dark". */
+	private static final class ClientLight
+	{
+		static int blockLight(BlockPos pos)
+		{
+			if (!net.neoforged.fml.loading.FMLEnvironment.getDist().isClient())
+			{
+				return 0;
+			}
+
+			return Probe.read(pos);
+		}
+
+		private static final class Probe
+		{
+			static int read(BlockPos pos)
+			{
+				net.minecraft.client.multiplayer.ClientLevel level = net.minecraft.client.Minecraft.getInstance().level;
+				return level == null ? 0 : level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, pos);
+			}
+		}
 	}
 
 	private static void ensureConnection(TestCtx c)
@@ -82,12 +105,12 @@ final class RetestBehaviorTests
 
 	private static int captured(ItemStack pendulum)
 	{
-		return StackTag.has(pendulum) ? StackTag.get(pendulum).getList("entitys", 10).size() : 0;
+		return StackTag.has(pendulum) ? StackTag.get(pendulum).getListOrEmpty("entitys").size() : 0;
 	}
 
 	private static net.minecraft.world.item.Item item(String path)
 	{
-		return net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", path));
+		return net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("randomthings", path));
 	}
 
 	private static InteractionResult useOn(TestCtx c, BlockPos clicked, Direction face)
@@ -287,7 +310,7 @@ final class RetestBehaviorTests
 			ItemStack card = new ItemStack(ModItems.ID_CARD);
 			hold(c, card);
 			c.eq(InteractionResult.SUCCESS, card.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND), "use result");
-			c.eq(c.player.getGameProfile().getId(), lumien.randomthings.item.IdCardItem.getUUID(c.player.getMainHandItem()), "bound uuid");
+			c.eq(c.player.getGameProfile().id(), lumien.randomthings.item.IdCardItem.getUUID(c.player.getMainHandItem()), "bound uuid");
 			c.check(lumien.randomthings.item.IdCardItem.getUUID(c.player.getMainHandItem()) != null, "the card keeps its binding");
 			release(c);
 		}));
@@ -298,7 +321,7 @@ final class RetestBehaviorTests
 			BlockPos clicked = c.at(2, 0, 3);
 			c.eq(InteractionResult.SUCCESS, useOn(c, clicked, Direction.UP), "use result");
 			c.eq(clicked, lumien.randomthings.item.PositionFilterItem.getPosition(c.player.getMainHandItem()), "stored position");
-			c.eq(c.world.dimension().location().toString(), StackTag.get(c.player.getMainHandItem()).getString("dimension"), "stored dimension");
+			c.eq(c.world.dimension().identifier().toString(), StackTag.get(c.player.getMainHandItem()).getStringOr("dimension", ""), "stored dimension");
 			release(c);
 		}));
 
@@ -306,8 +329,8 @@ final class RetestBehaviorTests
 			ItemStack pearl = new ItemStack(ModItems.STABLE_ENDERPEARL);
 			hold(c, pearl);
 			pearl.getItem().use(c.world, c.player, InteractionHand.MAIN_HAND);
-			c.eq(c.player.getGameProfile().getName(), StackTag.get(c.player.getMainHandItem()).getString("player-name"), "bound name");
-			c.eq(c.player.getGameProfile().getId().toString(), StackTag.get(c.player.getMainHandItem()).getString("player-uuid"), "bound uuid");
+			c.eq(c.player.getGameProfile().name(), StackTag.get(c.player.getMainHandItem()).getStringOr("player-name", ""), "bound name");
+			c.eq(c.player.getGameProfile().id().toString(), StackTag.get(c.player.getMainHandItem()).getStringOr("player-uuid", ""), "bound uuid");
 			release(c);
 		}));
 
@@ -347,7 +370,7 @@ final class RetestBehaviorTests
 			hold(c, filter);
 			Cow cow = cow(c, 0, 0);
 			filter.getItem().interactLivingEntity(filter, c.player, cow, InteractionHand.MAIN_HAND);
-			c.eq("minecraft:cow", StackTag.get(c.player.getMainHandItem()).getString("entityType"), "captured type");
+			c.eq("minecraft:cow", StackTag.get(c.player.getMainHandItem()).getStringOr("entityType", ""), "captured type");
 
 			lumien.randomthings.lib.IEntityFilterItem logic = (lumien.randomthings.lib.IEntityFilterItem) c.player.getMainHandItem().getItem();
 			c.check(logic.apply(c.player.getMainHandItem(), cow), "matches a cow");
@@ -476,7 +499,7 @@ final class RetestBehaviorTests
 
 			for (net.minecraft.world.level.block.Block block : net.minecraft.core.registries.BuiltInRegistries.BLOCK)
 			{
-				net.minecraft.resources.ResourceLocation id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
+				net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
 
 				if (!"randomthings".equals(id.getNamespace()))
 				{
@@ -745,7 +768,28 @@ final class RetestBehaviorTests
 			}
 
 			c.check(items == 1 || c.player.getInventory().contains(new ItemStack(ModItems.SPECTRE_ILLUMINATOR)), "the item came back");
-		}).waitUntil("the chunk to go dark again", c -> c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, illuminatorProbe(c)) < 6, 2400));
+		}).waitUntil("the chunk to go dark again", c -> c.world.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, illuminatorProbe(c)) < 6, 2400)
+		.waitUntil("the client's copy of the chunk to go dark again (client runs only)", c -> ClientLight.blockLight(illuminatorProbe(c)) < 6, 2400));
+
+		// ---- Spirit spawn egg (museum report 2026-10-24) ------------------------------------------------
+		tests.add(RTTest.named("retest.spirit_spawn_egg.using_it_on_the_ground_spawns_a_spirit").run(c -> {
+			c.floor();
+			standAt(c, 0, 1, 0);
+			net.minecraft.world.item.Item egg = item("spirit_spawn_egg");
+			c.check(egg != null, "the item is registered");
+			hold(c, new ItemStack(egg));
+			c.eq(0, c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)).size(), "no spirit before");
+			c.check(useOn(c, c.at(2, 0, 0), Direction.UP).consumesAction(), "using the egg");
+			c.eq(1, c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)).size(), "one spirit after");
+			release(c);
+
+			for (SpiritEntity spirit : c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)))
+			{
+				spirit.discard();
+			}
+
+			standAt(c, 40, 1, 40);	// the player must not stand in the test area: later tests count drops there
+		}));
 
 		// ---- Rune Dust and Rune Base (#161, #163-165) --------------------------------------------------
 		tests.add(RTTest.named("retest.rune_dust.right_click_on_a_solid_top_places_a_rune_base_with_one_pixel_in_the_clicked_corner").run(c -> {
@@ -892,8 +936,8 @@ final class RetestBehaviorTests
 			lumien.randomthings.item.TimeInABottleItem.setStoredTime(b, 5000);
 			c.player.getInventory().setItem(0, a);
 			c.player.getInventory().setItem(1, b);
-			a.getItem().inventoryTick(a, c.world, c.player, 0, false);
-			b.getItem().inventoryTick(b, c.world, c.player, 1, false);
+			a.getItem().inventoryTick(a, c.world, c.player, null);
+			b.getItem().inventoryTick(b, c.world, c.player, null);
 			c.eq(0, lumien.randomthings.item.TimeInABottleItem.getStoredTime(a), "the bottle with less time was drained");
 			c.eq(5020, lumien.randomthings.item.TimeInABottleItem.getStoredTime(b), "the fuller bottle gained a second (20 ticks)");
 			c.player.getInventory().clearContent();
@@ -941,8 +985,8 @@ final class RetestBehaviorTests
 			c.check(recipe.matches(grid(compass, filter), c.world), "a set filter matches");
 			c.check(!recipe.matches(grid(compass, filter, new ItemStack(Items.STICK)), c.world), "anything else in the grid does not match");
 			ItemStack result = recipe.assemble(grid(compass, filter), c.world.registryAccess());
-			c.eq(120, StackTag.get(result).getInt("targetX"), "target x");
-			c.eq(-33, StackTag.get(result).getInt("targetZ"), "target z");
+			c.eq(120, StackTag.get(result).getIntOr("targetX", 0), "target x");
+			c.eq(-33, StackTag.get(result).getIntOr("targetZ", 0), "target z");
 			c.check(StackTag.get(compass) == null || !StackTag.get(compass).contains("targetX"), "the original compass was not modified");
 		}));
 
@@ -958,7 +1002,7 @@ final class RetestBehaviorTests
 			release(c);
 			c.check(recipe.matches(grid(compass, card), c.world), "a bound card matches");
 			ItemStack result = recipe.assemble(grid(compass, card), c.world.registryAccess());
-			c.eq(c.player.getGameProfile().getId().toString(), StackTag.get(result).getString("uuid"), "target uuid");
+			c.eq(c.player.getGameProfile().id().toString(), StackTag.get(result).getStringOr("uuid", ""), "target uuid");
 		}));
 
 		tests.add(RTTest.named("retest.recipes.portkey_camouflage_keeps_the_disguise_item_and_refuses_two_portkeys").run(c -> {
@@ -984,15 +1028,15 @@ final class RetestBehaviorTests
 			c.check(!set.matches(grid(diaphanous, new ItemStack(Items.CHEST)), c.world), "a chest (tile entity) is refused");
 			c.check(!set.matches(grid(diaphanous, new ItemStack(Items.STICK)), c.world), "a non-block item is refused");
 			ItemStack shown = set.assemble(grid(diaphanous, new ItemStack(Items.STONE)), c.world.registryAccess());
-			c.eq("minecraft:stone", StackTag.get(shown).getString("block"), "displayed block");
+			c.eq("minecraft:stone", StackTag.get(shown).getStringOr("block", ""), "displayed block");
 			c.eq(1, shown.getCount(), "one block per craft");
 
 			c.check(invert.matches(grid(shown), c.world), "a lone diaphanous block can be inverted");
 			c.check(!invert.matches(grid(shown, new ItemStack(Items.STONE)), c.world), "not with anything else");
 			ItemStack inverted = invert.assemble(grid(shown), c.world.registryAccess());
-			c.check(StackTag.get(inverted).getBoolean("inverted"), "inverted once");
-			c.check(!StackTag.get(invert.assemble(grid(inverted), c.world.registryAccess())).getBoolean("inverted"), "and back");
-			c.eq("minecraft:stone", StackTag.get(inverted).getString("block"), "the displayed block survives inverting");
+			c.check(StackTag.get(inverted).getBooleanOr("inverted", false), "inverted once");
+			c.check(!StackTag.get(invert.assemble(grid(inverted), c.world.registryAccess())).getBooleanOr("inverted", false), "and back");
+			c.eq("minecraft:stone", StackTag.get(inverted).getStringOr("block", ""), "the displayed block survives inverting");
 		}));
 
 		tests.add(RTTest.named("retest.recipes.spectre_anchor_combines_with_one_unstackable_item_once").run(c -> {
@@ -1043,7 +1087,7 @@ final class RetestBehaviorTests
 			BlockPos radar = c.at(0, 1, 0);
 			c.set(radar, lumien.randomthings.block.ModBlocks.BIOME_RADAR);
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:snowy_plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse("minecraft:snowy_plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			hold(c, ItemStack.EMPTY);
 			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
@@ -1064,7 +1108,7 @@ final class RetestBehaviorTests
 			}
 
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse("minecraft:plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			c.set(c.at(1, 1, 0), net.minecraft.world.level.block.Blocks.REDSTONE_BLOCK);
 		}).waitUntil("the radar to finish", c -> c.tile(c.at(0, 1, 0), lumien.randomthings.tileentity.BiomeRadarTileEntity.class).getState() == lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, 200).run(c -> {

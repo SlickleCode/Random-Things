@@ -49,9 +49,9 @@ public class SpectreKeyItem extends Item {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity) {
-        if (!worldIn.isClientSide && livingEntity instanceof ServerPlayer) {
+        if (!worldIn.isClientSide() && livingEntity instanceof ServerPlayer) {
             ServerPlayer player = (ServerPlayer) livingEntity;
-            SpectreHandler spectreHandler = SpectreHandler.getInstance(player.getServer());
+            SpectreHandler spectreHandler = SpectreHandler.getInstance(player.level().getServer());
 
             if (spectreHandler != null) {
                 if (!ModDimensions.isSpectre(player.level())) {
@@ -72,7 +72,7 @@ public class SpectreKeyItem extends Item {
 
     @Override
     public void onUseTick(net.minecraft.world.level.Level level, LivingEntity entity, ItemStack stack, int count) {
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             return;
         }
 

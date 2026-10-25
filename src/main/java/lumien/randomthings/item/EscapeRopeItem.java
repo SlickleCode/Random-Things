@@ -53,7 +53,7 @@ public class EscapeRopeItem extends Item {
 
         playerIn.startUsingItem(hand);
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             EscapeRopeHandler.getInstance().addTask((ServerPlayer) playerIn);
         }
 
@@ -67,7 +67,7 @@ public class EscapeRopeItem extends Item {
 
     @Override
     public void onUseTick(net.minecraft.world.level.Level level, LivingEntity entity, ItemStack stack, int count) {
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             return;
         }
 

@@ -5,7 +5,7 @@ import net.minecraft.core.registries.Registries;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
@@ -27,7 +27,7 @@ public final class GlintColors {
         }
 
         Item item = stack.getItem();
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        Identifier id = BuiltInRegistries.ITEM.getKey(item);
         String path = id != null && "randomthings".equals(id.getNamespace()) ? id.getPath() : "";
 
         if (path.equals("redstone_tool")) {

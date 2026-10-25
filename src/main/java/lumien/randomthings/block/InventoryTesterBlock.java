@@ -53,7 +53,7 @@ public class InventoryTesterBlock extends Block implements EntityBlock {
 
 	public InventoryTesterBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).noOcclusion().strength(0.3F).noCollision());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
 	}
@@ -132,7 +132,7 @@ public class InventoryTesterBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

@@ -109,7 +109,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
     }
 
     public void tick() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
 
@@ -239,8 +239,15 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         compound.putInt("state", state.ordinal());
         compound.putBoolean("lazy", lazy);
@@ -265,27 +272,32 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        state = State.values()[compound.getInt("state")];
-        lazy = compound.getBoolean("lazy");
-        fuzzy = compound.getBoolean("fuzzy");
-        poweredLastCheck = compound.getBoolean("poweredLastCheck");
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        state = State.values()[compound.getIntOr("state", 0)];
+        lazy = compound.getBooleanOr("lazy", false);
+        fuzzy = compound.getBooleanOr("fuzzy", false);
+        poweredLastCheck = compound.getBooleanOr("poweredLastCheck", false);
 
         if (lazy && compound.contains("invalidBlocks")) {
-            invalidBlocks = readPosSet(compound.getList("invalidBlocks", 10));
+            invalidBlocks = readPosSet(compound.getListOrEmpty("invalidBlocks"));
         }
 
         if (state == State.SEARCHING) {
-            alreadyChecked = readPosSet(compound.getList("alreadyChecked", 10));
-            toCheck = readPosList(compound.getList("toCheck", 10));
-            targetBlocks = readPosSet(compound.getList("targetBlocks", 10));
-            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
+            alreadyChecked = readPosSet(compound.getListOrEmpty("alreadyChecked"));
+            toCheck = readPosList(compound.getListOrEmpty("toCheck"));
+            targetBlocks = readPosSet(compound.getListOrEmpty("targetBlocks"));
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompoundOrEmpty("targetState")) : Blocks.STONE.defaultBlockState();
         } else if (state == State.DROPPING) {
-            dropCounter = compound.getInt("dropCounter");
-            targetBlocksSorted = readPosList(compound.getList("targetBlocksSorted", 10));
-            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompound("targetState")) : Blocks.STONE.defaultBlockState();
+            dropCounter = compound.getIntOr("dropCounter", 0);
+            targetBlocksSorted = readPosList(compound.getListOrEmpty("targetBlocksSorted"));
+            targetState = compound.contains("targetState") ? NbtUtils.readBlockState(net.minecraft.core.registries.BuiltInRegistries.BLOCK, compound.getCompoundOrEmpty("targetState")) : Blocks.STONE.defaultBlockState();
         }
     }
 
@@ -303,7 +315,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
         List<BlockPos> result = new ArrayList<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompound(i)));
+            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompoundOrEmpty(i)));
         }
 
         return result;
@@ -313,7 +325,7 @@ public class BlockDestabilizerTileEntity extends BlockEntity implements MenuProv
         Set<BlockPos> result = new HashSet<>();
 
         for (int i = 0; i < list.size(); i++) {
-            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompound(i)));
+            result.add(lumien.randomthings.util.BlockPosNbt.read(list.getCompoundOrEmpty(i)));
         }
 
         return result;

@@ -40,14 +40,14 @@ public class RunePatternItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
         Level worldIn = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
+        super.appendHoverText(stack, worldInCtx, rtDisplay, tooltip, flagIn);
 
         DyeColor[][] pattern = getPattern(stack);
 
         if (pattern == null) {
-            tooltip.add(Component.translatable("tooltip.randomthings.general.empty"));
+            tooltip.accept(Component.translatable("tooltip.randomthings.general.empty"));
             return;
         }
 
@@ -72,7 +72,7 @@ public class RunePatternItem extends Item {
         present.sort(Comparator.comparingInt((DyeColor c) -> amounts[c.getId()]).reversed());
 
         for (DyeColor color : present) {
-            tooltip.add(Component.literal("- " + amounts[color.getId()] + "x " + color.getName()));
+            tooltip.accept(Component.literal("- " + amounts[color.getId()] + "x " + color.getName()));
         }
     }
 
@@ -92,7 +92,7 @@ public class RunePatternItem extends Item {
         BlockState state = worldIn.getBlockState(pos);
 
         if (state.getBlock() == ModBlocks.RUNE_BASE) {
-            if (!worldIn.isClientSide) {
+            if (!worldIn.isClientSide()) {
                 BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof RuneBaseTileEntity) {
@@ -124,7 +124,7 @@ public class RunePatternItem extends Item {
                 DyeColor color = pattern[x][y];
 
                 if (color != null && !creative) {
-                    if (consumeMatchingDust(player, color, worldIn.isClientSide)) {
+                    if (consumeMatchingDust(player, color, worldIn.isClientSide())) {
                         anything = true;
                     } else {
                         color = null;
@@ -141,7 +141,7 @@ public class RunePatternItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             worldIn.setBlockAndUpdate(pos.above(), ModBlocks.RUNE_BASE.defaultBlockState());
 
             BlockEntity te = worldIn.getBlockEntity(pos.above());
@@ -183,7 +183,7 @@ public class RunePatternItem extends Item {
             return null;
         }
 
-        byte[] flat = compound.getByteArray("runeData");
+        byte[] flat = compound.getByteArray("runeData").orElse(new byte[0]);
         DyeColor[][] pattern = new DyeColor[4][4];
 
         for (int x = 0; x < 4; x++) {

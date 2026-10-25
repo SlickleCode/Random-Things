@@ -25,7 +25,4 @@ public class WeatherCloudEntityRenderer extends EntityRenderer<WeatherCloudEntit
         return new net.minecraft.client.renderer.entity.state.EntityRenderState();
     }
 
-    @Override
-    public void render(net.minecraft.client.renderer.entity.state.EntityRenderState state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-    }
 }

@@ -85,9 +85,9 @@ public final class GuiClickTest
 		{
 			case START:
 				guis = RTDebugCommand.guiList();
-				mc.player.connection.sendUnsignedCommand("gamemode creative");
+				mc.player.connection.sendCommand("gamemode creative");
 				// something in the player inventory, so every container GUI has a filled slot to hover
-				mc.player.connection.sendUnsignedCommand("give @s minecraft:stone 16");
+				mc.player.connection.sendCommand("give @s minecraft:stone 16");
 				net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.player.ItemTooltipEvent event) -> tooltipRequests++);
 				wait = 20;
 				phase = Phase.NEXT;
@@ -186,8 +186,9 @@ public final class GuiClickTest
 
 	private static void openGui(Minecraft mc)
 	{
-		mc.player.closeContainer();
-		mc.player.connection.sendUnsignedCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+		// (the previous GUI was closed 30 ticks ago: since 1.21.5 a chat command runs a moment after the packets that were sent before it, so a close sent
+		// here would reach the server after the command opened the new menu and close that one again)
+		mc.player.connection.sendCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 		phase = Phase.WAIT_OPEN;
 		openTimeout = 80;
 	}
@@ -273,7 +274,7 @@ public final class GuiClickTest
 
 				for (char c : TYPED.toCharArray())
 				{
-					screen.charTyped(c, 0);
+					screen.charTyped(new net.minecraft.client.input.CharacterEvent(c, 0));
 				}
 			}));
 			steps.add(new Step(2, () -> {
@@ -298,7 +299,7 @@ public final class GuiClickTest
 				pendingFields = fields.size();
 			}));
 			steps.add(new Step(30, () -> {
-				mc.player.connection.sendUnsignedCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
+				mc.player.connection.sendCommand("rtdebug gui " + currentId + (currentSneak ? " sneak" : ""));
 				phase = Phase.WAIT_OPEN;
 				openTimeout = 80;
 			}));
@@ -415,13 +416,13 @@ public final class GuiClickTest
 
 	private static void render(Screen screen, double[] at)
 	{
-		screen.render(new net.minecraft.client.gui.GuiGraphics(Minecraft.getInstance(), Minecraft.getInstance().renderBuffers().bufferSource()), (int) at[0], (int) at[1], 0.0F);
+		screen.render(new net.minecraft.client.gui.GuiGraphics(Minecraft.getInstance(), new net.minecraft.client.gui.render.state.GuiRenderState(), (int) at[0], (int) at[1]), (int) at[0], (int) at[1], 0.0F);
 	}
 
 	private static void click(Screen screen, double[] at)
 	{
-		screen.mouseClicked(at[0], at[1], 0);
-		screen.mouseReleased(at[0], at[1], 0);
+		screen.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(at[0], at[1], new net.minecraft.client.input.MouseButtonInfo(0, 0)), false);
+		screen.mouseReleased(new net.minecraft.client.input.MouseButtonEvent(at[0], at[1], new net.minecraft.client.input.MouseButtonInfo(0, 0)));
 	}
 
 	/** Server-side state the GUI edits: the block entity at the opened block, the held item's tag, plus the widget labels. */

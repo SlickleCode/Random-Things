@@ -3,8 +3,8 @@ package lumien.randomthings.client.renderer;
 import lumien.randomthings.entity.GoldenChickenEntity;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.model.ChickenModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.model.animal.chicken.ChickenModel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 /**
@@ -14,14 +14,14 @@ import net.minecraft.util.Mth;
  * 1.12.2's {@code RenderGoldenChicken}.
  */
 public class GoldenChickenEntityRenderer extends MobRenderer<GoldenChickenEntity, net.minecraft.client.renderer.entity.state.ChickenRenderState, ChickenModel> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/golden_chicken.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath("randomthings", "textures/entity/golden_chicken.png");
 
     public GoldenChickenEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
         super(renderManager, new ChickenModel(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.CHICKEN)), 0.3F);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(net.minecraft.client.renderer.entity.state.ChickenRenderState state) {
+    public Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.ChickenRenderState state) {
         return TEXTURE;
     }
 

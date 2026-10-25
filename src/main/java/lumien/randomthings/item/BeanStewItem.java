@@ -31,7 +31,7 @@ public class BeanStewItem extends Item
 			{
 				boolean added = ((Player) livingEntity).getInventory().add(new ItemStack(Items.BOWL));
 
-				if (!added && !worldIn.isClientSide)
+				if (!added && !worldIn.isClientSide())
 				{
 					((ServerLevel) worldIn).addFreshEntity(new ItemEntity(worldIn, livingEntity.getX(), livingEntity.getY(), livingEntity.getZ(), new ItemStack(Items.BOWL)));
 				}

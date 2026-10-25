@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -73,7 +73,7 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
             }
         }
 
-        if (this.level.isClientSide) {
+        if (this.level.isClientSide()) {
             this.targets = newTargets;
             return;
         }
@@ -119,18 +119,30 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         compound.put("inventory", positionInventory.serializeNBT(registries));
 
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        positionInventory.deserializeNBT(registries, compound.getCompound("inventory"));
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        positionInventory.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
         refreshTargets();
     }
 
@@ -143,4 +155,16 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
     public Component getDisplayName() {
         return Component.translatable("block.randomthings.advanced_redstone_interface");
     }
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.redstoneinterface.AdvancedRedstoneInterfaceBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
+	}
 }

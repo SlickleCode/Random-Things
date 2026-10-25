@@ -40,7 +40,7 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
     }
 
     public void tick() {
-        if (this.level.isClientSide || this.owner == null) {
+        if (this.level.isClientSide() || this.owner == null) {
             return;
         }
 
@@ -62,8 +62,15 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (this.owner != null) {
             compound.putString("owner", owner.toString());
@@ -72,11 +79,16 @@ public class EnderMailboxTileEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (compound.contains("owner")) {
-            this.owner = UUID.fromString(compound.getString("owner"));
+            this.owner = UUID.fromString(compound.getStringOr("owner", ""));
         }
     }
 

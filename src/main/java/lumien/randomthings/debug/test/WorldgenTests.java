@@ -46,7 +46,7 @@ import lumien.randomthings.worldgen.GlowingMushroomFeature;
 import lumien.randomthings.worldgen.ModFeatures;
 import lumien.randomthings.worldgen.PeaceCandleChurchPool;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
@@ -92,7 +92,7 @@ final class WorldgenTests
 	/** Absolute Y of the sealed test cave, far above the flat test world so it cannot touch the other tests' area. */
 	private static final int CAVE_Y = 90;
 
-	private static final ResourceLocation HOUSES = ResourceLocation.parse("village/plains/houses");
+	private static final Identifier HOUSES = Identifier.parse("village/plains/houses");
 	private static final String VANILLA_CHURCH = "village/plains/houses/plains_temple_4";
 	private static final String PEACE_CHURCH = "randomthings:peace_candle_church";
 
@@ -263,14 +263,14 @@ final class WorldgenTests
 	{
 		RegistryAccess registries = c.world.registryAccess();
 		StructureTemplateManager templates = c.world.getStructureManager();
-		Holder<StructureTemplatePool> centers = registries.lookupOrThrow(Registries.TEMPLATE_POOL).getOrThrow(ResourceKey.create(Registries.TEMPLATE_POOL, ResourceLocation.parse("village/plains/town_centers")));
+		Holder<StructureTemplatePool> centers = registries.lookupOrThrow(Registries.TEMPLATE_POOL).getOrThrow(ResourceKey.create(Registries.TEMPLATE_POOL, Identifier.parse("village/plains/town_centers")));
 		ChunkGenerator generator = c.world.getChunkSource().getGenerator();
 		int vanilla = 0;
 		int peace = 0;
 		for (int i = 0; i < count; i++)
 		{
 			ChunkPos chunkPos = new ChunkPos(i * 11, i * 17);
-			Holder<Structure> village = registries.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, ResourceLocation.parse("village_plains")));
+			Holder<Structure> village = registries.lookupOrThrow(Registries.STRUCTURE).getOrThrow(ResourceKey.create(Registries.STRUCTURE, Identifier.parse("village_plains")));
 			// vanilla's own village start (a hand-built JigsawPlacement call in this harness produced streets but never any house)
 			net.minecraft.world.level.levelgen.structure.StructureStart start = village.value().generate(village, c.world.dimension(), registries, generator, generator.getBiomeSource(), c.world.getChunkSource().randomState(), templates, c.world.getSeed(), chunkPos, 0, c.world, biome -> true);
 			for (StructurePiece piece : start.getPieces())
@@ -392,7 +392,7 @@ final class WorldgenTests
 				}
 
 				boolean overworld = biomes.getOrThrow(biomes.getResourceKey(biome).get()).is(net.minecraft.tags.BiomeTags.IS_OVERWORLD);
-				ResourceLocation name = biomes.getKey(biome);
+				Identifier name = biomes.getKey(biome);
 
 				if (overworld)
 				{
@@ -579,8 +579,8 @@ final class WorldgenTests
 			c.check(pool != null, "village/plains/houses must be in the world's pool registry");
 			c.eq("PeaceCandleChurchPool", pool.getClass().getSimpleName(), "the plains houses pool must be wrapped");
 			c.check(vanillaHouses(pool) != pool, "the wrapper must keep the vanilla pool");
-			StructureTemplate church = c.world.getStructureManager().get(ResourceLocation.parse("randomthings:peace_candle_church")).orElse(null);
-			StructureTemplate vanillaChurch = c.world.getStructureManager().get(ResourceLocation.parse("minecraft:village/plains/houses/plains_temple_4")).orElse(null);
+			StructureTemplate church = c.world.getStructureManager().get(Identifier.parse("randomthings:peace_candle_church")).orElse(null);
+			StructureTemplate vanillaChurch = c.world.getStructureManager().get(Identifier.parse("minecraft:village/plains/houses/plains_temple_4")).orElse(null);
 			c.check(church != null && vanillaChurch != null, "both church templates must load");
 			c.eq(vanillaChurch.getSize().getX(), church.getSize().getX(), "church width");
 			c.eq(vanillaChurch.getSize().getZ(), church.getSize().getZ(), "church depth");
@@ -900,7 +900,7 @@ final class WorldgenTests
 		final java.lang.reflect.Method[] warmClient = new java.lang.reflect.Method[1];
 		final Holder<?>[] originalClient = new Holder<?>[1];
 		tests.add(RTTest.named("worldgen.ancient_furnace.client_sees_the_biome_change_after_heating").run(c -> {
-			if (net.neoforged.fml.loading.FMLEnvironment.dist != net.neoforged.api.distmarker.Dist.CLIENT)
+			if (net.neoforged.fml.loading.FMLEnvironment.getDist() != net.neoforged.api.distmarker.Dist.CLIENT)
 			{
 				throw new TestCtx.Skip("needs a client run (the dedicated server has no client to look at)");
 			}

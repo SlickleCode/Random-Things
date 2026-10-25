@@ -41,7 +41,7 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 
 	public void tick()
 	{
-		if (this.level.isClientSide || !pulsing)
+		if (this.level.isClientSide() || !pulsing)
 		{
 			return;
 		}
@@ -101,12 +101,12 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 	 */
 	public boolean checkMessage(ServerPlayer player, String message)
 	{
-		if (this.level.isClientSide)
+		if (this.level.isClientSide())
 		{
 			return false;
 		}
 
-		UUID senderUUID = player.getGameProfile().getId();
+		UUID senderUUID = player.getGameProfile().id();
 
 		if (senderUUID == null || !senderUUID.equals(this.playerUUID))
 		{
@@ -123,9 +123,16 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		compound.putBoolean("consume", consume);
 		compound.putString("chatMessage", chatMessage);
@@ -141,20 +148,25 @@ public class ChatDetectorTileEntity extends BlockEntity implements MenuProvider
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
 
-		consume = compound.getBoolean("consume");
-		chatMessage = compound.getString("chatMessage");
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+
+		consume = compound.getBooleanOr("consume", false);
+		chatMessage = compound.getStringOr("chatMessage", "");
 
 		if (compound.contains("playerUUID"))
 		{
-			playerUUID = UUID.fromString(compound.getString("playerUUID"));
+			playerUUID = UUID.fromString(compound.getStringOr("playerUUID", ""));
 		}
 
-		pulsing = compound.getBoolean("pulsing");
-		pulsingCounter = compound.getInt("pulsingCounter");
+		pulsing = compound.getBooleanOr("pulsing", false);
+		pulsingCounter = compound.getIntOr("pulsingCounter", 0);
 	}
 
 	@Override

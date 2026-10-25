@@ -21,9 +21,9 @@ import net.minecraft.core.Direction;
 
 
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
-import net.neoforged.neoforge.items.wrapper.RangedWrapper;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.InvWrapper;
+import lumien.randomthings.itemhandler.RangedWrapper;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -74,7 +74,7 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 
 			if (player == null)
 			{
-				return new net.neoforged.neoforge.items.ItemStackHandler(0);
+				return new lumien.randomthings.itemhandler.ItemStackHandler(0);
 			}
 
 			InvWrapper full = new InvWrapper(new SlotValidatingInventory(player.getInventory()));
@@ -103,9 +103,16 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		if (playerUUID != null)
 		{
@@ -115,13 +122,18 @@ public class PlayerInterfaceTileEntity extends BlockEntity
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		if (compound.contains("playerUUID"))
 		{
-			this.playerUUID = UUID.fromString(compound.getString("playerUUID"));
+			this.playerUUID = UUID.fromString(compound.getStringOr("playerUUID", ""));
 		}
 	}
 

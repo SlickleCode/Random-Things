@@ -41,7 +41,7 @@ public class LotusBlossomItem extends Item {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity entityLiving) {
-        if (entityLiving instanceof Player && !worldIn.isClientSide) {
+        if (entityLiving instanceof Player && !worldIn.isClientSide()) {
             int remaining = 3 + worldIn.random.nextInt(5) + worldIn.random.nextInt(5);
 
             while (remaining > 0) {

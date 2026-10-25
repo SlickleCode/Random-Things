@@ -43,12 +43,12 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
             return Optional.empty();
         }
 
-        return EntityType.byString(tag.getString("entityType"));
+        return EntityType.byString(tag.getStringOr("entityType", ""));
     }
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player playerIn, LivingEntity target, InteractionHand hand) {
-        if (!playerIn.level().isClientSide) {
+        if (!playerIn.level().isClientSide()) {
             StackTag.edit(stack, t -> t.putString("entityType", EntityType.getKey(target.getType()).toString()));
         }
 
@@ -56,16 +56,16 @@ public class EntityFilterItem extends Item implements IEntityFilterItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag advanced) {
         Level world = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldCtx, tooltip, advanced);
+        super.appendHoverText(stack, worldCtx, rtDisplay, tooltip, advanced);
 
         Optional<EntityType<?>> filterType = getFilterType(stack);
 
         if (filterType.isPresent()) {
-            tooltip.add(filterType.get().getDescription());
+            tooltip.accept(filterType.get().getDescription());
         } else {
-            tooltip.add(Component.translatable("tooltip.randomthings.entity_filter.invalid_entity"));
+            tooltip.accept(Component.translatable("tooltip.randomthings.entity_filter.invalid_entity"));
         }
     }
 

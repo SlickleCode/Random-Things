@@ -308,6 +308,14 @@ public class AsmHandler {
     }
 
     /**
+     * Target of the BlockLightEngine transformer: the block-light engine calls BlockState.getLightEmission(level, pos) directly instead of
+     * BlockGetter.getLightEmission, so this wraps that call and applies the Spectre Illuminator override to its result.
+     */
+    public static int getLightEmissionOverridden(BlockState state, BlockGetter world, BlockPos pos) {
+        return overrideLightValue(state.getLightEmission(world, pos), world, pos);
+    }
+
+    /**
      * Redirect target for the {@code ireturn} in {@code IBlockReader
      * .getLightValue(BlockPos)}'s default body - see {@code
      * IBlockReaderTransformer.js}. Ground-truthed via {@code javap -c} that
@@ -369,7 +377,7 @@ public class AsmHandler {
 
         Level world = (Level) reader;
         int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getWeakPower(world, pos, facing);
-        int fromSignals = world.isClientSide ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+        int fromSignals = world.isClientSide() ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
 
         return Math.max(computed, Math.max(fromInterfaces, fromSignals));
     }
@@ -397,7 +405,7 @@ public class AsmHandler {
         Level world = (Level) worldReader;
 
         int fromInterfaces = lumien.randomthings.tileentity.redstoneinterface.RedstoneInterfaceTileEntity.getStrongPower(world, pos, facing);
-        int fromSignals = world.isClientSide ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
+        int fromSignals = world.isClientSide() ? 0 : lumien.randomthings.handler.redstonesignal.RedstoneSignalHandler.get(world).getStrongPower(world, pos, facing);
 
         return Math.max(computed, Math.max(fromInterfaces, fromSignals));
     }

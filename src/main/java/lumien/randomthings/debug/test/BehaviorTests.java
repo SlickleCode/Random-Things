@@ -27,7 +27,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 /**
@@ -217,7 +217,7 @@ final class BehaviorTests
 			{
 				Recipe<?> recipe = holder.value();
 
-				if (!"randomthings".equals(holder.id().location().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
+				if (!"randomthings".equals(holder.id().identifier().getNamespace()) || recipe.getType() != RecipeType.CRAFTING || recipe.isSpecial() || !(recipe instanceof CraftingRecipe))
 				{
 					continue;
 				}
@@ -245,7 +245,7 @@ final class BehaviorTests
 
 				if (!crafting.matches(inv.asCraftInput(), c.world))
 				{
-					problems.add(holder.id().location().getPath() + " does not match its own ingredients");
+					problems.add(holder.id().identifier().getPath() + " does not match its own ingredients");
 					continue;
 				}
 
@@ -254,7 +254,7 @@ final class BehaviorTests
 
 				if (out.getItem() != expected.getItem() || out.getCount() != expected.getCount())
 				{
-					problems.add(holder.id().location().getPath() + " crafts " + out + " but declares " + expected);
+					problems.add(holder.id().identifier().getPath() + " crafts " + out + " but declares " + expected);
 				}
 			}
 

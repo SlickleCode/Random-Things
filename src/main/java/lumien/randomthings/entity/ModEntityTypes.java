@@ -40,7 +40,7 @@ public class ModEntityTypes {
     public static EntityType<SpiritEntity> SPIRIT;
 
     private static net.minecraft.resources.ResourceKey<EntityType<?>> key(String name) {
-        return net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(lumien.randomthings.lib.ModConstants.MOD_ID, name));
+        return net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENTITY_TYPE, net.minecraft.resources.Identifier.fromNamespaceAndPath(lumien.randomthings.lib.ModConstants.MOD_ID, name));
     }
 
     public static void registerEntityTypes(RTRegistry<EntityType<?>> registry) {

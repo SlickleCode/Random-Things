@@ -13,7 +13,7 @@ import com.mojang.serialization.Lifecycle;
 import lumien.randomthings.config.RTConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.minecraft.core.Registry;
@@ -44,7 +44,7 @@ import org.apache.logging.log4j.LogManager;
  * the other biomes' churches and the zombie-village pools are untouched.
  */
 public class PeaceCandleChurchPool extends StructureTemplatePool {
-    private static final ResourceLocation HOUSES = ResourceLocation.parse("village/plains/houses");
+    private static final Identifier HOUSES = Identifier.parse("village/plains/houses");
 
     /** The vanilla plains church template, matched on its piece description (the template name is not otherwise readable). */
     private static final String VANILLA_CHURCH = "village/plains/houses/plains_temple_4";
@@ -84,7 +84,7 @@ public class PeaceCandleChurchPool extends StructureTemplatePool {
 
         try {
             // the pool registry is frozen by the time the server starts, so the holder's value is swapped in place instead
-            Holder<StructureProcessorList> noProcessors = server.registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST).getOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, ResourceLocation.parse("empty")));
+            Holder<StructureProcessorList> noProcessors = server.registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST).getOrThrow(ResourceKey.create(Registries.PROCESSOR_LIST, Identifier.parse("empty")));
             StructurePoolElement church = StructurePoolElement.single("randomthings:peace_candle_church", noProcessors).apply(StructureTemplatePool.Projection.RIGID);
 
             HOLDER_VALUE.set(holder, new PeaceCandleChurchPool(vanilla, church));

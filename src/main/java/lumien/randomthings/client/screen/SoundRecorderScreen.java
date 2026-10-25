@@ -4,17 +4,15 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.SoundRecorderContainer;
 import lumien.randomthings.item.SoundRecorderItem;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Port of 1.12.2's {@code GuiSoundRecorder}: a scrollable list of the
@@ -23,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * input slot.
  */
 public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderContainer> {
-    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/sound_recorder.png");
+    private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/sound_recorder.png");
 
     private SoundNameList soundList;
 
@@ -47,30 +45,34 @@ public class SoundRecorderScreen extends AbstractContainerScreen<SoundRecorderCo
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
-        graphics.drawString(this.font, net.minecraft.network.chat.Component.translatable("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 4210752, false);
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 0xFF404040, false);
+        graphics.drawString(this.font, net.minecraft.network.chat.Component.translatable("container.inventory").getString(), 15, this.imageHeight - 96 + 2, 0xFF404040, false);
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
     // ContainerScreen's mouseDragged/mouseReleased don't forward to child widgets, so the list's
     // scrollbar drag never arrived
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dx, double dy) {
-        return this.soundList.mouseDragged(mouseX, mouseY, button, dx, dy) || super.mouseDragged(mouseX, mouseY, button, dx, dy);
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent rtEvent, double dx, double dy) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
+        return this.soundList.mouseDragged(rtEvent, dx, dy) || super.mouseDragged(rtEvent, dx, dy);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        this.soundList.mouseReleased(mouseX, mouseY, button);
-        return super.mouseReleased(mouseX, mouseY, button);
+    public boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent rtEvent) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
+        this.soundList.mouseReleased(rtEvent);
+        return super.mouseReleased(rtEvent);
     }
 
     @Override

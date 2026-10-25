@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemMode
 import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -48,9 +48,9 @@ import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyE
  */
 public final class RTItemModels
 {
-	private static ResourceLocation id(String path)
+	private static Identifier id(String path)
 	{
-		return ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, path);
+		return Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, path);
 	}
 
 	public static void init(IEventBus modBus)
@@ -78,21 +78,21 @@ public final class RTItemModels
 		private long lastUpdateTick;
 
 		@Override
-		public float get(ItemStack stack, ClientLevel worldIn, LivingEntity entityIn, int seed)
+		public float get(ItemStack stack, ClientLevel worldIn, net.minecraft.world.entity.ItemOwner owner, int seed)
 		{
-			if (entityIn == null && !stack.isFramed())
+			// 1.21.5+: the owner is the entity holding the item (or the item frame it hangs in); anything else (ground, gui) has no needle
+			boolean heldByEntity = owner != null && owner.asLivingEntity() != null;
+
+			if (!heldByEntity && !(owner instanceof ItemFrame))
 			{
 				return 0.0F;
 			}
-
-			boolean heldByEntity = entityIn != null;
-			Entity entity = heldByEntity ? entityIn : stack.getFrame();
 
 			Level world = worldIn;
 
 			if (world == null)
 			{
-				world = entity.level();
+				world = owner.level();
 			}
 
 			double angle;
@@ -102,9 +102,9 @@ public final class RTItemModels
 
 			if (hasTarget)
 			{
-				double facing = heldByEntity ? entity.getYRot() : getFrameRotation((ItemFrame) entity);
+				double facing = heldByEntity ? owner.getVisualRotationYInDegrees() : getFrameRotation((ItemFrame) owner);
 				facing = facing % 360.0D;
-				double angleToTarget = getAngleToPos(entity, new BlockPos(compound.getInt("targetX"), 0, compound.getInt("targetZ")));
+				double angleToTarget = getAngleToPos(owner.position(), new BlockPos(compound.getIntOr("targetX", 0), 0, compound.getIntOr("targetZ", 0)));
 				angle = Math.PI - ((facing - 90.0D) * 0.01745329238474369D - angleToTarget);
 			}
 			else
@@ -144,9 +144,9 @@ public final class RTItemModels
 		}
 
 		/** Aims at the block's center (+0.5 on each horizontal axis), not its corner - the stored target is the raw block position. */
-		private double getAngleToPos(Entity entity, BlockPos pos)
+		private double getAngleToPos(net.minecraft.world.phys.Vec3 from, BlockPos pos)
 		{
-			return Math.atan2((pos.getZ() + 0.5D) - entity.getZ(), (pos.getX() + 0.5D) - entity.getX());
+			return Math.atan2((pos.getZ() + 0.5D) - from.z, (pos.getX() + 0.5D) - from.x);
 		}
 
 		@Override
@@ -162,7 +162,7 @@ public final class RTItemModels
 		public static final MapCodec<Time> CODEC = MapCodec.unit(Time::new);
 
 		@Override
-		public float get(ItemStack stack, ClientLevel world, LivingEntity entity, int seed)
+		public float get(ItemStack stack, ClientLevel world, net.minecraft.world.entity.ItemOwner owner, int seed)
 		{
 			int time = 6000;
 
@@ -200,7 +200,7 @@ public final class RTItemModels
 		public static final MapCodec<DurationIndex> CODEC = MapCodec.unit(DurationIndex::new);
 
 		@Override
-		public float get(ItemStack stack, ClientLevel world, LivingEntity entity, int seed)
+		public float get(ItemStack stack, ClientLevel world, net.minecraft.world.entity.ItemOwner owner, int seed)
 		{
 			return RedstoneActivatorItem.getDurationIndex(stack);
 		}
@@ -318,7 +318,7 @@ public final class RTItemModels
 		{
 			ItemModel baked = this.base.bake(context);
 
-			return (ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver, ItemDisplayContext displayContext, ClientLevel level, LivingEntity entity, int seed) -> {
+			return (ItemStackRenderState state, ItemStack stack, ItemModelResolver resolver, ItemDisplayContext displayContext, ClientLevel level, net.minecraft.world.entity.ItemOwner entity, int seed) -> {
 				ItemStack camo = PortkeyItem.getCamoStack(stack);
 
 				if (camo.isEmpty())

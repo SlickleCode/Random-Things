@@ -1,15 +1,13 @@
 package lumien.randomthings.client.renderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.entity.SpiritEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.SlimeOuterLayer;
-import net.minecraft.client.model.SlimeModel;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.model.monster.slime.SlimeModel;
+import net.minecraft.resources.Identifier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -26,7 +24,7 @@ import net.minecraft.core.BlockPos;
  * {@code LayerSpiritGel} was.
  */
 public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, net.minecraft.client.renderer.entity.state.SlimeRenderState, SlimeModel> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("randomthings", "textures/entity/spirit.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath("randomthings", "textures/entity/spirit.png");
 
     public SpiritEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
         super(renderManager, new SlimeModel(renderManager.bakeLayer(net.minecraft.client.model.geom.ModelLayers.SLIME)), 0.125F);
@@ -46,7 +44,7 @@ public class SpiritEntityRenderer extends MobRenderer<SpiritEntity, net.minecraf
     }
 
     @Override
-    public ResourceLocation getTextureLocation(net.minecraft.client.renderer.entity.state.SlimeRenderState state) {
+    public Identifier getTextureLocation(net.minecraft.client.renderer.entity.state.SlimeRenderState state) {
         return TEXTURE;
     }
 

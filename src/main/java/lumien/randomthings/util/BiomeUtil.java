@@ -16,7 +16,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -31,23 +31,23 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
  */
 public class BiomeUtil {
     /** Dictionary type name -> tag; names not listed use {@code c:is_<lowercase name>}. */
-    private static final Map<String, ResourceLocation> VANILLA_TAGS = new HashMap<>();
+    private static final Map<String, Identifier> VANILLA_TAGS = new HashMap<>();
 
     static {
-        VANILLA_TAGS.put("FOREST", ResourceLocation.fromNamespaceAndPath("minecraft", "is_forest"));
-        VANILLA_TAGS.put("HILLS", ResourceLocation.fromNamespaceAndPath("minecraft", "is_hill"));
-        VANILLA_TAGS.put("JUNGLE", ResourceLocation.fromNamespaceAndPath("minecraft", "is_jungle"));
-        VANILLA_TAGS.put("MESA", ResourceLocation.fromNamespaceAndPath("minecraft", "is_badlands"));
-        VANILLA_TAGS.put("MOUNTAIN", ResourceLocation.fromNamespaceAndPath("minecraft", "is_mountain"));
-        VANILLA_TAGS.put("NETHER", ResourceLocation.fromNamespaceAndPath("minecraft", "is_nether"));
-        VANILLA_TAGS.put("END", ResourceLocation.fromNamespaceAndPath("minecraft", "is_end"));
-        VANILLA_TAGS.put("OCEAN", ResourceLocation.fromNamespaceAndPath("minecraft", "is_ocean"));
-        VANILLA_TAGS.put("RIVER", ResourceLocation.fromNamespaceAndPath("minecraft", "is_river"));
-        VANILLA_TAGS.put("MESA", ResourceLocation.fromNamespaceAndPath("c", "is_badlands"));
-        VANILLA_TAGS.put("CONIFEROUS", ResourceLocation.fromNamespaceAndPath("c", "is_taiga"));
-        VANILLA_TAGS.put("DENSE", ResourceLocation.fromNamespaceAndPath("c", "is_dense_vegetation"));
-        VANILLA_TAGS.put("SPARSE", ResourceLocation.fromNamespaceAndPath("c", "is_sparse_vegetation"));
-        VANILLA_TAGS.put("WATER", ResourceLocation.fromNamespaceAndPath("c", "is_aquatic"));
+        VANILLA_TAGS.put("FOREST", Identifier.fromNamespaceAndPath("minecraft", "is_forest"));
+        VANILLA_TAGS.put("HILLS", Identifier.fromNamespaceAndPath("minecraft", "is_hill"));
+        VANILLA_TAGS.put("JUNGLE", Identifier.fromNamespaceAndPath("minecraft", "is_jungle"));
+        VANILLA_TAGS.put("MESA", Identifier.fromNamespaceAndPath("minecraft", "is_badlands"));
+        VANILLA_TAGS.put("MOUNTAIN", Identifier.fromNamespaceAndPath("minecraft", "is_mountain"));
+        VANILLA_TAGS.put("NETHER", Identifier.fromNamespaceAndPath("minecraft", "is_nether"));
+        VANILLA_TAGS.put("END", Identifier.fromNamespaceAndPath("minecraft", "is_end"));
+        VANILLA_TAGS.put("OCEAN", Identifier.fromNamespaceAndPath("minecraft", "is_ocean"));
+        VANILLA_TAGS.put("RIVER", Identifier.fromNamespaceAndPath("minecraft", "is_river"));
+        VANILLA_TAGS.put("MESA", Identifier.fromNamespaceAndPath("c", "is_badlands"));
+        VANILLA_TAGS.put("CONIFEROUS", Identifier.fromNamespaceAndPath("c", "is_taiga"));
+        VANILLA_TAGS.put("DENSE", Identifier.fromNamespaceAndPath("c", "is_dense_vegetation"));
+        VANILLA_TAGS.put("SPARSE", Identifier.fromNamespaceAndPath("c", "is_sparse_vegetation"));
+        VANILLA_TAGS.put("WATER", Identifier.fromNamespaceAndPath("c", "is_aquatic"));
     }
 
     /** Every type name {@link #types} can report (the cases of the biome colour switch plus the ones worldgen asks for). */
@@ -57,7 +57,7 @@ public class BiomeUtil {
     private static List<RegistryAccess> accesses() {
         List<RegistryAccess> list = new ArrayList<>(2);
 
-        if (FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.getDist().isClient()) {
             net.minecraft.client.multiplayer.ClientLevel level = net.minecraft.client.Minecraft.getInstance().level;
 
             if (level != null) {
@@ -89,7 +89,7 @@ public class BiomeUtil {
             }
         }
 
-        ResourceLocation id = null;
+        Identifier id = null;
 
         if (id != null) {
             for (RegistryAccess access : accesses) {
@@ -105,7 +105,7 @@ public class BiomeUtil {
     }
 
     /** A biome by id from the current world's registry (1.19.3+: biomes are data-pack entries, {@code ForgeRegistries.BIOMES} is empty). */
-    public static Biome byId(ResourceLocation id) {
+    public static Biome byId(Identifier id) {
         for (RegistryAccess access : accesses()) {
             Biome biome = access.lookupOrThrow(Registries.BIOME).getValue(id);
 
@@ -118,7 +118,7 @@ public class BiomeUtil {
     }
 
     /** Every biome id of the current world's registry (empty when no world is loaded). */
-    public static Set<ResourceLocation> ids() {
+    public static Set<Identifier> ids() {
         for (RegistryAccess access : accesses()) {
             return access.lookupOrThrow(Registries.BIOME).keySet();
         }
@@ -126,18 +126,18 @@ public class BiomeUtil {
         return Set.of();
     }
 
-    public static ResourceLocation id(Biome biome) {
+    public static Identifier id(Biome biome) {
         Optional<Holder<Biome>> holder = holder(biome);
 
         if (holder.isPresent() && holder.get().unwrapKey().isPresent()) {
-            return holder.get().unwrapKey().get().location();
+            return holder.get().unwrapKey().get().identifier();
         }
 
         return null;
     }
 
     public static ResourceKey<Biome> key(Biome biome) {
-        ResourceLocation id = id(biome);
+        Identifier id = id(biome);
 
         return id == null ? null : ResourceKey.create(Registries.BIOME, id);
     }
@@ -167,13 +167,13 @@ public class BiomeUtil {
     }
 
     private static TagKey<Biome> tag(String type) {
-        ResourceLocation id = VANILLA_TAGS.getOrDefault(type, ResourceLocation.fromNamespaceAndPath("c", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
+        Identifier id = VANILLA_TAGS.getOrDefault(type, Identifier.fromNamespaceAndPath("c", "is_" + type.toLowerCase(java.util.Locale.ROOT)));
 
         return TagKey.create(Registries.BIOME, id);
     }
 
     public static Component displayName(Biome biome) {
-        ResourceLocation id = id(biome);
+        Identifier id = id(biome);
 
         if (id == null) {
             return Component.translatable("biome.minecraft.unknown");

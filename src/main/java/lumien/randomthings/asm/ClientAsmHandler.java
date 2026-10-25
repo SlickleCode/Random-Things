@@ -1,129 +1,70 @@
 package lumien.randomthings.asm;
 
-import lumien.randomthings.util.StackTag;
-import net.minecraft.nbt.CompoundTag;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Random;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-
-import lumien.randomthings.tileentity.LightRedirectorTileEntity;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockAndTintGetter;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import lumien.randomthings.tileentity.LightRedirectorTileEntity;
+import lumien.randomthings.util.StackTag;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+
 /**
- * Same role as {@link AsmHandler} - a plain static redirect target for a
- * coremod transformer - but split into its own class specifically because
- * every parameter type this one method needs ({@link BlockRendererDispatcher},
- * {@link BufferBuilder}, {@link IBlockDisplayReader}) is {@code @OnlyIn(
- * Dist.CLIENT)}. {@link AsmHandler} is loaded on both sides (several of its
- * other redirect targets, e.g. {@code overrideRedstonePower}, run on a
- * dedicated server) and only ever references common types in its own method
- * signatures - putting a client-only signature there risks a dedicated
- * server failing to verify/load that class at all the first time anything
- * touches it. This class, by contrast, is only ever referenced from a coremod
- * transform that itself targets a client-only vanilla class ({@code
- * BlockRendererDispatcher}, confirmed {@code @OnlyIn(CLIENT)} via {@code
- * javap}) - a dedicated server never loads that class, so the injected call
- * to this one never gets reached or resolved there either.
+ * Same role as {@link AsmHandler} - a plain static redirect target for the class transformers - but split into its own class because every parameter type
+ * these methods need is client-only. {@link AsmHandler} is loaded on both sides (several of its redirect targets run on a dedicated server) and only ever
+ * references common types in its own method signatures; this class is only referenced from transformers that target client-only vanilla classes, which a
+ * dedicated server never loads.
  */
 public class ClientAsmHandler {
     private static final Set<BlockPos> posSet = new HashSet<>();
 
-    /** The stack ItemRenderer.renderItem / BipedArmorLayer is currently drawing (set and cleared by the coremods); decides the enchant-glint tint. */
-    private static ItemStack renderingStack = ItemStack.EMPTY;
-
-    public static void setRenderingStack(ItemStack stack) {
-        renderingStack = stack == null ? ItemStack.EMPTY : stack;
-    }
-
-    public static void setRenderingStackFromSlot(net.minecraft.world.entity.LivingEntity entity, net.minecraft.world.entity.EquipmentSlot slot) {
-        renderingStack = entity.getItemBySlot(slot);
-    }
-
-    /** Head of {@code ItemStackRenderState.render} (ItemStackRenderTransformer): the stack this state was built from decides its glint tint. */
-    public static void beginItemRender(net.minecraft.client.renderer.item.ItemStackRenderState state) {
-        renderingStack = glintStacks.getOrDefault(state, ItemStack.EMPTY);
-    }
-
-    private static final java.util.Map<net.minecraft.client.renderer.item.ItemStackRenderState, ItemStack> glintStacks = new java.util.WeakHashMap<>();
-
-    public static void clearRenderingStack() {
-        renderingStack = ItemStack.EMPTY;
-    }
-
     /**
-     * Port of 1.12.2's {@code enchantmentColorHook}/{@code armorEnchantmentHook} for 1.16: called from the {@code RenderType} glint getters by the
-     * {@code RenderTypeTransformer} coremod. Returns the glint type to use for the stack being drawn: the original, or a tinted wrapper when
-     * {@link GlintColors} gives that stack a colour other than vanilla's.
+     * Redirect target for the head of {@code BlockRenderDispatcher.renderBatched(state, pos, level, poseStack, layerFunction, checkSides, parts)} (see
+     * {@code RTTransformers.BlockRendererDispatcher}): when a Light Redirector sends the block at {@code pos} to another position, the model of that other
+     * block is drawn here and vanilla's own draw is skipped. Direct port of 1.12.2's {@code AsmHandler#renderBlock}/{@code #getSwitchedPosition}.
+     *
+     * @return true when the block was drawn here
      */
-    public static net.minecraft.client.renderer.RenderType tintGlint(net.minecraft.client.renderer.RenderType original) {
-        int color = GlintColors.colorFor(renderingStack, GlintColors.VANILLA);
-
-        if (color != GlintColors.VANILLA) {
-            lumien.randomthings.debug.HookProbe.hit("glint_tint_applied");
-        }
-
-        return color == GlintColors.VANILLA ? original : lumien.randomthings.client.renderer.TintedGlintRenderType.of(original, color);
-    }
-
-    /**
-     * Redirect target for {@code BlockRendererDispatcher.renderBlock}'s
-     * method entry (the 6-arg, real - not the deprecated 5-arg {@code
-     * func_215330_a} - overload; confirmed via source that this is the one
-     * {@code ChunkRender} actually calls) - see {@code
-     * BlockRendererDispatcherTransformer.js}. Direct port of 1.12.2's own
-     * {@code AsmHandler#renderBlock}/{@code #getSwitchedPosition}, adapted to
-     * this version's {@code boolean}-returning method (1.12.2's returned
-     * {@code int}, with {@code LIQUID} as a third case - {@link
-     * BlockRenderType} only has 3 values here, none of them {@code LIQUID}
-     * anymore, fluids render through a completely separate path in this
-     * version). Same "sentinel value that means let the original method body
-     * run" trick as 1.12.2's, translated to this version's return type: this
-     * returns {@code 2} for "not a redirected position, run vanilla
-     * normally," or the real {@code 0}/{@code 1} boolean answer (as an int,
-     * since a JVM {@code boolean} return is just a 0/1 {@code IRETURN}
-     * either way) when a redirect applies - see the transformer JS for the
-     * exact bytecode that interprets this.
-     */
-    public static int renderBlock(BlockRenderDispatcher dispatcher, BlockState state, BlockPos pos, BlockAndTintGetter world, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, net.minecraft.util.RandomSource rand) {
+    public static boolean renderBlock(BlockRenderDispatcher dispatcher, BlockState state, BlockPos pos, BlockAndTintGetter world, PoseStack matrixStack, Function<ChunkSectionLayer, VertexConsumer> layers, boolean checkSides,
+            List<BlockModelPart> parts) {
         synchronized (LightRedirectorTileEntity.REDIRECTORS) {
             if (LightRedirectorTileEntity.REDIRECTORS.isEmpty()) {
-                return 2;
+                return false;
             }
 
             posSet.clear();
             BlockPos switched = getSwitchedPosition(world, pos);
 
             if (switched.equals(pos)) {
-                return 2;
+                return false;
             }
 
             lumien.randomthings.debug.HookProbe.hit("light_redirect_applied");
             BlockState switchedState = world.getBlockState(switched);
-            RenderShape renderType = switchedState.getRenderShape();
 
-            if (renderType != RenderShape.MODEL) {
-                return 0;
+            if (switchedState.getRenderShape() != RenderShape.MODEL) {
+                return true;
             }
 
-            BakedModel model = dispatcher.getBlockModel(switchedState);
-            dispatcher.getModelRenderer().tesselateBlock(world, model, switchedState, pos, matrixStack, buffer, true, rand, switchedState.getSeed(switched), net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
-
-            // 1.19: tesselateBlock/renderBatched return void; the coremod protocol is reworked with the transformers (plan M5)
-            return 1;
+            net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create();
+            random.setSeed(switchedState.getSeed(switched));
+            List<BlockModelPart> switchedParts = dispatcher.getBlockModel(switchedState).collectParts(random);
+            dispatcher.getModelRenderer().tesselateBlock(world, switchedParts, switchedState, pos, matrixStack, layers, true, OverlayTexture.NO_OVERLAY);
+            return true;
         }
     }
 
@@ -162,9 +103,51 @@ public class ClientAsmHandler {
         return pos;
     }
 
+    /** The worn stack being drawn by {@code EquipmentLayerRenderer.renderLayers} (set at its head by the armor transformer, read by {@link #armorTintColor}). */
+    private static ItemStack renderingStack = ItemStack.EMPTY;
+
+    /** The enchant-glint colour of what is being drawn right now ({@link GlintColors#VANILLA} for none); read by {@link #tintGlint}. */
+    private static int glintColor = GlintColors.VANILLA;
+
+    /** Marks the two extra entries {@link #dyeItemLayers} appends to a layer's tint array: {@code [..., GLINT_MARKER, colour]}. */
+    private static final int GLINT_MARKER = 0x52544C47;
+
+    public static void setRenderingStack(ItemStack stack) {
+        renderingStack = stack == null ? ItemStack.EMPTY : stack;
+        glintColor = GlintColors.colorFor(renderingStack, GlintColors.VANILLA);
+    }
+
+    public static void clearRenderingStack() {
+        renderingStack = ItemStack.EMPTY;
+        glintColor = GlintColors.VANILLA;
+    }
+
+    /** Head of {@code ItemRenderer.renderItem} (item submit): a layer built for a stack with a custom glint carries its colour in the tint array. */
+    public static void beginItemGlint(int[] tintLayers) {
+        glintColor = tintLayers.length >= 2 && tintLayers[tintLayers.length - 2] == GLINT_MARKER ? tintLayers[tintLayers.length - 1] : GlintColors.VANILLA;
+    }
+
     /**
-     * Replaces the colour (ARGB int) of the armor draw (see {@code ArmorLayerTransformer.js}) with the stack's {@code rtDye}
-     * colour when it has one. Lets the Dyeing Machine recolor any armor piece, not just vanilla's dyeable leather.
+     * Port of 1.12.2's {@code enchantmentColorHook}/{@code armorEnchantmentHook}: called by the transformer of the {@code RenderTypes} glint getters.
+     * Returns the glint type to use for what is being drawn: the original, or a tinted copy when {@link GlintColors} gives it a colour other than vanilla's.
+     */
+    public static net.minecraft.client.renderer.rendertype.RenderType tintGlint(net.minecraft.client.renderer.rendertype.RenderType original) {
+        if (glintColor == GlintColors.VANILLA) {
+            return original;
+        }
+
+        lumien.randomthings.debug.HookProbe.hit(renderingStack.isEmpty() ? "glint_tint_applied" : "glint_tint_armor");
+        return lumien.randomthings.client.renderer.TintedGlintRenderType.of(original, glintColor);
+    }
+
+    /** Hook of {@code RenderType.draw}: the colour modulator uniform (white) of a tinted glint copy is its tint. */
+    public static org.joml.Vector4f modulate(org.joml.Vector4f white, net.minecraft.client.renderer.rendertype.RenderType type) {
+        return lumien.randomthings.client.renderer.TintedGlintRenderType.modulatorOf(white, type);
+    }
+
+    /**
+     * Replaces the colour (ARGB int) of the armor draw (see {@code RTTransformers.ArmorLayer}) with the stack's {@code rtDye} colour when it has one. Lets
+     * the Dyeing Machine recolor any armor piece, not just vanilla's dyeable leather.
      */
     public static int armorTintColor(int color) {
         if (color != 0 && renderingStack != null && StackTag.contains(renderingStack, "rtDye")) {
@@ -177,52 +160,100 @@ public class ClientAsmHandler {
 
     private static java.lang.reflect.Field layersField;
     private static java.lang.reflect.Field activeLayerCountField;
-    private static java.lang.reflect.Field layerModelField;
+    private static java.lang.reflect.Field tintLayersField;
 
     /**
-     * Redirect target for {@code ItemModelResolver.appendItemLayers} (see {@code ItemRendererTransformer.js}): when the stack carries the Dyeing
-     * Machine colour ({@code rtDye}), every layer of its render state is drawn in that colour. 1.12.2 did this per quad regardless of the model's
-     * tint index; 1.21.4's item renderer only knows tint arrays, so the layer's model is wrapped to give all its quads tint index 0 and tint 0 is set.
+     * Redirect target for {@code ItemModelResolver.appendItemLayers} (see {@code RTTransformers.ItemRenderer}): when the stack carries the Dyeing Machine
+     * colour ({@code rtDye}), every layer of its render state is drawn in that colour. 1.12.2 did this per quad regardless of the model's tint index; the
+     * item renderer only knows tint arrays, so every quad of the layer gets tint index 0 and tint 0 is set to the colour.
      */
     public static void dyeItemLayers(net.minecraft.client.renderer.item.ItemStackRenderState state, ItemStack stack) {
-        // the enchant glint is chosen later, inside ItemStackRenderState.render, which no longer sees the stack: remember it per render state
-        if (!stack.isEmpty() && GlintColors.colorFor(stack, GlintColors.VANILLA) != GlintColors.VANILLA) {
-            glintStacks.put(state, stack);
-        } else {
-            glintStacks.remove(state);
+        if (stack.isEmpty()) {
+            return;
         }
 
-        if (stack.isEmpty() || !StackTag.contains(stack, "rtDye")) {
+        int glint = GlintColors.colorFor(stack, GlintColors.VANILLA);
+        boolean dye = StackTag.contains(stack, "rtDye");
+
+        if (glint == GlintColors.VANILLA && !dye) {
             return;
+        }
+
+        // GUI items are drawn into a cache keyed by this identity: a dyed or glint-tinted item must not share the entry of the plain one
+        if (dye) {
+            state.appendModelIdentityElement(StackTag.getInt(stack, "rtDye"));
+        }
+
+        if (glint != GlintColors.VANILLA) {
+            state.appendModelIdentityElement(glint);
         }
 
         try {
             if (layersField == null) {
                 layersField = net.minecraft.client.renderer.item.ItemStackRenderState.class.getDeclaredField("layers");
                 activeLayerCountField = net.minecraft.client.renderer.item.ItemStackRenderState.class.getDeclaredField("activeLayerCount");
-                layerModelField = net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState.class.getDeclaredField("model");
                 layersField.setAccessible(true);
                 activeLayerCountField.setAccessible(true);
-                layerModelField.setAccessible(true);
             }
 
             Object[] layers = (Object[]) layersField.get(state);
             int active = activeLayerCountField.getInt(state);
             int color = StackTag.getInt(stack, "rtDye") | 0xFF000000;
 
+            if (tintLayersField == null) {
+                tintLayersField = net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState.class.getDeclaredField("tintLayers");
+                tintLayersField.setAccessible(true);
+            }
+
             for (int i = 0; i < active; i++) {
                 net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState layer = (net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState) layers[i];
-                Object model = layerModelField.get(layer);
 
-                if (model instanceof BakedModel baked && !(model instanceof lumien.randomthings.client.DyedModel)) {
-                    layerModelField.set(layer, new lumien.randomthings.client.DyedModel(baked));
+                if (!dye) {
+                    appendGlintColor(layer, glint);
+                    continue;
                 }
 
-                java.util.Arrays.fill(layer.prepareTintLayers(1), color);
+                List<BakedQuad> quads = layer.prepareQuadList();
+
+                for (int q = 0; q < quads.size(); q++) {
+                    BakedQuad quad = quads.get(q);
+
+                    if (quad.tintIndex() != 0) {
+                        quads.set(q, new BakedQuad(quad.position0(), quad.position1(), quad.position2(), quad.position3(), quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(), 0, quad.direction(), quad.sprite(),
+                                quad.shade(), quad.lightEmission(), quad.bakedNormals(), quad.bakedColors(), quad.hasAmbientOcclusion()));
+                    }
+                }
+
+                layer.prepareTintLayers(1)[0] = color;
+
+                if (glint != GlintColors.VANILLA) {
+                    appendGlintColor(layer, glint);
+                }
+
                 lumien.randomthings.debug.HookProbe.hit("item_dye_applied");
             }
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("cannot dye the item layers", e);
         }
+    }
+
+    /** Appends {@code [GLINT_MARKER, colour]} to the tint array of the layer (the array is the only per-layer data that reaches {@code ItemRenderer.renderItem}). */
+    private static void appendGlintColor(net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState layer, int glint) throws ReflectiveOperationException {
+        int[] old = (int[]) tintLayersField.get(layer);
+
+        // the marker must not sit on a tint index the quads use (a plain item's quads use index 0): pad with white up to the highest one
+        int base = old.length;
+
+        for (BakedQuad quad : layer.prepareQuadList()) {
+            base = Math.max(base, quad.tintIndex() + 1);
+        }
+
+        int[] extended = new int[base + 2];
+
+        java.util.Arrays.fill(extended, -1);
+        System.arraycopy(old, 0, extended, 0, old.length);
+        extended[base] = GLINT_MARKER;
+        extended[base + 1] = glint;
+        tintLayersField.set(layer, extended);
     }
 }

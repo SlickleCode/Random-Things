@@ -31,10 +31,10 @@ public class FlooFireplace {
 
     public void write(CompoundTag compound) {
         if (creatorPlayerUUID != null) {
-            compound.put("creatorPlayerUUID", NbtUtils.createUUID(creatorPlayerUUID));
+            compound.put("creatorPlayerUUID", lumien.randomthings.util.TagIO.writeUuid(creatorPlayerUUID));
         }
 
-        compound.put("masterUUID", NbtUtils.createUUID(masterUUID));
+        compound.put("masterUUID", lumien.randomthings.util.TagIO.writeUuid(masterUUID));
 
         if (name != null) {
             compound.putString("name", name);
@@ -45,16 +45,16 @@ public class FlooFireplace {
 
     public void read(CompoundTag compound) {
         if (compound.contains("creatorPlayerUUID")) {
-            this.creatorPlayerUUID = NbtUtils.loadUUID(compound.get("creatorPlayerUUID"));
+            this.creatorPlayerUUID = lumien.randomthings.util.TagIO.readUuid(compound.get("creatorPlayerUUID"));
         }
 
-        this.masterUUID = NbtUtils.loadUUID(compound.get("masterUUID"));
+        this.masterUUID = lumien.randomthings.util.TagIO.readUuid(compound.get("masterUUID"));
 
         if (compound.contains("name")) {
-            this.name = compound.getString("name");
+            this.name = compound.getStringOr("name", "");
         }
 
-        this.lastKnownPosition = lumien.randomthings.util.BlockPosNbt.read(compound.getCompound("position"));
+        this.lastKnownPosition = lumien.randomthings.util.BlockPosNbt.read(compound.getCompoundOrEmpty("position"));
     }
 
     public String getName() {

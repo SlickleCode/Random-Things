@@ -27,7 +27,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * Flood-fills the enclosed air space it faces (up to 100 blocks) and applies
@@ -105,7 +105,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 
 	public void tick()
 	{
-		if (this.level.isClientSide)
+		if (this.level.isClientSide())
 		{
 			return;
 		}
@@ -351,9 +351,16 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		compound.putInt("durationLeft", durationLeft);
 		compound.putInt("fuelBurn", fuelBurn);
@@ -361,7 +368,7 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 
 		if (currentPotionEffect != null)
 		{
-			compound.put("currentPotionEffect", currentPotionEffect.save());
+			compound.put("currentPotionEffect", net.minecraft.world.effect.MobEffectInstance.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, currentPotionEffect).result().orElse(new CompoundTag()));
 		}
 
 		ListTag affectedList = new ListTag();
@@ -380,28 +387,33 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
 
-		durationLeft = compound.getInt("durationLeft");
-		fuelBurn = compound.getInt("fuelBurn");
-		fuelBurnTime = compound.getInt("fuelBurnTime");
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+
+		durationLeft = compound.getIntOr("durationLeft", 0);
+		fuelBurn = compound.getIntOr("fuelBurn", 0);
+		fuelBurnTime = compound.getIntOr("fuelBurnTime", 0);
 
 		if (compound.contains("currentPotionEffect"))
 		{
-			currentPotionEffect = MobEffectInstance.load(compound.getCompound("currentPotionEffect"));
+			currentPotionEffect = net.minecraft.world.effect.MobEffectInstance.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, compound.getCompoundOrEmpty("currentPotionEffect")).result().orElse(null);
 		}
 
 		affectedBlocks.clear();
-		ListTag affectedList = compound.getList("affectedBlocks", 10);
+		ListTag affectedList = compound.getListOrEmpty("affectedBlocks");
 		for (int i = 0; i < affectedList.size(); i++)
 		{
-			CompoundTag posCompound = affectedList.getCompound(i);
-			affectedBlocks.add(new BlockPos(posCompound.getInt("posX"), posCompound.getInt("posY"), posCompound.getInt("posZ")));
+			CompoundTag posCompound = affectedList.getCompoundOrEmpty(i);
+			affectedBlocks.add(new BlockPos(posCompound.getIntOr("posX", 0), posCompound.getIntOr("posY", 0), posCompound.getIntOr("posZ", 0)));
 		}
 
-		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
+		itemHandler.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
 	}
 
 	@Override

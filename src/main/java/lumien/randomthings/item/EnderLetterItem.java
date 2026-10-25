@@ -46,21 +46,21 @@ public class EnderLetterItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flagIn) {
         Level world = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldCtx, tooltip, flagIn);
+        super.appendHoverText(stack, worldCtx, rtDisplay, tooltip, flagIn);
 
         if (!StackTag.has(stack) || !StackTag.getBoolean(stack, "received")) {
-            tooltip.add(Component.translatable("item.randomthings.ender_letter.how_to_send").withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable("item.randomthings.ender_letter.how_to_send").withStyle(ChatFormatting.GRAY));
         }
 
         if (StackTag.has(stack)) {
             if (StackTag.contains(stack, "sender")) {
-                tooltip.add(Component.translatable("item.randomthings.ender_letter.sender", StackTag.getString(stack, "sender")));
+                tooltip.accept(Component.translatable("item.randomthings.ender_letter.sender", StackTag.getString(stack, "sender")));
             }
 
             if (StackTag.contains(stack, "receiver")) {
-                tooltip.add(Component.translatable("item.randomthings.ender_letter.receiver", StackTag.getString(stack, "receiver")));
+                tooltip.accept(Component.translatable("item.randomthings.ender_letter.receiver", StackTag.getString(stack, "receiver")));
             }
         }
     }
@@ -74,7 +74,7 @@ public class EnderLetterItem extends Item {
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
+        if (!worldIn.isClientSide() && hand == InteractionHand.MAIN_HAND) {
             ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                 @Override
                 public Component getDisplayName() {

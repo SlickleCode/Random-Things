@@ -19,13 +19,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -73,7 +73,7 @@ public class RTDebugCommand
 			NeoForge.EVENT_BUS.addListener(RTDebugCommand::onServerTick);
 		}
 
-		dispatcher.register(Commands.literal("rtdebug").requires(source -> source.hasPermission(2))
+		dispatcher.register(Commands.literal("rtdebug").requires(source -> source.permissions().hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_GAMEMASTER))
 				.then(Commands.literal("allguis")
 						.executes(context -> startAllGuis(context, 30))
 						.then(Commands.argument("delayTicks", IntegerArgumentType.integer(5, 400))
@@ -106,17 +106,17 @@ public class RTDebugCommand
 						.then(Commands.argument("filter", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
 								.executes(context -> startTests(context, com.mojang.brigadier.arguments.StringArgumentType.getString(context, "filter")))))
 				.then(Commands.literal("gui")
-						.then(Commands.argument("id", ResourceLocationArgument.id())
+						.then(Commands.argument("id", IdentifierArgument.id())
 								.suggests((context, builder) -> SharedSuggestionProvider.suggestResource(allIds(), builder))
 								.executes(context -> open(context, false))
 								.then(Commands.literal("sneak").executes(context -> open(context, true))))));
 	}
 
-	private static List<ResourceLocation> allIds()
+	private static List<Identifier> allIds()
 	{
-		List<ResourceLocation> ids = new ArrayList<>();
+		List<Identifier> ids = new ArrayList<>();
 
-		for (ResourceLocation id : BuiltInRegistries.BLOCK.keySet())
+		for (Identifier id : BuiltInRegistries.BLOCK.keySet())
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -124,7 +124,7 @@ public class RTDebugCommand
 			}
 		}
 
-		for (ResourceLocation id : BuiltInRegistries.ITEM.keySet())
+		for (Identifier id : BuiltInRegistries.ITEM.keySet())
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()) && !ids.contains(id))
 			{
@@ -140,17 +140,17 @@ public class RTDebugCommand
 		CommandSourceStack source = context.getSource();
 		ServerPlayer player = source.getPlayerOrException();
 
-		ResourceLocation id = ResourceLocationArgument.getId(context, "id");
+		Identifier id = IdentifierArgument.getId(context, "id");
 
 		// a bare "igniter" parses as minecraft:igniter - assume this mod
 		if ("minecraft".equals(id.getNamespace()) && !BuiltInRegistries.BLOCK.containsKey(id) && !BuiltInRegistries.ITEM.containsKey(id))
 		{
-			id = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, id.getPath());
+			id = Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, id.getPath());
 		}
 
 		String[] how = new String[1];
 		boolean opened = openGui(player, id, sneak, placePos(player), how);
-		final ResourceLocation openedId = id;
+		final Identifier openedId = id;
 
 		if (opened)
 		{
@@ -168,9 +168,9 @@ public class RTDebugCommand
 	}
 
 	/** Opens the GUI of the given block/item as a right-click would; {@code how[0]} receives a short description. */
-	private static boolean openGui(ServerPlayer player, ResourceLocation id, boolean sneak, BlockPos blockPos, String[] how)
+	private static boolean openGui(ServerPlayer player, Identifier id, boolean sneak, BlockPos blockPos, String[] how)
 	{
-		ServerLevel world = player.serverLevel();
+		ServerLevel world = player.level();
 		boolean wasSneaking = player.isShiftKeyDown();
 		player.setShiftKeyDown(sneak);
 
@@ -355,7 +355,7 @@ public class RTDebugCommand
 		}
 
 		String[] entry = ALL_GUIS[r.index++];
-		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, entry[0]);
+		Identifier id = Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, entry[0]);
 		String[] how = new String[1];
 		boolean sneak = "sneak".equals(entry[1]);
 		boolean opened = openGui(r.player, id, sneak, r.pos, how);

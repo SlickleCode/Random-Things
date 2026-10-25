@@ -1,20 +1,20 @@
 package lumien.randomthings.client.renderer;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.tileentity.BiomeRadarTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
-import org.joml.Vector3f;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Renders the inserted {@link lumien.randomthings.item.BiomeCrystalItem}
@@ -22,30 +22,59 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
  * (`RenderBiomeRadar`) got this same "floating item" look by instantiating a
  * throwaway {@code EntityItem} purely to reuse its bob/spin math and vanilla
  * dropped-item renderer - simpler to just do the bob/spin transform directly
- * here and render the stack with {@code ItemRenderer}, same visual result.
+ * here and render the stack through its item model state, same visual result.
  */
-public class BiomeRadarTileEntityRenderer implements BlockEntityRenderer<BiomeRadarTileEntity> {
-    public BiomeRadarTileEntityRenderer(BlockEntityRendererProvider.Context context) {
-    }
+public class BiomeRadarTileEntityRenderer implements BlockEntityRenderer<BiomeRadarTileEntity, BiomeRadarTileEntityRenderer.State>
+{
+	public static class State extends BlockEntityRenderState
+	{
+		public final ItemStackRenderState item = new ItemStackRenderState();
+		public float age;
+	}
 
-    @Override
-    public void render(BiomeRadarTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
-        ItemStack currentCrystal = te.getCurrentCrystal();
+	public BiomeRadarTileEntityRenderer(net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context context)
+	{
+	}
 
-        if (currentCrystal.isEmpty()) {
-            return;
-        }
+	@Override
+	public State createRenderState()
+	{
+		return new State();
+	}
 
-        float age = (te.getLevel().getGameTime() % 360000L) + partialTicks;
+	@Override
+	public void extractRenderState(BiomeRadarTileEntity te, State state, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling)
+	{
+		BlockEntityRenderer.super.extractRenderState(te, state, partialTicks, cameraPos, crumbling);
 
-        matrixStack.pushPose();
-        // 1.12.2 pinned the item's bob phase (hoverStart) so it spun in place INSIDE the block, about a third of the way up - no bobbing, no hovering above it
-        matrixStack.translate(0.5D, 0.4D, 0.5D);
-        matrixStack.mulPose(Axis.YN.rotationDegrees((age * 2.9F) % 360.0F));
-        matrixStack.scale(0.75F, 0.75F, 0.75F);
+		state.item.clear();
+		ItemStack currentCrystal = te.getCurrentCrystal();
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(currentCrystal, ItemDisplayContext.GROUND, net.minecraft.client.renderer.LevelRenderer.getLightColor(te.getLevel(), te.getBlockPos().above()), combinedOverlay, matrixStack, buffer, te.getLevel(), 0);
+		if (!currentCrystal.isEmpty() && te.getLevel() != null)
+		{
+			Minecraft.getInstance().getItemModelResolver().updateForTopItem(state.item, currentCrystal, ItemDisplayContext.GROUND, te.getLevel(), null, 0);
+			state.age = (te.getLevel().getGameTime() % 360000L) + partialTicks;
+			state.lightCoords = net.minecraft.client.renderer.LevelRenderer.getLightColor(te.getLevel(), te.getBlockPos().above());
+		}
+	}
 
-        matrixStack.popPose();
-    }
+	@Override
+	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera)
+	{
+		if (state.item.isEmpty())
+		{
+			return;
+		}
+
+		poseStack.pushPose();
+
+		// 1.12.2 pinned the item's bob phase (hoverStart) so it spun in place INSIDE the block, about a third of the way up - no bobbing, no hovering above it
+		poseStack.translate(0.5D, 0.4D, 0.5D);
+		poseStack.mulPose(Axis.YN.rotationDegrees((state.age * 2.9F) % 360.0F));
+		poseStack.scale(0.75F, 0.75F, 0.75F);
+
+		state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+
+		poseStack.popPose();
+	}
 }

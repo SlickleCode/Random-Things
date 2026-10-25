@@ -12,7 +12,7 @@ import lumien.randomthings.item.BiomeCrystalItem;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -37,15 +37,15 @@ import com.google.gson.JsonDeserializationContext;
  */
 public class LootHandler
 {
-	public static final ResourceLocation SIMPLE_DUNGEON = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/simple_dungeon");
-	public static final ResourceLocation VILLAGE_WEAPONSMITH = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/village/village_weaponsmith");
-	public static final ResourceLocation STRONGHOLD_CORRIDOR = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/stronghold_corridor");
-	public static final ResourceLocation JUNGLE_TEMPLE = ResourceLocation.fromNamespaceAndPath("minecraft", "chests/jungle_temple");
+	public static final Identifier SIMPLE_DUNGEON = Identifier.fromNamespaceAndPath("minecraft", "chests/simple_dungeon");
+	public static final Identifier VILLAGE_WEAPONSMITH = Identifier.fromNamespaceAndPath("minecraft", "chests/village/village_weaponsmith");
+	public static final Identifier STRONGHOLD_CORRIDOR = Identifier.fromNamespaceAndPath("minecraft", "chests/stronghold_corridor");
+	public static final Identifier JUNGLE_TEMPLE = Identifier.fromNamespaceAndPath("minecraft", "chests/jungle_temple");
 
 	public static void addLoot(LootTableLoadEvent event)
 	{
 		LootTable table = event.getTable();
-		ResourceLocation name = event.getName();
+		Identifier name = event.getName();
 
 		if (name.equals(SIMPLE_DUNGEON))
 		{
@@ -95,7 +95,7 @@ public class LootHandler
 
 	public static void registerFunctionTypes()
 	{
-		Registry.register(net.minecraft.core.registries.BuiltInRegistries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
+		Registry.register(net.minecraft.core.registries.BuiltInRegistries.LOOT_FUNCTION_TYPE, Identifier.fromNamespaceAndPath("randomthings", "random_biome"), RANDOM_BIOME_TYPE);
 	}
 
 	/** Tunes the generated Biome Crystal to a uniformly random registered biome. */
@@ -115,7 +115,7 @@ public class LootHandler
 		@Override
 		protected ItemStack run(ItemStack stack, LootContext context)
 		{
-			List<ResourceLocation> biomes = new ArrayList<>(lumien.randomthings.util.BiomeUtil.ids());
+			List<Identifier> biomes = new ArrayList<>(lumien.randomthings.util.BiomeUtil.ids());
 			BiomeCrystalItem.setBiome(stack, lumien.randomthings.util.BiomeUtil.byId(biomes.get(context.getRandom().nextInt(biomes.size()))));
 			return stack;
 		}

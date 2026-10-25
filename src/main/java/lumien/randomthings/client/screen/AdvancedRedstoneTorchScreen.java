@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AdvancedRedstoneTorchContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -17,17 +16,16 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * AdvancedRedstoneTorchScreen
  */
 public class AdvancedRedstoneTorchScreen extends AbstractContainerScreen<AdvancedRedstoneTorchContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/advanced_redstone_torch.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/advanced_redstone_torch.png");
 
 	ContainerLevelAccess pos;
 
@@ -72,25 +70,23 @@ public class AdvancedRedstoneTorchScreen extends AbstractContainerScreen<Advance
 	{
 
 
-		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_torch.gs"), 8, 5, 0, false);
-		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_torch.rs"), 13, 29, 0, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_torch.gs"), 8, 5, 0xFF000000, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_torch.rs"), 13, 29, 0xFF000000, false);
 
 		String signalStrengthOffString = this.menu.strengthGreen.get() + "";
-		graphics.drawString(this.font, signalStrengthOffString, imageWidth / 2 - this.font.width(signalStrengthOffString) / 2, 16, DyeColor.GREEN.getFireworkColor(), false);
+		graphics.drawString(this.font, signalStrengthOffString, imageWidth / 2 - this.font.width(signalStrengthOffString) / 2, 16, 0xFF000000 | DyeColor.GREEN.getFireworkColor(), false);
 
 		String signalStrengthOnString = this.menu.strengthRed.get() + "";
-		graphics.drawString(this.font, signalStrengthOnString, imageWidth / 2 - this.font.width(signalStrengthOnString) / 2, 40, DyeColor.RED.getFireworkColor(), false);
+		graphics.drawString(this.font, signalStrengthOnString, imageWidth / 2 - this.font.width(signalStrengthOnString) / 2, 40, 0xFF000000 | DyeColor.RED.getFireworkColor(), false);
 
 }
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

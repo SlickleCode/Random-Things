@@ -9,7 +9,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 /**
  * ModScreens
  */
-@EventBusSubscriber(value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(value = Dist.CLIENT)
 public class ModScreens
 {
 

@@ -42,14 +42,14 @@ public class ChunkAnalyzerResult {
     }
 
     public void readFromNBT(CompoundTag compound) {
-        ListTag entryList = compound.getList("entries", 10);
+        ListTag entryList = compound.getListOrEmpty("entries");
 
         for (int i = 0; i < entryList.size(); i++) {
-            CompoundTag entryCompound = entryList.getCompound(i);
+            CompoundTag entryCompound = entryList.getCompoundOrEmpty(i);
 
-            displayStacks.add(ItemStack.parseOptional(StackTag.provider(), entryCompound.getCompound("stack")));
-            blockDescriptions.add(entryCompound.getString("description"));
-            blockCounts.add(entryCompound.getInt("count"));
+            displayStacks.add(lumien.randomthings.util.StackTag.loadStack(entryCompound.getCompoundOrEmpty("stack")));
+            blockDescriptions.add(entryCompound.getStringOr("description", ""));
+            blockCounts.add(entryCompound.getIntOr("count", 0));
         }
     }
 }

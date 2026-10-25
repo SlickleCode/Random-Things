@@ -25,7 +25,7 @@ public class BeanSproutBlock extends CropBlock
 {
 	public BeanSproutBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().randomTicks().strength(0.0F).sound(SoundType.GRASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollision().randomTicks().strength(0.0F).sound(SoundType.GRASS));
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class BeanSproutBlock extends CropBlock
 	{
 		if (this.isMaxAge(state))
 		{
-			if (!worldIn.isClientSide)
+			if (!worldIn.isClientSide())
 			{
 				worldIn.setBlockAndUpdate(pos, this.getStateForAge(0));
 

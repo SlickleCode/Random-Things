@@ -36,7 +36,7 @@ import net.minecraft.server.level.ServerLevel;
 public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements EntityBlock {
 	public AdvancedRedstoneRepeaterBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollision().strength(0.0F));
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class AdvancedRedstoneRepeaterBlock extends RepeaterBlock implements Enti
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

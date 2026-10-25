@@ -28,7 +28,7 @@ public class PositionFilterItem extends Item
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         Level world = lumien.randomthings.client.ClientHooks.level();
 		CompoundTag compound = StackTag.get(stack);
 
@@ -38,28 +38,28 @@ public class PositionFilterItem extends Item
 			return;
 		}
 
-		if (Screen.hasShiftDown())
+		if (net.minecraft.client.Minecraft.getInstance().hasShiftDown())
 		{
-			if (compound != null && compound.getBoolean("hasPosition"))
+			if (compound != null && compound.getBooleanOr("hasPosition", false))
 			{
-				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.dimension", compound.getString("dimension")));
-				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.x", compound.getInt("filterX")));
-				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.y", compound.getInt("filterY")));
-				tooltip.add(Component.translatable("tooltip.randomthings.position_filter.z", compound.getInt("filterZ")));
+				tooltip.accept(Component.translatable("tooltip.randomthings.position_filter.dimension", compound.getStringOr("dimension", "")));
+				tooltip.accept(Component.translatable("tooltip.randomthings.position_filter.x", compound.getIntOr("filterX", 0)));
+				tooltip.accept(Component.translatable("tooltip.randomthings.position_filter.y", compound.getIntOr("filterY", 0)));
+				tooltip.accept(Component.translatable("tooltip.randomthings.position_filter.z", compound.getIntOr("filterZ", 0)));
 			}
 		}
 		else
 		{
-			tooltip.add(Component.translatable("tooltip.randomthings.general.shift"));
+			tooltip.accept(Component.translatable("tooltip.randomthings.general.shift"));
 		}
 	}
 
 	@Override
 	public InteractionResult useOn(UseOnContext context)
 	{
-		if (!context.getLevel().isClientSide)
+		if (!context.getLevel().isClientSide())
 		{
-			setPosition(context.getItemInHand(), context.getLevel().dimension().location().toString(), context.getClickedPos());
+			setPosition(context.getItemInHand(), context.getLevel().dimension().identifier().toString(), context.getClickedPos());
 		}
 
 		return InteractionResult.SUCCESS;
@@ -80,11 +80,11 @@ public class PositionFilterItem extends Item
 	{
 		CompoundTag compound = StackTag.get(positionFilter);
 
-		if (compound == null || !compound.getBoolean("hasPosition"))
+		if (compound == null || !compound.getBooleanOr("hasPosition", false))
 		{
 			return null;
 		}
 
-		return new BlockPos(compound.getInt("filterX"), compound.getInt("filterY"), compound.getInt("filterZ"));
+		return new BlockPos(compound.getIntOr("filterX", 0), compound.getIntOr("filterY", 0), compound.getIntOr("filterZ", 0));
 	}
 }

@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Registry;
 
 /**
@@ -32,6 +32,9 @@ import net.minecraft.core.Registry;
  */
 public class SpectreHandler extends SavedData {
     private static final String ID = "randomthings_spectre_handler";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<SpectreHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, SpectreHandler::new,
+            CompoundTag.CODEC.xmap(tag -> SpectreHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final Map<UUID, SpectreCube> cubes = new HashMap<>();
     private int positionCounter;
@@ -52,7 +55,7 @@ public class SpectreHandler extends SavedData {
             return null;
         }
 
-        return world.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreHandler::new, SpectreHandler::loadFrom, null), ID);
+        return world.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public ServerLevel getWorld() {
@@ -91,9 +94,9 @@ public class SpectreHandler extends SavedData {
         persistentData.putDouble("spectrePosX", player.getX());
         persistentData.putDouble("spectrePosY", player.getY());
         persistentData.putDouble("spectrePosZ", player.getZ());
-        persistentData.putString("spectreDimension", player.level().dimension().location().toString());
+        persistentData.putString("spectreDimension", player.level().dimension().identifier().toString());
 
-        UUID uuid = player.getGameProfile().getId();
+        UUID uuid = player.getGameProfile().id();
         SpectreCube spectreCube = cubes.get(uuid);
 
         if (spectreCube == null) {
@@ -118,14 +121,14 @@ public class SpectreHandler extends SavedData {
             return;
         }
 
-        double spectrePosX = persistentData.getDouble("spectrePosX");
-        double spectrePosY = persistentData.getDouble("spectrePosY");
-        double spectrePosZ = persistentData.getDouble("spectrePosZ");
-        MinecraftServer server = player.getServer();
+        double spectrePosX = persistentData.getDoubleOr("spectrePosX", 0.0);
+        double spectrePosY = persistentData.getDoubleOr("spectrePosY", 0.0);
+        double spectrePosZ = persistentData.getDoubleOr("spectrePosZ", 0.0);
+        MinecraftServer server = player.level().getServer();
         ServerLevel destination = null;
 
-        if (persistentData.contains("spectreDimension", 8)) {
-            destination = server.getLevel(ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(persistentData.getString("spectreDimension"))));
+        if (persistentData.contains("spectreDimension")) {
+            destination = server.getLevel(ResourceKey.create(Registries.DIMENSION, Identifier.parse(persistentData.getStringOr("spectreDimension", ""))));
         }
 
         if (destination == null) {
@@ -148,11 +151,11 @@ public class SpectreHandler extends SavedData {
     public void checkPosition(ServerPlayer player) {
         SpectreCube cube = getSpectreCubeFromPos(player.level(), player.blockPosition());
 
-        if (player.getAbilities().instabuild || (cube != null && cube.getOwner().equals(player.getGameProfile().getId()))) {
+        if (player.getAbilities().instabuild || (cube != null && cube.getOwner().equals(player.getGameProfile().id()))) {
             return;
         }
 
-        SpectreCube playerCube = cubes.get(player.getGameProfile().getId());
+        SpectreCube playerCube = cubes.get(player.getGameProfile().id());
 
         if (playerCube != null) {
             BlockPos spawn = playerCube.getSpawnBlock();
@@ -173,18 +176,17 @@ public class SpectreHandler extends SavedData {
     }
 
     public void readData(CompoundTag nbt) {
-        ListTag cubeTags = nbt.getList("cubes", 10);
+        ListTag cubeTags = nbt.getListOrEmpty("cubes");
 
         for (int i = 0; i < cubeTags.size(); i++) {
-            SpectreCube cube = SpectreCube.readFrom(cubeTags.getCompound(i));
+            SpectreCube cube = SpectreCube.readFrom(cubeTags.getCompoundOrEmpty(i));
             this.cubes.put(cube.getOwner(), cube);
         }
 
-        this.positionCounter = nbt.getInt("positionCounter");
+        this.positionCounter = nbt.getIntOr("positionCounter", 0);
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag cubeTags = new ListTag();
 
         for (SpectreCube cube : cubes.values()) {

@@ -8,6 +8,7 @@ import lumien.randomthings.block.AdvancedItemCollectorBlock;
 import lumien.randomthings.block.AdvancedRedstoneTorchBlock;
 import lumien.randomthings.block.BeanStalkBlock;
 import lumien.randomthings.block.BiomeRadarBlock;
+import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ColoredGrassBlock;
 import lumien.randomthings.block.DiaphanousBlock;
 import lumien.randomthings.block.FlooBrickBlock;
@@ -33,7 +34,7 @@ import lumien.randomthings.block.spectretree.SpectreLogBlock;
 import lumien.randomthings.block.spectretree.SpectrePlankBlock;
 import lumien.randomthings.block.spectretree.SpectreSaplingBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -56,7 +57,7 @@ public class RenderLayerSetup
             {
                 if (((StainedBrickBlock) block).isLuminous())
                 {
-                    ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutoutMipped());
+                    ItemBlockRenderTypes.setRenderLayer(block, net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
                 }
             }
             else if (block instanceof DiaphanousBlock ||
@@ -72,11 +73,12 @@ public class RenderLayerSetup
                 block instanceof SpectrePlankBlock ||
                 block instanceof SpectreSaplingBlock)
             {
-                ItemBlockRenderTypes.setRenderLayer(block, RenderType.translucent());
+                ItemBlockRenderTypes.setRenderLayer(block, net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT);
             }
             else if (block instanceof AdvancedItemCollectorBlock ||
                 block instanceof AdvancedRedstoneTorchBlock ||
                 block instanceof BeanStalkBlock ||
+                block instanceof BlazingFireBlock ||
                 block instanceof BiomeRadarBlock ||
                 block instanceof ColoredGrassBlock ||
                 block instanceof FlooBrickBlock ||
@@ -91,7 +93,7 @@ public class RenderLayerSetup
                 block instanceof RainShieldBlock ||
                 block instanceof SticksBlock)
             {
-                ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutout());
+                ItemBlockRenderTypes.setRenderLayer(block, net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT);
             }
         }
     }

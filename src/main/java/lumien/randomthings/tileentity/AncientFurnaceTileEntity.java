@@ -137,7 +137,7 @@ public class AncientFurnaceTileEntity extends BlockEntity {
     }
 
     public void tick() {
-        if (this.level == null || this.level.isClientSide || !this.heating) {
+        if (this.level == null || this.level.isClientSide() || !this.heating) {
             return;
         }
 
@@ -259,16 +259,28 @@ public class AncientFurnaceTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         compound.putBoolean("heating", heating);
         compound.putInt("ticks", ticks);
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
-        this.heating = compound.getBoolean("heating");
-        this.ticks = compound.getInt("ticks");
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        this.heating = compound.getBooleanOr("heating", false);
+        this.ticks = compound.getIntOr("ticks", 0);
     }
 }

@@ -2,7 +2,7 @@ package lumien.randomthings.item.spectretools;
 
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -18,7 +18,7 @@ import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
  */
 public final class SpectreItemTier
 {
-	public static final TagKey<Item> REPAIR_TAG = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_repair"));
+	public static final TagKey<Item> REPAIR_TAG = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_repair"));
 
 	public static final ToolMaterial MATERIAL = new ToolMaterial(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 2000, 8.0F, 3.0F, 22, REPAIR_TAG);
 
@@ -26,7 +26,7 @@ public final class SpectreItemTier
 	 * Shared by the pickaxe, axe and shovel - matches 1.12.2's +3 block reach. The tool constructors of 1.21.2+ build the whole attribute component themselves, so the
 	 * reach is added through {@link ItemAttributeModifierEvent} instead (the tooltip line needs {@code attribute.name.block_interaction_range} from vanilla's lang file).
 	 */
-	public static final ResourceLocation REACH_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_range_modifier");
+	public static final Identifier REACH_MODIFIER_ID = Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "spectre_range_modifier");
 
 	private SpectreItemTier()
 	{

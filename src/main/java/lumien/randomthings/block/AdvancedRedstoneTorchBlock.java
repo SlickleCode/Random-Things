@@ -30,7 +30,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.particles.ParticleTypes;
@@ -52,7 +51,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	protected AdvancedRedstoneTorchBlock()
 	{
-		super(ParticleTypes.FLAME, lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD));
+		super(ParticleTypes.FLAME, lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollision().strength(0.0F).lightLevel(state -> 7).sound(SoundType.WOOD));
 		this.registerDefaultState(this.stateDefinition.any().setValue(COLOR_PROPERTY, COLOR.RED));
 	}
 
@@ -68,7 +67,7 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 	}
 
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (worldIn.isClientSide)
+		if (worldIn.isClientSide())
 		{
 			return InteractionResult.SUCCESS;
 		}
@@ -102,12 +101,13 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	}
 
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	@Override
+	protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, boolean isMoving)
 	{
 		// Found by /rtdebug allguis (2026-10-03): without this the tile entity was never removed when the
 		// torch was broken/replaced, so it lingered at that position and a different tile-entity block
 		// placed there (e.g. an Analog Emitter) got this stale torch tile entity instead of its own.
-		super.onRemove(state, worldIn, pos, newState, isMoving);
+		super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
 
 		if (!isMoving)
 		{
@@ -198,7 +198,6 @@ public class AdvancedRedstoneTorchBlock extends TorchBlock implements EntityBloc
 
 	protected DustParticleOptions GREEN_DUST = new DustParticleOptions(net.minecraft.util.ARGB.colorFromFloat(1F, 0.0F, 1.0F, 0.0F), 1.0F);
 
-	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (stateIn.getValue(COLOR_PROPERTY) == COLOR.RED)

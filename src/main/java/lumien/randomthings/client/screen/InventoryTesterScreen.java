@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.InventoryTesterContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -14,10 +13,9 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * InventoryTesterScreen. The original's icon-sprite toggle button is
@@ -25,7 +23,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTesterContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/inventory_tester.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/inventory_tester.png");
 
 	public InventoryTesterScreen(InventoryTesterContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -41,7 +39,7 @@ public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTest
 		super.init();
 
 		// 20x20 sprite toggle at the original position (93,16)
-		this.addRenderableWidget(new SpriteStateButton(this.leftPos + 93, this.topPos + 16, 20, 20, net.minecraft.resources.ResourceLocation.parse("randomthings:textures/gui/inventory_tester/invert_signal.png"), () -> this.menu.invertSignal.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"), (button) -> {
+		this.addRenderableWidget(new SpriteStateButton(this.leftPos + 93, this.topPos + 16, 20, 20, net.minecraft.resources.Identifier.parse("randomthings:textures/gui/inventory_tester/invert_signal.png"), () -> this.menu.invertSignal.get() != 0 ? 1 : 0, state -> I18n.get(state != 0 ? "gui.randomthings.inventory_tester.inverted" : "gui.randomthings.inventory_tester.normal"), (button) -> {
 			this.menu.send(0, (pb) -> {
 			});
 		}));
@@ -50,7 +48,7 @@ public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTest
 	@Override
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
-		graphics.drawString(this.font, I18n.get("block.randomthings.inventory_tester"), 33, 6, 4210752, false);
+		graphics.drawString(this.font, I18n.get("block.randomthings.inventory_tester"), 33, 6, 0xFF404040, false);
 		SpriteStateButton.renderTooltips(graphics, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
 
 	}
@@ -58,11 +56,9 @@ public class InventoryTesterScreen extends AbstractContainerScreen<InventoryTest
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

@@ -27,7 +27,20 @@ public class SpectreLeafBlock extends LeavesBlock
 {
 	public SpectreLeafBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).ignitedByLava().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
+		super(0.01F, lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE).ignitedByLava().pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.2F).randomTicks().sound(SoundType.GRASS));
+	}
+
+	public static final com.mojang.serialization.MapCodec<SpectreLeafBlock> CODEC = simpleCodec(properties -> new SpectreLeafBlock());
+
+	@Override
+	public com.mojang.serialization.MapCodec<? extends LeavesBlock> codec()
+	{
+		return CODEC;
+	}
+
+	@Override
+	protected void spawnFallingLeavesParticle(Level level, BlockPos pos, RandomSource random)
+	{
 	}
 
 	@Override

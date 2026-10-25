@@ -82,6 +82,7 @@ public class EclipsedClockEntity extends HangingEntity {
 
     @Override
     protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
         builder.define(TARGET_TIME, 0);
         builder.define(HANGING_POS, BlockPos.ZERO);
         builder.define(FACING, Direction.NORTH);
@@ -91,31 +92,43 @@ public class EclipsedClockEntity extends HangingEntity {
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
 
-        if (this.level().isClientSide && (key.equals(HANGING_POS) || key.equals(FACING))) {
+        if (this.level().isClientSide() && (key.equals(HANGING_POS) || key.equals(FACING))) {
             this.pos = this.entityData.get(HANGING_POS);
             this.setDirection(this.entityData.get(FACING));
         }
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.addAdditionalSaveData(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
 
         compound.putInt("targetTime", getTargetTime());
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.readAdditionalSaveData(rtIn);
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
 
-        setTargetTime(compound.getInt("targetTime"));
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+
+        setTargetTime(compound.getIntOr("targetTime", 0));
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             if (this.timeDisplayCounter > 0) {
                 this.timeDisplayCounter--;
             }
@@ -164,7 +177,7 @@ public class EclipsedClockEntity extends HangingEntity {
         ItemStack held = player.getItemInHand(hand);
 
         if (held.getItem() instanceof TimeInABottleItem) {
-            if (!this.level().isClientSide && cooldownCounter == 0 && fastForwardTarget < 0) {
+            if (!this.level().isClientSide() && cooldownCounter == 0 && fastForwardTarget < 0) {
                 int timeStored = TimeInABottleItem.getStoredTime(held);
                 int dif = (getTargetTime() - (int) this.level().getDayTime()) % 24000;
 
@@ -187,7 +200,7 @@ public class EclipsedClockEntity extends HangingEntity {
                 }
             }
         } else {
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 int targetTime = getTargetTime();
 
                 if (player.isShiftKeyDown()) {
@@ -243,7 +256,7 @@ public class EclipsedClockEntity extends HangingEntity {
 
     @Override
     public void dropItem(net.minecraft.server.level.ServerLevel serverLevel, Entity brokenEntity) {
-        if (serverLevel.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
+        if (serverLevel.getGameRules().get(net.minecraft.world.level.gamerules.GameRules.ENTITY_DROPS)) {
             this.playSound(net.minecraft.sounds.SoundEvents.PAINTING_BREAK, 1.0F, 1.0F);
 
             if (brokenEntity instanceof Player && ((Player) brokenEntity).getAbilities().instabuild) {

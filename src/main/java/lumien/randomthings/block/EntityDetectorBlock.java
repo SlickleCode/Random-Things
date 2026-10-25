@@ -71,8 +71,7 @@ public class EntityDetectorBlock extends Block implements EntityBlock {
 		return te instanceof EntityDetectorTileEntity && ((EntityDetectorTileEntity) te).isPowered() && ((EntityDetectorTileEntity) te).strongOutput() ? 15 : 0;
 	}
 
-	@Override
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
@@ -84,7 +83,6 @@ public class EntityDetectorBlock extends Block implements EntityBlock {
 			}
 		}
 
-		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	private static NonNullList<ItemStack> singleStackList(EntityDetectorTileEntity te)
@@ -96,7 +94,7 @@ public class EntityDetectorBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

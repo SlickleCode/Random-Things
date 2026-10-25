@@ -41,19 +41,26 @@ public class FlooBrickTileEntity extends BlockEntity {
 
     @Override
     public void onLoad() {
-        if (!this.level.isClientSide && uuid != null) {
+        if (!this.level.isClientSide() && uuid != null) {
             FlooNetworkHandler.get(this.level).updatePosition(uuid, worldPosition);
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         compound.putBoolean("amMaster", amMaster);
 
         if (amMaster) {
-            compound.put("uuid", NbtUtils.createUUID(uuid));
+            compound.put("uuid", lumien.randomthings.util.TagIO.writeUuid(uuid));
             compound.putInt("facing", facing.ordinal());
 
             ListTag childrenTagList = new ListTag();
@@ -64,29 +71,34 @@ public class FlooBrickTileEntity extends BlockEntity {
 
             compound.put("children", childrenTagList);
         } else if (masterUUID != null) {
-            compound.put("masterUUID", NbtUtils.createUUID(masterUUID));
+            compound.put("masterUUID", lumien.randomthings.util.TagIO.writeUuid(masterUUID));
         }
 
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        this.amMaster = compound.getBoolean("amMaster");
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        this.amMaster = compound.getBooleanOr("amMaster", false);
 
         if (amMaster) {
-            this.uuid = NbtUtils.loadUUID(compound.get("uuid"));
-            this.facing = Direction.from3DDataValue(compound.getInt("facing"));
+            this.uuid = lumien.randomthings.util.TagIO.readUuid(compound.get("uuid"));
+            this.facing = Direction.from3DDataValue(compound.getIntOr("facing", 0));
 
             children.clear();
-            ListTag childrenTagList = compound.getList("children", 10);
+            ListTag childrenTagList = compound.getListOrEmpty("children");
 
             for (int i = 0; i < childrenTagList.size(); i++) {
-                children.add(lumien.randomthings.util.BlockPosNbt.read(childrenTagList.getCompound(i)));
+                children.add(lumien.randomthings.util.BlockPosNbt.read(childrenTagList.getCompoundOrEmpty(i)));
             }
         } else if (compound.contains("masterUUID")) {
-            this.masterUUID = NbtUtils.loadUUID(compound.get("masterUUID"));
+            this.masterUUID = lumien.randomthings.util.TagIO.readUuid(compound.get("masterUUID"));
         }
     }
 
@@ -121,4 +133,16 @@ public class FlooBrickTileEntity extends BlockEntity {
     public List<BlockPos> getChildren() {
         return children;
     }
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.FlooBrickBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
+	}
 }

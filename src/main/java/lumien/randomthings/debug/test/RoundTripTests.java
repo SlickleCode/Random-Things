@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 
@@ -115,7 +115,7 @@ final class RoundTripTests
 
 		BlockEntity copy = type.create(pos, block.defaultBlockState());
 		copy.setLevel(c.world);
-		copy.loadWithComponents(first, c.world.registryAccess());
+		copy.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, c.world.registryAccess(), first));
 		CompoundTag second = copy.saveWithoutMetadata(c.world.registryAccess());
 
 		c.eq(first, second, "NBT after write -> read -> write (populated " + populated + " capability slots)");
@@ -133,10 +133,10 @@ final class RoundTripTests
 
 		original.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 
-		CompoundTag first = original.saveWithoutId(new CompoundTag());
+		CompoundTag first = lumien.randomthings.util.TagIO.saveEntity(original);
 		Entity copy = type.create(c.world, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
-		copy.load(first);
-		CompoundTag second = copy.saveWithoutId(new CompoundTag());
+		copy.load(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, c.world.registryAccess(), first));
+		CompoundTag second = lumien.randomthings.util.TagIO.saveEntity(copy);
 
 		c.eq(first, second, "NBT after write -> read -> write");
 	}
@@ -153,7 +153,7 @@ final class RoundTripTests
 		int populated = populate(stack, STACK_SIDES);
 
 		CompoundTag first = StackTag.saveStack(stack);
-		ItemStack copy = ItemStack.parseOptional(StackTag.provider(), first);
+		ItemStack copy = lumien.randomthings.util.StackTag.loadStack(first);
 		CompoundTag second = StackTag.saveStack(copy);
 
 		c.check(ItemStack.matches(stack, copy), "stack differs after reload: " + stack + " vs " + copy);
@@ -166,19 +166,19 @@ final class RoundTripTests
 
 	private static final ItemStack[] FILLERS = { new ItemStack(Items.COBBLESTONE, 7), new ItemStack(Items.APPLE, 3), new ItemStack(Items.STICK, 5), new ItemStack(Items.IRON_INGOT, 2), new ItemStack(Items.PAPER, 4) };
 
-	private static net.neoforged.neoforge.items.IItemHandler itemsOf(Object provider, Direction side)
+	private static lumien.randomthings.itemhandler.IItemHandler itemsOf(Object provider, Direction side)
 	{
-		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.itemHandler(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ITEM) : null;
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.itemHandler(be, side) : null;
 	}
 
 	private static IFluidHandler fluidsOf(Object provider, Direction side)
 	{
-		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.fluid(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM) : null;
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.fluid(be, side) : provider instanceof ItemStack stack ? lumien.randomthings.util.CapUtil.fluidItem(stack) : null;
 	}
 
 	private static net.neoforged.neoforge.energy.IEnergyStorage energyOf(Object provider, Direction side)
 	{
-		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.energy(be, side) : provider instanceof ItemStack stack ? stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ITEM) : null;
+		return provider instanceof net.minecraft.world.level.block.entity.BlockEntity be ? lumien.randomthings.util.CapUtil.energy(be, side) : provider instanceof ItemStack stack ? lumien.randomthings.util.CapUtil.energyItem(stack) : null;
 	}
 
 	/** Puts test content into every item / fluid / energy capability the provider exposes; returns how much it managed to place. */
@@ -188,7 +188,7 @@ final class RoundTripTests
 
 		for (Direction side : sides)
 		{
-			net.neoforged.neoforge.items.IItemHandler items = itemsOf(provider, side);
+			lumien.randomthings.itemhandler.IItemHandler items = itemsOf(provider, side);
 
 			if (items != null)
 			{
@@ -232,7 +232,7 @@ final class RoundTripTests
 
 		for (Direction side : sides)
 		{
-			net.neoforged.neoforge.items.IItemHandler items = itemsOf(provider, side);
+			lumien.randomthings.itemhandler.IItemHandler items = itemsOf(provider, side);
 
 			if (items != null)
 			{
@@ -250,7 +250,7 @@ final class RoundTripTests
 				for (int tank = 0; tank < fluids.getTanks(); tank++)
 				{
 					FluidStack fluid = fluids.getFluidInTank(tank);
-					ResourceLocation id = fluid.isEmpty() ? null : RegUtil.id(fluid.getFluid());
+					Identifier id = fluid.isEmpty() ? null : RegUtil.id(fluid.getFluid());
 					sb.append("fluid[").append(side).append(',').append(tank).append("]=").append(id).append('x').append(fluid.getAmount()).append(';');
 				}
 			}

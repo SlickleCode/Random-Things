@@ -32,9 +32,9 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	public static final com.mojang.serialization.MapCodec<SpectreSaplingBlock> CODEC = simpleCodec(properties -> new SpectreSaplingBlock());
 
 	@Override
-	protected com.mojang.serialization.MapCodec<? extends BushBlock> codec()
+	public com.mojang.serialization.MapCodec<BushBlock> codec()
 	{
-		return CODEC;
+		return (com.mojang.serialization.MapCodec<BushBlock>) (com.mojang.serialization.MapCodec<?>) CODEC;
 	}
 
 	public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 1);
@@ -42,7 +42,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 
 	public SpectreSaplingBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollision());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(STAGE, 0));
 	}
@@ -71,7 +71,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			if (worldIn.getRawBrightness(pos.above(), 0) >= 9 && rand.nextInt(14) == 0)
 			{
@@ -145,7 +145,7 @@ public class SpectreSaplingBlock extends BushBlock implements BonemealableBlock
 	public boolean canSurvive(BlockState state, LevelReader worldIn, BlockPos pos)
 	{
 		BlockState ground = worldIn.getBlockState(pos.below());
-		net.neoforged.neoforge.common.util.TriState result = ground.canSustainPlant(worldIn, pos.below(), net.minecraft.core.Direction.UP, state);
+		net.minecraft.util.TriState result = ground.canSustainPlant(worldIn, pos.below(), net.minecraft.core.Direction.UP, state);
 		return result.isTrue() || result.isDefault() && (ground.is(net.minecraft.tags.BlockTags.DIRT) || ground.is(net.minecraft.world.level.block.Blocks.FARMLAND));
 	}
 }

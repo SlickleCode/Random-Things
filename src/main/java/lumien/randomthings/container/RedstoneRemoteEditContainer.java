@@ -10,8 +10,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.SlotItemHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * 9 Position Filter slots plus a second row of 9 ghost "camo" slots (stored in the held
@@ -49,7 +49,7 @@ public class RedstoneRemoteEditContainer extends AbstractContainerMenu {
         };
 
         if (!remoteStack.isEmpty() && StackTag.contains(remoteStack, "positions")) {
-            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("positions"));
+            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompoundOrEmpty("positions"));
         }
 
         this.camoInventory = new ItemStackHandler(9) {
@@ -62,7 +62,7 @@ public class RedstoneRemoteEditContainer extends AbstractContainerMenu {
         };
 
         if (!remoteStack.isEmpty() && StackTag.contains(remoteStack, "camo")) {
-            camoInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("camo"));
+            camoInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompoundOrEmpty("camo"));
         }
 
         for (int col = 0; col < 9; col++) {

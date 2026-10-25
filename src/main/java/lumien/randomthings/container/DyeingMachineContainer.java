@@ -105,7 +105,7 @@ public class DyeingMachineContainer extends AbstractContainerMenu {
         super.removed(playerIn);
 
         this.pos.execute((world, blockPos) -> {
-            if (!world.isClientSide) {
+            if (!world.isClientSide()) {
                 for (int i = 0; i < 2; ++i) {
                     ItemStack itemstack = this.ingredients.removeItemNoUpdate(i);
 

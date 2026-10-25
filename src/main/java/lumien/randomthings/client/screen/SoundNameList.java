@@ -8,7 +8,6 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import java.util.List;
 import java.util.function.Consumer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Scrollable list of recorded sound names, one clickable row per sound -
@@ -86,7 +85,6 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         // ContainerScreen#render leaves item lighting on and a stale GL color, which dimmed both the
         // hover bar and the (white) hovered text to near-black in the screenshots
-        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int rowLeft = this.getRowLeft();
         int rowTop = this.getY() + 4 - (int) this.scrollAmount();
@@ -106,21 +104,30 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
     private boolean draggingScrollbar;
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent rtEvent, boolean rtDouble) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
         this.draggingScrollbar = button == 0 && this.isMouseOver(mouseX, mouseY)
                 && mouseX >= this.scrollBarX() && mouseX < this.scrollBarX() + 6;
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(rtEvent, rtDouble);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent rtEvent) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
         this.draggingScrollbar = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(rtEvent);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dx, double dy) {
-        return this.draggingScrollbar && super.mouseDragged(mouseX, mouseY, button, dx, dy);
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent rtEvent, double dx, double dy) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
+        return this.draggingScrollbar && super.mouseDragged(rtEvent, dx, dy);
     }
 
     /** Light 1px frame around the scrollable area. */
@@ -135,7 +142,7 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
 
     /** Scrollbar on the list's right edge, only when the rows overflow; dragging is handled by vanilla. */
     private void renderCustomScrollbar(GuiGraphics graphics) {
-        int totalHeight = this.getItemCount() * this.itemHeight;
+        int totalHeight = this.getItemCount() * this.defaultEntryHeight;
         int visibleHeight = this.getBottom() - this.getY();
 
         if (totalHeight <= visibleHeight) {
@@ -168,7 +175,11 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
         }
 
         @Override
-        public void render(GuiGraphics graphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+            int left = this.getContentX();
+            int top = this.getContentY();
+            int width = this.getContentWidth();
+            int height = this.getContentHeight();
             net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
 
             // Dark text on the GUI's light-gray panel (white was nearly invisible there - found via
@@ -190,15 +201,18 @@ public class SoundNameList extends ObjectSelectionList<SoundNameList.SoundNameEn
             float scale = textWidth > available ? Math.max(0.5F, (float) available / textWidth) : 1.0F;
             String shown = font.width(sound) * scale > available ? font.plainSubstrByWidth(sound, (int) (available / scale)) : sound;
 
-            graphics.pose().pushPose();
-            graphics.pose().translate(left + 2, top + 1 + (1.0F - scale) * 4.0F, 0.0D);
-            graphics.pose().scale(scale, scale, 1.0F);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate((float) (left + 2), (float) (top + 1 + (1.0F - scale) * 4.0F));
+            graphics.pose().scale((float) (scale), (float) (scale));
             graphics.drawString(font, shown, 0, 0, isMouseOver ? 0xFFFFFF : 0x404040, false);
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
         }
 
         @Override
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent rtEvent, boolean rtDouble) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
             onSelect.accept(sound);
             return true;
         }

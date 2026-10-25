@@ -34,7 +34,7 @@ public final class ServerAutoTest
 
 	public static void init()
 	{
-		if (FMLEnvironment.dist == Dist.DEDICATED_SERVER && Boolean.getBoolean("randomthings.autotest"))
+		if (FMLEnvironment.getDist() == Dist.DEDICATED_SERVER && Boolean.getBoolean("randomthings.autotest"))
 		{
 			NeoForge.EVENT_BUS.addListener(ServerAutoTest::onTick);
 		}
@@ -58,7 +58,7 @@ public final class ServerAutoTest
 
 			ServerLevel world = server.getLevel(Level.OVERWORLD);
 			ServerPlayer fake = new RTTestPlayer(world);
-			BlockPos spawn = world.getSharedSpawnPos();
+			BlockPos spawn = world.getRespawnData().pos();
 			fake.setPos(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5);
 
 			// A world with no real player and no forced chunk stops ticking entities and tile entities after 300 ticks

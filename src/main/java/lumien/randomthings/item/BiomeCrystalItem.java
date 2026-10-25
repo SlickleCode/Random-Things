@@ -11,7 +11,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
@@ -46,14 +46,14 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         Level world = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldCtx, tooltip, flag);
+        super.appendHoverText(stack, worldCtx, rtDisplay, tooltip, flag);
 
         Biome biome = getBiome(stack);
 
         if (biome != null) {
-            tooltip.add(BiomeUtil.displayName(biome));
+            tooltip.accept(BiomeUtil.displayName(biome));
         }
     }
 
@@ -79,7 +79,7 @@ public class BiomeCrystalItem extends Item implements IRTItemColor {
         CompoundTag compound = StackTag.get(stack);
 
         if (compound != null && compound.contains("biomeName")) {
-            return lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(compound.getString("biomeName")));
+            return lumien.randomthings.util.BiomeUtil.byId(Identifier.parse(compound.getStringOr("biomeName", "")));
         }
 
         return null;

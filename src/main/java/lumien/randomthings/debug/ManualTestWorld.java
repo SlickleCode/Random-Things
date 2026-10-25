@@ -18,7 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -53,7 +53,7 @@ public final class ManualTestWorld
 
 	public static List<String> build(ServerPlayer player)
 	{
-		ServerLevel level = player.serverLevel();
+		ServerLevel level = player.level();
 		List<String> report = new ArrayList<>();
 		BlockPos spawn = player.blockPosition();
 		int oy = Math.min(level.getMaxY() + 1 - 30, Math.max(spawn.getY(), level.getSeaLevel()) + 30);
@@ -94,7 +94,7 @@ public final class ManualTestWorld
 	{
 		int index = 0;
 
-		for (ResourceLocation id : BuiltInRegistries.BLOCK.keySet())
+		for (Identifier id : BuiltInRegistries.BLOCK.keySet())
 		{
 			if (!ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -195,7 +195,7 @@ public final class ManualTestWorld
 	{
 		List<Item> items = new ArrayList<>();
 
-		for (ResourceLocation id : BuiltInRegistries.ITEM.keySet())
+		for (Identifier id : BuiltInRegistries.ITEM.keySet())
 		{
 			if (ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -284,10 +284,10 @@ public final class ManualTestWorld
 		stacks.add(new ItemStack(Items.IRON_LEGGINGS));
 		stacks.add(new ItemStack(Items.IRON_BOOTS));
 		ItemStack enchanted = new ItemStack(Items.IRON_HELMET);
-		enchanted.enchant(player.serverLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION), 1);
+		enchanted.enchant(player.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION), 1);
 		stacks.add(enchanted);
 		ItemStack magnetic = new ItemStack(Items.DIAMOND_PICKAXE);
-		magnetic.enchant(lumien.randomthings.enchantment.ModEnchantments.holder(player.serverLevel().registryAccess(), lumien.randomthings.enchantment.ModEnchantments.MAGNETIC), 1);
+		magnetic.enchant(lumien.randomthings.enchantment.ModEnchantments.holder(player.level().registryAccess(), lumien.randomthings.enchantment.ModEnchantments.MAGNETIC), 1);
 		stacks.add(magnetic);
 
 		for (net.minecraft.world.item.DyeColor color : net.minecraft.world.item.DyeColor.values())
@@ -311,13 +311,13 @@ public final class ManualTestWorld
 
 	private static ItemStack mod(String path, int count)
 	{
-		return new ItemStack(BuiltInRegistries.ITEM.getValue(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, path)), count);
+		return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, path)), count);
 	}
 
 	private static ItemStack crystal(String biomeId)
 	{
 		ItemStack stack = new ItemStack(ModItems.BIOME_CRYSTAL);
-		Biome biome = BiomeUtil.byId(ResourceLocation.parse(biomeId));
+		Biome biome = BiomeUtil.byId(Identifier.parse(biomeId));
 
 		if (biome != null)
 		{
@@ -344,13 +344,13 @@ public final class ManualTestWorld
 
 			if (found == null)
 			{
-				lines.add(key.location().getPath() + ": none within 4000 blocks");
+				lines.add(key.identifier().getPath() + ": none within 4000 blocks");
 			}
 			else
 			{
 				int dx = found.getFirst().getX() - spawn.getX();
 				int dz = found.getFirst().getZ() - spawn.getZ();
-				lines.add(key.location().getPath() + ": " + (int) Math.sqrt((double) dx * dx + (double) dz * dz) + " blocks away (x " + found.getFirst().getX() + ", z " + found.getFirst().getZ() + ")");
+				lines.add(key.identifier().getPath() + ": " + (int) Math.sqrt((double) dx * dx + (double) dz * dz) + " blocks away (x " + found.getFirst().getX() + ", z " + found.getFirst().getZ() + ")");
 			}
 		}
 

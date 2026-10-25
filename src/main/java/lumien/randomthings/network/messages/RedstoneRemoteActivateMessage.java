@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * Client -> server: "the player clicked the Nth Position Filter button on
@@ -59,7 +59,7 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
             }
 
             ItemStackHandler positionInventory = new ItemStackHandler(9);
-            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompound("positions"));
+            positionInventory.deserializeNBT(StackTag.provider(), StackTag.get(remoteStack).getCompoundOrEmpty("positions"));
 
             ItemStack positionFilter = positionInventory.getStackInSlot(slot);
 

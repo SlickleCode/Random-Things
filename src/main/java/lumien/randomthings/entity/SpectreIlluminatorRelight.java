@@ -130,7 +130,7 @@ public class SpectreIlluminatorRelight {
         queue.jobs.add(job);
         queue.totalRemaining += job.remaining();
 
-        RTDebug.log("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isClientSide, maxY, before, queue.totalRemaining);
+        RTDebug.log("[SpectreIlluminator] queued {} relight positions for chunk {} (world.isRemote={}, maxY={}, queue size {} -> {})", job.remaining(), chunkPos, world.isClientSide(), maxY, before, queue.totalRemaining);
     }
 
     public static void tick(Level world) {

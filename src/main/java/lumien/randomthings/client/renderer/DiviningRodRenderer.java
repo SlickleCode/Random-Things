@@ -11,9 +11,7 @@ import java.util.function.Function;
 
 import org.joml.Vector3f;
 
-import org.lwjgl.opengl.GL11;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.client.util.RenderUtils;
 import lumien.randomthings.item.DiviningRodItem;
@@ -26,7 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 public class DiviningRodRenderer
@@ -54,28 +52,31 @@ public class DiviningRodRenderer
 
 	public void render(PoseStack matrixStack)
 	{
+		if (indicators.isEmpty())
+		{
+			return;
+		}
+
 		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
+		Vec3 pos = ari.position();
 
-		Vec3 pos = ari.getPosition();
-
-		RenderSystem.disableDepthTest();
-		RenderUtils.enableDefaultBlending();
+		net.minecraft.client.renderer.MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+		com.mojang.blaze3d.vertex.VertexConsumer consumer = bufferSource.getBuffer(RenderTypes.debugQuads());
 
 		matrixStack.pushPose();
 		matrixStack.translate(-pos.x(), -pos.y(), -pos.z());
+
 		for (Indicator indicator : indicators)
 		{
 			float size = (1 - (indicator.duration / 160F)) * 0.2F + 0.1F;
 			Color c = indicator.color;
-			RenderUtils.drawCube(matrixStack, (float) (indicator.target.getX() + 0.5 - size / 2), (float) (indicator.target.getY() + 0.5 - size / 2), (float) (indicator.target.getZ() + 0.5 - size / 2), size, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+
+			RenderUtils.drawCube(matrixStack, consumer, (float) (indicator.target.getX() + 0.5 - size / 2), (float) (indicator.target.getY() + 0.5 - size / 2), (float) (indicator.target.getZ() + 0.5 - size / 2), size, c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		}
+
 		matrixStack.popPose();
-
-		RenderUtils.enableDefaultBlending();
-		RenderSystem.enableDepthTest();
+		bufferSource.endBatch(RenderTypes.debugQuads());
 	}
-
-
 
 	public void tick()
 	{

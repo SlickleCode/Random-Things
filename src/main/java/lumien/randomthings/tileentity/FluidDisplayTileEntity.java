@@ -72,12 +72,19 @@ public class FluidDisplayTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         CompoundTag fluidCompound = new CompoundTag();
         if (fluidStack != null) {
-            fluidCompound = (CompoundTag) fluidStack.saveOptional(registries);
+            fluidCompound = (CompoundTag) FluidStack.OPTIONAL_CODEC.encodeStart(registries.createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE), fluidStack).result().orElse(new CompoundTag());
         }
 
         compound.put("fluidStack", fluidCompound);
@@ -87,19 +94,24 @@ public class FluidDisplayTileEntity extends BlockEntity {
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (compound.contains("fluidStack")) {
             // an unset display is written as an empty compound; load it back as "unset" (null) rather than an
             // EMPTY stack so the NBT stays stable across save/load cycles
-            FluidStack loaded = FluidStack.parseOptional(registries, compound.getCompound("fluidStack"));
+            FluidStack loaded = FluidStack.OPTIONAL_CODEC.parse(registries.createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE), compound.getCompoundOrEmpty("fluidStack")).result().orElse(FluidStack.EMPTY);
             this.fluidStack = loaded == null || loaded.isEmpty() ? null : loaded;
         } else {
             this.fluidStack = new FluidStack(Fluids.WATER, 1000);
         }
 
-        this.flowing = compound.getBoolean("flowing");
-        this.rotation = Rotation.values()[compound.getInt("rotation")];
+        this.flowing = compound.getBooleanOr("flowing", false);
+        this.rotation = Rotation.values()[compound.getIntOr("rotation", 0)];
     }
 }

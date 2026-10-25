@@ -1,4 +1,4 @@
-# Version notes (branch 1.21.4)
+# Version notes (branch 1.21.11)
 
 Facts that differ per branch. The shared skills and agents (identical on every branch, see `docs/project/branches.md`) read the section named after them first. The section texts below were moved here unchanged from this branch's former per-branch skills; where a section says it was written for another version, treat versions, jar paths and counts in it as unverified for this branch.
 
@@ -9,6 +9,10 @@ _(former skill heading: Mapping and javap lookup (1.18.2: official Mojang names)
 > **Version notes (1.21.1, NeoForge 21.1.264, JDK 21):** names are Mojang names in dev AND production (no SRG ids, `lookup.py` is not needed). `javap` classes: `build/neoForm/neoFormJoined1.21.1-*/steps/packRecomp/output.jar` plus the `neoforge-21.1.264-universal.jar` in the Gradle cache; vanilla data/tags: `.gradle/caches/minecraft/versions/1.21.1/client.jar`. API changes since 1.20.6: `docs/project/api-gotchas-1.21.1.md`. The text below is the older inherited body.
 
 > **Version notes (1.21.4, NeoForge 21.4.161, JDK 21):** same layout as 1.21.1 (Mojang names, jar under `build/neoForm/neoFormJoined1.21.4-*/steps/packRecomp/output.jar` plus the `neoforge-21.4.161-universal.jar`). Use the **packRecomp** jar for `javap`: `steps/decompile/output.jar` is source before NeoForge's patches and misses their hook calls. API changes: `docs/project/api-gotchas-1.21.4.md`.
+
+> **Version notes (1.21.11, NeoForge 21.11.48, JDK 21):** same layout as 1.21.4 (Mojang names, jar `build/neoForm/neoFormJoined1.21.11-*/steps/packRecomp/output.jar` plus the `neoforge-21.11.48-universal.jar` and `loader-10.0.36.jar` (the class processor SPI) in the Gradle cache). **There is no coremod JavaScript any more:** the transformers are Java classes in `asm/transform/` (`RTTransformers`, `RTClientTransformers`), registered by the service file under `META-INF/services/net.neoforged.neoforgespi.transformation.ClassProcessorProvider`; the `coremod-patching` skill's JS instructions apply to branches up to 1.21.4 only. API changes: `docs/project/api-gotchas-1.21.11.md`.
+
+> **Version notes (1.21.11) prod-jar-check:** production = NeoForge 21.11.48 install in `prod-test/1.21.11/` (untracked; installer from `maven.neoforged.net`, JDK 21, ask before downloading). Client needs `client/launcher_profiles.json` before `--installClient client`, then `fetch-libs.py` (73 files). Server: `java -D... @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.11.48/win_args.txt nogui`. Baseline 2026-10-23: server 427/0/4, client 429/0/2 + audit clean. The mod jar carries the transformers as a nested library jar.
 
 > **Version notes (1.21.4) scripted-playtest:** `SCN_MC=1.21.4` uses the 1.21.1 helper paths plus `MC212` (attribute ids without the `generic.` prefix, so the burning pig of `rain_shield` needs `minecraft:max_health`; the worn-armor glint check accepts a smaller red/blue drop, 0.05). All 28 scenarios pass on the dev client (2026-10-23). The Singleplayer button is at y=203 as in 1.21.1.
 

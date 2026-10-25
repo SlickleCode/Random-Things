@@ -14,7 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -27,7 +27,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 /**
  * RTPacketHandler
  */
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber
 public class RTPacketHandler
 {
 	private static final String PROTOCOL_VERSION = "1";
@@ -43,12 +43,12 @@ public class RTPacketHandler
 	{
 		PayloadRegistrar registrar = event.registrar(PROTOCOL_VERSION);
 
-		register(registrar, "container_signal", ContainerSignalMessage.class);
-		register(registrar, "notification", NotificationMessage.class);
-		register(registrar, "biome_radar_antenna", BiomeRadarAntennaMessage.class);
-		register(registrar, "played_sound", PlayedSoundMessage.class);
-		register(registrar, "redstone_remote_activate", RedstoneRemoteActivateMessage.class);
-		register(registrar, "eclipsed_clock_animation", EclipsedClockAnimationMessage.class);
+		register(registrar, "container_signal", ContainerSignalMessage.class, true);
+		register(registrar, "notification", NotificationMessage.class, false);
+		register(registrar, "biome_radar_antenna", BiomeRadarAntennaMessage.class, false);
+		register(registrar, "played_sound", PlayedSoundMessage.class, true);
+		register(registrar, "redstone_remote_activate", RedstoneRemoteActivateMessage.class, true);
+		register(registrar, "eclipsed_clock_animation", EclipsedClockAnimationMessage.class, false);
 	}
 
 	public static void sendTo(IRTMessage message, ServerPlayer player)
@@ -58,7 +58,7 @@ public class RTPacketHandler
 
 	public static void sendToServer(IRTMessage message)
 	{
-		PacketDistributor.sendToServer(message);
+		net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(message);
 	}
 
 	public static void sendToAllNear(IRTMessage message, Level world, BlockPos pos, float radius)
@@ -70,9 +70,9 @@ public class RTPacketHandler
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static void register(PayloadRegistrar registrar, String name, Class messageClass)
+	private static void register(PayloadRegistrar registrar, String name, Class messageClass, boolean toServer)
 	{
-		CustomPacketPayload.Type type = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("randomthings", name));
+		CustomPacketPayload.Type type = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath("randomthings", name));
 		TYPES.put(messageClass, type);
 
 		StreamCodec<RegistryFriendlyByteBuf, IRTMessage> codec = StreamCodec.of((buf, msg) -> msg.write(buf), buf -> {
@@ -88,6 +88,14 @@ public class RTPacketHandler
 			}
 		});
 
-		registrar.playBidirectional(type, (StreamCodec) codec, (msg, ctx) -> ((IRTMessage) msg).handle(ctx));
+		if (toServer)
+		{
+			registrar.playToServer(type, (StreamCodec) codec, (msg, ctx) -> ((IRTMessage) msg).handle((net.neoforged.neoforge.network.handling.IPayloadContext) ctx));
+		}
+		else
+		{
+			// 1.21.9+: the client side handler of a clientbound payload is registered separately, on the client only (lumien.randomthings.client.ClientPayloads)
+			registrar.playToClient(type, (StreamCodec) codec);
+		}
 	}
 }

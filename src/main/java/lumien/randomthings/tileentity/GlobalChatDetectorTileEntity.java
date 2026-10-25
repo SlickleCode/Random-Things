@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -65,7 +65,7 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 
 	public void tick()
 	{
-		if (this.level.isClientSide || !pulsing)
+		if (this.level.isClientSide() || !pulsing)
 		{
 			return;
 		}
@@ -119,7 +119,7 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	 */
 	public boolean checkMessage(ServerPlayer player, String message)
 	{
-		if (this.level.isClientSide || !this.chatMessage.equals(message))
+		if (this.level.isClientSide() || !this.chatMessage.equals(message))
 		{
 			return false;
 		}
@@ -139,7 +139,7 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 			{
 				UUID cardOwner = IdCardItem.getUUID(stack);
 
-				if (cardOwner != null && cardOwner.equals(player.getGameProfile().getId()))
+				if (cardOwner != null && cardOwner.equals(player.getGameProfile().id()))
 				{
 					return true;
 				}
@@ -150,9 +150,16 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		compound.putBoolean("consume", consume);
 		compound.putString("chatMessage", chatMessage);
@@ -163,15 +170,20 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
 
-		consume = compound.getBoolean("consume");
-		chatMessage = compound.getString("chatMessage");
-		pulsing = compound.getBoolean("pulsing");
-		pulsingCounter = compound.getInt("pulsingCounter");
-		idCardInventory.deserializeNBT(registries, compound.getCompound("inventory"));
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+
+		consume = compound.getBooleanOr("consume", false);
+		chatMessage = compound.getStringOr("chatMessage", "");
+		pulsing = compound.getBooleanOr("pulsing", false);
+		pulsingCounter = compound.getIntOr("pulsingCounter", 0);
+		idCardInventory.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
 	}
 
 	@Override
@@ -184,5 +196,17 @@ public class GlobalChatDetectorTileEntity extends BlockEntity implements MenuPro
 	public Component getDisplayName()
 	{
 		return Component.translatable("block.randomthings.global_chat_detector");
+	}
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.GlobalChatDetectorBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
 	}
 }

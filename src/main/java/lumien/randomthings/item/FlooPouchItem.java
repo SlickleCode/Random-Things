@@ -27,9 +27,9 @@ public class FlooPouchItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flagIn) {
         Level worldIn = lumien.randomthings.client.ClientHooks.level();
-        tooltip.add(Component.literal(getFlooCount(stack) + " / " + MAX_CHARGE));
+        tooltip.accept(Component.literal(getFlooCount(stack) + " / " + MAX_CHARGE));
     }
 
     @Override

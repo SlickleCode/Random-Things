@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.EntityDetectorContainer;
 import lumien.randomthings.tileentity.EntityDetectorTileEntity.FILTER;
@@ -15,10 +14,9 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * EntityDetectorScreen. The original's icon-sprite invert/strong-output
@@ -27,7 +25,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/entity_detector.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/entity_detector.png");
 
 	public EntityDetectorScreen(EntityDetectorContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -78,16 +76,16 @@ public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetector
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, I18n.get("block.randomthings.entity_detector"), 22, 6, 4210752, false);
+		graphics.drawString(this.font, I18n.get("block.randomthings.entity_detector"), 22, 6, 0xFF404040, false);
 
 		String radiusX = I18n.get("gui.randomthings.entity_detector.range_x", this.menu.rangeX.get());
-		graphics.drawString(this.font, radiusX, imageWidth / 2 - this.font.width(radiusX) / 2 - 3, 26, 4210752, false);
+		graphics.drawString(this.font, radiusX, imageWidth / 2 - this.font.width(radiusX) / 2 - 3, 26, 0xFF404040, false);
 
 		String radiusY = I18n.get("gui.randomthings.entity_detector.range_y", this.menu.rangeY.get());
-		graphics.drawString(this.font, radiusY, imageWidth / 2 - this.font.width(radiusY) / 2 - 3, 46, 4210752, false);
+		graphics.drawString(this.font, radiusY, imageWidth / 2 - this.font.width(radiusY) / 2 - 3, 46, 0xFF404040, false);
 
 		String radiusZ = I18n.get("gui.randomthings.entity_detector.range_z", this.menu.rangeZ.get());
-		graphics.drawString(this.font, radiusZ, imageWidth / 2 - this.font.width(radiusZ) / 2 - 3, 66, 4210752, false);
+		graphics.drawString(this.font, radiusZ, imageWidth / 2 - this.font.width(radiusZ) / 2 - 3, 66, 0xFF404040, false);
 
 		FILTER filter = FILTER.values()[this.menu.filter.get()];
 		ScreenWidgets.buttons(this).get(6).setMessage(Component.literal(filterLabel(filter)));
@@ -99,11 +97,9 @@ public class EntityDetectorScreen extends AbstractContainerScreen<EntityDetector
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

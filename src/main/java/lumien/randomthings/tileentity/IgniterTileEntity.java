@@ -35,17 +35,29 @@ public class IgniterTileEntity extends BlockEntity implements MenuProvider
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 		compound.putInt("mode", this.mode.ordinal());
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
-		this.mode = MODE.values()[compound.getInt("mode")];
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.mode = MODE.values()[compound.getIntOr("mode", 0)];
 	}
 
 	public MODE mode()

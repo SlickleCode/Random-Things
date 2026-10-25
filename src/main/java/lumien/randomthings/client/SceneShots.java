@@ -36,6 +36,7 @@ public final class SceneShots
 	private static java.util.Map<String, Integer> sceneBefore;
 	private static boolean hoodPlayersAdded;
 	private static final java.util.List<Integer> remotePlayers = new java.util.ArrayList<>();
+	private static boolean cursorParked;
 	private static int creativePage;
 	private static int creativePages;
 
@@ -57,11 +58,11 @@ public final class SceneShots
 					ids.retainAll(java.util.Arrays.asList(only.split(",")));
 				}
 				mc.options.hideGui = true;
-				mc.player.connection.sendUnsignedCommand("gamemode creative");
+				mc.player.connection.sendCommand("gamemode creative");
 				RTDebug.log("SceneShots: {} scenes", ids.size());
 				for (String b : new String[] { "minecraft:plains", "minecraft:desert", "minecraft:snowy_plains" })
 				{
-					net.minecraft.world.level.biome.Biome biome = lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse(b));
+					net.minecraft.world.level.biome.Biome biome = lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse(b));
 					RTDebug.log("SceneShots: biome color {} = {} (biome {})", b, biome == null ? "no biome" : Integer.toHexString(lumien.randomthings.util.BiomeColorUtil.getBiomeColor(null, biome, mc.player.blockPosition())), biome);
 				}
 				phase = Phase.SCENES;
@@ -96,7 +97,7 @@ public final class SceneShots
 
 				if (!requested)
 				{
-					mc.player.connection.sendUnsignedCommand("rtdebug scene " + id);
+					mc.player.connection.sendCommand("rtdebug scene " + id);
 					requested = true;
 					sceneBefore = lumien.randomthings.debug.HookProbe.snapshot();
 					wait = RenderScenes.waitTicks(id);
@@ -134,6 +135,16 @@ public final class SceneShots
 					return true;
 				}
 
+				if (!cursorParked)
+				{
+					// the hovered slot's tooltip would cover items in the shot: park the real cursor in the window corner and shoot a few ticks later
+					org.lwjgl.glfw.GLFW.glfwSetCursorPos(mc.getWindow().handle(), 2.0, 2.0);
+					cursorParked = true;
+					wait = 3;
+					return false;
+				}
+
+				cursorParked = false;
 				save(mc, new File(mc.gameDirectory, "screenshots/randomthings_debug/scenes/items_" + creativePage + ".png"));
 				creativePage++;
 
@@ -220,10 +231,17 @@ public final class SceneShots
 		{
 			out.getParentFile().mkdirs();
 
-			try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget()))
+			Screenshot.takeScreenshot(mc.getMainRenderTarget(), image ->
 			{
-				image.writeToFile(out);
-			}
+				try (NativeImage shot = image)
+				{
+					shot.writeToFile(out);
+				}
+				catch (Exception e)
+				{
+					RTDebug.log("SceneShots: screenshot failed for {}: {}", out.getName(), e.toString());
+				}
+			});
 
 			RTDebug.log("SceneShots: saved {}", out.getName());
 		}

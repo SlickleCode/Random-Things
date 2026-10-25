@@ -15,7 +15,7 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.neoforge.common.loot.LootModifier;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import lumien.randomthings.itemhandler.ItemHandlerHelper;
 
 /**
  * Magnetic enchantment: block drops produced for a harvester holding a Magnetic tool go straight

@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.ChunkAnalyzerContainer;
 import lumien.randomthings.util.ChunkAnalyzerResult;
@@ -14,10 +13,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Port of 1.12.2's {@code GuiChunkAnalyzer}: a "Scan" button that asks the
@@ -29,7 +27,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * reopen the GUI without rescanning.
  */
 public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerContainer> {
-    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/chunk_analyzer.png");
+    private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/chunk_analyzer.png");
 
     private ChunkAnalyzerScanResultList scanResultList;
     private Button scanButton;
@@ -78,16 +76,14 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 0xFF404040, false);
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
     /**
@@ -96,12 +92,15 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
      * clicked but never dragged (reported 2026-10-03).
      */
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.scanResultList.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+    public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent rtEvent, double dragX, double dragY) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
+        if (this.scanResultList.mouseDragged(rtEvent, dragX, dragY)) {
             return true;
         }
 
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(rtEvent, dragX, dragY);
     }
 
     @Override
@@ -116,7 +115,7 @@ public class ChunkAnalyzerScreen extends AbstractContainerScreen<ChunkAnalyzerCo
 
         if (scanning) {
             String text = "Scanning Chunk" + dots();
-            graphics.drawString(this.font, text, this.leftPos + (int) (95 - this.font.width(text) / 2F), this.topPos + 65, 16777215, false);
+            graphics.drawString(this.font, text, this.leftPos + (int) (95 - this.font.width(text) / 2F), this.topPos + 65, 0xFFFFFFFF, false);
         }
 
         if (this.wasScanning && !scanning) {

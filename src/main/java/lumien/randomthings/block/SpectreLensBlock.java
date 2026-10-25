@@ -72,18 +72,18 @@ public class SpectreLensBlock extends Block implements EntityBlock {
 
     @Override
     public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
-        if (!worldIn.isClientSide && !isOnBeacon(worldIn, pos)) {
+        if (!worldIn.isClientSide() && !isOnBeacon(worldIn, pos)) {
             worldIn.destroyBlock(pos, true);
         }
     }
 
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isClientSide && placer instanceof Player) {
+        if (!worldIn.isClientSide() && placer instanceof Player) {
             GameProfile profile = ((Player) placer).getGameProfile();
 
             if (profile != null) {
-                UUID id = profile.getId();
+                UUID id = profile.id();
                 BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof SpectreLensTileEntity) {

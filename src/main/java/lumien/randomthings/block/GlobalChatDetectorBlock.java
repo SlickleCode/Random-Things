@@ -27,7 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -62,8 +62,7 @@ public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 	    return Tickers.of(type, ModTileEntityTypes.GLOBAL_CHAT_DETECTOR, (l, p, s2, be) -> be.tick());
 	}
 
-	@Override
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
@@ -83,12 +82,11 @@ public class GlobalChatDetectorBlock extends Block implements EntityBlock {
 			}
 		}
 
-		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

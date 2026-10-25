@@ -26,6 +26,6 @@ public final class FuelHelper
 			return server.fuelValues().burnDuration(stack);
 		}
 
-		return FMLEnvironment.dist.isClient() ? lumien.randomthings.client.ClientFuel.burnTime(stack) : 0;
+		return FMLEnvironment.getDist().isClient() ? lumien.randomthings.client.ClientFuel.burnTime(stack) : 0;
 	}
 }

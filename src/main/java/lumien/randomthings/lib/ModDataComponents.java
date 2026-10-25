@@ -2,7 +2,7 @@ package lumien.randomthings.lib;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
@@ -14,6 +14,6 @@ public class ModDataComponents
 
 	public static void register(RegisterEvent event)
 	{
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "fluid"), () -> FLUID);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "fluid"), () -> FLUID);
 	}
 }

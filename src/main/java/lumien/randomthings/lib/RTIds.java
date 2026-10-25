@@ -2,7 +2,7 @@ package lumien.randomthings.lib;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -14,15 +14,15 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
  */
 public final class RTIds
 {
-	private static final ThreadLocal<ResourceLocation> CURRENT = new ThreadLocal<>();
+	private static final ThreadLocal<Identifier> CURRENT = new ThreadLocal<>();
 
 	private RTIds()
 	{
 	}
 
-	static ResourceLocation swap(ResourceLocation id)
+	static Identifier swap(Identifier id)
 	{
-		ResourceLocation previous = CURRENT.get();
+		Identifier previous = CURRENT.get();
 
 		if (id == null)
 		{
@@ -36,9 +36,9 @@ public final class RTIds
 		return previous;
 	}
 
-	private static ResourceLocation current()
+	private static Identifier current()
 	{
-		ResourceLocation id = CURRENT.get();
+		Identifier id = CURRENT.get();
 
 		if (id == null)
 		{

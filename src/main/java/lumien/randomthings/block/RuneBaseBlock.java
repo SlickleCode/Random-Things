@@ -45,7 +45,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 0.1, 16);
 
     public RuneBaseBlock() {
-        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.SAND).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE).strength(0.2F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.SAND).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.SNARE).strength(0.2F).noCollision());
     }
 
     @Override
@@ -84,8 +84,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
         }
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -105,7 +104,6 @@ public class RuneBaseBlock extends Block implements EntityBlock {
                 }
             }
 
-            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
@@ -124,7 +122,7 @@ public class RuneBaseBlock extends Block implements EntityBlock {
      */
     @Override
     public void attack(BlockState state, Level worldIn, BlockPos pos, Player playerIn) {
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             Vec3 start = playerIn.getEyePosition(1.0F);
             Vec3 end = start.add(playerIn.getLookAngle().scale(6));
 

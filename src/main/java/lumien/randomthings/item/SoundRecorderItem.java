@@ -12,13 +12,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+
 
 /**
  * Sneak-right-click to toggle recording every sound you hear (up to 10, via
@@ -38,7 +38,7 @@ public class SoundRecorderItem extends Item implements MenuProvider{
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             if (playerIn.isShiftKeyDown()) {
                 boolean nowRecording = !isRecording(stack);
 
@@ -57,17 +57,17 @@ public class SoundRecorderItem extends Item implements MenuProvider{
     public static boolean isRecording(ItemStack stack) {
         CompoundTag compound = StackTag.get(stack);
 
-        return compound != null && compound.getBoolean("recording");
+        return compound != null && compound.getBooleanOr("recording", false);
     }
 
     public static void recordSound(ItemStack stack, String soundName) {
         CompoundTag compound = StackTag.get(stack);
 
-        if (compound == null || !compound.getBoolean("recording")) {
+        if (compound == null || !compound.getBooleanOr("recording", false)) {
             return;
         }
 
-        ListTag recordList = compound.getList("recordList", 8);
+        ListTag recordList = compound.getListOrEmpty("recordList");
 
         for (int i = 0; i < recordList.size(); i++) {
             if (recordList.getString(i).equals(soundName)) {
@@ -91,10 +91,10 @@ public class SoundRecorderItem extends Item implements MenuProvider{
         CompoundTag compound = StackTag.get(stack);
 
         if (compound != null) {
-            ListTag recordList = compound.getList("recordList", 8);
+            ListTag recordList = compound.getListOrEmpty("recordList");
 
             for (int i = 0; i < recordList.size(); i++) {
-                list.add(recordList.getString(i));
+                list.add(recordList.getStringOr(i, ""));
             }
         }
 

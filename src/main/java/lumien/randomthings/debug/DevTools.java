@@ -20,7 +20,7 @@ public final class DevTools
 		NeoForge.EVENT_BUS.addListener(RTTestRunner::onServerTick);
 		lumien.randomthings.debug.test.ServerAutoTest.init();
 
-		if (net.neoforged.fml.loading.FMLEnvironment.dist == Dist.CLIENT)
+		if (net.neoforged.fml.loading.FMLEnvironment.getDist() == Dist.CLIENT)
 		{
 			lumien.randomthings.client.DevToolsClient.init();
 		}

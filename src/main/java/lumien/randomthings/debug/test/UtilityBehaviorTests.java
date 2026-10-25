@@ -18,7 +18,7 @@ import lumien.randomthings.tileentity.PotionVaporizerTileEntity;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.Items;
@@ -35,7 +35,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
-import net.neoforged.neoforge.items.IItemHandler;
+import lumien.randomthings.itemhandler.IItemHandler;
 
 /**
  * Third batch of gameplay tests (backlog Q8): Entity Detector, Ender Mailbox delivery, Portkey priming and
@@ -122,7 +122,7 @@ final class UtilityBehaviorTests
 			BlockPos target = c.at(4, 1, 0);
 			c.set(observer, ModBlocks.REDSTONE_OBSERVER);
 			c.set(target, Blocks.STONE);
-			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
+			lumien.randomthings.item.RedstoneToolItem toolItem = (lumien.randomthings.item.RedstoneToolItem) net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("randomthings", "redstone_tool"));
 			ItemStack tool = new ItemStack(toolItem);
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, tool);
 
@@ -137,7 +137,7 @@ final class UtilityBehaviorTests
 		}));
 
 		tests.add(RTTest.named("behavior.loot.rolled_chest_biome_crystals_carry_a_biome").run(c -> {
-			net.minecraft.world.level.storage.loot.LootTable table = c.world.getServer().reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("minecraft", "chests/simple_dungeon")));
+			net.minecraft.world.level.storage.loot.LootTable table = c.world.getServer().reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, net.minecraft.resources.Identifier.fromNamespaceAndPath("minecraft", "chests/simple_dungeon")));
 			net.minecraft.world.level.storage.loot.LootParams params = new net.minecraft.world.level.storage.loot.LootParams.Builder(c.world).create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.EMPTY);
 			int crystals = 0;
 
@@ -168,7 +168,7 @@ final class UtilityBehaviorTests
 				throw new TestCtx.Skip("cannot read LootTable.pools: " + e);
 			}
 
-			java.util.function.BiPredicate<net.minecraft.resources.ResourceLocation, String> hasPool = (table, poolName) -> {
+			java.util.function.BiPredicate<net.minecraft.resources.Identifier, String> hasPool = (table, poolName) -> {
 				net.minecraft.world.level.storage.loot.LootTable loot = c.world.getServer().reloadableRegistries().getLootTable(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.LOOT_TABLE, table));
 
 				try
@@ -198,10 +198,10 @@ final class UtilityBehaviorTests
 			c.floor();
 			c.set(c.at(0, 1, 0), ModBlocks.ENDER_MAILBOX);
 			GameProfile profile = c.player.getGameProfile();
-			c.world.getServer().getProfileCache().add(profile);
+			c.world.getServer().services().nameToIdCache().add(new net.minecraft.server.players.NameAndId(profile));
 
 			ItemStack letter = new ItemStack(ModItems.ENDER_LETTER);
-			StackTag.edit(letter, t -> t.putString("receiver", profile.getName()));
+			StackTag.edit(letter, t -> t.putString("receiver", profile.name()));
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, letter);
 			c.player.setShiftKeyDown(true);
 
@@ -209,12 +209,12 @@ final class UtilityBehaviorTests
 			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(pos), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(pos), Direction.UP, pos, false));
 			c.player.setShiftKeyDown(false);
 
-			IItemHandler inbox = EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.getId());
+			IItemHandler inbox = EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.id());
 			c.eq(1, TestCtx.count(inbox, ModItems.ENDER_LETTER), "letters in the receiver's inbox");
 			ItemStack delivered = inbox.getStackInSlot(0);
 			c.check(StackTag.get(delivered) != null && StackTag.getBoolean(delivered, "received"), "delivered letter is marked received");
 			c.check(c.player.getMainHandItem().isEmpty(), "the sent letter is consumed from the hand");
-			EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.getId()).extractItem(0, 1, false);
+			EnderLetterHandler.get(c.world).getOrCreateInventoryForPlayer(profile.id()).extractItem(0, 1, false);
 		}));
 
 		tests.add(RTTest.named("behavior.ender_mailbox.unknown_receiver_keeps_the_letter").run(c -> {
@@ -222,7 +222,7 @@ final class UtilityBehaviorTests
 			c.set(c.at(0, 1, 0), ModBlocks.ENDER_MAILBOX);
 			String unknown = "NobodyHasThisName_" + UUID.randomUUID().toString().substring(0, 6);
 
-			if (c.world.getServer().getProfileCache().get(unknown) != null)
+			if (c.world.getServer().services().nameToIdCache().get(unknown).isPresent())
 			{
 				// An integrated (offline) server resolves any name to an offline profile, so there is no "unknown" receiver here.
 				throw new TestCtx.Skip("this server resolves arbitrary names to profiles");
@@ -247,7 +247,7 @@ final class UtilityBehaviorTests
 
 			for (String name : seeThrough)
 			{
-				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", name));
+				net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("randomthings", name));
 
 				if (block == null || block == Blocks.AIR)
 				{
@@ -264,7 +264,7 @@ final class UtilityBehaviorTests
 			BlockPos radar = c.at(0, 1, 0);
 			c.set(radar, ModBlocks.BIOME_RADAR);
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse("minecraft:plains")));
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, crystal);
 			lumien.randomthings.debug.BlockUse.use(c.world.getBlockState(radar), c.world, c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(radar), Direction.UP, radar, false));
 			lumien.randomthings.tileentity.BiomeRadarTileEntity te = c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class);
@@ -272,7 +272,7 @@ final class UtilityBehaviorTests
 			c.check(c.player.getMainHandItem().isEmpty(), "and it left the player's hand");
 			// what the client receives (getUpdatePacket's tag) must hold the crystal, or the radar shows nothing
 			lumien.randomthings.tileentity.BiomeRadarTileEntity client = new lumien.randomthings.tileentity.BiomeRadarTileEntity(radar, c.world.getBlockState(radar));
-			client.loadAdditional(te.getUpdateTag(c.world.registryAccess()), c.world.registryAccess());
+			client.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, c.world.registryAccess(), te.getUpdateTag(c.world.registryAccess())));
 			c.check(client.getCurrentCrystal().getItem() == ModItems.BIOME_CRYSTAL, "the update tag carries the crystal to the client");
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 		}));
@@ -289,7 +289,7 @@ final class UtilityBehaviorTests
 			}
 
 			ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:plains")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse("minecraft:plains")));
 			c.tile(radar, lumien.randomthings.tileentity.BiomeRadarTileEntity.class).setCrystal(crystal);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -297,7 +297,7 @@ final class UtilityBehaviorTests
 			c.eq(lumien.randomthings.tileentity.BiomeRadarTileEntity.STATE.FINISHED, te.getState(), "a plains crystal in a plains world finishes at once");
 			c.set(c.at(1, 1, 0), Blocks.AIR);
 			ItemStack desert = new ItemStack(ModItems.BIOME_CRYSTAL);
-			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.ResourceLocation.parse("minecraft:desert")));
+			lumien.randomthings.item.BiomeCrystalItem.setBiome(desert, lumien.randomthings.util.BiomeUtil.byId(net.minecraft.resources.Identifier.parse("minecraft:desert")));
 			te.setCrystal(desert);
 			c.set(c.at(1, 1, 0), Blocks.REDSTONE_BLOCK);
 		}).waitTicks(40).run(c -> {
@@ -308,8 +308,8 @@ final class UtilityBehaviorTests
 		// ---- Enchant glint colour (Dyeing Machine glint result and the per-item tints) ---------------------------
 		tests.add(RTTest.named("behavior.glint.colour_priority_matches_1_12_2").run(c -> {
 			int vanilla = lumien.randomthings.asm.GlintColors.VANILLA;
-			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "redstone_tool"));
-			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("randomthings", "escape_rope"));
+			net.minecraft.world.item.Item tool = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("randomthings", "redstone_tool"));
+			net.minecraft.world.item.Item rope = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("randomthings", "escape_rope"));
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(ItemStack.EMPTY, vanilla), "empty stack keeps vanilla");
 			c.eq(vanilla, lumien.randomthings.asm.GlintColors.colorFor(new ItemStack(Items.DIAMOND_SWORD), vanilla), "an ordinary item keeps vanilla");
 			ItemStack tagged = new ItemStack(Items.IRON_HELMET);
@@ -337,8 +337,8 @@ final class UtilityBehaviorTests
 			BlockPos target = c.at(8, 0, 0);
 			ModItems.PORTKEY.useOn(new UseOnContext(c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(target), Direction.UP, target, false)));
 			CompoundTag tag = StackTag.get(key);
-			c.check(tag != null && tag.getBoolean("hasTarget"), "right-click must bind a target");
-			c.eq(target.getX(), tag.getInt("targetX"), "bound x");
+			c.check(tag != null && tag.getBooleanOr("hasTarget", false), "right-click must bind a target");
+			c.eq(target.getX(), tag.getIntOr("targetX", 0), "bound x");
 			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(key), "a freshly bound Portkey still glows (priming counter 0)");
 			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(new ItemStack(ModItems.PORTKEY)), "an unbound Portkey always glows");
 			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
@@ -347,14 +347,14 @@ final class UtilityBehaviorTests
 			dropped.setPickUpDelay(32767);
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
-			c.check(StackTag.get(drop.getItem()).getInt("dropCounter") < 100, "not primed yet after about 60 ticks");
+			c.check(StackTag.get(drop.getItem()).getIntOr("dropCounter", 0) < 100, "not primed yet after about 60 ticks");
 			c.check(((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(drop.getItem()), "still glowing while the counter is below 100");
 			c.player.setPos(c.origin.getX() + 0.5, c.origin.getY() + 1, c.origin.getZ() + 0.5);
 			NeoForge.EVENT_BUS.post(new ItemEntityPickupEvent.Pre(c.player, drop));
 			c.check(c.player.getX() < c.origin.getX() + 3, "an unprimed Portkey must not teleport the picker-upper (x=" + c.player.getX() + ")");
 		}).waitTicks(60).run(c -> {
 			ItemEntity drop = c.itemEntities().get(0);
-			c.check(StackTag.get(drop.getItem()).getInt("dropCounter") > 100, "primed after more than 100 ticks");
+			c.check(StackTag.get(drop.getItem()).getIntOr("dropCounter", 0) > 100, "primed after more than 100 ticks");
 			c.check(!((lumien.randomthings.item.PortkeyItem) ModItems.PORTKEY).isFoil(drop.getItem()), "the glow stops once the counter has passed 100 (primed and bound)");
 
 			if (c.player.connection == null || c.player.connection.getClass() != ServerGamePacketListenerImpl.class)
@@ -417,7 +417,7 @@ final class UtilityBehaviorTests
 		}).waitTicks(160).run(c -> {
 			PotionVaporizerTileEntity te = c.tile(c.at(-2, 2, 0), PotionVaporizerTileEntity.class);
 			Pig pig = c.world.getEntitiesOfClass(Pig.class, c.area()).get(0);
-			c.check(pig.getEffect(MobEffects.MOVEMENT_SPEED) != null, "a mob in the room must receive the potion effect");
+			c.check(pig.getEffect(MobEffects.SPEED) != null, "a mob in the room must receive the potion effect");
 			c.eq(Items.GLASS_BOTTLE, te.itemHandler().getStackInSlot(2).getItem(), "an empty bottle is returned in the output slot");
 			c.check(te.itemHandler().getStackInSlot(1).isEmpty(), "the potion was loaded into the tank");
 		}));

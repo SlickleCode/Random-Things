@@ -51,21 +51,21 @@ public class SpectreChargerItem extends Item {
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isClientSide) {
-            StackTag.edit(stack, tag -> tag.putBoolean("enabled", !tag.getBoolean("enabled")));
+        if (!worldIn.isClientSide()) {
+            StackTag.edit(stack, tag -> tag.putBoolean("enabled", !tag.getBooleanOr("enabled", false)));
         }
 
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (worldIn.isClientSide || !(entityIn instanceof ServerPlayer) || !StackTag.has(stack) || !StackTag.getBoolean(stack, "enabled")) {
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel worldIn, net.minecraft.world.entity.Entity entityIn, net.minecraft.world.entity.EquipmentSlot rtSlot) {
+        if (worldIn.isClientSide() || !(entityIn instanceof ServerPlayer) || !StackTag.has(stack) || !StackTag.getBoolean(stack, "enabled")) {
             return;
         }
 
         ServerPlayer player = (ServerPlayer) entityIn;
-        IEnergyStorage pool = SpectreCoilHandler.get(worldIn).getStorageCoil(player.getGameProfile().getId());
+        IEnergyStorage pool = SpectreCoilHandler.get(worldIn).getStorageCoil(player.getGameProfile().id());
 
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
             if (tier != Tier.GENESIS && pool.getEnergyStored() == 0) {
@@ -73,7 +73,7 @@ public class SpectreChargerItem extends Item {
             }
 
             ItemStack targetStack = player.getInventory().getItem(slot);
-            IEnergyStorage targetStorage = targetStack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.ITEM);
+            IEnergyStorage targetStorage = lumien.randomthings.util.CapUtil.energyItem(targetStack);
 
             if (targetStorage == null || !targetStorage.canReceive()) {
                 continue;
@@ -99,8 +99,8 @@ public class SpectreChargerItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, net.minecraft.world.item.TooltipFlag flag) {
         String display = tier == Tier.GENESIS ? "Infinite" : Integer.toString(tier.rate);
-        tooltip.add(Component.translatable("item.randomthings.spectre_charger.charge", display));
+        tooltip.accept(Component.translatable("item.randomthings.spectre_charger.charge", display));
     }
 }

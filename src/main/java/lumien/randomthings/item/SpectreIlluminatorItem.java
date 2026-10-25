@@ -30,7 +30,7 @@ public class SpectreIlluminatorItem extends Item {
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             ChunkPos cp = new ChunkPos(pos);
 
             boolean alreadyLit = false;

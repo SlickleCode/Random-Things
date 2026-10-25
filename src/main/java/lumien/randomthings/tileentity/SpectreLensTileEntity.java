@@ -64,13 +64,13 @@ public class SpectreLensTileEntity extends BlockEntity {
     public void setRemoved() {
         super.setRemoved();
 
-        if (owner != null && !level.isClientSide) {
+        if (owner != null && !level.isClientSide()) {
             SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
         }
     }
 
     public void tick() {
-        if (level.isClientSide || owner == null || level.getGameTime() % 80 != 0) {
+        if (level.isClientSide() || owner == null || level.getGameTime() % 80 != 0) {
             return;
         }
 
@@ -98,21 +98,33 @@ public class SpectreLensTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (owner != null) {
-            compound.putUUID("owner", owner);
+            compound.put("owner", lumien.randomthings.util.TagIO.writeUuid(owner));
         }
 
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         if (compound.contains("owner")) {
-            owner = compound.getUUID("owner");
+            owner = lumien.randomthings.util.TagIO.readUuid(compound.get("owner"));
         }
     }
 }

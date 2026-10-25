@@ -44,7 +44,7 @@ public class FlooSignItem extends Item {
             return InteractionResult.PASS;
         }
 
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 

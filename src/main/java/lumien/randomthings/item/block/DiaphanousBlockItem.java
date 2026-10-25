@@ -12,7 +12,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.BuiltInRegistries;
 
@@ -58,7 +58,7 @@ public class DiaphanousBlockItem extends BlockItem {
         Block displayBlock = Blocks.STONE;
 
         if (StackTag.contains(stack, "block")) {
-            Block resolved = BuiltInRegistries.BLOCK.getValue(ResourceLocation.parse(StackTag.getString(stack, "block")));
+            Block resolved = BuiltInRegistries.BLOCK.getValue(Identifier.parse(StackTag.getString(stack, "block")));
 
             if (resolved != null) {
                 displayBlock = resolved;

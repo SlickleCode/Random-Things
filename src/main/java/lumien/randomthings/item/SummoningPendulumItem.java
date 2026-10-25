@@ -18,7 +18,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
@@ -44,7 +44,7 @@ public class SummoningPendulumItem extends Item {
             return 0;
         }
 
-        return StackTag.get(stack).getList("entitys", 10).size();
+        return StackTag.get(stack).getListOrEmpty("entitys").size();
     }
 
     @Override
@@ -68,30 +68,30 @@ public class SummoningPendulumItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag advanced) {
         Level world = lumien.randomthings.client.ClientHooks.level();
         int entityCount = getEntityCount(stack);
 
-        if (Screen.hasShiftDown() && entityCount != 0) {
-            ListTag tagList = StackTag.get(stack).getList("entitys", 10);
+        if (net.minecraft.client.Minecraft.getInstance().hasShiftDown() && entityCount != 0) {
+            ListTag tagList = StackTag.get(stack).getListOrEmpty("entitys");
 
             for (int i = 0; i < tagList.size(); i++) {
-                ResourceLocation entityLocation = ResourceLocation.parse(tagList.getCompound(i).getString("id"));
+                Identifier entityLocation = Identifier.parse(tagList.getCompoundOrEmpty(i).getStringOr("id", ""));
                 EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getValue(entityLocation);
 
                 if (type != null) {
-                    tooltip.add(Component.literal("- ").append(type.getDescription()));
+                    tooltip.accept(Component.literal("- ").append(type.getDescription()));
                 }
             }
             return;
         }
 
-        tooltip.add(Component.translatable(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
+        tooltip.accept(Component.translatable(entityCount == 1 ? "tooltip.randomthings.summoning_pendulum.entity_count.singular" : "tooltip.randomthings.summoning_pendulum.entity_count.plural", entityCount));
     }
 
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity entity, InteractionHand hand) {
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             return InteractionResult.PASS;
         }
 
@@ -99,10 +99,9 @@ public class SummoningPendulumItem extends Item {
             ItemStack heldStack = player.getMainHandItem();
             CompoundTag compound = StackTag.has(heldStack) ? StackTag.get(heldStack) : new CompoundTag();
 
-            ListTag tagList = compound.getList("entitys", 10);
+            ListTag tagList = compound.getListOrEmpty("entitys");
             if (tagList.size() < 5) {
-                CompoundTag entityNBT = new CompoundTag();
-                entity.save(entityNBT);
+                CompoundTag entityNBT = lumien.randomthings.util.TagIO.saveEntity(entity);
                 tagList.add(entityNBT);
                 entity.discard();
                 entity.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.5F);
@@ -124,17 +123,17 @@ public class SummoningPendulumItem extends Item {
         Level world = context.getLevel();
         Player player = context.getPlayer();
 
-        if (!world.isClientSide && player != null) {
+        if (!world.isClientSide() && player != null) {
             CompoundTag compound = StackTag.get(stack);
             if (compound != null) {
-                ListTag tagList = compound.getList("entitys", 10);
+                ListTag tagList = compound.getListOrEmpty("entitys");
                 if (tagList.size() > 0) {
-                    CompoundTag entityNBT = tagList.getCompound(0);
+                    CompoundTag entityNBT = tagList.getCompoundOrEmpty(0);
                     tagList.remove(0);
                     compound.put("entitys", tagList);
                     StackTag.set(stack, compound);
 
-                    EntityType.create(entityNBT, world, net.minecraft.world.entity.EntitySpawnReason.LOAD).ifPresent(entity -> {
+                    lumien.randomthings.util.TagIO.createEntity(entityNBT, world).ifPresent(entity -> {
                         entity.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
                         world.addFreshEntity(entity);
                         player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 0.5F);

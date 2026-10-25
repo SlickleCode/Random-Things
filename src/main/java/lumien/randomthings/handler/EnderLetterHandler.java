@@ -7,7 +7,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +25,9 @@ import java.util.UUID;
  */
 public class EnderLetterHandler extends SavedData {
     private static final String ID = "randomthings_ender_letters";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<EnderLetterHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, EnderLetterHandler::new,
+            CompoundTag.CODEC.xmap(tag -> EnderLetterHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final Map<UUID, ItemStackHandler> inventoryMap = new HashMap<>();
 
@@ -38,7 +41,7 @@ public class EnderLetterHandler extends SavedData {
     }
 
     public static EnderLetterHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(EnderLetterHandler::new, EnderLetterHandler::loadFrom, null), ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(TYPE);
     }
 
     public ItemStackHandler getOrCreateInventoryForPlayer(UUID playerUUID) {
@@ -83,21 +86,20 @@ public class EnderLetterHandler extends SavedData {
     }
 
     public void readData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries) {
-        ListTag entryList = nbt.getList("entryList", 10);
+        ListTag entryList = nbt.getListOrEmpty("entryList");
 
         for (int i = 0; i < entryList.size(); i++) {
-            CompoundTag entryCompound = entryList.getCompound(i);
-            UUID uuid = UUID.fromString(entryCompound.getString("uuid"));
+            CompoundTag entryCompound = entryList.getCompoundOrEmpty(i);
+            UUID uuid = UUID.fromString(entryCompound.getStringOr("uuid", ""));
 
             ItemStackHandler handler = newMailboxHandler();
-            handler.deserializeNBT(registries, entryCompound.getCompound("inventory"));
+            handler.deserializeNBT(registries, entryCompound.getCompoundOrEmpty("inventory"));
 
             inventoryMap.put(uuid, handler);
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag entryList = new ListTag();
 
         for (Map.Entry<UUID, ItemStackHandler> entry : inventoryMap.entrySet()) {

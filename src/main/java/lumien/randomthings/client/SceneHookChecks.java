@@ -25,7 +25,8 @@ final class SceneHookChecks
 
 	static
 	{
-		EXPECT.put("armor_and_items", new String[] { "armor_dye_applied", "item_dye_applied", "glint_tint_applied" });
+		EXPECT.put("armor_and_items", new String[] { "armor_dye_applied", "item_dye_applied", "glint_tint_applied", "glint_tint_armor", "glint_modulated" });
+		EXPECT.put("armor_glint", new String[] { "glint_tint_armor" });
 		EXPECT.put("light_redirector", new String[] { "light_redirect_applied" });
 		EXPECT.put("magic_hood", new String[] { "hood_name_hidden" });
 		EXPECT.put("rain_with_shield", new String[] { "rain_shield_render" });
@@ -57,6 +58,14 @@ final class SceneHookChecks
 			{
 				failed++;
 				LINES.add("FAIL " + scene + ": the coremod hook " + hook + " was never hit while the scene rendered");
+			}
+		}
+
+		for (Map.Entry<String, Integer> e : HookProbe.snapshot().entrySet())
+		{
+			if (e.getKey().startsWith("glint_modulated:"))
+			{
+				LINES.add("info " + scene + ": " + e.getKey() + " x" + e.getValue());
 			}
 		}
 

@@ -20,7 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.context.UseOnContext;
 
@@ -53,7 +53,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -107,7 +107,7 @@ public class RandomThings {
         modEventBus.addListener(this::setupCommon);
         modEventBus.addListener(this::registerEntityAttributes);
         // All client-only wiring lives in ClientSetup; this class must not reference client classes (dedicated server).
-        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+        if (net.neoforged.fml.loading.FMLEnvironment.getDist() == net.neoforged.api.distmarker.Dist.CLIENT) {
             lumien.randomthings.client.ClientSetup.init(modEventBus);
         }
 
@@ -160,10 +160,10 @@ public class RandomThings {
             if (targetState.getBlock() == Blocks.SLIME_BLOCK) {
                 player.swing(event.getHand());
 
-                if (!world.isClientSide) {
+                if (!world.isClientSide()) {
                     world.setBlockAndUpdate(pos, ModBlocks.COMPRESSED_SLIME_BLOCK.defaultBlockState());
                     world.playSound(null, pos, Blocks.SLIME_BLOCK.defaultBlockState().getSoundType().getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F);
-                    equipped.hurtAndBreak(1, player, net.minecraft.world.entity.LivingEntity.getSlotForHand(event.getHand()));
+                    equipped.hurtAndBreak(1, player, event.getHand().asEquipmentSlot());
                 }
             } else if (targetState.getBlock() == ModBlocks.COMPRESSED_SLIME_BLOCK) {
                 int currentCompression = targetState.getValue(CompressedSlimeBlock.COMPRESSION);
@@ -171,10 +171,10 @@ public class RandomThings {
                 if (currentCompression < 2) {
                     player.swing(event.getHand());
 
-                    if (!world.isClientSide) {
+                    if (!world.isClientSide()) {
                         world.setBlockAndUpdate(pos, targetState.setValue(CompressedSlimeBlock.COMPRESSION, currentCompression + 1));
                         world.playSound(null, pos, Blocks.SLIME_BLOCK.defaultBlockState().getSoundType().getPlaceSound(), SoundSource.PLAYERS, 1.0F, 0.8F - ((currentCompression + 1) * 0.2F));
-                        equipped.hurtAndBreak(1, player, net.minecraft.world.entity.LivingEntity.getSlotForHand(event.getHand()));
+                        equipped.hurtAndBreak(1, player, event.getHand().asEquipmentSlot());
                     }
                 }
             }
@@ -190,7 +190,7 @@ public class RandomThings {
         NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
             Level world = event.getLevel();
 
-            if (world.isClientSide || event.getHand() != InteractionHand.MAIN_HAND) {
+            if (world.isClientSide() || event.getHand() != InteractionHand.MAIN_HAND) {
                 return;
             }
 
@@ -218,7 +218,7 @@ public class RandomThings {
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) -> {
-            if (event.isCanceled() || event.getEntity().level().isClientSide || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
+            if (event.isCanceled() || event.getEntity().level().isClientSide() || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
                 return;
             }
 
@@ -319,13 +319,13 @@ public class RandomThings {
         // input climbing toward the limit, not compensating for anything
         // growing on its own anymore.
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(net.minecraft.world.entity.vehicle.AbstractBoat.class), e -> true)) {
-                if (entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.AbstractBoat) entity);
+            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(net.minecraft.world.entity.vehicle.boat.AbstractBoat.class), e -> true)) {
+                if (entity instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.boat.AbstractBoat) entity);
                 }
             }
         });
@@ -335,14 +335,14 @@ public class RandomThings {
         // own spawn tile (or fully back home if they don't have a cube at all). Direct
         // port of 1.12.2's RTEventHandler#livingUpdate's Spectre-dimension branch.
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.tick.EntityTickEvent.Pre event) -> {
-            if (event.getEntity().level().isClientSide || !(event.getEntity() instanceof ServerPlayer)) {
+            if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer)) {
                 return;
             }
 
             ServerPlayer player = (ServerPlayer) event.getEntity();
 
             if (lumien.randomthings.handler.ModDimensions.isSpectre(player.level())) {
-                lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.getServer());
+                lumien.randomthings.handler.spectre.SpectreHandler spectreHandler = lumien.randomthings.handler.spectre.SpectreHandler.getInstance(player.level().getServer());
 
                 if (spectreHandler != null) {
                     spectreHandler.checkPosition(player);
@@ -355,7 +355,7 @@ public class RandomThings {
         // on the item itself (Item.onEntityItemUpdate doesn't exist in this Forge
         // build).
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
@@ -366,7 +366,7 @@ public class RandomThings {
         // countdown - same "no Item.onEntityItemUpdate hook in this Forge build"
         // finding as StableEnderpearlItem above, same fix.
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
@@ -377,7 +377,7 @@ public class RandomThings {
         // "no Item.onEntityItemUpdate hook in this Forge build" finding as
         // StableEnderpearlItem/FlooTokenItem above, same fix.
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
@@ -393,25 +393,25 @@ public class RandomThings {
             ItemEntity ei = event.getItemEntity();
             ItemStack stack = ei.getItem();
 
-            if (ei.level().isClientSide || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
+            if (ei.level().isClientSide() || !(stack.getItem() instanceof lumien.randomthings.item.PortkeyItem)) {
                 return;
             }
 
             CompoundTag compound = StackTag.get(stack);
 
-            if (compound == null || !compound.getBoolean("hasTarget") || compound.getInt("dropCounter") <= 100) {
+            if (compound == null || !compound.getBooleanOr("hasTarget", false) || compound.getIntOr("dropCounter", 0) <= 100) {
                 return;
             }
 
             Player player = event.getPlayer();
 
-            if (!(player instanceof ServerPlayer) || !player.level().dimension().location().toString().equals(compound.getString("dimension"))) {
+            if (!(player instanceof ServerPlayer) || !player.level().dimension().identifier().toString().equals(compound.getStringOr("dimension", ""))) {
                 return;
             }
 
-            int targetX = compound.getInt("targetX");
-            int targetY = compound.getInt("targetY");
-            int targetZ = compound.getInt("targetZ");
+            int targetX = compound.getIntOr("targetX", 0);
+            int targetY = compound.getIntOr("targetY", 0);
+            int targetZ = compound.getIntOr("targetZ", 0);
 
             java.util.List<BlockPos> possiblePositions = new java.util.ArrayList<>();
 
@@ -438,7 +438,7 @@ public class RandomThings {
                 serverPlayer.connection.teleport(teleportTarget.getX() + 0.5, teleportTarget.getY() + 1, teleportTarget.getZ() + 0.5, player.getYRot(), player.getXRot());
 
                 ei.discard();
-                event.setCanPickup(net.neoforged.neoforge.common.util.TriState.FALSE);
+                event.setCanPickup(net.minecraft.util.TriState.FALSE);
             }
         });
 
@@ -450,7 +450,7 @@ public class RandomThings {
         // 1.12.2's own RTEventHandler#playerClone (HIGHEST priority, main
         // inventory only - Baubles isn't present in this port).
         NeoForge.EVENT_BUS.addListener(net.neoforged.bus.api.EventPriority.HIGHEST, (net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone event) -> {
-            if (!event.isWasDeath() || event.getOriginal() == null || event.getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || ((ServerLevel) event.getEntity().level()).getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
+            if (!event.isWasDeath() || event.getOriginal() == null || event.getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || ((ServerLevel) event.getEntity().level()).getGameRules().get(net.minecraft.world.level.gamerules.GameRules.KEEP_INVENTORY)) {
                 return;
             }
 
@@ -491,12 +491,12 @@ public class RandomThings {
         // (same chance formula, same FakePlayer exclusion so things like
         // Advanced Item Collector's fake-player harvesting never trigger it).
         NeoForge.EVENT_BUS.addListener((LivingDeathEvent event) -> {
-            if (event.getEntity().level().isClientSide) {
+            if (event.getEntity().level().isClientSide()) {
                 return;
             }
 
             if (event.getEntity() instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) {
-                RTWorldInformationHandler.get(event.getEntity().getServer()).setEnderDragonDefeated(true);
+                RTWorldInformationHandler.get(event.getEntity().level().getServer()).setEnderDragonDefeated(true);
             }
 
             if (event.getSource().getEntity() == null || event.getSource().getEntity() instanceof net.neoforged.neoforge.common.util.FakePlayer || !(event.getSource().getEntity() instanceof Player) || event.getEntity() instanceof lumien.randomthings.entity.SpiritEntity) {
@@ -505,7 +505,7 @@ public class RandomThings {
 
             double chance = lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_NORMAL.get();
 
-            RTWorldInformationHandler worldInfo = RTWorldInformationHandler.get(event.getEntity().getServer());
+            RTWorldInformationHandler worldInfo = RTWorldInformationHandler.get(event.getEntity().level().getServer());
 
             if (worldInfo.isDragonDefeated()) {
                 chance += lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_END_INCREASE.get();
@@ -513,8 +513,8 @@ public class RandomThings {
 
             Level spiritWorld = event.getEntity().level();
 
-            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && !spiritWorld.isDay()) {
-                float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && !spiritWorld.isBrightOutside()) {
+                float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[(int) ((spiritWorld.getDayTime() / 24000L % 8L + 8L) % 8L)];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
             }
@@ -549,7 +549,7 @@ public class RandomThings {
         // see that class's own javadoc for why this is spread out instead of done
         // all at once.
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
@@ -587,7 +587,7 @@ public class RandomThings {
         // StableEnderpearlItem/FlooTokenItem/PortkeyItem above, just per-world state
         // instead of per-entity.
         NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
-            if (event.getLevel().isClientSide) {
+            if (event.getLevel().isClientSide()) {
                 return;
             }
 
@@ -645,7 +645,7 @@ public class RandomThings {
         // Hood state actually changes, letting the very next tick's already-correct vanilla
         // logic (and the listener above) do the real work.
         NeoForge.EVENT_BUS.addListener((LivingEquipmentChangeEvent event) -> {
-            if (event.getEntity().level().isClientSide || event.getSlot() != EquipmentSlot.HEAD) {
+            if (event.getEntity().level().isClientSide() || event.getSlot() != EquipmentSlot.HEAD) {
                 return;
             }
 
@@ -772,7 +772,7 @@ public class RandomThings {
         return true;
     }
 
-    @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber
     public static class RegistryEvents {
         @SubscribeEvent
         public static void onRegister(final RegisterEvent event) {
@@ -782,7 +782,7 @@ public class RandomThings {
             } else if (key.equals(Registries.ITEM)) {
                 ModItems.registerItems(new RTRegistry<>(event, Registries.ITEM));
             } else if (key.equals(Registries.CREATIVE_MODE_TAB)) {
-                event.register(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
+                event.register(Registries.CREATIVE_MODE_TAB, Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "randomthings"), ModItems::createItemGroup);
             } else if (key.equals(Registries.BLOCK_ENTITY_TYPE)) {
                 ModTileEntityTypes.registerTypes(new RTRegistry<>(event, Registries.BLOCK_ENTITY_TYPE));
             } else if (key.equals(Registries.MENU)) {
@@ -790,7 +790,7 @@ public class RandomThings {
             } else if (key.equals(Registries.RECIPE_SERIALIZER)) {
                 ModRecipeSerializers.registerRecipeSerializers(new RTRegistry<>(event, Registries.RECIPE_SERIALIZER));
             } else if (key.equals(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
-                event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
+                event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
             } else if (key.equals(Registries.MOB_EFFECT)) {
                 ModEffects.registerEffects(new RTRegistry<>(event, Registries.MOB_EFFECT));
             } else if (key.equals(Registries.ENTITY_TYPE)) {
@@ -798,7 +798,7 @@ public class RandomThings {
             } else if (key.equals(Registries.CHUNK_GENERATOR)) {
                 event.register(Registries.CHUNK_GENERATOR, lumien.randomthings.handler.ModDimensions.SPECTRE_ID, () -> lumien.randomthings.handler.spectre.SpectreChunkGenerator.CODEC);
             } else if (key.equals(Registries.LOOT_FUNCTION_TYPE)) {
-                event.register(Registries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
+                event.register(Registries.LOOT_FUNCTION_TYPE, Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
             } else if (key.equals(Registries.DATA_COMPONENT_TYPE)) {
                 ModDataComponents.register(event);
             } else if (key.equals(Registries.FEATURE)) {

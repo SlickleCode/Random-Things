@@ -72,8 +72,7 @@ public class BlockBreakerBlock extends Block implements EntityBlock {
         }
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, net.minecraft.core.BlockPos pos, BlockState newState, boolean isMoving) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -82,6 +81,5 @@ public class BlockBreakerBlock extends Block implements EntityBlock {
             }
         }
 
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 }

@@ -50,7 +50,7 @@ public final class ParticleProbe
 				{
 					Type t = f.getGenericType();
 
-					if (Map.class.isAssignableFrom(f.getType()) && t.toString().contains("Queue") && t.toString().contains("ParticleRenderType"))
+					if (Map.class.isAssignableFrom(f.getType()) && t.toString().contains("ParticleGroup") && t.toString().contains("ParticleRenderType") && !t.toString().contains("Function"))
 					{
 						f.setAccessible(true);
 						byTypeField = f;
@@ -62,9 +62,9 @@ public final class ParticleProbe
 			int count = 0;
 			Vec3 p = mc.player.position();
 
-			for (Queue<Particle> queue : ((Map<?, Queue<Particle>>) byTypeField.get(mc.particleEngine)).values())
+			for (net.minecraft.client.particle.ParticleGroup<?> group : ((Map<?, net.minecraft.client.particle.ParticleGroup<?>>) byTypeField.get(mc.particleEngine)).values())
 			{
-				for (Particle particle : queue)
+				for (Particle particle : (Queue<? extends Particle>) group.getAll())
 				{
 					if (particle instanceof SpellParticle && particle.getBoundingBox().getCenter().distanceTo(p) < 3.0)
 					{

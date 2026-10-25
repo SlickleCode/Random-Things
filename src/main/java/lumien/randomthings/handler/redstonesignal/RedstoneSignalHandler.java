@@ -32,6 +32,9 @@ import java.util.List;
  */
 public class RedstoneSignalHandler extends SavedData {
     private static final String ID = "randomthings_redstone_signals";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<RedstoneSignalHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, RedstoneSignalHandler::new,
+            CompoundTag.CODEC.xmap(tag -> RedstoneSignalHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final List<RedstoneSignal> signals = new ArrayList<>();
 
@@ -45,7 +48,7 @@ public class RedstoneSignalHandler extends SavedData {
     }
 
     public static RedstoneSignalHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(RedstoneSignalHandler::new, RedstoneSignalHandler::loadFrom, null), ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(TYPE);
     }
 
     public synchronized boolean addSignal(Level world, BlockPos pos, int duration, int strength) {
@@ -102,17 +105,16 @@ public class RedstoneSignalHandler extends SavedData {
     }
 
     public void readData(CompoundTag nbt) {
-        ListTag signalList = nbt.getList("signals", 10);
+        ListTag signalList = nbt.getListOrEmpty("signals");
 
         for (int i = 0; i < signalList.size(); i++) {
             RedstoneSignal signal = new RedstoneSignal();
-            signal.read(signalList.getCompound(i));
+            signal.read(signalList.getCompoundOrEmpty(i));
             this.signals.add(signal);
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag signalList = new ListTag();
 
         for (RedstoneSignal signal : signals) {

@@ -8,7 +8,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 /**
@@ -65,7 +65,7 @@ public class DiaphanousInvertRecipe extends CustomRecipe {
         ItemStack result = diaphanous.copy();
         result.setCount(1);
 
-        StackTag.edit(result, tag -> tag.putBoolean("inverted", !tag.getBoolean("inverted")));
+        StackTag.edit(result, tag -> tag.putBoolean("inverted", !tag.getBooleanOr("inverted", false)));
 
         return result;
     }

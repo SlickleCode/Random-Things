@@ -4,7 +4,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 import com.mojang.math.Axis;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -13,8 +12,7 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.resources.Identifier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Vector3f;
@@ -66,17 +64,17 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
     }
 
     @Override
-    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+    public void submit(State state, PoseStack matrixStack, net.minecraft.client.renderer.SubmitNodeCollector collector, net.minecraft.client.renderer.state.CameraRenderState camera) {
         float offset = 0.5F + SURFACE_GAP;
 
         for (Direction direction : Direction.values()) {
             matrixStack.pushPose();
             matrixStack.translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset);
             // billboard: face the camera, then flip like the 1.14.4 renderer did
-            matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+            matrixStack.mulPose(camera.orientation);
             matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
-            state.item.render(matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
+            state.item.submit(matrixStack, collector, net.minecraft.client.renderer.LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0);
 
             matrixStack.popPose();
         }

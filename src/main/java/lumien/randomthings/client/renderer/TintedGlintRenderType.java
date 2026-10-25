@@ -2,81 +2,103 @@ package lumien.randomthings.client.renderer;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import org.joml.Vector4f;
+
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 
 import net.minecraft.client.Minecraft;
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 
 /**
- * A vanilla glint {@link RenderType} (item, entity, armor glint...) drawn with a colour. 1.16's glint types use the {@code POSITION_TEX} vertex format
- * (no per-vertex colour), so the only way to tint one is the GL colour state at draw time; as glint layers are batched per render type, each colour gets
- * its own wrapper type whose setup/clear hooks set and reset that colour around the original type's own state. The colour is normalised to full
- * brightness because the glint texture is already purple (the tint multiplies it).
- * Chosen by {@code ClientAsmHandler.tintGlint}, which the {@code RenderTypeTransformer} coremod calls from the glint getters.
+ * A copy of a vanilla glint {@link RenderType} (item, entity, armor glint, ...) that is drawn with a colour. 1.21.6+ gives every draw a colour modulator
+ * uniform ({@code ColorModulator}, multiplied with the glint texture) that {@code RenderType.draw} always sets to white; a transformer lets
+ * {@link #modulatorOf} replace it, so a tinted glint is the same pipeline and render setup under another render type instance that is registered here
+ * with its colour. The colour is normalised to full brightness because the glint texture is already purple (the tint multiplies it).
  * <p>
- * Every glint type needs its OWN vertex buffer: an item draws its normal and glint layers through one delegating builder, and a type without a
- * dedicated buffer shares the buffer source's single fallback builder, so asking for the second layer ends the first ("BufferBuilder not started").
- * Vanilla pre-registers its glint types in the main buffer source's {@code fixedBuffers}; each tinted wrapper is added there when it is created.
+ * Chosen by {@code ClientAsmHandler.tintGlint}, which the transformer of the {@code RenderTypes} glint getters calls. Every glint type needs its OWN vertex
+ * buffer: an item draws its normal and glint layers through one delegating consumer, and a type without a dedicated buffer shares the buffer source's
+ * single fallback builder, so asking for the second layer would end the first. Vanilla pre-registers its glint types in the main buffer source's
+ * {@code fixedBuffers}; each tinted copy is added there when it is created.
  */
-public final class TintedGlintRenderType extends RenderType {
-    private static final Map<String, RenderType> CACHE = new HashMap<>();
+public final class TintedGlintRenderType
+{
+	private static final Map<String, RenderType> CACHE = new HashMap<>();
+	private static final Map<RenderType, Vector4f> COLORS = new IdentityHashMap<>();
+	private static Field setupField;
+	private static Field fixedBuffersField;
 
-    private TintedGlintRenderType(String name, RenderType base, float r, float g, float b) {
-        super(name, base.format(), base.mode(), 256, false, false, () -> {
-            base.setupRenderState();
-            RenderSystem.setShaderColor(r, g, b, 1.0F);
-        }, () -> {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-            base.clearRenderState();
-        });
-    }
+	private TintedGlintRenderType()
+	{
+	}
 
-    public static RenderType of(RenderType base, int argb) {
-        String key = base + "#" + (argb & 0xFFFFFF);
+	/** The colour modulator to draw {@code type} with: the tint of a tinted glint copy, else the given (white) one. */
+	public static Vector4f modulatorOf(Vector4f white, RenderType type)
+	{
+		Vector4f tint = COLORS.get(type);
+		if (tint != null)
+		{
+			lumien.randomthings.debug.HookProbe.hit("glint_modulated");
+			lumien.randomthings.debug.HookProbe.hit("glint_modulated:" + type);
+		}
 
-        return CACHE.computeIfAbsent(key, k -> {
-            float r = (argb >> 16 & 255) / 255.0F;
-            float g = (argb >> 8 & 255) / 255.0F;
-            float b = (argb & 255) / 255.0F;
-            float max = Math.max(r, Math.max(g, b));
+		return tint == null ? white : tint;
+	}
 
-            if (max > 0.0F) {
-                r /= max;
-                g /= max;
-                b /= max;
-            }
+	public static RenderType of(RenderType base, int argb)
+	{
+		String key = System.identityHashCode(base) + "#" + (argb & 0xFFFFFF);
 
-            RenderType type = new TintedGlintRenderType("rt_glint_" + Integer.toHexString(argb & 0xFFFFFF) + "_" + Integer.toHexString(base.hashCode()), base, r, g, b);
-            registerBuffer(type);
+		synchronized (CACHE)
+		{
+			return CACHE.computeIfAbsent(key, k -> {
+				float r = (argb >> 16 & 255) / 255.0F;
+				float g = (argb >> 8 & 255) / 255.0F;
+				float b = (argb & 255) / 255.0F;
+				float max = Math.max(r, Math.max(g, b));
 
-            return type;
-        });
-    }
+				if (max > 0.0F)
+				{
+					r /= max;
+					g /= max;
+					b /= max;
+				}
 
-    private static Field fixedBuffersField;
+				try
+				{
+					if (setupField == null)
+					{
+						setupField = RenderType.class.getDeclaredField("state");
+						setupField.setAccessible(true);
+					}
 
-    @SuppressWarnings("unchecked")
-    private static void registerBuffer(RenderType type) {
-        try {
-            if (fixedBuffersField == null) {
-                // the map of render type -> dedicated builder; found by its type so the (obfuscated) field name does not matter
-                for (Field f : MultiBufferSource.BufferSource.class.getDeclaredFields()) {
-                    if (Map.class.isAssignableFrom(f.getType()) && f.getGenericType().toString().contains("ByteBufferBuilder") && f.getGenericType().toString().contains("RenderType")) {
-                        f.setAccessible(true);
-                        fixedBuffersField = f;
-                        break;
-                    }
-                }
-            }
+					RenderType type = RenderType.create("rt_glint_" + Integer.toHexString(argb & 0xFFFFFF) + "_" + Integer.toHexString(System.identityHashCode(base)), (RenderSetup) setupField.get(base));
+					COLORS.put(type, new Vector4f(r, g, b, 1.0F));
+					registerBuffer(type);
+					return type;
+				}
+				catch (ReflectiveOperationException e)
+				{
+					throw new IllegalStateException("cannot create the tinted glint render type", e);
+				}
+			});
+		}
+	}
 
-            Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder> fixed = (Map<RenderType, com.mojang.blaze3d.vertex.ByteBufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().renderBuffers().bufferSource());
-            fixed.put(type, new com.mojang.blaze3d.vertex.ByteBufferBuilder(256));
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("cannot register the tinted glint buffer", e);
-        }
-    }
+	@SuppressWarnings("unchecked")
+	private static void registerBuffer(RenderType type) throws ReflectiveOperationException
+	{
+		if (fixedBuffersField == null)
+		{
+			fixedBuffersField = MultiBufferSource.BufferSource.class.getDeclaredField("fixedBuffers");
+			fixedBuffersField.setAccessible(true);
+		}
+
+		Map<RenderType, ByteBufferBuilder> fixed = (Map<RenderType, ByteBufferBuilder>) fixedBuffersField.get(Minecraft.getInstance().renderBuffers().bufferSource());
+		fixed.put(type, new ByteBufferBuilder(256));
+	}
 }

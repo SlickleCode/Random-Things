@@ -36,7 +36,7 @@ public class EvilTearItem extends Item {
             BlockPos portalCenter = pos.below(3);
 
             if (ArtificialEndPortalEntity.isValidPosition(world, portalCenter, true)) {
-                if (!world.isClientSide) {
+                if (!world.isClientSide()) {
                     world.addFreshEntity(new ArtificialEndPortalEntity(world, portalCenter.getX() + 0.5, portalCenter.getY(), portalCenter.getZ() + 0.5));
                     stack.shrink(1);
                 }

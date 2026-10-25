@@ -67,7 +67,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollision());
 
         this.coilType = coilType;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));
@@ -111,18 +111,18 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
 
     @Override
     public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving) {
-        if (!worldIn.isClientSide && !hasEnergyCapableSupport(worldIn, pos, state.getValue(FACING))) {
+        if (!worldIn.isClientSide() && !hasEnergyCapableSupport(worldIn, pos, state.getValue(FACING))) {
             worldIn.destroyBlock(pos, true);
         }
     }
 
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isClientSide && placer instanceof Player) {
+        if (!worldIn.isClientSide() && placer instanceof Player) {
             GameProfile profile = ((Player) placer).getGameProfile();
 
             if (profile != null) {
-                UUID id = profile.getId();
+                UUID id = profile.id();
                 BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof SpectreCoilTileEntity) {

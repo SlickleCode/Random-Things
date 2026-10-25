@@ -7,7 +7,7 @@ plugins {
 
 version = '5.0'
 group = 'lumien.randomthings'
-base { archivesName = 'RandomThings-MC1.21.4' }
+base { archivesName = 'RandomThings-MC1.21.11' }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -58,11 +58,70 @@ runs {
     }
 }
 
+// The class transformers (NeoForge 21.9+: Java ClassProcessors, found as services) live in their own source set: in a real install the service is only
+// found in a LIBRARY type jar, so that source set is packed into its own jar and nested in the mod jar (jar-in-jar). In dev runs its classes are on the classpath.
+sourceSets {
+    transformers
+}
+
+configurations {
+    transformersCompile
+}
+
 dependencies {
-    implementation 'net.neoforged:neoforge:21.4.161'
+    implementation 'net.neoforged:neoforge:21.11.48'
+    transformersCompile 'net.neoforged:neoforge:21.11.48'
+    implementation sourceSets.transformers.output
+}
+
+sourceSets.transformers.compileClasspath = configurations.transformersCompile
+
+def transformersVersion = '1.0'
+
+tasks.register('transformersJar', Jar) {
+    archiveBaseName = 'randomthings-transformers'
+    archiveVersion = transformersVersion
+    from sourceSets.transformers.output
+    manifest {
+        attributes([
+            'FMLModType': 'LIBRARY',
+            'Automatic-Module-Name': 'randomthings.transformers'
+        ])
+    }
+}
+
+def jarJarDir = layout.buildDirectory.dir('generated/jarjar')
+
+tasks.register('jarJarMetadata') {
+    def out = jarJarDir.map { it.file('META-INF/jarjar/metadata.json') }
+    outputs.file(out)
+    doLast {
+        def f = out.get().asFile
+        f.parentFile.mkdirs()
+        f.text = """{
+  "jars": [
+    {
+      "identifier": {
+        "group": "lumien.randomthings",
+        "artifact": "randomthings-transformers"
+      },
+      "version": {
+        "range": "[${transformersVersion},)",
+        "artifactVersion": "${transformersVersion}"
+      },
+      "path": "META-INF/jarjar/randomthings-transformers-${transformersVersion}.jar",
+      "isObfuscated": false
+    }
+  ]
+}
+"""
+    }
 }
 
 jar {
+    dependsOn tasks.named('transformersJar'), tasks.named('jarJarMetadata')
+    from(tasks.named('transformersJar')) { into 'META-INF/jarjar' }
+    from(jarJarDir)
     manifest {
         attributes([
 			"Specification-Title": project.name,

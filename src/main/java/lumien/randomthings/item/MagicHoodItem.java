@@ -3,8 +3,7 @@ package lumien.randomthings.item;
 import java.util.EnumMap;
 
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorMaterials;
@@ -45,7 +44,7 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
  * {@link #DURABILITY_MATERIAL} delegates every other stat to Chain and
  * overrides only {@link IArmorMaterial#getDurability} with Leather's value.
  */
-public class MagicHoodItem extends ArmorItem {
+public class MagicHoodItem extends Item {
     /**
      * Chain stats and Leather's durability factor (5), with the hood's own worn model: the equipment asset {@code assets/randomthings/equipment/magic_hood.json}
      * (1.21.2 replaced the {@code textures/models/armor/*_layer_1.png} lookup by equipment assets).
@@ -55,11 +54,11 @@ public class MagicHoodItem extends ArmorItem {
     static {
         ArmorMaterial chain = ArmorMaterials.CHAINMAIL;
         MATERIAL = new ArmorMaterial(5, new EnumMap<>(chain.defense()), chain.enchantmentValue(), chain.equipSound(), chain.toughness(), chain.knockbackResistance(), chain.repairIngredient(),
-                ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.fromNamespaceAndPath("randomthings", "magic_hood")));
+                ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath("randomthings", "magic_hood")));
     }
 
     public MagicHoodItem(Item.Properties properties) {
-        super(MATERIAL, ArmorType.HELMET, properties);
+        super(properties.humanoidArmor(MATERIAL, ArmorType.HELMET));
     }
 
 }

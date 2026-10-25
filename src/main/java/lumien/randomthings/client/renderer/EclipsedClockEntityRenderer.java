@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 
 import com.mojang.math.Axis;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.entity.EclipsedClockEntity;
 import lumien.randomthings.item.ModItems;
@@ -15,10 +14,9 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Vector3f;
@@ -104,20 +102,21 @@ public class EclipsedClockEntityRenderer extends EntityRenderer<EclipsedClockEnt
     }
 
     @Override
-    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+    public void submit(State state, PoseStack matrixStack, net.minecraft.client.renderer.SubmitNodeCollector collector, net.minecraft.client.renderer.state.CameraRenderState camera) {
         matrixStack.pushPose();
         matrixStack.translate(state.offX, state.offY, state.offZ);
         matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F - state.yRot));
         matrixStack.translate(0.0D, 0.0D, 0.4375D);
         matrixStack.scale(0.5F, 0.5F, 0.5F);
 
-        state.item.render(matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
+        state.item.submit(matrixStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
 
         matrixStack.popPose();
 
         if (state.label != null) {
             // renderNameTag lifts the text 0.5 above the attachment point (the 1.12.2 offsets were relative to the entity)
-            this.renderNameTag(state, Component.literal(state.label), matrixStack, buffer, packedLight);
+            state.nameTag = Component.literal(state.label);
+            this.submitNameTag(state, matrixStack, collector, camera);
         }
     }
 }

@@ -84,7 +84,7 @@ public class ColoredGrassBlock extends Block implements IRTBlockColor
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
-		if (worldIn.isClientSide)
+		if (worldIn.isClientSide())
 		{
 			return;
 		}

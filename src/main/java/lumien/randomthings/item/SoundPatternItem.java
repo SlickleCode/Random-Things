@@ -7,13 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+
 
 /**
  * A stamped-with-one-sound recording, produced by {@link SoundRecorderItem}'s
@@ -49,7 +49,7 @@ public class SoundPatternItem extends Item {
 
     @Override
     public Component getName(ItemStack stack) {
-        ResourceLocation sound = getSoundLocation(stack);
+        Identifier sound = getSoundLocation(stack);
 
         if (sound != null) {
             return Component.literal(super.getName(stack).getString() + " <" + sound.getPath() + ">");
@@ -59,20 +59,20 @@ public class SoundPatternItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, net.minecraft.world.item.TooltipFlag flagIn) {
         Level worldIn = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
+        super.appendHoverText(stack, worldInCtx, rtDisplay, tooltip, flagIn);
 
-        ResourceLocation sound = getSoundLocation(stack);
+        Identifier sound = getSoundLocation(stack);
 
-        tooltip.add(Component.literal(sound != null ? sound.toString() : "<Empty>"));
+        tooltip.accept(Component.literal(sound != null ? sound.toString() : "<Empty>"));
     }
 
-    public static ResourceLocation getSoundLocation(ItemStack pattern) {
+    public static Identifier getSoundLocation(ItemStack pattern) {
         CompoundTag compound = StackTag.get(pattern);
 
         if (compound != null && compound.contains("sound")) {
-            return ResourceLocation.parse(compound.getString("sound"));
+            return Identifier.parse(compound.getStringOr("sound", ""));
         }
 
         return null;

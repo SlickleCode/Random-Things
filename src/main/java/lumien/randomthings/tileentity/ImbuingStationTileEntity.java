@@ -49,7 +49,7 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
     }
 
     public void tick() {
-        if (this.level.isClientSide) {
+        if (this.level.isClientSide()) {
             return;
         }
 
@@ -105,8 +105,15 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         compound.putInt("imbuingProgress", imbuingProgress);
 
@@ -119,14 +126,19 @@ public class ImbuingStationTileEntity extends BlockEntity implements MenuProvide
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        imbuingProgress = compound.getInt("imbuingProgress");
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
-        currentOutput = compound.contains("output") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("output")) : ItemStack.EMPTY;
+        imbuingProgress = compound.getIntOr("imbuingProgress", 0);
 
-        itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
+        currentOutput = compound.contains("output") ? lumien.randomthings.util.StackTag.loadStack(compound.getCompoundOrEmpty("output")) : ItemStack.EMPTY;
+
+        itemHandler.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
     }
 
     @Override

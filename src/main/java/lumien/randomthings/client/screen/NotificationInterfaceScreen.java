@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.NotificationInterfaceContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,17 +11,16 @@ import net.minecraft.client.gui.components.EditBox;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * NotificationInterfaceScreen
  */
 public class NotificationInterfaceScreen extends AbstractContainerScreen<NotificationInterfaceContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/notification_interface.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/notification_interface.png");
 
 	private EditBox titleField;
 	private EditBox descriptionField;
@@ -70,8 +68,11 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+	public boolean keyPressed(net.minecraft.client.input.KeyEvent rtEvent)
 	{
+		int keyCode = rtEvent.key();
+		int scanCode = rtEvent.scancode();
+		int modifiers = rtEvent.modifiers();
 		EditBox focused = this.titleField.isFocused() ? this.titleField : this.descriptionField.isFocused() ? this.descriptionField : null;
 
 		if (focused != null && keyCode != 256 /* GLFW_KEY_ESCAPE - still closes normally */)
@@ -89,11 +90,11 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 			// consumes *special* keys (backspace, arrows, etc), not plain
 			// characters (those go through charTyped instead), so typing a plain
 			// "e" was being read as "close the GUI" mid-sentence.
-			focused.keyPressed(keyCode, scanCode, modifiers);
+			focused.keyPressed(rtEvent);
 			return true;
 		}
 
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(rtEvent);
 	}
 
 	@Override
@@ -119,20 +120,18 @@ public class NotificationInterfaceScreen extends AbstractContainerScreen<Notific
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+		graphics.drawString(this.font, this.title.getString(), 8, 6, 0xFF404040, false);
 		// label for the icon slot (x8,y31): the item shown in the notification toast
-		graphics.drawString(this.font, I18n.get("gui.randomthings.notification_interface.icon"), 8, 21, 4210752, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.notification_interface.icon"), 8, 21, 0xFF404040, false);
 
 	}
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

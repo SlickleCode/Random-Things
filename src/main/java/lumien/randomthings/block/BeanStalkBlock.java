@@ -41,7 +41,7 @@ public class BeanStalkBlock extends Block
 
 	public BeanStalkBlock(boolean strongMagic)
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollission().sound(SoundType.GRASS));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().noCollision().sound(SoundType.GRASS));
 
 		this.strongMagic = strongMagic;
 	}
@@ -53,7 +53,7 @@ public class BeanStalkBlock extends Block
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn)
+	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn, net.minecraft.world.entity.InsideBlockEffectApplier rtApplier, boolean rtPrecise)
 	{
 		if (entityIn.onGround() || entityIn.verticalCollision)
 		{
@@ -71,7 +71,7 @@ public class BeanStalkBlock extends Block
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
-		if (worldIn.isClientSide)
+		if (worldIn.isClientSide())
 		{
 			return;
 		}

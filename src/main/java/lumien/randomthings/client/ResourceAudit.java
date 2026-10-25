@@ -30,7 +30,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
@@ -56,7 +56,7 @@ public class ResourceAudit
 	{
 		// none of these has a crafting recipe in 1.12.2 either (checked against ModRecipes + assets/recipes):
 		// loot / worldgen / mob drops / grown / imbuing-station results / ritual or creative-only items
-		for (String s : new String[] { "beans", "magic_bean", "lotus_blossom", "lotus_seeds", "ectoplasm", "bottle_of_air", "compressed_slime_block", "spectre_block", "spectre_log", "spectre_leaf", "spectre_sapling", "glowing_mushroom", "colored_grass", "biome_crystal", "rune_pattern", "imbue_fire", "imbue_poison", "imbue_experience", "imbue_wither", "summoning_pendulum", "golden_egg", "creative_player_interface", "magic_hood", "peace_candle", "ancient_furnace", "spectre_coil_genesis", "spectre_charger_genesis" })
+		for (String s : new String[] { "beans", "spirit_spawn_egg", "magic_bean", "lotus_blossom", "lotus_seeds", "ectoplasm", "bottle_of_air", "compressed_slime_block", "spectre_block", "spectre_log", "spectre_leaf", "spectre_sapling", "glowing_mushroom", "colored_grass", "biome_crystal", "rune_pattern", "imbue_fire", "imbue_poison", "imbue_experience", "imbue_wither", "summoning_pendulum", "golden_egg", "creative_player_interface", "magic_hood", "peace_candle", "ancient_furnace", "spectre_coil_genesis", "spectre_charger_genesis" })
 		{
 			NO_RECIPE_EXPECTED.add(s);
 		}
@@ -68,7 +68,7 @@ public class ResourceAudit
 
 	private final ResourceManager assets;
 	private final ResourceManager data;
-	private final Map<ResourceLocation, JsonObject> modelCache = new HashMap<>();
+	private final Map<Identifier, JsonObject> modelCache = new HashMap<>();
 
 	private ResourceAudit(ResourceManager assets, ResourceManager data)
 	{
@@ -95,7 +95,7 @@ public class ResourceAudit
 	{
 		for (Block block : BuiltInRegistries.BLOCK)
 		{
-			ResourceLocation id = RegUtil.id(block);
+			Identifier id = RegUtil.id(block);
 
 			if (id == null || !ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -103,7 +103,7 @@ public class ResourceAudit
 			}
 
 			blocks++;
-			ResourceLocation stateFile = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "blockstates/" + id.getPath() + ".json");
+			Identifier stateFile = Identifier.fromNamespaceAndPath(id.getNamespace(), "blockstates/" + id.getPath() + ".json");
 			JsonObject state = readJson(assets, stateFile);
 
 			if (state == null)
@@ -146,7 +146,7 @@ public class ResourceAudit
 	{
 		for (Item item : BuiltInRegistries.ITEM)
 		{
-			ResourceLocation id = RegUtil.id(item);
+			Identifier id = RegUtil.id(item);
 
 			if (id == null || !ModConstants.MOD_ID.equals(id.getNamespace()))
 			{
@@ -191,7 +191,7 @@ public class ResourceAudit
 			return;
 		}
 
-		ResourceLocation modelId = ResourceLocation.parse(model);
+		Identifier modelId = Identifier.parse(model);
 		Map<String, String> textures = new HashMap<>();
 		Set<String> usedVars = new HashSet<>();
 		boolean builtinEntity = false;
@@ -199,7 +199,7 @@ public class ResourceAudit
 		List<String> overrides = new ArrayList<>();
 
 		// walk child -> parent; child texture entries win
-		ResourceLocation current = modelId;
+		Identifier current = modelId;
 		boolean first = true;
 
 		for (int depth = 0; current != null && depth < 20; depth++)
@@ -272,7 +272,7 @@ public class ResourceAudit
 				}
 			}
 
-			current = json.has("parent") ? ResourceLocation.parse(json.get("parent").getAsString()) : null;
+			current = json.has("parent") ? Identifier.parse(json.get("parent").getAsString()) : null;
 			first = false;
 		}
 
@@ -323,9 +323,9 @@ public class ResourceAudit
 
 		for (String tex : toCheck)
 		{
-			ResourceLocation tid = ResourceLocation.parse(tex);
+			Identifier tid = Identifier.parse(tex);
 
-			if (assets.getResource(ResourceLocation.fromNamespaceAndPath(tid.getNamespace(), "textures/" + tid.getPath() + ".png")).isEmpty())
+			if (assets.getResource(Identifier.fromNamespaceAndPath(tid.getNamespace(), "textures/" + tid.getPath() + ".png")).isEmpty())
 			{
 				failures.add("[texture] " + owner + " (" + model + "): missing texture " + tex);
 			}
@@ -337,10 +337,10 @@ public class ResourceAudit
 		}
 	}
 
-	private JsonObject modelJson(ResourceLocation id)
+	private JsonObject modelJson(Identifier id)
 	{
 		return modelCache.computeIfAbsent(id, k -> {
-			ResourceLocation file = ResourceLocation.fromNamespaceAndPath(k.getNamespace(), "models/" + k.getPath() + ".json");
+			Identifier file = Identifier.fromNamespaceAndPath(k.getNamespace(), "models/" + k.getPath() + ".json");
 
 			if (ModConstants.MOD_ID.equals(k.getNamespace()))
 			{
@@ -352,7 +352,7 @@ public class ResourceAudit
 	}
 
 	/** Runs the game's own model deserializer: catches schema mistakes (e.g. scalar where an array is required) that valid-JSON checks miss. */
-	private void verifyParses(ResourceLocation file)
+	private void verifyParses(Identifier file)
 	{
 		try (BufferedReader reader = assets.getResource(file).orElseThrow().openAsReader())
 		{
@@ -381,13 +381,13 @@ public class ResourceAudit
 		}
 
 		Collection<net.minecraft.world.item.crafting.RecipeHolder<?>> all = mc.getSingleplayerServer().getRecipeManager().getRecipes();
-		Set<ResourceLocation> loaded = new HashSet<>();
+		Set<Identifier> loaded = new HashSet<>();
 		Set<Item> produced = new HashSet<>();
 
 		for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : all)
 		{
 			Recipe<?> recipe = holder.value();
-			ResourceLocation id = holder.id().location();
+			Identifier id = holder.id().identifier();
 			ItemStack out = lumien.randomthings.debug.test.RecipeProbe.resultOf(recipe, mc.level.registryAccess());
 
 			if (!out.isEmpty())
@@ -424,7 +424,7 @@ public class ResourceAudit
 		}
 
 		// every recipe file must have been accepted by the RecipeManager (a parse failure silently drops it)
-		for (ResourceLocation file : data.listResources("recipe", s -> s.getPath().endsWith(".json")).keySet())
+		for (Identifier file : data.listResources("recipe", s -> s.getPath().endsWith(".json")).keySet())
 		{
 			if (!ModConstants.MOD_ID.equals(file.getNamespace()))
 			{
@@ -432,7 +432,7 @@ public class ResourceAudit
 			}
 
 			String path = file.getPath();
-			ResourceLocation id = ResourceLocation.fromNamespaceAndPath(file.getNamespace(), path.substring("recipe/".length(), path.length() - ".json".length()));
+			Identifier id = Identifier.fromNamespaceAndPath(file.getNamespace(), path.substring("recipe/".length(), path.length() - ".json".length()));
 
 			if (!loaded.contains(id))
 			{
@@ -442,7 +442,7 @@ public class ResourceAudit
 
 		for (Item item : BuiltInRegistries.ITEM)
 		{
-			ResourceLocation id = RegUtil.id(item);
+			Identifier id = RegUtil.id(item);
 
 			if (id != null && ModConstants.MOD_ID.equals(id.getNamespace()) && !produced.contains(item) && !NO_RECIPE_EXPECTED.contains(id.getPath()))
 			{
@@ -461,9 +461,9 @@ public class ResourceAudit
 			return;
 		}
 
-		Set<ResourceLocation> known = new HashSet<>(mc.getSingleplayerServer().reloadableRegistries().getKeys(net.minecraft.core.registries.Registries.LOOT_TABLE));
+		Set<Identifier> known = new HashSet<>(mc.getSingleplayerServer().reloadableRegistries().lookup().lookupOrThrow(net.minecraft.core.registries.Registries.LOOT_TABLE).listElementIds().map(key -> key.identifier()).toList());
 
-		for (ResourceLocation table : new ResourceLocation[] { lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, lumien.randomthings.handler.LootHandler.JUNGLE_TEMPLE })
+		for (Identifier table : new Identifier[] { lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, lumien.randomthings.handler.LootHandler.JUNGLE_TEMPLE })
 		{
 			if (!known.contains(table))
 			{
@@ -474,7 +474,7 @@ public class ResourceAudit
 
 	// ---------------------------------------------------------------- util
 
-	private static JsonObject readJson(ResourceManager manager, ResourceLocation file)
+	private static JsonObject readJson(ResourceManager manager, Identifier file)
 	{
 		try (BufferedReader reader = manager.getResource(file).orElseThrow().openAsReader())
 		{

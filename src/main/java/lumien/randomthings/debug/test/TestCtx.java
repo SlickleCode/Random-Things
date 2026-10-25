@@ -19,8 +19,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.InvWrapper;
 
 /** What a test step gets: the world, a private build area, and assertion helpers. */
 public final class TestCtx

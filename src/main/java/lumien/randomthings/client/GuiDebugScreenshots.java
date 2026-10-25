@@ -60,10 +60,17 @@ public class GuiDebugScreenshots
 			dir.mkdirs();
 			File out = new File(dir, screen.getClass().getSimpleName() + "_" + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date()) + ".png");
 
-			try (NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget()))
+			Screenshot.takeScreenshot(mc.getMainRenderTarget(), image ->
 			{
-				image.writeToFile(out);
-			}
+				try (NativeImage shot = image)
+				{
+					shot.writeToFile(out);
+				}
+				catch (Exception e)
+				{
+					RTDebug.log("GUI screenshot failed: {}", e.toString());
+				}
+			});
 
 			RTDebug.log("Saved GUI screenshot {}", out.getAbsolutePath());
 		}

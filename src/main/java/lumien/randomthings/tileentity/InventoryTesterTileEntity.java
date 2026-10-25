@@ -18,9 +18,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.network.chat.Component;
 
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.ItemHandlerHelper;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -71,7 +71,7 @@ public class InventoryTesterTileEntity extends BlockEntity implements MenuProvid
 
 	public void tick()
 	{
-		if (this.level.isClientSide || ++counter < 2)
+		if (this.level.isClientSide() || ++counter < 2)
 		{
 			return;
 		}
@@ -117,21 +117,33 @@ public class InventoryTesterTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 		compound.putBoolean("emitRedstone", emitRedstone);
 		compound.putBoolean("invertSignal", invertSignal);
 		compound.put("inventory", itemHandler.serializeNBT(registries));
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
-		this.emitRedstone = compound.getBoolean("emitRedstone");
-		this.invertSignal = compound.getBoolean("invertSignal");
-		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.emitRedstone = compound.getBooleanOr("emitRedstone", false);
+		this.invertSignal = compound.getBooleanOr("invertSignal", false);
+		itemHandler.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
 	}
 
 	@Override

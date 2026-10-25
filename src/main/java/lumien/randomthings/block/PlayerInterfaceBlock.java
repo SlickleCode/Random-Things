@@ -33,7 +33,7 @@ public class PlayerInterfaceBlock extends Block implements EntityBlock {
 	@Override
 	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
 	{
-		if (!worldIn.isClientSide && placer instanceof ServerPlayer)
+		if (!worldIn.isClientSide() && placer instanceof ServerPlayer)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

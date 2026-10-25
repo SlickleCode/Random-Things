@@ -2,13 +2,11 @@ package lumien.randomthings.client.notifications;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.gui.components.toasts.Toast;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.world.item.ItemStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
@@ -18,7 +16,7 @@ import net.minecraft.client.gui.GuiGraphics;
  */
 public class NotificationToast implements Toast
 {
-	private static final net.minecraft.resources.ResourceLocation BACKGROUND_SPRITE = net.minecraft.resources.ResourceLocation.parse("toast/system");
+	private static final net.minecraft.resources.Identifier BACKGROUND_SPRITE = net.minecraft.resources.Identifier.parse("toast/system");
 	private static final long DISPLAY_TIME_MS = 5000L;
 
 	private final String title;
@@ -57,7 +55,7 @@ public class NotificationToast implements Toast
 	@Override
 	public void render(GuiGraphics graphics, Font font, long time)
 	{
-		graphics.blitSprite(net.minecraft.client.renderer.RenderType::guiTextured, BACKGROUND_SPRITE, 0, 0, 160, 32);
+		graphics.blitSprite(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, BACKGROUND_SPRITE, 0, 0, 160, 32);
 
 		graphics.drawString(font, title, 30, 7, 0xFFFFFF00, false);
 		graphics.drawString(font, description, 30, 18, 0xFFFFFFFF, false);

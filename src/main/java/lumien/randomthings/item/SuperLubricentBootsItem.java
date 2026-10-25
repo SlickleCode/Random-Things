@@ -3,8 +3,7 @@ package lumien.randomthings.item;
 import java.util.EnumMap;
 
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.equipment.ArmorMaterial;
@@ -21,7 +20,7 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
  * the friction lookup inside {@code LivingEntity.travel} globally (a
  * per-block override can't reach blocks this item doesn't own).
  */
-public class SuperLubricentBootsItem extends ArmorItem
+public class SuperLubricentBootsItem extends Item
 {
 	/** Iron stats, but the boots' own worn model ({@code assets/randomthings/equipment/superlubricentboots.json}). */
 	private static final ArmorMaterial MATERIAL;
@@ -30,11 +29,11 @@ public class SuperLubricentBootsItem extends ArmorItem
 	{
 		ArmorMaterial iron = ArmorMaterials.IRON;
 		MATERIAL = new ArmorMaterial(iron.durability(), new EnumMap<>(iron.defense()), iron.enchantmentValue(), iron.equipSound(), iron.toughness(), iron.knockbackResistance(), iron.repairIngredient(),
-				ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.fromNamespaceAndPath("randomthings", "superlubricentboots")));
+				ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath("randomthings", "superlubricentboots")));
 	}
 
 	public SuperLubricentBootsItem(Item.Properties properties)
 	{
-		super(MATERIAL, ArmorType.BOOTS, properties.rarity(Rarity.UNCOMMON));
+		super(properties.rarity(Rarity.UNCOMMON).humanoidArmor(MATERIAL, ArmorType.BOOTS));
 	}
 }

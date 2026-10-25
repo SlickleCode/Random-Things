@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import lumien.randomthings.util.WeakSets;
 import lumien.randomthings.asm.AsmHandler;
@@ -45,7 +45,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
@@ -96,7 +96,6 @@ import net.neoforged.api.distmarker.Dist;
 public class ClientSetup {
     public static void init(net.neoforged.bus.api.IEventBus modBus) {
         modBus.addListener(ClientSetup::setupClient);
-        modBus.addListener(ClientSetup::registerDimensionEffects);
         modBus.addListener(ClientSetup::registerRenderers);
         modBus.addListener(ClientSetup::onBlockColorHandler);
         RTItemModels.init(modBus);
@@ -120,8 +119,8 @@ public class ClientSetup {
             }
 
             for (Entity entity : Minecraft.getInstance().level.entitiesForRendering()) {
-                if (entity instanceof net.minecraft.world.entity.vehicle.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
-                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.AbstractBoat) entity);
+                if (entity instanceof net.minecraft.world.entity.vehicle.boat.AbstractBoat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
+                    SuperLubricentPhysics.capBoatMotion((net.minecraft.world.entity.vehicle.boat.AbstractBoat) entity);
                 }
             }
         });
@@ -180,23 +179,10 @@ public class ClientSetup {
         event.registerEntityRenderer(lumien.randomthings.entity.ModEntityTypes.SPIRIT, lumien.randomthings.client.renderer.SpiritEntityRenderer::new);
     }
 
-    /**
-     * The Spectre dimension type names this id as its sky/fog "effects". Forge 43 resolves effects through its own registry
-     * (the vanilla static map is no longer consulted), so a hand-made entry in the vanilla map left the Spectre cubes with the
-     * overworld's night sky and no bright lightmap.
-     */
-    private static void registerDimensionEffects(final net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
-        event.register(lumien.randomthings.handler.ModDimensions.SPECTRE_ID, new SpectreRenderInfo());
-    }
-
     private static void setupClient(final FMLClientSetupEvent event) {
         RenderLayerSetup.apply();
 
-        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent rwl) -> {
-            if (rwl.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) {
-                return;
-            }
-
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterLevel rwl) -> {
             DiviningRodRenderer.get().render(rwl.getPoseStack());
             RedstoneObserverLineRenderer.render(rwl.getPoseStack());
         });
@@ -228,7 +214,7 @@ public class ClientSetup {
             return;
         }
 
-        ResourceLocation soundLocation = sound.getLocation();
+        Identifier soundLocation = sound.getIdentifier();
         BlockPos soundPosition = BlockPos.containing(sound.getX(), sound.getY(), sound.getZ());
 
         for (SoundDampenerTileEntity dampener : WeakSets.snapshot(SoundDampenerTileEntity.loadedDampeners)) {
@@ -239,7 +225,7 @@ public class ClientSetup {
             }
         }
 
-        for (int slot = 0; slot < thePlayer.getInventory().items.size(); slot++) {
+        for (int slot = 0; slot < thePlayer.getInventory().getNonEquipmentItems().size(); slot++) {
             ItemStack stack = thePlayer.getInventory().getItem(slot);
 
             if (stack.isEmpty()) {
@@ -258,12 +244,12 @@ public class ClientSetup {
         }
     }
 
-    private static boolean mutesSound(net.neoforged.neoforge.items.IItemHandler inventory, ResourceLocation soundLocation) {
+    private static boolean mutesSound(lumien.randomthings.itemhandler.IItemHandler inventory, Identifier soundLocation) {
         for (int s = 0; s < inventory.getSlots(); s++) {
             ItemStack patternStack = inventory.getStackInSlot(s);
 
             if (!patternStack.isEmpty()) {
-                ResourceLocation muted = SoundPatternItem.getSoundLocation(patternStack);
+                Identifier muted = SoundPatternItem.getSoundLocation(patternStack);
 
                 if (soundLocation.equals(muted)) {
                     return true;

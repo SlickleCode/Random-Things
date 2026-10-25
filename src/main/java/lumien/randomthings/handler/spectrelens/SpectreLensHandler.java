@@ -32,6 +32,9 @@ import net.minecraft.world.level.Level;
  */
 public class SpectreLensHandler extends SavedData {
     private static final String ID = "randomthings_spectre_lens_handler";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<SpectreLensHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, SpectreLensHandler::new,
+            CompoundTag.CODEC.xmap(tag -> SpectreLensHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final Map<UUID, LensEntry> lensEntries = new HashMap<>();
 
@@ -45,7 +48,7 @@ public class SpectreLensHandler extends SavedData {
     }
 
     public static SpectreLensHandler get(MinecraftServer server) {
-        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreLensHandler::new, SpectreLensHandler::loadFrom, null), ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(TYPE);
     }
 
     public void removeLens(UUID uuid) {
@@ -89,20 +92,19 @@ public class SpectreLensHandler extends SavedData {
     public void readData(CompoundTag nbt) {
         lensEntries.clear();
 
-        ListTag list = nbt.getList("lensEntries", 10);
+        ListTag list = nbt.getListOrEmpty("lensEntries");
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag entryTag = list.getCompound(i);
-            lensEntries.put(entryTag.getUUID("uuid"), LensEntry.read(entryTag));
+            CompoundTag entryTag = list.getCompoundOrEmpty(i);
+            lensEntries.put(lumien.randomthings.util.TagIO.readUuid(entryTag.get("uuid")), LensEntry.read(entryTag));
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
 
         for (Map.Entry<UUID, LensEntry> entry : lensEntries.entrySet()) {
             CompoundTag entryTag = entry.getValue().write();
-            entryTag.putUUID("uuid", entry.getKey());
+            entryTag.put("uuid", lumien.randomthings.util.TagIO.writeUuid(entry.getKey()));
             list.add(entryTag);
         }
 
@@ -130,10 +132,10 @@ public class SpectreLensHandler extends SavedData {
         }
 
         static LensEntry read(CompoundTag tag) {
-            int primaryId = tag.getInt("primary");
-            int secondaryId = tag.getInt("secondary");
+            int primaryId = tag.getIntOr("primary", 0);
+            int secondaryId = tag.getIntOr("secondary", 0);
 
-            return new LensEntry(tag.getInt("levels"), primaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(primaryId).orElse(null) : null, secondaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(secondaryId).orElse(null) : null);
+            return new LensEntry(tag.getIntOr("levels", 0), primaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(primaryId).orElse(null) : null, secondaryId >= 0 ? net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(secondaryId).orElse(null) : null);
         }
     }
 }

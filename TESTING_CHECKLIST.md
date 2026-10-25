@@ -1,4 +1,4 @@
-# Random Things 1.21.4 - Testing Checklist
+# Random Things 1.21.11 - Testing Checklist
 
 **Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md).
 
@@ -332,3 +332,32 @@ Behaviours whose implementation changed in the 1.21.4 port (item model definitio
 | R10 | Biome Radar: right-click with an empty hand takes the crystal out, also after the search finished (the radar goes idle) |  | *Why:* deliberate divergence from 1.12.2, which only allowed it while idle |
 | R11 | Spectre Illuminator: place it; after ~12 s the orb settles in the middle of the chunk and the whole chunk lights up over about a minute; picking it up darkens it again |  | *Why:* the light hook moved to `BlockLightEngine` (1.21.4 reads emission there); fixed 2026-10-23, test `retest.spectre_illuminator...` |
 | R12 | Filtered Super Lubricent Platform sits as low in its item box as the other platforms |  | *Why:* its item model lacked the gui display transform |
+
+## 10. New for 1.21.11 (NeoForge 21.11.48) - all FIXED/new, nothing tested by hand
+
+Behaviours whose implementation changed in the 1.21.11 port (Java class transformers instead of JavaScript coremods, transfer API capabilities, `ValueInput`/`ValueOutput` saving, two step block entity/entity renderers, pipeline based render types, new dimension type format). The suites (server 427/0/4, client 429/0/2, audit, GUI click test 28 GUIs/0 failures) cover the logic; these rows are what only eyes and hands show.
+
+| # | Check | Result | Feedback |
+|---|---|---|---|
+| S1 | **Open (not ported):** enchant glint colour (Dyeing Machine glint result, Redstone Tool, Spectre Key, Portkey, Spectre Sword) - the glint is vanilla purple on every item for now | | *Why:* glint draws through `RenderPipelines.GLINT` (position + uv only); a tint needs an own pipeline and shader. Expected: items glint purple, nothing crashes |
+| S2 | Dyeing Machine colour on items and worn armor (leather and non-leather) still shows | | *Why:* `ItemRenderer` (rebuilds the layer quads with tint index 0) and `ArmorLayer` transformers re-written for the new render state |
+| S3 | Light Redirector: the redirected block faces show the other block's model | | *Why:* hook moved to `BlockRenderDispatcher.renderBatched(..., Function<ChunkSectionLayer, VertexConsumer>, ...)` |
+| S4 | Rain Shield: no rain streaks or splashes inside its radius | | *Why:* `WeatherEffectRenderer.getPrecipitationAt` anchor |
+| S5 | Fluid Display (empty, water, lava, rotation), Rune Base runes (colours, connections, FlatRunes config), Diaphanous Block fade, Biome Radar crystal spinning, Eclipsed Clock label, Time Accelerator icons, Artificial End Portal | | *Why:* every block entity/entity renderer was re-written for the extract/submit render API |
+| S6 | Divining Rod: the cubes show for the ores nearby | | *Why:* drawn with `RenderTypes.debugQuads()`; they were visible through walls in 1.12.2, now they are depth tested (open) |
+| S7 | Spectre dimension: dark teal fog, no sun/moon/clouds, bright lighting | | *Why:* the dimension type JSON lost `effects`; fog/sky are `attributes` now |
+| S8 | Every GUI (28): buttons, text fields, scroll lists (Sound Recorder, Chunk Analyzer), tooltips and the tinted bars (Dyeing Machine swatch, Potion Vaporizer tank) | | *Why:* GUI input events, `renderContents`, blit with colour |
+| S9 | Automation: a hopper into/out of the Iron Dropper, the Player Interface and the Ender Letter mailbox inventories; Ender Bucket and Reinforced Ender Bucket pick up and place water/lava | | *Why:* capabilities are `ResourceHandler`s now (transactions) |
+| S10 | Worlds saved on 1.21.4 load (block entities, entities, Floo network, Spectre cubes, anchors) | | *Why:* saving goes through the new `ValueOutput` bridge; the stored format is meant to be unchanged |
+
+## Museum report 2026-10-24 (all branches)
+
+| # | Check | Result | Notes |
+| --- | --- | --- | --- |
+| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
+| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (flame shape and height, not a solid box) - FIXED (`BlazingFireBlock` was missing from `RenderLayerSetup` cutout; render scene `blazing_fire` checked 2026-10-24) |  |  |
+| M3 | Spectre Key, Redstone Tool, Escape Rope, Spectre Sword (the items with a custom glint colour) are solid in inventory/hand, not faded - FIXED (the glint marker sat on tint index 0 of the layer; `appendGlintColor` pads first; creative-tab scene checked 2026-10-24) |  |  |
+| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
+| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
+| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |
+| M7 | Every GUI label and list text is visible (Sound Recorder sound names, titles, "Inventory" labels, counters): text colours without an alpha byte are not drawn since 1.21.6 - FIXED (26 screens, `0xFFrrggbb` everywhere) |  |  |

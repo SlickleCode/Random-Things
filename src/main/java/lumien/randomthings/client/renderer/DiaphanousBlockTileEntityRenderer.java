@@ -1,90 +1,120 @@
 package lumien.randomthings.client.renderer;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.Tesselator;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import net.minecraft.util.Mth;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Draws {@link DiaphanousBlockTileEntity}'s displayed block as a real baked
- * model (full per-vertex lighting/AO from {@code BlockModelRenderer
- * .renderModel} itself, real face culling against solid neighbors for free
- * via its {@code checkSides} parameter - see {@link DiaphanousBlockTileEntity}'s
- * own javadoc for why 1.12.2's manual {@code renderMap} tracking isn't needed
- * here), then overrides every vertex's alpha to a value computed from
- * distance to the camera - close up it's mostly invisible, fading to fully
- * opaque-looking past 33 blocks, the opposite curve when {@link
- * DiaphanousBlockTileEntity#isInverted()}. Direct port of 1.12.2's {@code
- * RenderBlockDiaphanous}'s fade math.
+ * Draws {@link DiaphanousBlockTileEntity}'s displayed block as its baked model, with every vertex's alpha set to a value computed from the distance to the
+ * camera - close up it's mostly invisible, fading to fully opaque-looking past 33 blocks, the opposite curve when {@link DiaphanousBlockTileEntity#isInverted()}.
+ * Direct port of 1.12.2's {@code RenderBlockDiaphanous}'s fade math.
  * <p>
- * 1.12.2 achieved the per-vertex alpha override by reflecting into {@code
- * BufferBuilder}'s then-private raw {@code IntBuffer} field. This version's
- * {@code BufferBuilder} exposes the same raw storage publicly instead (
- * {@link BufferBuilder#getByteBuffer()} plus the already-public {@link
- * BufferBuilder#getColorIndex(int)}/{@link BufferBuilder#putColorRGBA(int,
- * int, int, int, int)}) - ground-truthed from its own decompiled source
- * ({@code getColorIndex} returns an int-buffer index, matching exactly what
- * 1.12.2's reflected field expected), so {@link #overrideAlpha} needs no
- * reflection at all, unlike this port's usual fallback pattern (see {@code
- * SuperLubricentPhysics}'s {@code deltaRotation} field) for when no public
- * equivalent exists.
+ * 1.21.6+ renders in two steps (extract the state, then submit geometry), so the alpha is simply handed to {@code putBulkData} while the quads are written
+ * (no vertex consumer wrapper is needed any more); faces that touch a solid neighbour are skipped, as the original's face culling did.
  */
-public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<DiaphanousBlockTileEntity> {
-    private final net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create();
+public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<DiaphanousBlockTileEntity, DiaphanousBlockTileEntityRenderer.State>
+{
+	public static class State extends BlockEntityRenderState
+	{
+		public final List<BakedQuad> quads = new ArrayList<>();
+		public float alpha;
+	}
 
-    public DiaphanousBlockTileEntityRenderer(BlockEntityRendererProvider.Context context) {
-    }
+	private final RandomSource random = RandomSource.create();
 
-    @Override
-    public void render(DiaphanousBlockTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay) {
-        BlockState display = te.getDisplayState();
+	public DiaphanousBlockTileEntityRenderer(BlockEntityRendererProvider.Context context)
+	{
+	}
 
-        if (display.getRenderShape() != RenderShape.MODEL) {
-            return;
-        }
+	@Override
+	public State createRenderState()
+	{
+		return new State();
+	}
 
-        Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-        double dx = te.getBlockPos().getX() + 0.5 - camera.x;
-        double dy = te.getBlockPos().getY() + 0.5 - camera.y;
-        double dz = te.getBlockPos().getZ() + 0.5 - camera.z;
-        double distance = Math.max(0, dx * dx + dy * dy + dz * dz - 5);
+	@Override
+	public void extractRenderState(DiaphanousBlockTileEntity te, State state, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling)
+	{
+		BlockEntityRenderer.super.extractRenderState(te, state, partialTicks, cameraPos, crumbling);
 
-        float curve = -0.5F * ((float) Math.cos(Math.PI * Math.min(Math.max(0, distance - 8), 25) / 25) - 1);
-        float alpha = te.isInverted() ? 1 - curve : curve;
+		state.quads.clear();
+		state.alpha = 0;
 
-        if (alpha <= 0.004F) {
-            return;
-        }
+		BlockState display = te.getDisplayState();
+		Level world = te.getLevel();
 
-        Level world = te.getLevel();
-        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-        BakedModel model = dispatcher.getBlockModel(display);
+		if (world == null || display.getRenderShape() != RenderShape.MODEL)
+		{
+			return;
+		}
 
-        VertexConsumer translucent = new AlphaVertexBuilder(buffer.getBuffer(RenderType.translucent()), alpha);
+		double dx = te.getBlockPos().getX() + 0.5 - cameraPos.x;
+		double dy = te.getBlockPos().getY() + 0.5 - cameraPos.y;
+		double dz = te.getBlockPos().getZ() + 0.5 - cameraPos.z;
+		double distance = Math.max(0, dx * dx + dy * dy + dz * dz - 5);
+		float curve = -0.5F * ((float) Math.cos(Math.PI * Math.min(Math.max(0, distance - 8), 25) / 25) - 1);
+		state.alpha = te.isInverted() ? 1 - curve : curve;
 
-        dispatcher.getModelRenderer().tesselateBlock(world, model, display, te.getBlockPos(), matrixStack, translucent, true, random, display.getSeed(te.getBlockPos()), combinedOverlay);
-    }
+		if (state.alpha <= 0.004F)
+		{
+			return;
+		}
+
+		BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(display);
+		random.setSeed(display.getSeed(te.getBlockPos()));
+		List<BlockModelPart> parts = model.collectParts(random);
+
+		for (BlockModelPart part : parts)
+		{
+			for (Direction side : Direction.values())
+			{
+				if (!world.getBlockState(te.getBlockPos().relative(side)).isSolidRender())
+				{
+					state.quads.addAll(part.getQuads(side));
+				}
+			}
+
+			state.quads.addAll(part.getQuads(null));
+		}
+	}
+
+	@Override
+	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera)
+	{
+		if (state.alpha <= 0.004F || state.quads.isEmpty())
+		{
+			return;
+		}
+
+		float alpha = state.alpha;
+		int light = state.lightCoords;
+
+		collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, consumer) -> {
+			for (BakedQuad quad : state.quads)
+			{
+				consumer.putBulkData(pose, quad, 1.0F, 1.0F, 1.0F, alpha, light, OverlayTexture.NO_OVERLAY);
+			}
+		});
+	}
 }

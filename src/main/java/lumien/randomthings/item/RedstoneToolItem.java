@@ -30,7 +30,7 @@ public class RedstoneToolItem extends Item {
     @Override
     public boolean isFoil(ItemStack stack) {
         CompoundTag tag = StackTag.get(stack);
-        return tag != null && tag.getBoolean("linking");
+        return tag != null && tag.getBooleanOr("linking", false);
     }
 
     @Override
@@ -45,10 +45,10 @@ public class RedstoneToolItem extends Item {
         }
 
         CompoundTag tag = StackTag.getOrCreate(stack);
-        boolean linking = tag.getBoolean("linking");
+        boolean linking = tag.getBooleanOr("linking", false);
 
         if (linking) {
-            BlockPos linkingFrom = new BlockPos(tag.getInt("oX"), tag.getInt("oY"), tag.getInt("oZ"));
+            BlockPos linkingFrom = new BlockPos(tag.getIntOr("oX", 0), tag.getIntOr("oY", 0), tag.getIntOr("oZ", 0));
 
             if (!linkingFrom.equals(pos)) {
                 BlockState linkingState = world.getBlockState(linkingFrom);

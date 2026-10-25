@@ -34,17 +34,17 @@ public class EmeraldCompassItem extends CompassItemBase
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected)
+	public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel worldIn, net.minecraft.world.entity.Entity entityIn, net.minecraft.world.entity.EquipmentSlot rtSlot)
 	{
-		super.inventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
+		super.inventoryTick(stack, worldIn, entityIn, rtSlot);
 
-		if (!worldIn.isClientSide && worldIn.getGameTime() % 20 == 0)
+		if (!worldIn.isClientSide() && worldIn.getGameTime() % 20 == 0)
 		{
 			CompoundTag compound = StackTag.get(stack);
 
 			if (compound != null && compound.contains("uuid"))
 			{
-				UUID uuid = UUID.fromString(compound.getString("uuid"));
+				UUID uuid = UUID.fromString(compound.getStringOr("uuid", ""));
 				ServerPlayer targetPlayer = ((ServerLevel) worldIn).getServer().getPlayerList().getPlayer(uuid);
 
 				if (targetPlayer != null)

@@ -30,7 +30,7 @@ public class GlowingMushroomBlock extends Block
 
 	public GlowingMushroomBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noOcclusion().strength(0.0F).lightLevel(state -> GLOW_LEVEL).sound(SoundType.GRASS).randomTicks().noCollision());
 	}
 
 	@Override

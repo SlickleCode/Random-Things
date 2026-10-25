@@ -50,9 +50,9 @@ public class RedstoneSignal {
     }
 
     public void read(CompoundTag compound) {
-        this.position = new BlockPos(compound.getInt("x"), compound.getInt("y"), compound.getInt("z"));
-        this.redstoneStrength = compound.getInt("redstoneStrength");
-        this.duration = compound.getInt("duration");
-        this.age = compound.getInt("age");
+        this.position = new BlockPos(compound.getIntOr("x", 0), compound.getIntOr("y", 0), compound.getIntOr("z", 0));
+        this.redstoneStrength = compound.getIntOr("redstoneStrength", 0);
+        this.duration = compound.getIntOr("duration", 0);
+        this.age = compound.getIntOr("age", 0);
     }
 }

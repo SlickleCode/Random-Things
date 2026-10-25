@@ -1,40 +1,39 @@
 package lumien.randomthings.client.renderer;
 
-import net.minecraft.client.renderer.GameRenderer;
-
-import com.mojang.blaze3d.platform.GlStateManager;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import lumien.randomthings.config.RTConfig;
 import lumien.randomthings.lib.ModConstants;
 import lumien.randomthings.tileentity.RuneBaseTileEntity;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.Tesselator;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
-import org.joml.Matrix4f;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Draws each placed rune as a small colored square, plus a thin connecting
  * strip toward any adjacent cell (in this same Rune Base, or across the edge
  * into a neighboring one) sharing its color - reading directly from the tile
- * entity's own data and, for edge connections, its loaded neighbors', at
- * render time. Replaces 1.12.2's {@code ModelRune}, a custom baked model
- * driven by {@code ExtendedBlockState}/{@code IUnlistedProperty} (removed in
- * 1.14.4) - this port's established fix for exactly that kind of per-instance
- * dynamic render data is a custom {@code TileEntityRenderer} instead (see
- * {@code BiomeRadarTileEntityRenderer}).
+ * entity's own data and, for edge connections, its loaded neighbors', when the
+ * render state is extracted. Replaces 1.12.2's {@code ModelRune}, a custom baked
+ * model driven by {@code ExtendedBlockState}/{@code IUnlistedProperty} (removed
+ * in 1.14.4) - this port's established fix for exactly that kind of per-instance
+ * dynamic render data is a custom block entity renderer instead.
  * <p>
  * Like the original, each pixel/strip samples a random 2x2 (or 2x1) sub-region
  * of a 16x16 texture, tinted by the rune color, so no two pixels look quite
@@ -42,172 +41,181 @@ import net.minecraft.client.Minecraft;
  * position (consumed in the original's exact order) so they stay stable from
  * frame to frame. The {@code FlatRunes} config option swaps the noisy
  * {@code rune_base.png} for the plain {@code rune_base_flat.png}, as in 1.12.2.
+ * The quads are drawn fully bright (the original switched the light layer off).
  */
-public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseTileEntity> {
-    private static final float UNIT = 1F / 16F;
-    private static final ResourceLocation NOISY = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base.png");
-    private static final ResourceLocation FLAT = ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
-    private static final Direction[] SIDE_ORDER = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
+public class RuneBaseTileEntityRenderer implements BlockEntityRenderer<RuneBaseTileEntity, RuneBaseTileEntityRenderer.State>
+{
+	private static final float UNIT = 1F / 16F;
+	private static final Identifier NOISY = Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base.png");
+	private static final Identifier FLAT = Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "textures/block/rune_base_flat.png");
+	private static final Direction[] SIDE_ORDER = { Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST };
 
-    public RuneBaseTileEntityRenderer(BlockEntityRendererProvider.Context context) {
-    }
+	private record Quad(float x1, float x2, float z1, float z2, float u1, float u2, float v1, float v2, float r, float g, float b)
+	{
+	}
 
-    @Override
-    public void render(RuneBaseTileEntity te, float partialTicks, PoseStack matrixStack, MultiBufferSource renderBuffer, int combinedLight, int combinedOverlay) {
-        DyeColor[][] runeData = te.getRuneData();
+	public static class State extends BlockEntityRenderState
+	{
+		private final List<Quad> quads = new ArrayList<>();
+		private boolean flat;
+	}
 
-        if (te.isEmpty()) {
-            return;
-        }
+	public RuneBaseTileEntityRenderer(BlockEntityRendererProvider.Context context)
+	{
+	}
 
-        Minecraft.getInstance().gameRenderer.lightTexture().turnOffLightLayer();
-        RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.POSITION_TEX_COLOR);
-        RenderSystem.setShaderTexture(0, RTConfig.FLAT_RUNES.get() ? FLAT : NOISY);
-        Matrix4f matrix = matrixStack.last().pose();
-        double x = 0, y = 0, z = 0;
-        // Real bug #2, found 2026-09-27 (the color4f reset below wasn't enough on its
-        // own): TileEntityRendererDispatcher.render() calls RenderHelper
-        // .enableStandardItemLighting() (real GL_LIGHTING, with fixed-function light
-        // positions) right before invoking any TESR's own render() - confirmed by
-        // reading the dispatcher's own decompiled source. That's fine for baked-model
-        // TESRs (their quads carry proper normals), but this renderer's raw
-        // POSITION_COLOR vertices carry no normal data at all, so the lighting math
-        // ran against whatever normal happened to be left set globally, darkening
-        // every pixel toward invisible on top of the alpha issue below.
-        // RedstoneObserverLineRenderer - this project's other raw-colored-primitive
-        // TESR-adjacent renderer - already disables lighting for exactly this reason;
-        // missed here since it wasn't obviously needed for what looked like a plain
-        // "flat color" draw.
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.disableCull();
-        // Real bug #1, found 2026-09-27: every vertex color below is multiplied by
-        // this global GL color state, which isn't reset between renderers - without
-        // setting it to opaque white here, whatever alpha was left over from the last
-        // thing drawn that frame (often near-zero) made every rune pixel invisible
-        // despite the tile entity/data placing correctly. Every other custom TESR in
-        // this project that draws its own colors already does this - missed here
-        // specifically because this is the only one using per-vertex BufferBuilder.color(...) instead of a single
-        // RenderSystem.setShaderColor(...) call per shape.
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	@Override
+	public State createRenderState()
+	{
+		return new State();
+	}
 
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+	@Override
+	public void extractRenderState(RuneBaseTileEntity te, State state, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.CrumblingOverlay crumbling)
+	{
+		BlockEntityRenderer.super.extractRenderState(te, state, partialTicks, cameraPos, crumbling);
 
-        Random rng = new Random(te.getBlockPos().asLong());
+		state.quads.clear();
+		state.flat = RTConfig.FLAT_RUNES.get();
 
-        for (int cx = 0; cx < 4; cx++) {
-            for (int cy = 0; cy < 4; cy++) {
-                DyeColor color = runeData[cx][cy];
+		if (te.isEmpty())
+		{
+			return;
+		}
 
-                float u = rng.nextInt(8) * 2;
-                float v = rng.nextInt(8) * 2;
+		DyeColor[][] runeData = te.getRuneData();
+		Random rng = new Random(te.getBlockPos().asLong());
 
-                if (color == null) {
-                    // Keep the random sequence aligned with the original's, which
-                    // still rolled the four side samples for empty cells.
-                    for (int i = 0; i < 8; i++) {
-                        rng.nextInt(8);
-                    }
+		for (int cx = 0; cx < 4; cx++)
+		{
+			for (int cy = 0; cy < 4; cy++)
+			{
+				DyeColor color = runeData[cx][cy];
 
-                    continue;
-                }
+				float u = rng.nextInt(8) * 2;
+				float v = rng.nextInt(8) * 2;
 
-                float[] rgb = lumien.randomthings.util.DyeUtil.diffuse(color);
+				if (color == null)
+				{
+					// Keep the random sequence aligned with the original's, which still rolled the four side samples for empty cells.
+					for (int i = 0; i < 8; i++)
+					{
+						rng.nextInt(8);
+					}
 
-                // The pixel itself: 2 units wide, centered in its 4-unit cell.
-                addQuad(matrix, buffer, x, y, z, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
+					continue;
+				}
 
-                for (Direction dir : SIDE_ORDER) {
-                    u = rng.nextInt(8) * 2;
-                    v = rng.nextInt(8) * 2;
+				float[] rgb = lumien.randomthings.util.DyeUtil.diffuse(color);
 
-                    if (isConnected(te, runeData, cx, cy, color, dir)) {
-                        addConnectionStrip(matrix, buffer, x, y, z, cx, cy, dir, rgb, u, v);
-                    }
-                }
-            }
-        }
+				// The pixel itself: 2 units wide, centered in its 4-unit cell.
+				addQuad(state, cx * 4 + 1, cx * 4 + 3, cy * 4 + 1, cy * 4 + 3, rgb, u, v);
 
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+				for (Direction dir : SIDE_ORDER)
+				{
+					u = rng.nextInt(8) * 2;
+					v = rng.nextInt(8) * 2;
 
-        RenderSystem.enableCull();
-        Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
-    }
+					if (isConnected(te, runeData, cx, cy, color, dir))
+					{
+						addConnectionStrip(state, cx, cy, dir, rgb, u, v);
+					}
+				}
+			}
+		}
+	}
 
-    private boolean isConnected(RuneBaseTileEntity te, DyeColor[][] runeData, int cx, int cy, DyeColor color, Direction dir) {
-        int nx = cx + dir.getStepX();
-        int ny = cy + dir.getStepZ();
+	@Override
+	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera)
+	{
+		if (state.quads.isEmpty())
+		{
+			return;
+		}
 
-        if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4) {
-            return runeData[nx][ny] == color;
-        }
+		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(state.flat ? FLAT : NOISY), (pose, buffer) -> {
+			for (Quad q : state.quads)
+			{
+				float y = 0.02F;
 
-        BlockEntity neighborTe = te.getLevel().getBlockEntity(te.getBlockPos().relative(dir));
+				vertex(pose, buffer, q.x1, y, q.z1, q.u1, q.v1, q);
+				vertex(pose, buffer, q.x1, y, q.z2, q.u1, q.v2, q);
+				vertex(pose, buffer, q.x2, y, q.z2, q.u2, q.v2, q);
+				vertex(pose, buffer, q.x2, y, q.z1, q.u2, q.v1, q);
+			}
+		});
+	}
 
-        if (!(neighborTe instanceof RuneBaseTileEntity)) {
-            return false;
-        }
+	private static void vertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float z, float u, float v, Quad q)
+	{
+		buffer.addVertex(pose, x, y, z).setColor(q.r, q.g, q.b, 1.0F).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+	}
 
-        int mirroredX = nx < 0 ? 3 : (nx >= 4 ? 0 : nx);
-        int mirroredY = ny < 0 ? 3 : (ny >= 4 ? 0 : ny);
+	private boolean isConnected(RuneBaseTileEntity te, DyeColor[][] runeData, int cx, int cy, DyeColor color, Direction dir)
+	{
+		int nx = cx + dir.getStepX();
+		int ny = cy + dir.getStepZ();
 
-        return ((RuneBaseTileEntity) neighborTe).getRuneData()[mirroredX][mirroredY] == color;
-    }
+		if (nx >= 0 && nx < 4 && ny >= 0 && ny < 4)
+		{
+			return runeData[nx][ny] == color;
+		}
 
-    private void addConnectionStrip(Matrix4f matrix, BufferBuilder buffer, double x, double y, double z, int cx, int cy, Direction dir, float[] rgb, float u, float v) {
-        int baseX = cx * 4;
-        int baseY = cy * 4;
+		BlockEntity neighborTe = te.getLevel().getBlockEntity(te.getBlockPos().relative(dir));
 
-        double x1, x2, y1, y2;
+		if (!(neighborTe instanceof RuneBaseTileEntity))
+		{
+			return false;
+		}
 
-        switch (dir) {
-            case NORTH:
-                x1 = baseX + 1;
-                x2 = baseX + 3;
-                y1 = baseY;
-                y2 = baseY + 1;
-                break;
-            case SOUTH:
-                x1 = baseX + 1;
-                x2 = baseX + 3;
-                y1 = baseY + 3;
-                y2 = baseY + 4;
-                break;
-            case WEST:
-                x1 = baseX;
-                x2 = baseX + 1;
-                y1 = baseY + 1;
-                y2 = baseY + 3;
-                break;
-            case EAST:
-            default:
-                x1 = baseX + 3;
-                x2 = baseX + 4;
-                y1 = baseY + 1;
-                y2 = baseY + 3;
-                break;
-        }
+		int mirroredX = nx < 0 ? 3 : (nx >= 4 ? 0 : nx);
+		int mirroredY = ny < 0 ? 3 : (ny >= 4 ? 0 : ny);
 
-        addQuad(matrix, buffer, x, y, z, x1, x2, y1, y2, rgb, u, v);
-    }
+		return ((RuneBaseTileEntity) neighborTe).getRuneData()[mirroredX][mirroredY] == color;
+	}
 
-    /** {@code u}/{@code v} pick the top-left texel of a region as big as the quad, in 1/16 texture units. */
-    private void addQuad(Matrix4f matrix, BufferBuilder buffer, double x, double y, double z, double x1, double x2, double y1, double y2, float[] rgb, float u, float v) {
-        double lx1 = x + x1 * UNIT;
-        double lx2 = x + x2 * UNIT;
-        double lz1 = z + y1 * UNIT;
-        double lz2 = z + y2 * UNIT;
-        double ly = y + 0.02;
+	private void addConnectionStrip(State state, int cx, int cy, Direction dir, float[] rgb, float u, float v)
+	{
+		int baseX = cx * 4;
+		int baseY = cy * 4;
 
-        float u1 = u / 16F;
-        float u2 = (u + (float) (x2 - x1)) / 16F;
-        float v1 = v / 16F;
-        float v2 = (v + (float) (y2 - y1)) / 16F;
+		int x1, x2, y1, y2;
 
-        buffer.addVertex(matrix, (float) lx1, (float) ly, (float) lz1).setUv(u1, v1).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
-        buffer.addVertex(matrix, (float) lx1, (float) ly, (float) lz2).setUv(u1, v2).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
-        buffer.addVertex(matrix, (float) lx2, (float) ly, (float) lz2).setUv(u2, v2).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
-        buffer.addVertex(matrix, (float) lx2, (float) ly, (float) lz1).setUv(u2, v1).setColor(rgb[0], rgb[1], rgb[2], 1.0F);
-    }
+		switch (dir)
+		{
+			case NORTH:
+				x1 = baseX + 1;
+				x2 = baseX + 3;
+				y1 = baseY;
+				y2 = baseY + 1;
+				break;
+			case SOUTH:
+				x1 = baseX + 1;
+				x2 = baseX + 3;
+				y1 = baseY + 3;
+				y2 = baseY + 4;
+				break;
+			case WEST:
+				x1 = baseX;
+				x2 = baseX + 1;
+				y1 = baseY + 1;
+				y2 = baseY + 3;
+				break;
+			case EAST:
+			default:
+				x1 = baseX + 3;
+				x2 = baseX + 4;
+				y1 = baseY + 1;
+				y2 = baseY + 3;
+				break;
+		}
+
+		addQuad(state, x1, x2, y1, y2, rgb, u, v);
+	}
+
+	/** {@code u}/{@code v} pick the top-left texel of a region as big as the quad, in 1/16 texture units. */
+	private void addQuad(State state, int x1, int x2, int y1, int y2, float[] rgb, float u, float v)
+	{
+		state.quads.add(new Quad(x1 * UNIT, x2 * UNIT, y1 * UNIT, y2 * UNIT, u / 16F, (u + (x2 - x1)) / 16F, v / 16F, (v + (y2 - y1)) / 16F, rgb[0], rgb[1], rgb[2]));
+	}
 }

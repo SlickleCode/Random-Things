@@ -64,12 +64,12 @@ public class ArtificialEndPortalEntity extends Entity {
             actionTimer++;
             this.entityData.set(ACTION_TIMER, actionTimer);
 
-            if (this.level().isClientSide && actionTimer > 40) {
+            if (this.level().isClientSide() && actionTimer > 40) {
                 spawnParticles();
             }
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (this.level().getGameTime() % 40 == 0) {
                 if (!isValidPosition(this.level(), BlockPos.containing(this.getX(), this.getY(), this.getZ()), false)) {
                     this.discard();
@@ -95,18 +95,30 @@ public class ArtificialEndPortalEntity extends Entity {
     public void playerTouch(Player entityIn) {
         super.playerTouch(entityIn);
 
-        if (!this.level().isClientSide && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
-            entityIn.teleport(new net.minecraft.world.level.portal.TeleportTransition(this.level().getServer().getLevel(Level.END), entityIn, net.minecraft.world.level.portal.TeleportTransition.DO_NOTHING));
+        if (!this.level().isClientSide() && getActionTimer() >= 200 && entityIn.getBoundingBox().intersects(this.getBoundingBox()) && !entityIn.isPassenger() && !entityIn.isVehicle()) {
+            entityIn.teleport(new net.minecraft.world.level.portal.TeleportTransition(this.level().getServer().getLevel(Level.END), entityIn.position(), entityIn.getDeltaMovement(), entityIn.getYRot(), entityIn.getXRot(), net.minecraft.world.level.portal.TeleportTransition.DO_NOTHING));
         }
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
-        this.entityData.set(ACTION_TIMER, compound.getInt("actionTimer"));
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
+
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(ACTION_TIMER, compound.getIntOr("actionTimer", 0));
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
         compound.putInt("actionTimer", getActionTimer());
     }
 

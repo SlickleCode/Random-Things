@@ -44,7 +44,7 @@ public class RuneDustItem extends Item implements IRTItemColor {
         Level world = context.getLevel();
         BlockPos pos = context.getClickedPos();
 
-        if (world.isClientSide || context.getClickedFace() != Direction.UP) {
+        if (world.isClientSide() || context.getClickedFace() != Direction.UP) {
             return InteractionResult.PASS;
         }
 

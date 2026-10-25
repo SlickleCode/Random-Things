@@ -33,7 +33,7 @@ public class ChunkAnalyzerItem extends Item {
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isClientSide && hand == InteractionHand.MAIN_HAND) {
+        if (!worldIn.isClientSide() && hand == InteractionHand.MAIN_HAND) {
             ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                 @Override
                 public Component getDisplayName() {

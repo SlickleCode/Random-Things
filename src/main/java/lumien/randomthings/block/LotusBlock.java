@@ -33,9 +33,9 @@ public class LotusBlock extends BushBlock
 	public static final com.mojang.serialization.MapCodec<LotusBlock> CODEC = simpleCodec(properties -> new LotusBlock());
 
 	@Override
-	protected com.mojang.serialization.MapCodec<? extends BushBlock> codec()
+	public com.mojang.serialization.MapCodec<BushBlock> codec()
 	{
-		return CODEC;
+		return (com.mojang.serialization.MapCodec<BushBlock>) (com.mojang.serialization.MapCodec<?>) CODEC;
 	}
 
 	public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 3);
@@ -49,7 +49,7 @@ public class LotusBlock extends BushBlock
 
 	public LotusBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollission());
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.PLANT).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).strength(0.0F).randomTicks().sound(SoundType.GRASS).noCollision());
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(AGE, 0));
 	}
@@ -95,7 +95,7 @@ public class LotusBlock extends BushBlock
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
 		if (state.getValue(AGE) == 3)
 		{
-			if (!worldIn.isClientSide)
+			if (!worldIn.isClientSide())
 			{
 				worldIn.setBlockAndUpdate(pos, state.setValue(AGE, 0));
 

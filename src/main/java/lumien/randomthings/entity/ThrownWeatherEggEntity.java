@@ -23,7 +23,7 @@ import net.minecraft.world.level.Level;
  * already syncs its held {@link ItemStack} (egg type included) to clients on
  * its own, so no custom spawn-data packet is needed here at all.
  */
-public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectile.ThrowableItemProjectile {
+public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile {
     public ThrownWeatherEggEntity(EntityType<? extends ThrownWeatherEggEntity> type, Level world) {
         super(type, world);
     }
@@ -57,7 +57,7 @@ public class ThrownWeatherEggEntity extends net.minecraft.world.entity.projectil
             hitEntity.hurt(this.damageSources().thrown(this, this.getOwner()), 1.0F);
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             WeatherCloudEntity cloud = new WeatherCloudEntity(this.level(), result.getLocation().x, result.getLocation().y + 0.5, result.getLocation().z, this.getItem().getItem());
             this.level().addFreshEntity(cloud);
 

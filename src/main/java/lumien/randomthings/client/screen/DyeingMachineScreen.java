@@ -6,14 +6,13 @@ import net.minecraft.client.renderer.GameRenderer;
 
 import java.awt.Color;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.DyeingMachineContainer;
 import lumien.randomthings.util.DyeUtil;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -24,7 +23,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  * currently sits in the dye slot.
  */
 public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineContainer> {
-    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/dyeing_machine.png");
+    private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/dyeing_machine.png");
     private static final int IDLE_COLOR = 9145227;
     private static final float COLOR_MOD = 1F / 255F;
 
@@ -74,22 +73,18 @@ public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineCo
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+        graphics.drawString(this.font, this.title.getString(), 8, 6, 0xFF404040, false);
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
         Color c = new Color(currentColor);
-        RenderSystem.setShaderColor(COLOR_MOD * c.getRed(), COLOR_MOD * c.getGreen(), COLOR_MOD * c.getBlue(), 1.0F);
-        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x + 102, y + 23, 176, 21, 22, 15, 256, 256);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, x + 102, y + 23, 176, 21, 22, 15, 256, 256, c.getRGB());
         // 1.20.5+ draws slot items after renderBg without resetting the colour: leave it white or every item shows the swatch tint
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     @Override

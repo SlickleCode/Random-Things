@@ -38,16 +38,16 @@ public class ContactLeverBlock extends Block
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, boolean isMoving)
 	{
-		if (!isMoving && state.getBlock() != newState.getBlock())
+		if (!isMoving && true)
 		{
 			if (state.getValue(POWERED))
 			{
 				this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
 			}
 
-			super.onRemove(state, worldIn, pos, newState, isMoving);
+			super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
 		}
 	}
 

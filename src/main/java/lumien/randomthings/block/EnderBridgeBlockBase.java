@@ -52,7 +52,7 @@ public abstract class EnderBridgeBlockBase extends Block {
     }
 
     private void setDefaultFacing(Level worldIn, BlockPos pos, BlockState state) {
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return;
         }
 

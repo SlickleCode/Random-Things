@@ -17,7 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -53,7 +53,7 @@ final class UseItemTests
 
 	private static Item item(String path)
 	{
-		Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.fromNamespaceAndPath("randomthings", path));
+		Item item = BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath("randomthings", path));
 		return item;
 	}
 

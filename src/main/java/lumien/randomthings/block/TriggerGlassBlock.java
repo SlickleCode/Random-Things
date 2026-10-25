@@ -92,7 +92,7 @@ public class TriggerGlassBlock extends Block
 	@Override
 	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, net.minecraft.world.level.redstone.Orientation fromPos, boolean isMoving)
 	{
-		if (!worldIn.isClientSide && !state.getValue(TRIGGERED) && worldIn.hasNeighborSignal(pos))
+		if (!worldIn.isClientSide() && !state.getValue(TRIGGERED) && worldIn.hasNeighborSignal(pos))
 		{
 			triggerConnected(worldIn, pos);
 		}
@@ -143,7 +143,7 @@ public class TriggerGlassBlock extends Block
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand)
 	{
-		if (!worldIn.isClientSide && state.getValue(TRIGGERED))
+		if (!worldIn.isClientSide() && state.getValue(TRIGGERED))
 		{
 			worldIn.setBlockAndUpdate(pos, state.setValue(TRIGGERED, false));
 		}

@@ -78,8 +78,8 @@ public class SpectreCoreBlock extends Block {
         ItemStack holding = playerIn.getItemInHand(hand);
 
         if (!holding.isEmpty() && holding.getItem() == ModItems.ECTOPLASM) {
-            if (!worldIn.isClientSide) {
-                SpectreCube cube = SpectreHandler.getInstance(((ServerPlayer) playerIn).getServer()).getSpectreCubeFromPos(worldIn, pos.above());
+            if (!worldIn.isClientSide()) {
+                SpectreCube cube = SpectreHandler.getInstance(((ServerPlayer) playerIn).level().getServer()).getSpectreCubeFromPos(worldIn, pos.above());
 
                 if (cube != null) {
                     holding.shrink(cube.increaseHeight(holding.getCount(), worldIn));
@@ -88,8 +88,8 @@ public class SpectreCoreBlock extends Block {
 
             return InteractionResult.SUCCESS;
         } else if (holding.isEmpty()) {
-            if (!worldIn.isClientSide) {
-                SpectreHandler.getInstance(((ServerPlayer) playerIn).getServer()).teleportPlayerBack((ServerPlayer) playerIn);
+            if (!worldIn.isClientSide()) {
+                SpectreHandler.getInstance(((ServerPlayer) playerIn).level().getServer()).teleportPlayerBack((ServerPlayer) playerIn);
             }
 
             return InteractionResult.SUCCESS;

@@ -71,7 +71,7 @@ public class GuiOpenTriggerLog
 	{
 		if (event.getAction() == 1)
 		{
-			record("key " + InputConstants.getKey(event.getKey(), event.getScanCode()).getName());
+			record("key " + InputConstants.getKey(new net.minecraft.client.input.KeyEvent(event.getKey(), event.getScanCode(), event.getModifiers())).getName());
 		}
 	}
 
@@ -93,7 +93,7 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event)
 	{
-		if (event.getLevel().isClientSide)
+		if (event.getLevel().isClientSide())
 		{
 			record("interact block " + RegUtil.id(event.getLevel().getBlockState(event.getPos()).getBlock()) + " at " + event.getPos().getX() + "," + event.getPos().getY() + "," + event.getPos().getZ() + " face " + event.getFace() + " with " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}
@@ -102,7 +102,7 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onRightClickItem(PlayerInteractEvent.RightClickItem event)
 	{
-		if (event.getLevel().isClientSide)
+		if (event.getLevel().isClientSide())
 		{
 			record("use item " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}
@@ -111,7 +111,7 @@ public class GuiOpenTriggerLog
 	@SubscribeEvent
 	public static void onEntityInteract(PlayerInteractEvent.EntityInteract event)
 	{
-		if (event.getLevel().isClientSide)
+		if (event.getLevel().isClientSide())
 		{
 			record("interact entity " + RegUtil.id(event.getTarget().getType()) + " with " + RegUtil.id(event.getItemStack().getItem()) + " in " + event.getHand());
 		}

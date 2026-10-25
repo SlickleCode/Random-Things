@@ -50,7 +50,7 @@ public class FlooTokenItem extends Item {
 
     private static int age(ItemEntity entityItem) {
         CompoundTag data = entityItem.getPersistentData();
-        int age = data.getInt("flooTokenAge") + 1;
+        int age = data.getIntOr("flooTokenAge", 0) + 1;
         data.putInt("flooTokenAge", age);
 
         return age;

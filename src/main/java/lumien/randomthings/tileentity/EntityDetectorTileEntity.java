@@ -23,7 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -178,7 +178,7 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 
 	public void tick()
 	{
-		if (this.level.isClientSide)
+		if (this.level.isClientSide())
 		{
 			return;
 		}
@@ -217,9 +217,16 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 
 		compound.putBoolean("powered", powered);
 		compound.putInt("rangeX", rangeX);
@@ -233,18 +240,23 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
 
-		powered = compound.getBoolean("powered");
-		rangeX = compound.getInt("rangeX");
-		rangeY = compound.getInt("rangeY");
-		rangeZ = compound.getInt("rangeZ");
-		filter = FILTER.values()[compound.getInt("filter")];
-		invert = compound.getBoolean("invert");
-		strongOutput = compound.getBoolean("strongOutput");
-		filterInventory.deserializeNBT(registries, compound.getCompound("inventory"));
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+
+		powered = compound.getBooleanOr("powered", false);
+		rangeX = compound.getIntOr("rangeX", 0);
+		rangeY = compound.getIntOr("rangeY", 0);
+		rangeZ = compound.getIntOr("rangeZ", 0);
+		filter = FILTER.values()[compound.getIntOr("filter", 0)];
+		invert = compound.getBooleanOr("invert", false);
+		strongOutput = compound.getBooleanOr("strongOutput", false);
+		filterInventory.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
 	}
 
 	@Override
@@ -257,5 +269,17 @@ public class EntityDetectorTileEntity extends BlockEntity implements MenuProvide
 	public Component getDisplayName()
 	{
 		return Component.translatable("block.randomthings.entity_detector");
+	}
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.EntityDetectorBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
 	}
 }

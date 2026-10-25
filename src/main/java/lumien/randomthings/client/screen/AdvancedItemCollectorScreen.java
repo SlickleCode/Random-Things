@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AdvancedItemCollectorContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -12,17 +11,16 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * AdvancedItemCollectorScreen
  */
 public class AdvancedItemCollectorScreen extends AbstractContainerScreen<AdvancedItemCollectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/advanced_item_collector.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/advanced_item_collector.png");
 
 	public AdvancedItemCollectorScreen(AdvancedItemCollectorContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -57,27 +55,25 @@ public class AdvancedItemCollectorScreen extends AbstractContainerScreen<Advance
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, I18n.get("block.randomthings.advanced_item_collector"), 22, 6, 4210752, false);
+		graphics.drawString(this.font, I18n.get("block.randomthings.advanced_item_collector"), 22, 6, 0xFF404040, false);
 
 		String radiusX = I18n.get("gui.randomthings.advanced_item_collector.range_x", this.menu.rangeX.get());
-		graphics.drawString(this.font, radiusX, imageWidth / 2 - this.font.width(radiusX) / 2 - 3, 26, 4210752, false);
+		graphics.drawString(this.font, radiusX, imageWidth / 2 - this.font.width(radiusX) / 2 - 3, 26, 0xFF404040, false);
 
 		String radiusY = I18n.get("gui.randomthings.advanced_item_collector.range_y", this.menu.rangeY.get());
-		graphics.drawString(this.font, radiusY, imageWidth / 2 - this.font.width(radiusY) / 2 - 3, 51, 4210752, false);
+		graphics.drawString(this.font, radiusY, imageWidth / 2 - this.font.width(radiusY) / 2 - 3, 51, 0xFF404040, false);
 
 		String radiusZ = I18n.get("gui.randomthings.advanced_item_collector.range_z", this.menu.rangeZ.get());
-		graphics.drawString(this.font, radiusZ, imageWidth / 2 - this.font.width(radiusZ) / 2 - 3, 76, 4210752, false);
+		graphics.drawString(this.font, radiusZ, imageWidth / 2 - this.font.width(radiusZ) / 2 - 3, 76, 0xFF404040, false);
 
 	}
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

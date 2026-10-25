@@ -85,7 +85,7 @@ public class IgniterBlock extends Block implements EntityBlock {
 			worldIn.setBlock(pos, state.setValue(FACING, facing), 2);
 		}
 
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			worldIn.scheduleTick(pos, this, 10);
 		}
@@ -93,7 +93,7 @@ public class IgniterBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

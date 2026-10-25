@@ -74,7 +74,7 @@ public class WeatherCloudEntity extends Entity {
             this.setDeltaMovement(this.getDeltaMovement().x, 0.007, this.getDeltaMovement().z);
         } else if (this.getY() < this.level().getMaxY() + 1) {
             this.setDeltaMovement(this.getDeltaMovement().x, (this.getDeltaMovement().y + 0.001) * 1.02, this.getDeltaMovement().z);
-        } else if (!this.level().isClientSide) {
+        } else if (!this.level().isClientSide()) {
             int duration = (300 + new Random().nextInt(600)) * 20;
             ServerLevelData info = (ServerLevelData) this.level().getLevelData();
 
@@ -105,7 +105,7 @@ public class WeatherCloudEntity extends Entity {
 
         this.move(MoverType.SELF, this.getDeltaMovement());
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             spawnParticles();
         }
 
@@ -146,13 +146,25 @@ public class WeatherCloudEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
-        this.entityData.set(EGG_TYPE, compound.getInt("eggType"));
-        this.age = compound.getInt("age");
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
+
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(EGG_TYPE, compound.getIntOr("eggType", 0));
+        this.age = compound.getIntOr("age", 0);
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
         compound.putInt("eggType", this.entityData.get(EGG_TYPE));
         compound.putInt("age", age);
     }

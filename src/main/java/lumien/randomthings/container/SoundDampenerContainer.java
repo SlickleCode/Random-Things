@@ -5,7 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.Container;
 import net.minecraft.network.FriendlyByteBuf;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 public class SoundDampenerContainer extends AbstractSoundDampenerContainer {
     public SoundDampenerContainer(int windowId, Inventory playerInventory, SoundDampenerTileEntity te) {

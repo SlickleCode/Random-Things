@@ -23,20 +23,32 @@ public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements Menu
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 		compound.putInt("signalStrengthRed", signalStrengthRed);
 		compound.putInt("signalStrengthGreen", signalStrengthGreen);
 
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
-		this.signalStrengthRed = compound.getInt("signalStrengthRed");
-		this.signalStrengthGreen = compound.getInt("signalStrengthGreen");
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.signalStrengthRed = compound.getIntOr("signalStrengthRed", 0);
+		this.signalStrengthGreen = compound.getIntOr("signalStrengthGreen", 0);
 	}
 
 	public int signalStrengthRed()

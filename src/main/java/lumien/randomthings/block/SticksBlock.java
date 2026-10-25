@@ -21,7 +21,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.server.level.ServerLevel;
 
 public class SticksBlock extends Block
@@ -39,13 +38,12 @@ public class SticksBlock extends Block
 	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
 	{
 		super.setPlacedBy(worldIn, pos, state, placer, stack);
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			worldIn.scheduleTick(pos, this, 20 * 10);
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public float func_220080_a(BlockState state, BlockGetter worldIn, BlockPos pos)
 	{
 		return 1.0F;
@@ -74,7 +72,7 @@ public class SticksBlock extends Block
 	@Override
 	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
 	{
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			worldIn.removeBlock(pos, false);
 

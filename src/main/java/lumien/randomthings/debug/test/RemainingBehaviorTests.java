@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -88,7 +88,7 @@ final class RemainingBehaviorTests
 		}));
 
 		tests.add(RTTest.named("behavior.online_detector.powers_for_an_online_player_and_drops_when_they_are_not_named_any_more").run(c -> {
-			String name = c.player.getGameProfile().getName();
+			String name = c.player.getGameProfile().name();
 
 			if (c.world.getServer().getPlayerList().getPlayerByName(name) == null)
 			{
@@ -110,7 +110,7 @@ final class RemainingBehaviorTests
 			c.floor();
 			c.set(c.at(0, 1, 0), ModBlocks.CHAT_DETECTOR);
 			ChatDetectorTileEntity te = c.tile(c.at(0, 1, 0), ChatDetectorTileEntity.class);
-			te.setPlayerUUID(c.player.getGameProfile().getId());
+			te.setPlayerUUID(c.player.getGameProfile().id());
 			te.setChatMessage("open sesame");
 			te.setConsume(true);
 
@@ -135,7 +135,7 @@ final class RemainingBehaviorTests
 			chat(c, "hello");
 			c.check(!te.isPulsing(), "the message of a player the detector is not bound to must not pulse it");
 
-			te.setPlayerUUID(c.player.getGameProfile().getId());
+			te.setPlayerUUID(c.player.getGameProfile().id());
 			ServerChatEvent event = chat(c, "hello");
 			c.check(te.isPulsing(), "the bound player's message pulses");
 			c.check(!event.isCanceled(), "non-consume mode must leave the message in chat");
@@ -153,7 +153,7 @@ final class RemainingBehaviorTests
 			c.check(!first.isCanceled(), "without a matching ID card the message must not be consumed");
 
 			ItemStack card = new ItemStack(ModItems.ID_CARD);
-			StackTag.edit(card, t -> t.putString("uuid", c.player.getGameProfile().getId().toString()));
+			StackTag.edit(card, t -> t.putString("uuid", c.player.getGameProfile().id().toString()));
 			te.idCardInventory().setStackInSlot(0, card);
 			ServerChatEvent second = chat(c, "ping");
 			c.check(second.isCanceled(), "an ID card of the sender allows consuming");
@@ -267,14 +267,14 @@ final class RemainingBehaviorTests
 				c.check(AsmHandler.overrideCanRenderName(true, c.player), "without the hood the nametag stays visible");
 				c.check(AsmHandler.overrideCanRenderName(true, pig), "non-player entities are not affected");
 
-				EffectParticleModificationEvent open = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100));
+				EffectParticleModificationEvent open = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.SPEED, 100));
 				NeoForge.EVENT_BUS.post(open);
 				c.check(open.isVisible(), "the particles stay visible without the hood");
 
 				c.player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ModItems.MAGIC_HOOD));
 				c.check(!AsmHandler.overrideCanRenderName(true, c.player), "with the hood the nametag is hidden");
 
-				EffectParticleModificationEvent worn = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 100));
+				EffectParticleModificationEvent worn = new EffectParticleModificationEvent(c.player, new MobEffectInstance(MobEffects.SPEED, 100));
 				NeoForge.EVENT_BUS.post(worn);
 				c.check(!worn.isVisible(), "with the hood the effect particles are hidden");
 			}
@@ -348,7 +348,7 @@ final class RemainingBehaviorTests
 			c.check(box.hasPattern(), "pattern stored");
 
 			SoundBoxTileEntity copy = new SoundBoxTileEntity(box.getBlockPos(), box.getBlockState());
-			copy.loadWithComponents(box.saveWithoutMetadata(c.world.registryAccess()), c.world.registryAccess());
+			copy.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, c.world.registryAccess(), box.saveWithoutMetadata(c.world.registryAccess())));
 			c.check(copy.hasPattern() && "minecraft:block.note_block.harp".equals(SoundPatternItem.getSoundLocation(copy.getPattern()).toString()), "pattern survives an NBT round trip");
 		}));
 

@@ -28,7 +28,6 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.core.particles.ParticleTypes;
 
 public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
@@ -38,7 +37,7 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 
 	protected AdvancedRedstoneWallTorchBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollission().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD).overrideDescription("block.randomthings.advanced_redstone_torch"));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY).noCollision().strength(0).lightLevel(state -> 7).sound(SoundType.WOOD).overrideDescription("block.randomthings.advanced_redstone_torch"));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(COLOR_PROPERTY, AdvancedRedstoneTorchBlock.COLOR.RED));
 	}
 
@@ -70,7 +69,6 @@ public class AdvancedRedstoneWallTorchBlock extends AdvancedRedstoneTorchBlock
 	/**
 	 * Called periodically clientside on blocks near the player to show effects (like furnace fire particles). Note that this method is unrelated to {@link randomTick} and {@link #needsRandomTick}, and will always be called regardless of whether the block can receive random update ticks
 	 */
-	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState stateIn, Level worldIn, BlockPos pos, RandomSource rand)
 	{
 		if (stateIn.getValue(COLOR_PROPERTY) == COLOR.RED)

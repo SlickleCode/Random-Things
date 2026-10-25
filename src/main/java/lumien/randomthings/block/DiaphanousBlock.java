@@ -60,7 +60,7 @@ import net.minecraft.server.level.ServerLevel;
  */
 public class DiaphanousBlock extends Block implements EntityBlock {
     public DiaphanousBlock() {
-        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.NONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().sound(net.minecraft.world.level.block.SoundType.GLASS).strength(0.3F).noCollision());
     }
 
     @Override
@@ -108,7 +108,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(worldIn, pos, state, placer, stack);
 
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return;
         }
 
@@ -124,16 +124,15 @@ public class DiaphanousBlock extends Block implements EntityBlock {
             return;
         }
 
-        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.ResourceLocation.parse(tag.getString("block")));
+        net.minecraft.world.level.block.Block displayBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.parse(tag.getStringOr("block", "")));
 
         if (displayBlock != null) {
-            ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBoolean("inverted"));
+            ((DiaphanousBlockTileEntity) te).setDisplayState(displayBlock.defaultBlockState(), tag.getBooleanOr("inverted", false));
         }
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (newState.getBlock() != this && !worldIn.isClientSide) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (newState.getBlock() != this && !worldIn.isClientSide()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof DiaphanousBlockTileEntity) {
@@ -149,7 +148,6 @@ public class DiaphanousBlock extends Block implements EntityBlock {
             }
         }
 
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override
@@ -177,7 +175,7 @@ public class DiaphanousBlock extends Block implements EntityBlock {
             }
 
             BlockState display = ((DiaphanousBlockTileEntity) te).getDisplayState();
-            manager.destroy(pos, display);
+            world.addDestroyBlockEffect(pos, display);
 
             return true;
         }

@@ -15,7 +15,7 @@ import net.minecraft.world.item.StandingAndWallBlockItem;
 import lumien.randomthings.block.ModBlocks;
 import lumien.randomthings.lib.ModConstants;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.Tags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import lumien.randomthings.lib.RTRegistry;
@@ -378,6 +378,8 @@ public class ModItems {
 
         registry.register("summoning_pendulum", () -> new SummoningPendulumItem(lumien.randomthings.lib.RTIds.item().stacksTo(1).rarity(Rarity.RARE)));
         registry.register("golden_egg", () -> new GoldenEggItem(lumien.randomthings.lib.RTIds.item()));
+        // 1.12.2 registered a spawn egg for the Spirit (colours 0x000000 / 0x0009F6); entity types register before items, so the type exists here
+        registry.register("spirit_spawn_egg", () -> new net.minecraft.world.item.SpawnEggItem(lumien.randomthings.lib.RTIds.item().spawnEgg(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, "spirit")))));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
         registry.register("evil_tear", () -> new EvilTearItem(lumien.randomthings.lib.RTIds.item()));
@@ -418,7 +420,7 @@ public class ModItems {
     }
 
     private static Block lookupBlock(String name) {
-        return BuiltInRegistries.BLOCK.getValue(ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, name));
+        return BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath(ModConstants.MOD_ID, name));
     }
 
     private static void registerDiviningRod(RTRegistry<Item> registry, String name, Color[] colors, String[] tags) {
@@ -434,7 +436,7 @@ public class ModItems {
 
     private static void registerItemForBlock(RTRegistry<Item> registry, Block... blocks) {
         for (Block block : blocks) {
-            registry.register(RegUtil.id(block), () -> new BlockItem(block, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
+            registry.register(RegUtil.id(block), () -> block instanceof lumien.randomthings.block.IBlockTooltip ? new lumien.randomthings.item.block.TooltipBlockItem(block, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()) : new BlockItem(block, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
         }
     }
 

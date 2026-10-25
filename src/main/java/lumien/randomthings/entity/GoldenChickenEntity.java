@@ -21,7 +21,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
@@ -84,8 +84,8 @@ public class GoldenChickenEntity extends Animal {
                     .withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.ATTACKING_ENTITY, source.getEntity())
                     .withOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.DIRECT_ATTACKING_ENTITY, source.getDirectEntity());
 
-            if (playerKill && this.lastHurtByPlayer != null) {
-                builder = builder.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER, this.lastHurtByPlayer).withLuck(this.lastHurtByPlayer.getLuck());
+            if (playerKill && this.getLastHurtByPlayer() != null) {
+                builder = builder.withParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.LAST_DAMAGE_PLAYER, this.getLastHurtByPlayer()).withLuck(this.getLastHurtByPlayer().getLuck());
             }
 
             level.getServer().reloadableRegistries().getLootTable(key).getRandomItems(builder.create(net.minecraft.world.level.storage.loot.parameters.LootContextParamSets.ENTITY), this.getLootTableSeed(), stack -> this.spawnAtLocation(level, stack));
@@ -127,7 +127,7 @@ public class GoldenChickenEntity extends Animal {
 
         this.wingRotation += this.wingRotDelta * 2.0F;
 
-        if (!this.level().isClientSide && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
+        if (!this.level().isClientSide() && ingotDropTimer > 0 && --this.ingotDropTimer <= 0) {
             this.playSound(SoundEvents.CHICKEN_EGG, 1.0F, (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.5F);
             this.spawnAtLocation((ServerLevel) this.level(), new ItemStack(Items.GOLD_INGOT, 3));
         }
@@ -150,7 +150,7 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier, net.minecraft.world.damagesource.DamageSource source) {
+    public boolean causeFallDamage(double distance, float damageMultiplier, net.minecraft.world.damagesource.DamageSource source) {
         return false;
     }
 
@@ -190,15 +190,27 @@ public class GoldenChickenEntity extends Animal {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
-        this.chickenJockey = compound.getBoolean("IsChickenJockey");
-        this.ingotDropTimer = compound.getInt("ingotDropTimer");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.readAdditionalSaveData(rtIn);
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
+
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+        this.chickenJockey = compound.getBooleanOr("IsChickenJockey", false);
+        this.ingotDropTimer = compound.getIntOr("ingotDropTimer", 0);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.addAdditionalSaveData(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
         compound.putBoolean("IsChickenJockey", this.chickenJockey);
         compound.putInt("ingotDropTimer", this.ingotDropTimer);
     }

@@ -39,7 +39,7 @@ public class FlooFireplaceEntity extends Entity {
 
         age++;
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             if (age >= 7) {
                 spawnParticles();
             }
@@ -64,12 +64,24 @@ public class FlooFireplaceEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
-        this.age = compound.getInt("age");
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
+
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+        this.age = compound.getIntOr("age", 0);
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
         compound.putInt("age", age);
     }
 

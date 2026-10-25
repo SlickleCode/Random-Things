@@ -21,6 +21,9 @@ import net.minecraft.world.level.Level;
  */
 public class RTWorldInformationHandler extends SavedData {
     private static final String ID = "randomthings_world_info";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<RTWorldInformationHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, RTWorldInformationHandler::new,
+            CompoundTag.CODEC.xmap(tag -> RTWorldInformationHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private boolean enderDragonDefeated;
 
@@ -34,7 +37,7 @@ public class RTWorldInformationHandler extends SavedData {
     }
 
     public static RTWorldInformationHandler get(MinecraftServer server) {
-        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(RTWorldInformationHandler::new, RTWorldInformationHandler::loadFrom, null), ID);
+        return server.getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(TYPE);
     }
 
     public boolean isDragonDefeated() {
@@ -49,11 +52,10 @@ public class RTWorldInformationHandler extends SavedData {
     }
 
     public void readData(CompoundTag nbt) {
-        enderDragonDefeated = nbt.getBoolean("enderDragonDefeated");
+        enderDragonDefeated = nbt.getBooleanOr("enderDragonDefeated", false);
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         compound.putBoolean("enderDragonDefeated", enderDragonDefeated);
         return compound;
     }

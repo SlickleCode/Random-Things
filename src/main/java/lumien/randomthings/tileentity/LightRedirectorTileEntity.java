@@ -76,7 +76,7 @@ public class LightRedirectorTileEntity extends BlockEntity {
     public void onLoad() {
         super.onLoad();
 
-        if (this.level.isClientSide) {
+        if (this.level.isClientSide()) {
             established = true;
 
             for (Direction facing : Direction.values()) {
@@ -91,7 +91,7 @@ public class LightRedirectorTileEntity extends BlockEntity {
 
         REDIRECTORS.remove(this);
 
-        if (this.level != null && this.level.isClientSide) {
+        if (this.level != null && this.level.isClientSide()) {
             for (Direction facing : Direction.values()) {
                 this.level.sendBlockUpdated(this.worldPosition.relative(facing), this.level.getBlockState(this.worldPosition.relative(facing)), this.level.getBlockState(this.worldPosition.relative(facing)), 3);
             }
@@ -104,8 +104,8 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket pkt, net.minecraft.core.HolderLookup.Provider registries) {
-        super.onDataPacket(net, pkt, registries);
+    public void onDataPacket(net.minecraft.network.Connection net, net.minecraft.world.level.storage.ValueInput input) {
+        super.onDataPacket(net, input);
 
         targets.clear();
 
@@ -120,8 +120,15 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         for (Direction facing : Direction.values()) {
             compound.putBoolean("enabled_" + facing.getSerializedName(), enabledMap.get(facing));
@@ -130,14 +137,19 @@ public class LightRedirectorTileEntity extends BlockEntity {
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
+
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         for (Direction facing : Direction.values()) {
             String key = "enabled_" + facing.getSerializedName();
 
             if (compound.contains(key)) {
-                enabledMap.put(facing, compound.getBoolean(key));
+                enabledMap.put(facing, compound.getBooleanOr(key, false));
             }
         }
     }

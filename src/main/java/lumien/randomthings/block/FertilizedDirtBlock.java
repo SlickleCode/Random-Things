@@ -19,7 +19,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.util.TriState;
+import net.minecraft.util.TriState;
 import net.minecraft.server.level.ServerLevel;
 
 
@@ -107,7 +107,7 @@ public class FertilizedDirtBlock extends Block
 			return TriState.FALSE;
 		}
 
-		if (b instanceof net.minecraft.world.level.block.DeadBushBlock || b instanceof net.minecraft.world.level.block.CactusBlock || b instanceof net.minecraft.world.level.block.SugarCaneBlock)
+		if (b instanceof net.minecraft.world.level.block.DryVegetationBlock || b instanceof net.minecraft.world.level.block.CactusBlock || b instanceof net.minecraft.world.level.block.SugarCaneBlock)
 		{
 			return tilled ? TriState.FALSE : TriState.TRUE;
 		}

@@ -7,12 +7,10 @@ import net.minecraft.client.renderer.GameRenderer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -24,13 +22,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
  */
 public class ToggleIconButton extends Button implements TooltipButton
 {
-	private final ResourceLocation texture;
+	private final Identifier texture;
 	private final int u;
 	private final int v;
 	private final BooleanSupplier value;
 	private Function<Boolean, String> tooltip;
 
-	public ToggleIconButton(int x, int y, int width, int height, ResourceLocation texture, int u, int v, BooleanSupplier value, OnPress onPress)
+	public ToggleIconButton(int x, int y, int width, int height, Identifier texture, int u, int v, BooleanSupplier value, OnPress onPress)
 	{
 		super(x, y, width, height, Component.literal(""), onPress, DEFAULT_NARRATION);
 
@@ -53,10 +51,8 @@ public class ToggleIconButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		RenderSystem.setShaderTexture(0, this.texture);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, this.texture, this.getX(), this.getY(), this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered ? 20 : 0), this.width, this.height, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, this.texture, this.getX(), this.getY(), this.u + (this.value.getAsBoolean() ? 20 : 0), this.v + (this.isHovered ? 20 : 0), this.width, this.height, 256, 256);
 	}
 }

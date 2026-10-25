@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.ChatDetectorContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -14,17 +13,16 @@ import net.minecraft.client.gui.components.EditBox;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * ChatDetectorScreen
  */
 public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/chat_detector.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/chat_detector.png");
 
 	private EditBox messageField;
 	private String lastSent;
@@ -75,8 +73,11 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+	public boolean keyPressed(net.minecraft.client.input.KeyEvent rtEvent)
 	{
+		int keyCode = rtEvent.key();
+		int scanCode = rtEvent.scancode();
+		int modifiers = rtEvent.modifiers();
 		if (this.messageField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE - still closes normally */)
 		{
 			if (keyCode == 257 /* GLFW_KEY_ENTER */)
@@ -92,11 +93,11 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 			// consumes *special* keys (backspace, arrows, etc), not plain
 			// characters (those go through charTyped instead), so typing a plain
 			// "e" was being read as "close the GUI" mid-sentence.
-			this.messageField.keyPressed(keyCode, scanCode, modifiers);
+			this.messageField.keyPressed(rtEvent);
 			return true;
 		}
 
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(rtEvent);
 	}
 
 	@Override
@@ -117,12 +118,12 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, I18n.get("gui.randomthings.chat_detector.message"), 8, 6, 4210752, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.chat_detector.message"), 8, 6, 0xFF404040, false);
 
 		if (ScreenWidgets.buttons(this).get(1).isHoveredOrFocused())
 		{
 			boolean consume = this.menu.consume.get() != 0;
-			graphics.renderTooltip(this.font, Component.literal(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
+			graphics.setTooltipForNextFrame(this.font, Component.literal(I18n.get(consume ? "gui.randomthings.chat_detector.consume_yes" : "gui.randomthings.chat_detector.consume_no")), mouseX - this.leftPos, mouseY - this.topPos);
 		}
 
 	}
@@ -130,11 +131,9 @@ public class ChatDetectorScreen extends AbstractContainerScreen<ChatDetectorCont
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

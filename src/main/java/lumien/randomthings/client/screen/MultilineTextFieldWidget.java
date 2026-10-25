@@ -199,8 +199,10 @@ public class MultilineTextFieldWidget extends AbstractWidget
 	}
 
 	@Override
-	public boolean charTyped(char c, int modifiers)
+	public boolean charTyped(net.minecraft.client.input.CharacterEvent rtEvent)
 	{
+		char c = (char) rtEvent.codepoint();
+		int modifiers = rtEvent.modifiers();
 		if (!this.editable || !this.isFocused() || c < 32 || c == 127)
 		{
 			return false;
@@ -211,8 +213,11 @@ public class MultilineTextFieldWidget extends AbstractWidget
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers)
+	public boolean keyPressed(net.minecraft.client.input.KeyEvent rtEvent)
 	{
+		int keyCode = rtEvent.key();
+		int scanCode = rtEvent.scancode();
+		int modifiers = rtEvent.modifiers();
 		if (!this.editable || !this.isFocused())
 		{
 			return false;
@@ -220,7 +225,7 @@ public class MultilineTextFieldWidget extends AbstractWidget
 
 		this.layout();
 
-		if (Screen.isPaste(keyCode))
+		if (rtEvent.isPaste())
 		{
 			String clip = Minecraft.getInstance().keyboardHandler.getClipboard();
 			StringBuilder cleaned = new StringBuilder();
@@ -295,8 +300,11 @@ public class MultilineTextFieldWidget extends AbstractWidget
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button)
+	public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent rtEvent, boolean rtDouble)
 	{
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
 		boolean inside = this.visible && mouseX >= this.getX() && mouseX < this.getX() + this.width && mouseY >= this.getY() && mouseY < this.getY() + this.height;
 
 		this.setFocusedState(inside);
@@ -333,7 +341,7 @@ public class MultilineTextFieldWidget extends AbstractWidget
 		graphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.width + 1, this.getY() + this.height + 1, this.isFocused() ? 0xFFFFFFFF : 0xFFA0A0A0);
 		graphics.fill(this.getX(), this.getY(), this.getX() + this.width, this.getY() + this.height, 0xFF000000);
 
-		int color = this.editable ? 0xE0E0E0 : 0x909090;
+		int color = this.editable ? 0xFFE0E0E0 : 0xFF909090;
 
 		for (int l = this.scroll; l < Math.min(this.lines.size(), this.scroll + this.visibleLines); l++)
 		{

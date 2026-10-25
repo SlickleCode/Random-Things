@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.AdvancedRedstoneRepeaterContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -15,17 +14,16 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * AdvancedRedstoneRepeaterScreen
  */
 public class AdvancedRedstoneRepeaterScreen extends AbstractContainerScreen<AdvancedRedstoneRepeaterContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/advanced_redstone_repeater.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/advanced_redstone_repeater.png");
 
 	public AdvancedRedstoneRepeaterScreen(AdvancedRedstoneRepeaterContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -59,25 +57,23 @@ public class AdvancedRedstoneRepeaterScreen extends AbstractContainerScreen<Adva
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.on"), 8, 5, 0, false);
-		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.off"), 8, 29, 0, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.on"), 8, 5, 0xFF000000, false);
+		graphics.drawString(this.font, I18n.get("gui.randomthings.advanced_redstone_repeater.off"), 8, 29, 0xFF000000, false);
 
 		String onString = this.menu.turnOnDelay.get() + "";
-		graphics.drawString(this.font, onString, imageWidth / 2 - this.font.width(onString) / 2, 16, 0, false);
+		graphics.drawString(this.font, onString, imageWidth / 2 - this.font.width(onString) / 2, 16, 0xFF000000, false);
 
 		String offString = this.menu.turnOffDelay.get() + "";
-		graphics.drawString(this.font, offString, imageWidth / 2 - this.font.width(offString) / 2, 40, 0, false);
+		graphics.drawString(this.font, offString, imageWidth / 2 - this.font.width(offString) / 2, 40, 0xFF000000, false);
 
 }
 
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

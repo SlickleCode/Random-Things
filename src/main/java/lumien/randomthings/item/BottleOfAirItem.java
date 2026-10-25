@@ -57,7 +57,7 @@ public class BottleOfAirItem extends Item
 	@Override
 	public ItemStack finishUsingItem(ItemStack stack, Level worldIn, LivingEntity livingEntity)
 	{
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			livingEntity.setAirSupply(livingEntity.getMaxAirSupply());
 		}

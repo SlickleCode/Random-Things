@@ -42,7 +42,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.items.IItemHandler;
+import lumien.randomthings.itemhandler.IItemHandler;
 
 import java.util.Random;
 import net.minecraft.world.InteractionResult;
@@ -63,7 +63,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE_EAST_WEST = Block.box(1, 0, 5, 15, 22, 11);
 
     public EnderMailboxBlock() {
-        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 10.0F).noCollission());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 10.0F).noCollision());
 
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
@@ -131,7 +131,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
 
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isClientSide && placer instanceof Player) {
+        if (!worldIn.isClientSide() && placer instanceof Player) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
             if (te instanceof EnderMailboxTileEntity) {
@@ -142,7 +142,7 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -173,25 +173,25 @@ public class EnderMailboxBlock extends Block implements EntityBlock {
     private void deliverLetter(Level worldIn, BlockPos pos, Player player, ItemStack heldItem) {
         CompoundTag compound = StackTag.get(heldItem);
 
-        if (compound == null || !compound.contains("receiver") || compound.getBoolean("received")) {
+        if (compound == null || !compound.contains("receiver") || compound.getBooleanOr("received", false)) {
             return;
         }
 
-        GameProfile profile = ((ServerLevel) worldIn).getServer().getProfileCache().get(compound.getString("receiver")).orElse(null);
+        net.minecraft.server.players.NameAndId profile = ((ServerLevel) worldIn).getServer().services().nameToIdCache().get(compound.getStringOr("receiver", "")).orElse(null);
 
-        if (profile == null || profile.getId() == null) {
-            player.displayClientMessage(Component.translatable("item.randomthings.ender_letter.no_player", compound.getString("receiver")).withStyle(ChatFormatting.DARK_PURPLE), false);
+        if (profile == null || profile.id() == null) {
+            player.displayClientMessage(Component.translatable("item.randomthings.ender_letter.no_player", compound.getStringOr("receiver", "")).withStyle(ChatFormatting.DARK_PURPLE), false);
             return;
         }
 
-        IItemHandler mailboxInventory = EnderLetterHandler.get(worldIn).getOrCreateInventoryForPlayer(profile.getId());
+        IItemHandler mailboxInventory = EnderLetterHandler.get(worldIn).getOrCreateInventoryForPlayer(profile.id());
 
         for (int slot = 0; slot < mailboxInventory.getSlots(); slot++) {
             if (mailboxInventory.getStackInSlot(slot).isEmpty()) {
                 ItemStack sendingLetter = heldItem.copy();
                 sendingLetter.setCount(1);
                 StackTag.edit(sendingLetter, t -> t.putBoolean("received", true));
-                StackTag.edit(sendingLetter, t -> t.putString("sender", player.getGameProfile().getName()));
+                StackTag.edit(sendingLetter, t -> t.putString("sender", player.getGameProfile().name()));
                 mailboxInventory.insertItem(slot, sendingLetter, false);
                 heldItem.shrink(1);
 

@@ -3,7 +3,7 @@ package lumien.randomthings.util;
 import net.minecraft.core.registries.Registries;
 
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -19,32 +19,32 @@ public final class RegUtil
 	{
 	}
 
-	public static ResourceLocation id(Block b)
+	public static Identifier id(Block b)
 	{
 		return BuiltInRegistries.BLOCK.getKey(b);
 	}
 
-	public static ResourceLocation id(Item i)
+	public static Identifier id(Item i)
 	{
 		return BuiltInRegistries.ITEM.getKey(i);
 	}
 
-	public static ResourceLocation id(Fluid f)
+	public static Identifier id(Fluid f)
 	{
 		return BuiltInRegistries.FLUID.getKey(f);
 	}
 
-	public static ResourceLocation id(EntityType<?> t)
+	public static Identifier id(EntityType<?> t)
 	{
 		return BuiltInRegistries.ENTITY_TYPE.getKey(t);
 	}
 
-	public static ResourceLocation id(BlockEntityType<?> t)
+	public static Identifier id(BlockEntityType<?> t)
 	{
 		return BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(t);
 	}
 
-	public static ResourceLocation id(MobEffect e)
+	public static Identifier id(MobEffect e)
 	{
 		return BuiltInRegistries.MOB_EFFECT.getKey(e);
 	}

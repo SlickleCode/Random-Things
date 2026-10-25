@@ -46,7 +46,7 @@ public class LotusSeedsItem extends Item {
 
     /** Lotus sits on anything that sustains "plains" plants: the block decides via its extension, otherwise dirt-like ground. */
     private static boolean canSustainLotus(net.minecraft.world.level.block.state.BlockState ground, Level world, BlockPos pos) {
-        net.neoforged.neoforge.common.util.TriState result = ground.canSustainPlant(world, pos, Direction.UP, ModBlocks.LOTUS.defaultBlockState());
+        net.minecraft.util.TriState result = ground.canSustainPlant(world, pos, Direction.UP, ModBlocks.LOTUS.defaultBlockState());
         return result.isTrue() || result.isDefault() && (ground.is(net.minecraft.tags.BlockTags.DIRT) || ground.is(net.minecraft.world.level.block.Blocks.FARMLAND));
     }
 }

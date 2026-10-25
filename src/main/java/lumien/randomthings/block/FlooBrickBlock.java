@@ -57,8 +57,7 @@ public class FlooBrickBlock extends Block implements EntityBlock {
      * brick block to plain brick again is a no-op either way) - just removes
      * pointless repeated work.
      */
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -81,7 +80,6 @@ public class FlooBrickBlock extends Block implements EntityBlock {
             }
         }
 
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     private static void breakFireplace(Level world, BlockPos masterPos, FlooBrickTileEntity masterTE) {

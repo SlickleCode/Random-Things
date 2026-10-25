@@ -52,8 +52,7 @@ public class FilteredSuperLubricentPlatformBlock extends SuperLubricentPlatformB
 		return super.getCollisionShape(state, worldIn, pos, context);
 	}
 
-	@Override
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
 	{
 		if (state.getBlock() != newState.getBlock())
 		{
@@ -67,12 +66,11 @@ public class FilteredSuperLubricentPlatformBlock extends SuperLubricentPlatformB
 			}
 		}
 
-		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

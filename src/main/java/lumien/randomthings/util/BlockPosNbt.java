@@ -21,6 +21,6 @@ public final class BlockPosNbt
 
 	public static BlockPos read(CompoundTag tag)
 	{
-		return new BlockPos(tag.getInt("X"), tag.getInt("Y"), tag.getInt("Z"));
+		return new BlockPos(tag.getIntOr("X", 0), tag.getIntOr("Y", 0), tag.getIntOr("Z", 0));
 	}
 }

@@ -36,11 +36,11 @@ public class SpectreEnergyInjectorBlock extends Block implements EntityBlock {
 
     @Override
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-        if (!worldIn.isClientSide && placer instanceof Player) {
+        if (!worldIn.isClientSide() && placer instanceof Player) {
             GameProfile profile = ((Player) placer).getGameProfile();
 
             if (profile != null) {
-                UUID id = profile.getId();
+                UUID id = profile.id();
                 BlockEntity te = worldIn.getBlockEntity(pos);
 
                 if (te instanceof SpectreEnergyInjectorTileEntity) {

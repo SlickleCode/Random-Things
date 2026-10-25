@@ -22,7 +22,7 @@ public class SuperLubricentStoneBlock extends Block
 {
 	public SuperLubricentStoneBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 6.0F).friction(1F / 0.91F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F, 6.0F).friction(1F / 0.91F).sound(net.minecraft.world.level.block.SoundType.GLASS));
 	}
 
 	/**

@@ -31,7 +31,7 @@ public class RainbowLampBlock extends Block
 	@Override
 	public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState state2, boolean what)
 	{
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			updateColor(state, worldIn, pos);
 		}
@@ -40,7 +40,7 @@ public class RainbowLampBlock extends Block
 	@Override
 	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block neighborBlock, net.minecraft.world.level.redstone.Orientation changedPos, boolean what)
 	{
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			updateColor(state, worldIn, pos);
 		}

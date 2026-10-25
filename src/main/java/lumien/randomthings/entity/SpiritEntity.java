@@ -5,7 +5,6 @@ import java.util.Random;
 import lumien.randomthings.item.ModItems;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +28,7 @@ import net.minecraft.world.entity.Mob;
  * only weapon that can actually hurt it). Direct port of 1.12.2's {@code
  * EntitySpirit}.
  */
-public class SpiritEntity extends FlyingMob {
+public class SpiritEntity extends Mob {
     private final Random rng = new Random();
 
     private BlockPos spawnPosition;
@@ -49,17 +48,44 @@ public class SpiritEntity extends FlyingMob {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag compound) {
-        super.readAdditionalSaveData(compound);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.readAdditionalSaveData(rtIn);
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
 
-        this.spiritAge = compound.getInt("spiritAge");
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+
+        this.spiritAge = compound.getIntOr("spiritAge", 0);
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag compound) {
-        super.addAdditionalSaveData(compound);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.addAdditionalSaveData(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
 
         compound.putInt("spiritAge", spiritAge);
+    }
+
+    // what FlyingMob did (removed in 1.21.5): no fall damage, not climbable, travels like a Ghast
+    @Override
+    protected void checkFallDamage(double heightDifference, boolean onGround, net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
+    }
+
+    @Override
+    public boolean onClimbable() {
+        return false;
+    }
+
+    @Override
+    public void travel(net.minecraft.world.phys.Vec3 travelVector) {
+        this.travelFlying(travelVector, 0.02F);
     }
 
     @Override
@@ -68,7 +94,7 @@ public class SpiritEntity extends FlyingMob {
 
         spiritAge++;
 
-        if (!this.level().isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
+        if (!this.level().isClientSide() && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
             this.kill((net.minecraft.server.level.ServerLevel) this.level());
         }
     }
@@ -171,7 +197,7 @@ public class SpiritEntity extends FlyingMob {
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide && (this.xOld != this.getX() || this.yOld != this.getY() || this.zOld != this.getZ())) {
+        if (this.level().isClientSide() && (this.xOld != this.getX() || this.yOld != this.getY() || this.zOld != this.getZ())) {
             if (Math.random() < 0.5) {
                 this.level().addParticle(ParticleTypes.ENCHANT, this.getX(), this.getY(), this.getZ(), Math.random() * 0.02 - 0.01, Math.random() * 0.02, Math.random() * 0.02 - 0.01);
             }

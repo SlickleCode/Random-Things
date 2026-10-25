@@ -41,8 +41,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ServerLevelData;
@@ -94,7 +94,7 @@ public final class RenderScenes
 			ids.add("blocks_" + i);
 		}
 
-		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
+		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "armor_glint", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
 		return ids;
 	}
 
@@ -120,7 +120,7 @@ public final class RenderScenes
 
 	private static void prepare(ServerPlayer player)
 	{
-		ServerLevel world = player.serverLevel();
+		ServerLevel world = player.level();
 
 		if (origin == null)
 		{
@@ -130,9 +130,9 @@ public final class RenderScenes
 		if (!prepared)
 		{
 			prepared = true;
-			world.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, world.getServer());
-			world.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(false, world.getServer());
-			world.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(false, world.getServer());
+			world.getGameRules().set(GameRules.ADVANCE_TIME, false, world.getServer());
+			world.getGameRules().set(GameRules.ADVANCE_WEATHER, false, world.getServer());
+			world.getGameRules().set(GameRules.SPAWN_MOBS, false, world.getServer());
 		}
 
 		world.setDayTime(6000);
@@ -195,7 +195,7 @@ public final class RenderScenes
 	public static String build(ServerPlayer player, String id)
 	{
 		prepare(player);
-		ServerLevel world = player.serverLevel();
+		ServerLevel world = player.level();
 		int x0 = origin.getX();
 		int y0 = origin.getY();
 		int z0 = origin.getZ();
@@ -275,7 +275,7 @@ public final class RenderScenes
 					BlockPos pos = origin.offset(i * 2, 0, 0);
 					place(world, pos, ModBlocks.BIOME_RADAR);
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(biomes[i])));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(Identifier.parse(biomes[i])));
 					tile(world, pos, BiomeRadarTileEntity.class).setCrystal(crystal);
 				}
 
@@ -375,6 +375,13 @@ public final class RenderScenes
 				plain.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.LEATHER_HELMET));
 				world.addFreshEntity(plain);
 
+				ArmorStand glintStand = new ArmorStand(world, x0 + 3.5, y0, z0 + 2.5);
+				ItemStack glintChest = new ItemStack(Items.IRON_CHESTPLATE);
+				glintChest.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+				StackTag.edit(glintChest, t -> t.putInt("enchantmentColor", 0x3C44AA));
+				glintStand.setItemSlot(EquipmentSlot.CHEST, glintChest);
+				world.addFreshEntity(glintStand);
+
 				groundItem(world, new ItemStack(Items.DIAMOND), x0 + 4, y0 + 0.3, z0 + 4.5);
 				groundItem(world, rtDye(new ItemStack(Items.DIAMOND), 0xFF2222), x0 + 5, y0 + 0.3, z0 + 4.5);
 				groundItem(world, rtDye(new ItemStack(Items.IRON_SWORD), 0x2222FF), x0 + 6, y0 + 0.3, z0 + 4.5);
@@ -390,11 +397,40 @@ public final class RenderScenes
 				for (int i = 0; i < 3; i++)
 				{
 					ItemStack crystal = new ItemStack(ModItems.BIOME_CRYSTAL);
-					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
+					BiomeCrystalItem.setBiome(crystal, lumien.randomthings.util.BiomeUtil.byId(Identifier.parse(i == 0 ? "minecraft:plains" : (i == 1 ? "minecraft:desert" : "minecraft:snowy_plains"))));
 					groundItem(world, crystal, x0 + 9 + i, y0 + 0.3, z0 + 4.5);
 				}
 
 				camera(player, 4, 2.5, -1, 0, 12);
+				return null;
+			}
+			case "armor_glint":
+			{
+				// close-up: enchanted iron armor with the vanilla (purple) glint, a strongly green and a strongly red tint, side by side
+				int[] colors = { 0, 0x00FF00, 0xFF0000 };
+
+				for (int i = 0; i < 3; i++)
+				{
+					ArmorStand stand = new ArmorStand(world, x0 - 1.4 + i * 1.4, y0, z0 + 3.0);
+
+					for (EquipmentSlot slot : new EquipmentSlot[] { EquipmentSlot.CHEST, EquipmentSlot.HEAD })
+					{
+						ItemStack piece = new ItemStack(slot == EquipmentSlot.CHEST ? Items.IRON_CHESTPLATE : Items.IRON_HELMET);
+						piece.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+						final int color = colors[i];
+
+						if (color != 0)
+						{
+							StackTag.edit(piece, t -> t.putInt("enchantmentColor", color));
+						}
+
+						stand.setItemSlot(slot, piece);
+					}
+
+					world.addFreshEntity(stand);
+				}
+
+				camera(player, 0, 1.6, 0.2, 0, 10);
 				return null;
 			}
 			case "light_redirector":
@@ -421,7 +457,7 @@ public final class RenderScenes
 				place(world, origin.above(), ModBlocks.BLAZING_FIRE);
 				place(world, origin.offset(2, 0, 0), Blocks.NETHERRACK);
 				place(world, origin.offset(2, 1, 0), Blocks.FIRE);
-				camera(player, 1, 3, -4, 0, 28);
+				camera(player, 1, 3, -7, 0, 18);
 				return null;
 			}
 			case "rain_with_shield":
@@ -448,7 +484,7 @@ public final class RenderScenes
 			}
 			case "spectre":
 			{
-				SpectreHandler handler = SpectreHandler.getInstance(player.getServer());
+				SpectreHandler handler = SpectreHandler.getInstance(player.level().getServer());
 
 				if (handler == null)
 				{
@@ -462,7 +498,7 @@ public final class RenderScenes
 			}
 			case "spectre_back":
 			{
-				SpectreHandler handler = SpectreHandler.getInstance(player.getServer());
+				SpectreHandler handler = SpectreHandler.getInstance(player.level().getServer());
 
 				if (handler != null)
 				{
@@ -491,7 +527,7 @@ public final class RenderScenes
 	private static ItemStack dyedLeather(int rgb)
 	{
 		ItemStack stack = new ItemStack(Items.LEATHER_CHESTPLATE);
-		stack.set(net.minecraft.core.component.DataComponents.DYED_COLOR, new net.minecraft.world.item.component.DyedItemColor(rgb, true));
+		stack.set(net.minecraft.core.component.DataComponents.DYED_COLOR, new net.minecraft.world.item.component.DyedItemColor(rgb));
 		return stack;
 	}
 

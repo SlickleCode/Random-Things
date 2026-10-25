@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -67,7 +67,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
     }
 
     public void tick() {
-        if (!this.level.isClientSide) {
+        if (!this.level.isClientSide()) {
             testCounter++;
 
             // Neighbor-change notifications only reach directly-adjacent
@@ -85,7 +85,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
                 for (int i = 0; i < 5; i++) {
                     BlockPos testPos = getPos(searchCounter);
                     Biome testBiome = this.level.getBiome(testPos).value();
-                    ResourceLocation registryName = biomeName(testBiome);
+                    Identifier registryName = biomeName(testBiome);
 
                     if (registryName == null) {
                         searchCounter++;
@@ -135,7 +135,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         if (this.state == STATE.SEARCHING) {
             for (int i = 0; i < 4; i++) {
                 if (antennaBiomes[i] != null) {
-                    Biome biome = lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(antennaBiomes[i]));
+                    Biome biome = lumien.randomthings.util.BiomeUtil.byId(Identifier.parse(antennaBiomes[i]));
 
                     if (biome != null) {
                         spawnAntennaParticle(i, biome);
@@ -169,12 +169,12 @@ public class BiomeRadarTileEntity extends BlockEntity {
      * 1.16: the biomes a world actually uses are decoded from its data packs, so they are NOT the instances in {@code ForgeRegistries.BIOMES}
      * (that lookup returns null for them, and {@code ==} against the crystal's biome is never true). Fall back to the world's own biome registry.
      */
-    private ResourceLocation biomeName(Biome biome) {
+    private Identifier biomeName(Biome biome) {
         if (biome == null) {
             return null;
         }
 
-        ResourceLocation key = lumien.randomthings.util.BiomeUtil.id(biome);
+        Identifier key = lumien.randomthings.util.BiomeUtil.id(biome);
 
         if (key == null && this.level instanceof net.minecraft.server.level.ServerLevel) {
             key = ((net.minecraft.server.level.ServerLevel) this.level).registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.BIOME).getKey(biome);
@@ -226,8 +226,15 @@ public class BiomeRadarTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         compound.put("currentCrystal", StackTag.saveStack(currentCrystal));
 
@@ -250,23 +257,28 @@ public class BiomeRadarTileEntity extends BlockEntity {
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        this.currentCrystal = ItemStack.parseOptional(StackTag.provider(), compound.getCompound("currentCrystal"));
-        this.state = STATE.values()[compound.getInt("state")];
-        this.powered = compound.getBoolean("powered");
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        this.currentCrystal = lumien.randomthings.util.StackTag.loadStack(compound.getCompoundOrEmpty("currentCrystal"));
+        this.state = STATE.values()[compound.getIntOr("state", 0)];
+        this.powered = compound.getBooleanOr("powered", false);
 
         if (compound.contains("biomeToSearch")) {
-            this.biomeToSearch = lumien.randomthings.util.BiomeUtil.byId(ResourceLocation.parse(compound.getString("biomeToSearch")));
+            this.biomeToSearch = lumien.randomthings.util.BiomeUtil.byId(Identifier.parse(compound.getStringOr("biomeToSearch", "")));
         }
 
-        this.searchCounter = compound.getInt("searchCounter");
-        this.antennaCounter = compound.getInt("antennaCounter");
+        this.searchCounter = compound.getIntOr("searchCounter", 0);
+        this.antennaCounter = compound.getIntOr("antennaCounter", 0);
 
         for (int i = 0; i < antennaBiomes.length; i++) {
             if (compound.contains("antennaBiome" + i)) {
-                antennaBiomes[i] = compound.getString("antennaBiome" + i);
+                antennaBiomes[i] = compound.getStringOr("antennaBiome" + i, "");
             }
         }
     }
@@ -355,7 +367,7 @@ public class BiomeRadarTileEntity extends BlockEntity {
         BlockPos foundPos = getPos(searchCounter);
         ItemStack positionFilter = new ItemStack(ModItems.POSITION_FILTER);
 
-        PositionFilterItem.setPosition(positionFilter, this.level.dimension().location().toString(), foundPos);
+        PositionFilterItem.setPosition(positionFilter, this.level.dimension().identifier().toString(), foundPos);
 
         return positionFilter;
     }
@@ -384,4 +396,16 @@ public class BiomeRadarTileEntity extends BlockEntity {
 
         return true;
     }
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.BiomeRadarBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
+	}
 }

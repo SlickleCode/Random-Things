@@ -27,7 +27,7 @@ public class SlimeCubeBlock extends Block implements EntityBlock {
 
 	public SlimeCubeBlock()
 	{
-		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.CLAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).noOcclusion().noCollission().strength(0.5F));
+		super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.CLAY).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.FLUTE).noOcclusion().noCollision().strength(0.5F));
 
 		this.registerDefaultState(this.stateDefinition.any().setValue(POWERED, false));
 	}

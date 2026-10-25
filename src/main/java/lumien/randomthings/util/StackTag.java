@@ -60,7 +60,7 @@ public final class StackTag
 	private static CompoundTag peek(ItemStack stack)
 	{
 		CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-		return data == null ? null : data.getUnsafe();
+		return data == null ? null : data.copyTag();
 	}
 
 	public static boolean contains(ItemStack stack, String key)
@@ -72,26 +72,26 @@ public final class StackTag
 	public static int getInt(ItemStack stack, String key)
 	{
 		CompoundTag tag = peek(stack);
-		return tag == null ? 0 : tag.getInt(key);
+		return tag == null ? 0 : tag.getIntOr(key, 0);
 	}
 
 	public static boolean getBoolean(ItemStack stack, String key)
 	{
 		CompoundTag tag = peek(stack);
-		return tag != null && tag.getBoolean(key);
+		return tag != null && tag.getBooleanOr(key, false);
 	}
 
 	public static String getString(ItemStack stack, String key)
 	{
 		CompoundTag tag = peek(stack);
-		return tag == null ? "" : tag.getString(key);
+		return tag == null ? "" : tag.getStringOr(key, "");
 	}
 
 	/** A copy of the sub-compound {@code key}, or null. */
 	public static CompoundTag getElement(ItemStack stack, String key)
 	{
 		CompoundTag tag = get(stack);
-		return tag != null && tag.contains(key, 10) ? tag.getCompound(key) : null;
+		return tag != null && tag.contains(key) ? tag.getCompoundOrEmpty(key) : null;
 	}
 
 	/** The registry access item stacks are (de)serialized with: the running server's, else the client level's. */
@@ -107,12 +107,13 @@ public final class StackTag
 
 	public static CompoundTag saveStack(ItemStack stack)
 	{
-		return (CompoundTag) stack.saveOptional(provider());
+		net.minecraft.nbt.Tag saved = ItemStack.OPTIONAL_CODEC.encodeStart(provider().createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE), stack).result().orElse(new CompoundTag());
+		return saved instanceof CompoundTag compound ? compound : new CompoundTag();
 	}
 
 	public static ItemStack loadStack(CompoundTag tag)
 	{
-		return ItemStack.parseOptional(provider(), tag);
+		return ItemStack.OPTIONAL_CODEC.parse(provider().createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE), tag).result().orElse(ItemStack.EMPTY);
 	}
 
 	public static void remove(ItemStack stack, String key)

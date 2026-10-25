@@ -63,16 +63,16 @@ public class TimeInABottleItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flagIn) {
         Level worldIn = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
+        super.appendHoverText(stack, worldInCtx, rtDisplay, tooltip, flagIn);
 
         int storedSeconds = getStoredTime(stack) / 20;
         int hours = storedSeconds / 3600;
         int minutes = (storedSeconds % 3600) / 60;
         int seconds = storedSeconds % 60;
 
-        tooltip.add(Component.translatable("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
+        tooltip.accept(Component.translatable("tooltip.randomthings.time_in_a_bottle", hours, minutes, seconds));
     }
 
     @Override
@@ -81,8 +81,8 @@ public class TimeInABottleItem extends Item {
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-        if (worldIn.isClientSide) {
+    public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel worldIn, net.minecraft.world.entity.Entity entityIn, net.minecraft.world.entity.EquipmentSlot rtSlot) {
+        if (worldIn.isClientSide()) {
             return;
         }
 
@@ -113,7 +113,7 @@ public class TimeInABottleItem extends Item {
     public InteractionResult onItemUseFirst(ItemStack me, UseOnContext context) {
         Level world = context.getLevel();
 
-        if (world.isClientSide) {
+        if (world.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -132,7 +132,7 @@ public class TimeInABottleItem extends Item {
                 int timeRequired = nextRate / 2 * 20 * 30;
 
                 CompoundTag timeData = StackTag.getElement(me, "timeData");
-                int timeAvailable = timeData != null ? timeData.getInt("storedTime") : 0;
+                int timeAvailable = timeData != null ? timeData.getIntOr("storedTime", 0) : 0;
 
                 if (timeAvailable >= timeRequired || (player != null && player.getAbilities().instabuild)) {
                     int timeAdded = (nextRate * usedUpTime - currentRate * usedUpTime) / nextRate;
@@ -194,12 +194,12 @@ public class TimeInABottleItem extends Item {
 
     public static int getStoredTime(ItemStack stack) {
         CompoundTag timeData = StackTag.getElement(stack, "timeData");
-        return timeData != null ? timeData.getInt("storedTime") : 0;
+        return timeData != null ? timeData.getIntOr("storedTime", 0) : 0;
     }
 
     public static void setStoredTime(ItemStack stack, int time) {
         StackTag.edit(stack, t -> {
-            CompoundTag timeData = t.getCompound("timeData");
+            CompoundTag timeData = t.getCompoundOrEmpty("timeData");
             timeData.putInt("storedTime", time);
             t.put("timeData", timeData);
         });

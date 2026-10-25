@@ -16,8 +16,8 @@ import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.phys.AABB;
 
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.ItemHandlerHelper;
 
 /**
  * Vacuums nearby dropped items into the inventory it's mounted on, self
@@ -37,7 +37,7 @@ public class ItemCollectorTileEntity extends BlockEntity
 
 	public void tick()
 	{
-		if (this.level.isClientSide)
+		if (this.level.isClientSide())
 		{
 			return;
 		}

@@ -121,7 +121,7 @@ public class EscapeRopeHandler {
 
                                 world.playSound(null, actualPlayer.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5F, 1);
 
-                                holding.hurtAndBreak(1, actualPlayer, net.minecraft.world.entity.LivingEntity.getSlotForHand(actualPlayer.getUsedItemHand()));
+                                holding.hurtAndBreak(1, actualPlayer, actualPlayer.getUsedItemHand().asEquipmentSlot());
                                 finished = true;
                             } else {
                                 alreadyChecked.add(nextPos);

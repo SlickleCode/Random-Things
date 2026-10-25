@@ -61,7 +61,7 @@ public class EnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return Component.translatable(this.getDescriptionId() + ".filled", contained.getDisplayName());
+        return Component.translatable(this.getDescriptionId() + ".filled", contained.getHoverName());
     }
 
     @Override
@@ -188,7 +188,7 @@ public class EnderBucketItem extends Item {
     private InteractionResult finishPickup(Player player, ItemStack stack, FluidStack drained) {
         ItemStack filled = stack.copy();
         filled.setCount(1);
-        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem filledHandler = filled.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem filledHandler = lumien.randomthings.util.CapUtil.fluidItem(filled);
         if (filledHandler != null) {
             filledHandler.fill(drained, FluidAction.EXECUTE);
         }
@@ -208,19 +208,12 @@ public class EnderBucketItem extends Item {
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {
-        // Forge doesn't register its own built-in fluid-handler capability
-        // until FMLCommonSetupEvent, but the client already needs every
-        // registered item's getDisplayName() (this method's only caller)
-        // for its search tree well before that, during Minecraft.init() -
-        // confirmed via a real crash log, not assumed: FLUID_HANDLER_ITEM_CAPABILITY
-        // is still null at that point, and calling getCapability at all
-        // NPEs inside Forge's own code before this method is even entered.
-        // Guard against it rather than the capability itself.
-        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem handler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
-        if (handler == null) {
+        // read the fluid component directly: this runs from getMaxStackSize()/getName(), which are called while a transfer transaction on this very
+        // stack is open (filling the bucket asks for the stack size), and the fluid handler cannot open a second root transaction
+        net.neoforged.neoforge.fluids.SimpleFluidContent content = stack.get(lumien.randomthings.lib.ModDataComponents.FLUID);
+        if (content == null || content.isEmpty()) {
             return null;
         }
-        FluidStack drained = handler.drain(CAPACITY, FluidAction.SIMULATE);
-        return drained.isEmpty() ? null : drained;
+        return content.copy();
     }
 }

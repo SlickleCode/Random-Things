@@ -28,14 +28,14 @@ public class IdCardItem extends Item implements IEntityFilterItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, List<Component> tooltip, TooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldInCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flagIn) {
         Level worldIn = lumien.randomthings.client.ClientHooks.level();
-        super.appendHoverText(stack, worldInCtx, tooltip, flagIn);
+        super.appendHoverText(stack, worldInCtx, rtDisplay, tooltip, flagIn);
 
         CompoundTag tag = StackTag.get(stack);
 
         if (tag != null && tag.contains("name")) {
-            tooltip.add(Component.literal(tag.getString("name")));
+            tooltip.accept(Component.literal(tag.getStringOr("name", "")));
         }
     }
 
@@ -44,10 +44,10 @@ public class IdCardItem extends Item implements IEntityFilterItem {
         ItemStack stack = playerIn.getItemInHand(handIn);
         GameProfile profile = playerIn.getGameProfile();
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             StackTag.edit(stack, t -> {
-                t.putString("uuid", profile.getId().toString());
-                t.putString("name", profile.getName() != null ? profile.getName() : "Anonymous");
+                t.putString("uuid", profile.id().toString());
+                t.putString("name", profile.name() != null ? profile.name() : "Anonymous");
             });
         }
 
@@ -56,7 +56,7 @@ public class IdCardItem extends Item implements IEntityFilterItem {
 
     public static UUID getUUID(ItemStack card) {
         CompoundTag tag = StackTag.get(card);
-        return tag != null && tag.contains("uuid") ? UUID.fromString(tag.getString("uuid")) : null;
+        return tag != null && tag.contains("uuid") ? UUID.fromString(tag.getStringOr("uuid", "")) : null;
     }
 
     @Override
@@ -66,6 +66,6 @@ public class IdCardItem extends Item implements IEntityFilterItem {
         }
 
         UUID cardUUID = getUUID(me);
-        return cardUUID == null || cardUUID.equals(((Player) entity).getGameProfile().getId());
+        return cardUUID == null || cardUUID.equals(((Player) entity).getGameProfile().id());
     }
 }

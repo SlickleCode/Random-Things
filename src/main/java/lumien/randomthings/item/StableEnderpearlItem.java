@@ -51,14 +51,14 @@ public class StableEnderpearlItem extends Item
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         Level world = lumien.randomthings.client.ClientHooks.level();
 		CompoundTag compound = StackTag.get(stack);
 
 		if (compound != null)
 		{
-			String playerName = compound.getString("player-name");
-			tooltip.add(Component.translatable("tooltip.randomthings.stable_enderpearl.boundto", playerName));
+			String playerName = compound.getStringOr("player-name", "");
+			tooltip.accept(Component.translatable("tooltip.randomthings.stable_enderpearl.boundto", playerName));
 		}
 	}
 
@@ -73,11 +73,11 @@ public class StableEnderpearlItem extends Item
 	public void tickDroppedPearl(ItemEntity entityItem)
 	{
 		CompoundTag data = entityItem.getPersistentData();
-		int counter = data.getInt("counter");
+		int counter = data.getIntOr("counter", 0);
 
 		if (counter == 140)
 		{
-			if (!entityItem.level().isClientSide)
+			if (!entityItem.level().isClientSide())
 			{
 				entityItem.discard();
 
@@ -123,7 +123,7 @@ public class StableEnderpearlItem extends Item
 		}
 		else
 		{
-			if (!entityItem.level().isClientSide)
+			if (!entityItem.level().isClientSide())
 			{
 				data.putInt("counter", counter + 1);
 			}
@@ -135,13 +135,13 @@ public class StableEnderpearlItem extends Item
 	{
 		ItemStack itemStackIn = playerIn.getItemInHand(hand);
 
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			GameProfile gameProfile = playerIn.getGameProfile();
 
 			StackTag.edit(itemStackIn, compound -> {
-				compound.putString("player-uuid", gameProfile.getId().toString());
-				compound.putString("player-name", gameProfile.getName());
+				compound.putString("player-uuid", gameProfile.id().toString());
+				compound.putString("player-name", gameProfile.name());
 			});
 		}
 

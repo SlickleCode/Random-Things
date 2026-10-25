@@ -275,28 +275,17 @@ final class CoremodTests
 		// no behaviour test notices; here it shows up as a missing marker or a count of 0.
 		tests.add(RTTest.named("coremod.applied.every_transformer_left_its_hook_marker_on_its_target_class").run(c -> {
 			ClassLoader loader = CoremodTests.class.getClassLoader();
-			String registry = readRegistry(loader);
 			boolean client = isClientDist();
 
-			java.util.regex.Matcher scripts = java.util.regex.Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"(transformer/[^\"]+\\.js)\"").matcher(registry);
 			List<String> problems = new ArrayList<>();
 			List<String> report = new ArrayList<>();
 			int checked = 0;
 
-			while (scripts.find())
+			for (lumien.randomthings.asm.transform.RTTransformer transformer : lumien.randomthings.asm.transform.RTTransformers.all())
 			{
-				String path = scripts.group(2);
-				String file = path.substring(path.lastIndexOf('/') + 1);
-				String tag = file.endsWith("Transformer.js") ? file.substring(0, file.length() - "Transformer.js".length()) : file.substring(0, file.length() - 3);
-				java.util.regex.Matcher target = java.util.regex.Pattern.compile("'name'\\s*:\\s*'([^']+)'").matcher(readResource(loader, path));
-
-				if (!target.find())
-				{
-					problems.add(file + ": no target class name found in the script");
-					continue;
-				}
-
-				String className = target.group(1);
+				String tag = transformer.tag();
+				String className = transformer.targetClass();
+				String file = transformer.name().path();
 
 				if (!client && className.contains(".client."))
 				{
@@ -337,7 +326,7 @@ final class CoremodTests
 			}
 
 			lumien.randomthings.debug.RTDebug.log("coremod markers: {}", report);
-			c.check(checked >= 8, "the transformer registry should list at least 8 checkable transformers (found " + checked + ")");
+			c.check(checked >= 8, "the transformer list should hold at least 8 checkable transformers (found " + checked + ")");
 			c.check(problems.isEmpty(), "coremod transformers that did not apply: " + problems);
 		}));
 
@@ -424,7 +413,19 @@ final class CoremodTests
 		{
 			try
 			{
-				Object dist = Class.forName(name).getField("dist").get(null);
+				Class<?> environment = Class.forName(name);
+				Object dist;
+
+				try
+				{
+					dist = environment.getField("dist").get(null);
+				}
+				catch (NoSuchFieldException e)
+				{
+					// NeoForge 21.9+ made the field private and added an accessor
+					dist = environment.getMethod("getDist").invoke(null);
+				}
+
 				return "CLIENT".equals(String.valueOf(dist));
 			}
 			catch (ReflectiveOperationException e)

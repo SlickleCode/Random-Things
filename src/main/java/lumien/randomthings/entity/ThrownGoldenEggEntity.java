@@ -21,7 +21,7 @@ import lumien.randomthings.item.ModItems;
  * the same reason as {@code ThrownWeatherEggEntity} - free client item-stack
  * sync and item-based rendering, no custom spawn data needed.
  */
-public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile.ThrowableItemProjectile {
+public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile {
     public ThrownGoldenEggEntity(EntityType<? extends ThrownGoldenEggEntity> type, Level world) {
         super(type, world);
     }
@@ -55,9 +55,9 @@ public class ThrownGoldenEggEntity extends net.minecraft.world.entity.projectile
             hitEntity.hurt(this.damageSources().thrown(this, this.getOwner()), 1.0F);
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             GoldenChickenEntity chicken = new GoldenChickenEntity(ModEntityTypes.GOLDEN_CHICKEN, this.level());
-            chicken.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
+            chicken.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
             this.level().addFreshEntity(chicken);
 
             this.level().broadcastEntityEvent(this, (byte) 3);

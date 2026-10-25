@@ -3,7 +3,6 @@ package lumien.randomthings.client.renderer;
 import lumien.randomthings.util.WeakSets;
 import org.lwjgl.opengl.GL11;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.item.RedstoneToolItem;
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
@@ -19,7 +18,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 
 /**
@@ -57,18 +55,15 @@ public class RedstoneObserverLineRenderer
 		}
 
 		Camera ari = Minecraft.getInstance().gameRenderer.getMainCamera();
-		Vec3 camera = ari.getPosition();
+		Vec3 camera = ari.position();
 		BlockPos playerPos = player.blockPosition();
 
-		RenderSystem.setShader(net.minecraft.client.renderer.CoreShaders.RENDERTYPE_LINES);
-		RenderSystem.lineWidth(4F);
+		net.minecraft.client.renderer.MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+		com.mojang.blaze3d.vertex.VertexConsumer buffer = bufferSource.getBuffer(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
 
 		matrixStack.pushPose();
 		matrixStack.translate(-camera.x, -camera.y, -camera.z);
 		Matrix4f matrix = matrixStack.last().pose();
-
-		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder buffer = tessellator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
 
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(RedstoneObserverTileEntity.loadedObservers))
 		{
@@ -94,11 +89,11 @@ public class RedstoneObserverLineRenderer
 			dz /= length;
 
 			// the 1.17+ line shader widens each line along its normal, so the normal is the line direction
-			buffer.addVertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz);
-			buffer.addVertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz);
+			buffer.addVertex(matrix, pos.getX() + 0.5F, pos.getY() + 0.5F, pos.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz).setLineWidth(4F);
+			buffer.addVertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz).setLineWidth(4F);
 		}
 
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		bufferSource.endBatch(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
 
 		matrixStack.popPose();
 		}

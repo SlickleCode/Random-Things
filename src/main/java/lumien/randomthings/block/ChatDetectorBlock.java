@@ -63,7 +63,7 @@ public class ChatDetectorBlock extends Block implements EntityBlock {
 	@Override
 	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack)
 	{
-		if (!worldIn.isClientSide && placer instanceof ServerPlayer)
+		if (!worldIn.isClientSide() && placer instanceof ServerPlayer)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -76,7 +76,7 @@ public class ChatDetectorBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-		if (!worldIn.isClientSide)
+		if (!worldIn.isClientSide())
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);
 

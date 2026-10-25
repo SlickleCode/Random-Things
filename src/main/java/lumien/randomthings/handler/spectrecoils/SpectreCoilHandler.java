@@ -26,6 +26,9 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  */
 public class SpectreCoilHandler extends SavedData {
     private static final String ID = "randomthings_spectre_coil_handler";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<SpectreCoilHandler> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, SpectreCoilHandler::new,
+            CompoundTag.CODEC.xmap(tag -> SpectreCoilHandler.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private static final int MAX_ENERGY = 1000000;
 
@@ -41,7 +44,7 @@ public class SpectreCoilHandler extends SavedData {
     }
 
     public static SpectreCoilHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(SpectreCoilHandler::new, SpectreCoilHandler::loadFrom, null), ID);
+        return ((ServerLevel) world).getDataStorage().computeIfAbsent(TYPE);
     }
 
     /** Receive-only - used by the Spectre Energy Injector block (external machines push energy in). */
@@ -141,20 +144,19 @@ public class SpectreCoilHandler extends SavedData {
     public void readData(CompoundTag nbt) {
         coilEntries.clear();
 
-        ListTag list = nbt.getList("coilEntries", 10);
+        ListTag list = nbt.getListOrEmpty("coilEntries");
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag entry = list.getCompound(i);
-            coilEntries.put(entry.getUUID("uuid"), entry.getInt("energy"));
+            CompoundTag entry = list.getCompoundOrEmpty(i);
+            coilEntries.put(lumien.randomthings.util.TagIO.readUuid(entry.get("uuid")), entry.getIntOr("energy", 0));
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         ListTag list = new ListTag();
 
         for (Map.Entry<UUID, Integer> entry : coilEntries.entrySet()) {
             CompoundTag entryCompound = new CompoundTag();
-            entryCompound.putUUID("uuid", entry.getKey());
+            entryCompound.put("uuid", lumien.randomthings.util.TagIO.writeUuid(entry.getKey()));
             entryCompound.putInt("energy", entry.getValue());
             list.add(entryCompound);
         }

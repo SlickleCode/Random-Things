@@ -6,7 +6,6 @@ import lumien.randomthings.client.screen.ScreenWidgets;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.IronDropperContainer;
 import lumien.randomthings.tileentity.IronDropperTileEntity.EFFECTS;
@@ -17,10 +16,9 @@ import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * IronDropperScreen. The original's icon-sprite mode buttons are replaced
@@ -30,7 +28,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class IronDropperScreen extends AbstractContainerScreen<IronDropperContainer>
 {
-	private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/iron_dropper.png");
+	private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/iron_dropper.png");
 
 	public IronDropperScreen(IronDropperContainer screenContainer, Inventory inv, Component titleIn)
 	{
@@ -67,9 +65,9 @@ public class IronDropperScreen extends AbstractContainerScreen<IronDropperContai
 		}));
 	}
 
-	private static ResourceLocation tex(String name)
+	private static Identifier tex(String name)
 	{
-		return ResourceLocation.parse("randomthings:textures/gui/iron_dropper/" + name + ".png");
+		return Identifier.parse("randomthings:textures/gui/iron_dropper/" + name + ".png");
 	}
 
 	private static String redstoneModeLabel(REDSTONE_MODE mode)
@@ -118,7 +116,7 @@ public class IronDropperScreen extends AbstractContainerScreen<IronDropperContai
 	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY)
 	{
 
-		graphics.drawString(this.font, this.title.getString(), 8, 6, 4210752, false);
+		graphics.drawString(this.font, this.title.getString(), 8, 6, 0xFF404040, false);
 		SpriteStateButton.renderTooltips(graphics, this, ScreenWidgets.buttons(this), mouseX, mouseY, this.leftPos, this.topPos);
 
 	}
@@ -126,11 +124,9 @@ public class IronDropperScreen extends AbstractContainerScreen<IronDropperContai
 	@Override
 	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY)
 	{
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_TEXTURES);
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 	}
 
 	@Override

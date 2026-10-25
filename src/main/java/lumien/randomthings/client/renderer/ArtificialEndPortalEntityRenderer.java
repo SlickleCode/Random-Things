@@ -1,6 +1,5 @@
 package lumien.randomthings.client.renderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.ArtificialEndPortalEntity;
 import net.minecraft.client.Minecraft;
 import com.mojang.blaze3d.vertex.BufferBuilder;
@@ -8,15 +7,14 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.nio.FloatBuffer;
 import java.util.Random;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import org.joml.Matrix4f;
 
 /**
@@ -62,22 +60,20 @@ public class ArtificialEndPortalEntityRenderer extends EntityRenderer<Artificial
     }
 
     @Override
-    public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
+    public void submit(State state, PoseStack matrixStack, net.minecraft.client.renderer.SubmitNodeCollector collector, net.minecraft.client.renderer.state.CameraRenderState camera) {
         double size = Math.min(3, 3.0 / 115 * (state.actionTimer + state.partialTicks - 85));
 
         if (state.actionTimer > 85) {
-            RANDOM.setSeed(31100L);
             float height = this.getOffset();
-            Matrix4f matrix = matrixStack.last().pose();
-            double sizeHalf = size / 2;
+            float sizeHalf = (float) (size / 2);
 
             // 1.17+ draws the end portal with a fixed-layer shader (RenderType.endPortal()); the 1.16 per-distance pass count is gone
-            VertexConsumer builder = buffer.getBuffer(RenderType.endPortal());
-
-            builder.addVertex(matrix, (float) -sizeHalf, height, (float) sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            builder.addVertex(matrix, (float) sizeHalf, height, (float) sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            builder.addVertex(matrix, (float) sizeHalf, height, (float) -sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            builder.addVertex(matrix, (float) -sizeHalf, height, (float) -sizeHalf).setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            collector.submitCustomGeometry(matrixStack, net.minecraft.client.renderer.rendertype.RenderTypes.endPortal(), (pose, builder) -> {
+                builder.addVertex(pose, -sizeHalf, height, sizeHalf);
+                builder.addVertex(pose, sizeHalf, height, sizeHalf);
+                builder.addVertex(pose, sizeHalf, height, -sizeHalf);
+                builder.addVertex(pose, -sizeHalf, height, -sizeHalf);
+            });
         }
     }
 

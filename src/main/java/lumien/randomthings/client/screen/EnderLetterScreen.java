@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.container.EnderLetterContainer;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -13,10 +12,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * Direct port of 1.12.2's {@code GuiEnderLetter}: a 9-slot item tray plus a
@@ -26,7 +24,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContainer> {
     public static final int MAX_MESSAGE_LENGTH = 200;
 
-    private static final ResourceLocation GUI_TEXTURES = ResourceLocation.parse("randomthings:textures/gui/ender_letter.png");
+    private static final Identifier GUI_TEXTURES = Identifier.parse("randomthings:textures/gui/ender_letter.png");
 
     private final boolean received;
 
@@ -90,7 +88,10 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent rtEvent, boolean rtDouble) {
+		double mouseX = rtEvent.x();
+		double mouseY = rtEvent.y();
+		int button = rtEvent.button();
         // only one of the two text inputs may hold focus; the clicked one claims it
         if (this.messageField.isMouseOver(mouseX, mouseY)) {
             this.receiverField.setFocused(false);
@@ -98,22 +99,25 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
             this.messageField.setFocusedState(false);
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(rtEvent, rtDouble);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(net.minecraft.client.input.KeyEvent rtEvent) {
+		int keyCode = rtEvent.key();
+		int scanCode = rtEvent.scancode();
+		int modifiers = rtEvent.modifiers();
         if (this.messageField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE */) {
-            this.messageField.keyPressed(keyCode, scanCode, modifiers);
+            this.messageField.keyPressed(rtEvent);
             return true;
         }
 
         if (this.receiverField.isFocused() && keyCode != 256 /* GLFW_KEY_ESCAPE */) {
-            this.receiverField.keyPressed(keyCode, scanCode, modifiers);
+            this.receiverField.keyPressed(rtEvent);
             return true;
         }
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(rtEvent);
     }
 
     @Override
@@ -137,22 +141,20 @@ public class EnderLetterScreen extends AbstractContainerScreen<EnderLetterContai
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, I18n.get("item.randomthings.ender_letter"), 8, 6, 4210752, false);
-        graphics.drawString(this.font, I18n.get("container.inventory"), 8, this.imageHeight - 96 + 2, 4210752, false);
+        graphics.drawString(this.font, I18n.get("item.randomthings.ender_letter"), 8, 6, 0xFF404040, false);
+        graphics.drawString(this.font, I18n.get("container.inventory"), 8, this.imageHeight - 96 + 2, 0xFF404040, false);
 
         if (!received) {
             String counter = this.messageField.getText().length() + "/" + MAX_MESSAGE_LENGTH;
-            graphics.drawString(this.font, counter, this.imageWidth - 8 - this.font.width(counter), this.imageHeight - 96 + 2, 0x707070, false);
+            graphics.drawString(this.font, counter, this.imageWidth - 8 - this.font.width(counter), this.imageHeight - 96 + 2, 0xFF707070, false);
         }
     }
 
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI_TEXTURES);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, GUI_TEXTURES, x, y, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 
         this.receiverField.render(graphics, mouseX, mouseY, partialTicks);
     }

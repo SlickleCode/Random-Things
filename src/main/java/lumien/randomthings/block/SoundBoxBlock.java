@@ -44,8 +44,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
         return new SoundBoxTileEntity(pos, state);
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -57,7 +56,6 @@ public class SoundBoxBlock extends Block implements EntityBlock {
                 }
             }
 
-            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
@@ -86,7 +84,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
         SoundBoxTileEntity soundBox = (SoundBoxTileEntity) te;
 
         if (soundBox.hasPattern()) {
-            if (!worldIn.isClientSide) {
+            if (!worldIn.isClientSide()) {
                 ItemStack pattern = soundBox.getPattern();
                 soundBox.insertPattern(ItemStack.EMPTY);
                 Block.popResource(worldIn, pos.above(), pattern);
@@ -97,7 +95,7 @@ public class SoundBoxBlock extends Block implements EntityBlock {
             ItemStack heldItem = player.getItemInHand(hand);
 
             if (heldItem.getItem() == ModItems.SOUND_PATTERN) {
-                if (!worldIn.isClientSide) {
+                if (!worldIn.isClientSide()) {
                     ItemStack inserted = heldItem.copy();
                     inserted.setCount(1);
                     soundBox.insertPattern(inserted);

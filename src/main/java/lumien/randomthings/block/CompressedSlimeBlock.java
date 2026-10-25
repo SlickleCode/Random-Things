@@ -52,9 +52,9 @@ public class CompressedSlimeBlock extends Block implements IRTBlockColor
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn)
+	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn, net.minecraft.world.entity.InsideBlockEffectApplier rtApplier, boolean rtPrecise)
 	{
-		super.entityInside(state, worldIn, pos, entityIn);
+		super.entityInside(state, worldIn, pos, entityIn, rtApplier, rtPrecise);
 
 		if (entityIn.getDeltaMovement().y < 1)
 		{

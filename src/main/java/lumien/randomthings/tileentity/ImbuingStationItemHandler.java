@@ -1,7 +1,7 @@
 package lumien.randomthings.tileentity;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * The 5-slot inventory shared by {@link ImbuingStationTileEntity} (the real,

@@ -54,8 +54,7 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
         return Tickers.of(type, ModTileEntityTypes.BIOME_RADAR, (l, p, s2, be) -> be.tick());
     }
 
-    @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+    public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
 
@@ -67,7 +66,6 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
                 }
             }
 
-            super.onRemove(state, worldIn, pos, newState, isMoving);
         }
     }
 
@@ -118,7 +116,7 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
         if (biomeRadar.getState() == STATE.IDLE) {
             if (biomeRadar.getCurrentCrystal().isEmpty()) {
                 if (!equipped.isEmpty() && equipped.getItem() == ModItems.BIOME_CRYSTAL) {
-                    if (!worldIn.isClientSide) {
+                    if (!worldIn.isClientSide()) {
                         biomeRadar.setCrystal(equipped.copy());
                         equipped.shrink(1);
                         worldIn.blockEvent(pos, this, 1037, 0);
@@ -128,10 +126,10 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
                 }
             } else {
                 if (equipped.isEmpty()) {
-                    if (!worldIn.isClientSide) {
+                    if (!worldIn.isClientSide()) {
                         ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
 
-                        player.getInventory().setItem(player.getInventory().selected, currentCrystal);
+                        player.getInventory().setItem(player.getInventory().getSelectedSlot(), currentCrystal);
                         biomeRadar.setCrystal(ItemStack.EMPTY);
                         worldIn.blockEvent(pos, this, 1036, 0);
                     }
@@ -143,16 +141,16 @@ public class BiomeRadarBlock extends Block implements IRTBlockColor, EntityBlock
             // Deliberate divergence from 1.12.2 (user request, 2026-10-23): an empty hand also takes the crystal back out of a radar that has finished
             // searching (the original only accepted paper in this state), which sets the radar back to idle.
             if (equipped.isEmpty() && !biomeRadar.getCurrentCrystal().isEmpty()) {
-                if (!worldIn.isClientSide) {
+                if (!worldIn.isClientSide()) {
                     ItemStack currentCrystal = biomeRadar.getCurrentCrystal();
-                    player.getInventory().setItem(player.getInventory().selected, currentCrystal);
+                    player.getInventory().setItem(player.getInventory().getSelectedSlot(), currentCrystal);
                     biomeRadar.takeCrystal();
                     worldIn.blockEvent(pos, this, 1036, 0);
                 }
                 return InteractionResult.SUCCESS;
             }
             if (!equipped.isEmpty() && equipped.getItem() == Items.PAPER) {
-                if (!worldIn.isClientSide) {
+                if (!worldIn.isClientSide()) {
                     ItemStack positionFilter = biomeRadar.generatePositionFilter();
 
                     equipped.shrink(1);

@@ -40,7 +40,7 @@ public class GrassSeedsItem extends Item implements IRTItemColor {
             return InteractionResult.FAIL;
         }
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             if (color == null) {
                 world.setBlockAndUpdate(pos, Blocks.GRASS_BLOCK.defaultBlockState());
             } else {

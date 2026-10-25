@@ -13,9 +13,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.core.BlockPos;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
+import lumien.randomthings.itemhandler.SlotItemHandler;
 
 /**
  * NotificationInterfaceContainer

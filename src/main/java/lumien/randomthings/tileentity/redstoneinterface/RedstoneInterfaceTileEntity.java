@@ -140,8 +140,15 @@ public abstract class RedstoneInterfaceTileEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.saveAdditional(compound, registries);
+    protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	super.saveAdditional(rtOut);
+    	CompoundTag rtTag = new CompoundTag();
+    	rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
 
         CompoundTag weakCompound = new CompoundTag();
         CompoundTag strongCompound = new CompoundTag();
@@ -157,15 +164,20 @@ public abstract class RedstoneInterfaceTileEntity extends BlockEntity {
     }
 
     @Override
-    public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
-        super.loadAdditional(compound, registries);
+    protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	super.loadAdditional(rtIn);
+    	rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+    }
 
-        CompoundTag weakCompound = compound.getCompound("weakPower");
-        CompoundTag strongCompound = compound.getCompound("strongPower");
+    private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+
+        CompoundTag weakCompound = compound.getCompoundOrEmpty("weakPower");
+        CompoundTag strongCompound = compound.getCompoundOrEmpty("strongPower");
 
         for (Direction facing : Direction.values()) {
-            weakPower.put(facing, weakCompound.getInt(facing.ordinal() + ""));
-            strongPower.put(facing, strongCompound.getInt(facing.ordinal() + ""));
+            weakPower.put(facing, weakCompound.getIntOr(facing.ordinal() + "", 0));
+            strongPower.put(facing, strongCompound.getIntOr(facing.ordinal() + "", 0));
         }
     }
 }

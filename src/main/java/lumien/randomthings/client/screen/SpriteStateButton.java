@@ -8,14 +8,12 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -27,11 +25,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
  */
 public class SpriteStateButton extends Button implements TooltipButton
 {
-	private final ResourceLocation texture;
+	private final Identifier texture;
 	private final IntSupplier state;
 	private final IntFunction<String> tooltip;
 
-	public SpriteStateButton(int x, int y, int width, int height, ResourceLocation texture, IntSupplier state, IntFunction<String> tooltip, OnPress onPress)
+	public SpriteStateButton(int x, int y, int width, int height, Identifier texture, IntSupplier state, IntFunction<String> tooltip, OnPress onPress)
 	{
 		super(x, y, width, height, Component.literal(""), onPress, DEFAULT_NARRATION);
 
@@ -41,12 +39,9 @@ public class SpriteStateButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
-		RenderSystem.setShaderTexture(0, this.texture);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableBlend();
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, this.texture, this.getX(), this.getY(), this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, this.texture, this.getX(), this.getY(), this.state.getAsInt() * this.width, this.isHovered ? this.height : 0, this.width, this.height, 256, 256);
 	}
 
 	@Override
@@ -69,7 +64,7 @@ public class SpriteStateButton extends Button implements TooltipButton
 
 				if (text != null)
 				{
-					graphics.renderTooltip(net.minecraft.client.Minecraft.getInstance().font, Component.literal(text), mouseX - guiLeft, mouseY - guiTop);
+					graphics.setTooltipForNextFrame(net.minecraft.client.Minecraft.getInstance().font, Component.literal(text), mouseX - guiLeft, mouseY - guiTop);
 				}
 
 				return;

@@ -6,7 +6,7 @@ import java.lang.reflect.Modifier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /** Fills the {@link ObjectHolder} fields of one registry; called at the end of that registry's {@code RegisterEvent}. */
 public class ObjectHolderInjector
@@ -23,17 +23,17 @@ public class ObjectHolderInjector
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void inject(ResourceKey<? extends Registry<?>> registryKey)
 	{
-		Registry registry = (Registry) BuiltInRegistries.REGISTRY.getValue(registryKey.location());
+		Registry registry = (Registry) BuiltInRegistries.REGISTRY.getValue(registryKey.identifier());
 		for (Class<?> holder : HOLDERS)
 		{
 			for (Field field : holder.getDeclaredFields())
 			{
 				ObjectHolder annotation = field.getAnnotation(ObjectHolder.class);
-				if (annotation == null || !Modifier.isStatic(field.getModifiers()) || !ResourceLocation.parse(annotation.registryName()).equals(registryKey.location()))
+				if (annotation == null || !Modifier.isStatic(field.getModifiers()) || !Identifier.parse(annotation.registryName()).equals(registryKey.identifier()))
 				{
 					continue;
 				}
-				ResourceLocation id = ResourceLocation.parse(annotation.value());
+				Identifier id = Identifier.parse(annotation.value());
 				Object value = field.getType() == net.minecraft.core.Holder.class ? registry.get(id).orElseThrow() : registry.getValue(id);
 				try
 				{

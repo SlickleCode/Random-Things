@@ -24,6 +24,9 @@ import net.minecraft.world.level.saveddata.SavedData;
  */
 public class AnchorChunkLoader extends SavedData {
     private static final String ID = "randomthings_anchor_chunks";
+    /** 1.21.5+ saved data types are codec based: the old CompoundTag save/load code is wrapped by the compound codec. */
+    public static final net.minecraft.world.level.saveddata.SavedDataType<AnchorChunkLoader> TYPE = new net.minecraft.world.level.saveddata.SavedDataType<>(ID, AnchorChunkLoader::new,
+            CompoundTag.CODEC.xmap(tag -> AnchorChunkLoader.loadFrom(tag, lumien.randomthings.util.StackTag.provider()), data -> data.rtSave(new CompoundTag(), lumien.randomthings.util.StackTag.provider())));
 
     private final Set<Long> anchors = new HashSet<>();
     private final Set<Long> ownedChunks = new HashSet<>();
@@ -38,7 +41,7 @@ public class AnchorChunkLoader extends SavedData {
     }
 
     private static AnchorChunkLoader get(ServerLevel world) {
-        return world.getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(AnchorChunkLoader::new, AnchorChunkLoader::loadFrom, null), ID);
+        return world.getDataStorage().computeIfAbsent(TYPE);
     }
 
     /** Start keeping the anchor's chunk loaded. Safe to call repeatedly for the same anchor. */
@@ -54,7 +57,7 @@ public class AnchorChunkLoader extends SavedData {
         ChunkPos chunk = new ChunkPos(pos);
         long chunkKey = chunk.toLong();
 
-        if (!data.ownedChunks.contains(chunkKey) && !world.getForcedChunks().contains(chunkKey)) {
+        if (!data.ownedChunks.contains(chunkKey) && !world.getForceLoadedChunks().contains(chunkKey)) {
             data.ownedChunks.add(chunkKey);
             world.setChunkForced(chunk.x, chunk.z, true);
         }
@@ -87,17 +90,16 @@ public class AnchorChunkLoader extends SavedData {
         anchors.clear();
         ownedChunks.clear();
 
-        for (long l : nbt.getLongArray("anchors")) {
+        for (long l : nbt.getLongArray("anchors").orElse(new long[0])) {
             anchors.add(l);
         }
 
-        for (long l : nbt.getLongArray("ownedChunks")) {
+        for (long l : nbt.getLongArray("ownedChunks").orElse(new long[0])) {
             ownedChunks.add(l);
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag rtSave(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         compound.putLongArray("anchors", anchors.stream().mapToLong(Long::longValue).toArray());
         compound.putLongArray("ownedChunks", ownedChunks.stream().mapToLong(Long::longValue).toArray());
         return compound;

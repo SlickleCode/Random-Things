@@ -2,7 +2,6 @@ package lumien.randomthings.client.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import lumien.randomthings.util.ChunkAnalyzerResult;
 import net.minecraft.client.Minecraft;
@@ -10,7 +9,6 @@ import net.minecraft.client.gui.components.ObjectSelectionList;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.world.item.ItemStack;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -74,7 +72,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
     }
 
     private void renderCustomScrollbar(GuiGraphics graphics) {
-        int totalHeight = this.getItemCount() * this.itemHeight;
+        int totalHeight = this.getItemCount() * this.defaultEntryHeight;
         int visibleHeight = this.getBottom() - this.getY();
 
         if (totalHeight <= visibleHeight) {
@@ -117,13 +115,17 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
         }
 
         @Override
-        public void render(GuiGraphics graphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+        public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, boolean isMouseOver, float partialTicks) {
+            int left = this.getContentX();
+            int top = this.getContentY();
+            int width = this.getContentWidth();
+            int height = this.getContentHeight();
             Minecraft mc = Minecraft.getInstance();
 
             graphics.renderItem(stack, left + 2, top + 1);
 
             String countText = count + "x ";
-            graphics.drawString(mc.font, countText, left + 2 + 16 + 4, top + 5, 16777215, false);
+            graphics.drawString(mc.font, countText, left + 2 + 16 + 4, top + 5, 0xFFFFFFFF, false);
 
             String displayDescription = description;
 
@@ -131,7 +133,7 @@ public class ChunkAnalyzerScanResultList extends ObjectSelectionList<ChunkAnalyz
                 displayDescription = displayDescription.substring(0, 19) + "...";
             }
 
-            graphics.drawString(mc.font, displayDescription, left + 2 + 16 + 4 + 50, top + 5, 16777215, false);
+            graphics.drawString(mc.font, displayDescription, left + 2 + 16 + 4 + 50, top + 5, 0xFFFFFFFF, false);
         }
     }
 }

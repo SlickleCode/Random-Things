@@ -11,13 +11,13 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+
 
 /**
  * Right-click a block to broadcast a strength-15 "phantom" redstone signal
@@ -36,9 +36,9 @@ public class RedstoneActivatorItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext worldCtx, net.minecraft.world.item.component.TooltipDisplay rtDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
         Level world = lumien.randomthings.client.ClientHooks.level();
-        tooltip.add(Component.translatable("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
+        tooltip.accept(Component.translatable("tooltip.randomthings.redstone_activator.duration", DURATIONS[getDurationIndex(stack)]));
     }
 
     @Override
@@ -65,7 +65,7 @@ public class RedstoneActivatorItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level world = context.getLevel();
 
-        if (!world.isClientSide) {
+        if (!world.isClientSide()) {
             ItemStack stack = context.getItemInHand();
             RedstoneSignalHandler.get(world).addSignal(world, context.getClickedPos(), DURATIONS[getDurationIndex(stack)], 15);
         }
@@ -75,7 +75,7 @@ public class RedstoneActivatorItem extends Item {
 
     public static int getDurationIndex(ItemStack stack) {
         CompoundTag compound = StackTag.get(stack);
-        return compound != null && compound.contains("durationIndex") ? compound.getInt("durationIndex") : 1;
+        return compound != null && compound.contains("durationIndex") ? compound.getIntOr("durationIndex", 0) : 1;
     }
 
     public static void setDurationIndex(ItemStack stack, int index) {

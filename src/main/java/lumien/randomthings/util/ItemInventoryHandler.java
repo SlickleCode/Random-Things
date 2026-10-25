@@ -1,7 +1,7 @@
 package lumien.randomthings.util;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * A fixed-size {@link ItemStackHandler} whose contents live in one item's own

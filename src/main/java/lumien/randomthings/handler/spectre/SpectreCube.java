@@ -45,15 +45,15 @@ public class SpectreCube {
 
     public static SpectreCube readFrom(CompoundTag compound) {
         SpectreCube cube = new SpectreCube();
-        cube.owner = compound.getUUID("owner");
-        cube.position = compound.getInt("position");
-        cube.height = compound.getInt("height");
-        cube.spawnBlock = new BlockPos(compound.getInt("spawnBlockX"), compound.getInt("spawnBlockY"), compound.getInt("spawnBlockZ"));
+        cube.owner = lumien.randomthings.util.TagIO.readUuid(compound.get("owner"));
+        cube.position = compound.getIntOr("position", 0);
+        cube.height = compound.getIntOr("height", 0);
+        cube.spawnBlock = new BlockPos(compound.getIntOr("spawnBlockX", 0), compound.getIntOr("spawnBlockY", 0), compound.getIntOr("spawnBlockZ", 0));
         return cube;
     }
 
     public void writeTo(CompoundTag compound) {
-        compound.putUUID("owner", owner);
+        compound.put("owner", lumien.randomthings.util.TagIO.writeUuid(owner));
         compound.putInt("position", position);
         compound.putInt("height", height);
         compound.putInt("spawnBlockX", spawnBlock.getX());

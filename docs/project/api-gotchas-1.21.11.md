@@ -1,0 +1,56 @@
+# 1.21.11 API gotchas (NeoForge 21.11.48)
+
+Everything that changed from 1.21.4 to 1.21.11 (MC 1.21.5 to 1.21.11 in one step) and how this branch handles it. Verify against the patched jar (`build/neoForm/neoFormJoined1.21.11-*/steps/packRecomp/output.jar`) and the NeoForge universal jar, not from memory.
+
+## Class transformers (the biggest change)
+- NeoForge 21.9+ no longer runs JavaScript coremods (`META-INF/coremods.json`, `transformer/*.js`). Class transformers are Java `ClassProcessor`s offered through a `ClassProcessorProvider` service (`META-INF/services/net.neoforged.neoforgespi.transformation.ClassProcessorProvider` in the mod jar works: `asm/transform/RTTransformers`). Target class names are dotted (`net.minecraft.world.level.Level`), the ASM library is on the compile classpath through `neoforge`.
+- `RTTransformer` keeps the two moves every JS file used (hook in front of a method's returns, retarget one call to a static hook) and the `rt$hooks$<Tag>$<count>` marker field; the `coremod.applied` test now walks `RTTransformers.all()` instead of `coremods.json`.
+- The light engine (`BlockLightEngine`) and the Super Lubricent Boots (`BlockState.getFriction`) anchors are the same shape as on 1.20.1+; `FireBlock.checkBurnOut`/`getFireTickDelay`, `SpawnPlacements.checkSpawnRules`, `Level.isRainingAt`, `SignalGetter.getSignal/getDirectSignal`, `Player.dropEquipment` (`Inventory.dropAll`) kept their anchors.
+- Client transformers: `BlockRenderDispatcher.renderBatched(..., Function<ChunkSectionLayer, VertexConsumer>, boolean, List<BlockModelPart>)` (Light Redirector), `WeatherEffectRenderer.getPrecipitationAt` (Rain Shield visuals), `ItemModelResolver.appendItemLayers` (Dyeing Machine on items: the layer's quads are rebuilt with tint index 0), `EquipmentLayerRenderer.renderLayers` (armor dye; the worn stack is local 5).
+- **Coloured enchant glint:** since 1.21.6 every draw sets a `ColorModulator` uniform, and `RenderType.draw` hardcodes it to white. `RenderTypeModulator` routes that vector through `ClientAsmHandler.modulate`; the `RenderTypes` glint getters (`GlintGetters`) return a `TintedGlintRenderType` copy (same `RenderSetup`, own fixed vertex buffer registered by reflection on `BufferSource.fixedBuffers`) whose colour is the modulator. Items carry the glint colour as `[GLINT_MARKER, colour]` appended to the layer's tint array; the GUI item cache key gets the colour through `appendModelIdentityElement`.
+
+- **Production vs dev:** a service in the mod jar is only found on the classpath (dev). In a real install it must be in a `FMLModType: LIBRARY` jar: `src/transformers` is its own source set, `build.gradle` packs it as `randomthings-transformers-1.0.jar` and nests it in the mod jar (`META-INF/jarjar/` + hand-written `metadata.json`). The first production run had every transformer missing (10 failing coremod tests) until that was done.
+
+## Registration, data, packs
+- `ResourceLocation` is `net.minecraft.resources.Identifier` (`ResourceKey.location()` is `identifier()`; `TagKey.location()` is unchanged). Many vanilla classes moved packages (`Cow`/`Pig`/`Chicken` to `entity.animal.<name>`, `Zombie` to `monster.zombie`, `AbstractBoat` to `vehicle.boat`, `TriState` to `net.minecraft.util`, `GameRules` to `level.gamerules`).
+- `pack.mcmeta` is deleted: NeoForge builds the metadata of a mod pack itself (a hand-written one failed on 1.21.9+ either way: `min_format` below 82 wants `supported_formats`, which the client rejects from format 65 on).
+- Dimension types: `fixed_time`, `effects`, `natural`, ... are gone. `has_fixed_time`, `skybox` (`overworld`/`end`/`none`), `ambient_light` and an `attributes` map (`minecraft:visual/fog_color`, `sky_color`, `fog_start_distance`, ...). `DimensionSpecialEffects` no longer exists, so `SpectreRenderInfo` is replaced by those attributes in `data/randomthings/dimension_type/spectre.json`.
+- Game rules are objects: `GameRules.ADVANCE_TIME`, `SPAWN_MOBS`, `ENTITY_DROPS`, `KEEP_INVENTORY`; `rules.get(rule)`, `rules.set(rule, value, server)`.
+- Saved data: `SavedData.Factory` is gone, `SavedDataType(id, supplier, codec)`; the handlers keep their `CompoundTag` code behind `CompoundTag.CODEC.xmap` (`TYPE` field of each handler).
+
+## NBT and saving
+- `CompoundTag` getters return `Optional`: use `getIntOr(key, 0)`, `getStringOr`, `getBooleanOr`, `getCompoundOrEmpty`, `getListOrEmpty`, `getLongArray(key).orElse(...)`; `contains(key)` has no type argument; UUIDs are `TagIO.writeUuid/readUuid` (int arrays, as before).
+- `BlockEntity.saveAdditional(ValueOutput)` / `loadAdditional(ValueInput)` and `Entity.addAdditionalSaveData(ValueOutput)` / `readAdditionalSaveData(ValueInput)`. The mod's old `CompoundTag` code stays in `rtSaveAdditional`/`rtLoadAdditional` helpers behind wrappers, bridged by `util/TagIO` (`MapCodec.assumeMapUnsafe(CompoundTag.CODEC)` stores the compound as the output's fields, so saved worlds keep their format). Entities that extend `Entity` directly must not call `super.addAdditionalSaveData`.
+- `ItemStack.saveOptional/parseOptional` are gone: `StackTag.saveStack/loadStack` use `ItemStack.OPTIONAL_CODEC` with the registry access. `Entity.save/load` go through `TagValueOutput`/`TagValueInput` (`TagIO.saveEntity/createEntity`).
+- `Block.onRemove` is gone and the block entity is already removed when `affectNeighborsAfterRemoval` runs. Blocks that dropped their contents in `onRemove` keep that code as `rtOnRemove` and the block entity calls it from `preRemoveSideEffects`; blocks that only notify neighbours override `affectNeighborsAfterRemoval`.
+- `HangingEntity` defines synched data of its own: `defineSynchedData` must call `super`.
+
+## Transfer API (NeoForge 21.9+)
+- `IItemHandler`/`ItemStackHandler`/`SlotItemHandler`/`ItemHandlerHelper`/`InvWrapper`/`RangedWrapper` are gone (replaced by `ResourceHandler<ItemResource>` and transactions). `lumien.randomthings.itemhandler` holds ports of those classes (the handler extends `ItemStacksResourceHandler`, so it is the capability itself) plus `ItemHandlerAdapter` (slot handler to `ResourceHandler`, snapshot journal for rollback) and `ResourceHandlerItemAdapter` (the other way round, one root transaction per call).
+- Capabilities: `Capabilities.Item.BLOCK`, `Capabilities.Energy.BLOCK/ITEM` (`EnergyHandler`), `Capabilities.Fluid.ITEM` (`ItemAccessFluidHandler` on the `minecraft`-style fluid component). `util/CapUtil` gives the old shapes back (`IItemHandler`, `IEnergyStorage.of`, `IFluidHandler.of`, `fluidItem(stack)` through `ItemAccess.forStack`). Divergence: `EnergyStorageHandler` (the Spectre coil pools as an `EnergyHandler`) moves energy at once, an aborted transaction does not give it back.
+- A fluid handler cannot open a second root transaction while one is open: never ask the bucket's handler from `getMaxStackSize/getName`; read the `FLUID` component instead.
+
+## Networking
+- Clientbound payloads are registered with `registrar.playToClient(type, codec)` and their client handlers in `RegisterClientPayloadHandlersEvent` (`client/ClientPayloads`), serverbound with `playToServer(type, codec, handler)`; `ClientPacketDistributor.sendToServer`. A missing client handler stops the game at mod loading.
+- `@EventBusSubscriber(bus = Bus.MOD)` is gone (the bus follows from the event type); `@OnlyIn` is flagged at load (`loadwarning.neoforge.onlyin`): none left in the mod.
+
+## Rendering
+- No more `RenderSystem` state: GUI draws use `graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, w, h, texW, texH[, argbColor])` (the colour replaces `setShaderColor`), `graphics.pose()` is a 2D `Matrix3x2fStack` (`pushMatrix/popMatrix/translate(x, y)/scale(x, y)`), tooltips are `setTooltipForNextFrame`.
+- Widgets: `Button.renderWidget` is final, subclasses override `renderContents`; input is event based (`mouseClicked(MouseButtonEvent, boolean)`, `keyPressed(KeyEvent)`, `charTyped(CharacterEvent)`); `AbstractSelectionList.Entry.renderContent(graphics, mouseX, mouseY, hovered, partialTick)` with `getContentX/Y/Width/Height`.
+- Block entity and entity renderers are two step: `createRenderState` / `extractRenderState` / `submit(state, poseStack, SubmitNodeCollector, CameraRenderState)`. Custom geometry goes through `collector.submitCustomGeometry(poseStack, renderType, (pose, consumer) -> ...)` (`RenderTypes.solidMovingBlock()` for the block atlas, `entityCutoutNoCull(texture)` for an own texture, `translucentMovingBlock()`, `endPortal()`); items through `ItemStackRenderState.submit`.
+- In-level debug drawing after the level: `RenderLevelStageEvent.AfterLevel` plus `Minecraft.renderBuffers().bufferSource()` with `RenderTypes.lines()` (needs `setLineWidth`) or `debugQuads()`, then `endBatch(type)`. The Divining Rod cubes use `debugQuads()` and are not drawn through walls any more (open: a no-depth-test pipeline).
+- `RangeSelectItemModelProperty.get(stack, level, ItemOwner, seed)`; `ItemModel.update(..., ItemOwner, seed)`.
+- Item classes: `ArmorItem`, `SwordItem`, `PickaxeItem` are gone, `Item.Properties.humanoidArmor(material, type)`, `.sword(...)`, `.pickaxe(...)`. `Item.inventoryTick(stack, ServerLevel, entity, EquipmentSlot)` (slot is null for plain inventory slots), `appendHoverText(stack, ctx, TooltipDisplay, Consumer<Component>, flag)`; blocks have no tooltip hook any more (`IBlockTooltip` + `TooltipBlockItem`).
+
+- **Text and fill colours need an alpha byte:** `GuiGraphics.drawString/drawCenteredString/drawWordWrap` skip the call when `ARGB.alpha(color) == 0`, so a colour like `4210752` or `0x404040` draws nothing (found because the Sound Recorder list was blank; the titles and labels of every GUI were invisible). Use `0xFF404040`. `fill` takes ARGB too.
+- **Item glint tint array:** `ItemStackRenderState.LayerRenderState.tintLayers` index 0 is applied to every quad with tint index 0, and generated item models use tint index 0 for layer 0. A marker stored at index 0 (the glint colour channel) tinted the whole item dark and translucent: pad the array with white up to the highest quad tint index before appending (`ClientAsmHandler.appendGlintColor`).
+- **Spawn eggs:** `new SpawnEggItem(Item.Properties.spawnEgg(type))` (the type must exist when the item is created; entity types register before items), the model is `item/template_spawn_egg` or an own texture, colours come from the texture/tints (no `ItemColors`).
+
+## Misc
+- `ServerPlayer.level()` is the `ServerLevel`; `GameProfile` is a record (`id()`, `name()`), the name cache is `server.services().nameToIdCache()`; `FMLEnvironment.getDist()`.
+- `LeavesBlock(float, Properties)` needs `spawnFallingLeavesParticle`; `BushBlock.codec()` returns `MapCodec<BushBlock>`; `entityInside(..., InsideBlockEffectApplier, boolean)`; `FlyingMob` is gone (the Spirit extends `Mob` and travels with `travelFlying`).
+- `Screenshot.takeScreenshot(renderTarget, consumer)` is asynchronous.
+
+## Tests
+- A fresh `run/` needs `options.txt` with `onboardAccessibility:false`, `eula.txt` and the flat `server.properties` of the other branches.
+- Since 1.21.5 a chat command runs a moment after the packets sent before it: `GuiClickTest` must not send a container close right before `/rtdebug gui` (the close arrives after the command opened the new menu).

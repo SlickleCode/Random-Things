@@ -55,7 +55,7 @@ public final class RTTestRunner
 			return "tests already running";
 		}
 
-		ServerLevel world = starter.serverLevel();
+		ServerLevel world = starter.level();
 
 		boolean flat = world.getChunkSource().getGenerator() instanceof net.minecraft.world.level.levelgen.FlatLevelSource;
 
@@ -125,10 +125,10 @@ public final class RTTestRunner
 	 */
 	private static void controlWorld(ServerLevel world)
 	{
-		net.minecraft.world.level.GameRules rules = world.getGameRules();
-		rules.getRule(net.minecraft.world.level.GameRules.RULE_DAYLIGHT).set(false, world.getServer());
-		rules.getRule(net.minecraft.world.level.GameRules.RULE_WEATHER_CYCLE).set(false, world.getServer());
-		rules.getRule(net.minecraft.world.level.GameRules.RULE_DOMOBSPAWNING).set(false, world.getServer());
+		net.minecraft.world.level.gamerules.GameRules rules = world.getGameRules();
+		rules.set(net.minecraft.world.level.gamerules.GameRules.ADVANCE_TIME, false, world.getServer());
+		rules.set(net.minecraft.world.level.gamerules.GameRules.ADVANCE_WEATHER, false, world.getServer());
+		rules.set(net.minecraft.world.level.gamerules.GameRules.SPAWN_MOBS, false, world.getServer());
 		world.setDayTime(6000);
 		world.getLevelData().setRaining(false);
 		((net.minecraft.world.level.storage.ServerLevelData) world.getLevelData()).setThundering(false);

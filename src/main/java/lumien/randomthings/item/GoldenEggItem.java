@@ -44,7 +44,7 @@ public class GoldenEggItem extends Item implements net.minecraft.world.item.Proj
 
         worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (worldIn.random.nextFloat() * 0.4F + 1F));
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             ThrownGoldenEggEntity entityegg = new ThrownGoldenEggEntity(worldIn, playerIn);
             entityegg.shootFromRotation(playerIn, playerIn.getXRot(), playerIn.getYRot(), 0.0F, 1.5F, 1.0F);
             worldIn.addFreshEntity(entityegg);

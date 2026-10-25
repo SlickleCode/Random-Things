@@ -85,7 +85,7 @@ public class ReinforcedEnderBucketItem extends Item {
             return super.getName(stack);
         }
 
-        return Component.translatable(this.getDescriptionId() + ".filled", contained.getDisplayName());
+        return Component.translatable(this.getDescriptionId() + ".filled", contained.getHoverName());
     }
 
     @Override
@@ -172,7 +172,7 @@ public class ReinforcedEnderBucketItem extends Item {
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem fillHandler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem fillHandler = lumien.randomthings.util.CapUtil.fluidItem(stack);
         int filled = fillHandler == null ? 0 : fillHandler.fill(drained, FluidAction.EXECUTE);
 
                 if (filled > 0) {
@@ -220,16 +220,12 @@ public class ReinforcedEnderBucketItem extends Item {
     }
 
     private static FluidStack getContainedFluid(ItemStack stack) {
-        // See EnderBucketItem's identical guard: Forge's fluid-handler
-        // capability isn't registered until FMLCommonSetupEvent, but
-        // getDisplayName() (this method's caller) runs earlier than that
-        // during the client's initial search-tree build - confirmed via a
-        // real crash log.
-        net.neoforged.neoforge.fluids.capability.IFluidHandlerItem handler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
-        if (handler == null) {
+        // read the fluid component directly: this runs from getMaxStackSize()/getName(), which are called while a transfer transaction on this very
+        // stack is open (filling the bucket asks for the stack size), and the fluid handler cannot open a second root transaction
+        net.neoforged.neoforge.fluids.SimpleFluidContent content = stack.get(lumien.randomthings.lib.ModDataComponents.FLUID);
+        if (content == null || content.isEmpty()) {
             return null;
         }
-        FluidStack drained = handler.drain(CAPACITY, FluidAction.SIMULATE);
-        return drained.isEmpty() ? null : drained;
+        return content.copy();
     }
 }

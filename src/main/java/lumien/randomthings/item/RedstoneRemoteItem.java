@@ -31,7 +31,7 @@ public class RedstoneRemoteItem extends Item {
     public InteractionResult use(Level worldIn, Player playerIn, InteractionHand hand) {
         ItemStack stack = playerIn.getItemInHand(hand);
 
-        if (!worldIn.isClientSide) {
+        if (!worldIn.isClientSide()) {
             if (playerIn.isShiftKeyDown()) {
                 ((ServerPlayer) playerIn).openMenu(new MenuProvider() {
                     @Override

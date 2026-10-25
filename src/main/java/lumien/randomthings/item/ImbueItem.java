@@ -69,7 +69,7 @@ public class ImbueItem extends Item {
                 stack.shrink(1);
             }
 
-            if (!worldIn.isClientSide) {
+            if (!worldIn.isClientSide()) {
                 clearImbues(playerIn);
                 // particles off like 1.12.2, but the HUD/inventory icon on: the 5-argument constructor ties showIcon to showParticles and hid it
                 playerIn.addEffect(new MobEffectInstance(effect.get(), DURATION, 0, false, false, true));

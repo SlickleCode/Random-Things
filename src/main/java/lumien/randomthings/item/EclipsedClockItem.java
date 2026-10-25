@@ -8,10 +8,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+
 
 /**
  * Right-click a wall to hang an {@link EclipsedClockEntity} on it. Its "time"
@@ -40,7 +40,7 @@ public class EclipsedClockItem extends Item {
         HangingEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
 
         if (hanging.survives()) {
-            if (!context.getLevel().isClientSide) {
+            if (!context.getLevel().isClientSide()) {
                 hanging.playPlacementSound();
                 context.getLevel().addFreshEntity(hanging);
             }

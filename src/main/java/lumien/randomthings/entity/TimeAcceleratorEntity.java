@@ -54,7 +54,6 @@ import net.minecraft.world.level.Level;
  * problem for {@link EclipsedClockEntity}'s {@code HANGING_POS}: a real
  * synced {@code DataParameter<BlockPos>} instead of a plain field.
  */
-@net.neoforged.api.distmarker.OnlyIn(value = net.neoforged.api.distmarker.Dist.CLIENT, _interface = ItemSupplier.class)
 public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
     private static final EntityDataAccessor<Integer> TIME_RATE = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<BlockPos> TARGET = SynchedEntityData.defineId(TimeAcceleratorEntity.class, EntityDataSerializers.BLOCK_POS);
@@ -137,11 +136,11 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
 
         this.remainingTime -= 1;
 
-        if (this.remainingTime <= 0 && !this.level().isClientSide) {
+        if (this.remainingTime <= 0 && !this.level().isClientSide()) {
             this.discard();
         }
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             spawnParticles();
         }
     }
@@ -160,14 +159,26 @@ public class TimeAcceleratorEntity extends Entity implements ItemSupplier {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag compound) {
-        this.entityData.set(TARGET, new BlockPos(compound.getInt("targetX"), compound.getInt("targetY"), compound.getInt("targetZ")));
-        this.remainingTime = compound.getInt("remainingTime");
-        setTimeRate(compound.getInt("timeRate"));
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput rtIn)
+    {
+    	rtReadAdditionalSaveData(lumien.randomthings.util.TagIO.read(rtIn));
+    }
+
+    private void rtReadAdditionalSaveData(CompoundTag compound) {
+        this.entityData.set(TARGET, new BlockPos(compound.getIntOr("targetX", 0), compound.getIntOr("targetY", 0), compound.getIntOr("targetZ", 0)));
+        this.remainingTime = compound.getIntOr("remainingTime", 0);
+        setTimeRate(compound.getIntOr("timeRate", 0));
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag compound) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput rtOut)
+    {
+    	CompoundTag rtTag = new CompoundTag();
+    	rtAddAdditionalSaveData(rtTag);
+    	lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+    }
+
+    private void rtAddAdditionalSaveData(CompoundTag compound) {
         BlockPos target = getTarget();
 
         compound.putInt("targetX", target.getX());

@@ -38,7 +38,7 @@ public class FluidDisplayBlock extends Block implements EntityBlock {
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
-        if (worldIn.isClientSide) {
+        if (worldIn.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -50,7 +50,7 @@ public class FluidDisplayBlock extends Block implements EntityBlock {
         FluidDisplayTileEntity display = (FluidDisplayTileEntity) te;
         ItemStack heldItem = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-        IFluidHandlerItem handler = heldItem.isEmpty() ? null : heldItem.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+        IFluidHandlerItem handler = heldItem.isEmpty() ? null : lumien.randomthings.util.CapUtil.fluidItem(heldItem);
 
         if (handler != null) {
             FluidStack contents = handler.getTanks() > 0 ? handler.getFluidInTank(0) : null;

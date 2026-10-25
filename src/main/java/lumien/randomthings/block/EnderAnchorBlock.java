@@ -35,7 +35,7 @@ import net.neoforged.api.distmarker.OnlyIn;
  * {@link #onReplaced} releases the anchor's chunk-loading (see
  * {@link AnchorChunkLoader}).
  */
-public class EnderAnchorBlock extends Block implements EntityBlock {
+public class EnderAnchorBlock extends Block implements EntityBlock, IBlockTooltip {
     public EnderAnchorBlock() {
         super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(1.5F));
     }
@@ -53,19 +53,18 @@ public class EnderAnchorBlock extends Block implements EntityBlock {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+    public void addTooltip(java.util.function.Consumer<Component> tooltip) {
         if (RTConfig.ENDER_ANCHOR_CHUNKLOADING.get()) {
-            tooltip.add(Component.translatable("tooltip.randomthings.ender_anchor.chunkloading"));
+            tooltip.accept(Component.translatable("tooltip.randomthings.ender_anchor.chunkloading"));
         }
     }
 
     @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (state.getBlock() != newState.getBlock() && worldIn instanceof ServerLevel) {
+    protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, boolean isMoving) {
+        if (true && worldIn instanceof ServerLevel) {
             AnchorChunkLoader.unregister((ServerLevel) worldIn, pos);
         }
 
-        super.onRemove(state, worldIn, pos, newState, isMoving);
+        super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
     }
 }

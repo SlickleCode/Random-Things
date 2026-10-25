@@ -4,14 +4,12 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -22,7 +20,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
  */
 public class ItemSlotButton extends Button implements TooltipButton
 {
-	private static final ResourceLocation TEXTURE = ResourceLocation.parse("randomthings:textures/gui/slot_button.png");
+	private static final Identifier TEXTURE = Identifier.parse("randomthings:textures/gui/slot_button.png");
 
 	private final ItemStack stack;
 	private final String tooltip;
@@ -36,18 +34,14 @@ public class ItemSlotButton extends Button implements TooltipButton
 	}
 
 	@Override
-	public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+	protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
 	{
 		Minecraft mc = Minecraft.getInstance();
 
-		RenderSystem.setShaderTexture(0, TEXTURE);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.enableBlend();
-		graphics.blit(net.minecraft.client.renderer.RenderType::guiTextured, TEXTURE, this.getX(), this.getY(), 0, this.isHovered ? 18 : 0, 18, 18, 256, 256);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), 0, this.isHovered ? 18 : 0, 18, 18, 256, 256);
 
 		if (!this.stack.isEmpty())
 		{
-			RenderSystem.enableDepthTest();
 			graphics.renderItem(this.stack, this.getX() + 1, this.getY() + 1);
 		}
 	}

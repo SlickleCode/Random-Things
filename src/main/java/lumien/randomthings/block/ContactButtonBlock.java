@@ -43,13 +43,13 @@ public class ContactButtonBlock extends Block {
     }
 
     @Override
-    public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!isMoving && state.getBlock() != newState.getBlock()) {
+    protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, boolean isMoving) {
+        if (!isMoving && true) {
             if (state.getValue(POWERED)) {
                 this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
             }
 
-            super.onRemove(state, worldIn, pos, newState, isMoving);
+            super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
         }
     }
 
@@ -72,7 +72,7 @@ public class ContactButtonBlock extends Block {
 
     @Override
     public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource rand) {
-        if (!worldIn.isClientSide && state.getValue(POWERED)) {
+        if (!worldIn.isClientSide() && state.getValue(POWERED)) {
             worldIn.setBlockAndUpdate(pos, state.setValue(POWERED, false));
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
             worldIn.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 0.3F, 0.5F);

@@ -27,17 +27,29 @@ public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvide
     }
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 		compound.putString("username", username);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
-		this.username = compound.getString("username");
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.username = compound.getStringOr("username", "");
 	}
 
 	public String getUsername()
@@ -53,7 +65,7 @@ public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvide
 
 	public void tick()
 	{
-		if (!this.level.isClientSide && this.level.getGameTime() % 20 == 0)
+		if (!this.level.isClientSide() && this.level.getGameTime() % 20 == 0)
 		{
 			MinecraftServer server = this.level.getServer();
 

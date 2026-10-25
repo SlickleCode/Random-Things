@@ -8,7 +8,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import lumien.randomthings.itemhandler.SlotItemHandler;
 
 /**
  * The "write/read a letter" GUI's container: 9 slots backed directly by the
@@ -90,8 +90,8 @@ public class EnderLetterContainer extends net.minecraft.world.inventory.Abstract
     public void removed(Player playerIn) {
         super.removed(playerIn);
 
-        if (received && !playerIn.level().isClientSide && isLetterEmpty()) {
-            playerIn.getInventory().setItem(playerIn.getInventory().selected, ItemStack.EMPTY);
+        if (received && !playerIn.level().isClientSide() && isLetterEmpty()) {
+            playerIn.getInventory().setItem(playerIn.getInventory().getSelectedSlot(), ItemStack.EMPTY);
         }
     }
 

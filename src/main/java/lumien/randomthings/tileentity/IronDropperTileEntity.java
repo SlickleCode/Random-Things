@@ -24,9 +24,9 @@ import net.minecraft.server.level.ServerLevel;
 
 
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import lumien.randomthings.itemhandler.IItemHandler;
+import lumien.randomthings.itemhandler.ItemHandlerHelper;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * A block-form dropper with a 9-slot inventory that ejects one item at a
@@ -80,9 +80,16 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 
 
 	@Override
-	protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
 	{
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
 		compound.putInt("redstoneMode", redstoneMode.ordinal());
 		compound.putInt("pickupDelay", pickupDelay.ordinal());
 		compound.putInt("effects", effects.ordinal());
@@ -92,15 +99,20 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
 	{
-		super.loadAdditional(compound, registries);
-		this.redstoneMode = REDSTONE_MODE.values()[compound.getInt("redstoneMode")];
-		this.pickupDelay = PICKUP_DELAY.values()[compound.getInt("pickupDelay")];
-		this.effects = EFFECTS.values()[compound.getInt("effects")];
-		this.randomMotion = compound.getBoolean("randomMotion");
-		this.dropCounter = compound.getInt("dropCounter");
-		itemHandler.deserializeNBT(registries, compound.getCompound("inventory"));
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.redstoneMode = REDSTONE_MODE.values()[compound.getIntOr("redstoneMode", 0)];
+		this.pickupDelay = PICKUP_DELAY.values()[compound.getIntOr("pickupDelay", 0)];
+		this.effects = EFFECTS.values()[compound.getIntOr("effects", 0)];
+		this.randomMotion = compound.getBooleanOr("randomMotion", false);
+		this.dropCounter = compound.getIntOr("dropCounter", 0);
+		itemHandler.deserializeNBT(registries, compound.getCompoundOrEmpty("inventory"));
 	}
 
 	public REDSTONE_MODE redstoneMode()
@@ -168,7 +180,7 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 
 	public void tick()
 	{
-		if (this.level.isClientSide)
+		if (this.level.isClientSide())
 		{
 			return;
 		}
@@ -303,5 +315,17 @@ public class IronDropperTileEntity extends BlockEntity implements MenuProvider
 	public Component getDisplayName()
 	{
 		return Component.translatable("block.randomthings.iron_dropper");
+	}
+
+	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.IronDropperBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
 	}
 }
