@@ -56,7 +56,7 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
             matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
             matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
+            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, 15728880, OverlayTexture.NO_OVERLAY, matrixStack, buffer, entity.level(), 0);
 
             matrixStack.popPose();
         }

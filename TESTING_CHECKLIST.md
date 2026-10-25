@@ -300,3 +300,13 @@ These are the behaviours whose implementation changed in the 1.20.6 port (data c
 | P14 | Load a world saved by the 1.20.1 version: block entity data (Floo network, Ender Mailbox letters, Spectre cubes) survives; stacks keep their data only if saved by this version (item NBT is not converted) |  | *Why:* new world format; no automatic conversion of custom item data |
 | P15 | Blazing Fire catches flammable blocks about 4 times as often as vanilla fire (the coremod now actually applies) |  | *Why:* `checkBurnOut` rename |
 
+
+## Museum report 2026-10-24 (all branches)
+
+| # | Check | Result | Notes |
+| --- | --- | --- | --- |
+| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
+| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (flame shape and height, not a solid box) - FIXED (`BlazingFireBlock` was missing from `RenderLayerSetup` cutout; render scene `blazing_fire` checked 2026-10-24) |  |  |
+| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
+| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
+| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |

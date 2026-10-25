@@ -48,7 +48,7 @@ public class SuperLubricentPlatformBlock extends Block
 
 	public SuperLubricentPlatformBlock()
 	{
-		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.ICE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.5F).friction(1F / 0.91F));
+		super(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.ICE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.HAT).noOcclusion().strength(0.5F).friction(1F / 0.91F).sound(net.minecraft.world.level.block.SoundType.GLASS));
 	}
 
 	/**
