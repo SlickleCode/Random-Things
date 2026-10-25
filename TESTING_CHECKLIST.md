@@ -332,3 +332,13 @@ Behaviours whose implementation changed in the 1.21.4 port (item model definitio
 | R10 | Biome Radar: right-click with an empty hand takes the crystal out, also after the search finished (the radar goes idle) |  | *Why:* deliberate divergence from 1.12.2, which only allowed it while idle |
 | R11 | Spectre Illuminator: place it; after ~12 s the orb settles in the middle of the chunk and the whole chunk lights up over about a minute; picking it up darkens it again |  | *Why:* the light hook moved to `BlockLightEngine` (1.21.4 reads emission there); fixed 2026-10-23, test `retest.spectre_illuminator...` |
 | R12 | Filtered Super Lubricent Platform sits as low in its item box as the other platforms |  | *Why:* its item model lacked the gui display transform |
+
+## Museum report 2026-10-24 (all branches)
+
+| # | Check | Result | Notes |
+| --- | --- | --- | --- |
+| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
+| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (flame shape and height, not a solid box) - FIXED (`BlazingFireBlock` was missing from `RenderLayerSetup` cutout; render scene `blazing_fire` checked 2026-10-24) |  |  |
+| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
+| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
+| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |

@@ -366,6 +366,7 @@
   "item.randomthings.spectre_illuminator": "Spectre Illuminator",
   "entity.randomthings.spectre_illuminator": "Spectre Illuminator",
   "entity.randomthings.spirit": "Spirit",
+  "item.randomthings.spirit_spawn_egg": "Spirit Spawn Egg",
   "item.randomthings.portkey": "Portkey",
   "tooltip.randomthings.portkey.notset": "<No target set>",
   "tooltip.randomthings.portkey.set": "<Target set>",

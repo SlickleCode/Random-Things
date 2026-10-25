@@ -378,6 +378,7 @@ public class ModItems {
 
         registry.register("summoning_pendulum", () -> new SummoningPendulumItem(lumien.randomthings.lib.RTIds.item().stacksTo(1).rarity(Rarity.RARE)));
         registry.register("golden_egg", () -> new GoldenEggItem(lumien.randomthings.lib.RTIds.item()));
+        registry.register("spirit_spawn_egg", () -> new net.minecraft.world.item.SpawnEggItem((net.minecraft.world.entity.EntityType<? extends net.minecraft.world.entity.Mob>) (net.minecraft.world.entity.EntityType<?>) net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getValue(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "spirit")), lumien.randomthings.lib.RTIds.item()));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
         registry.register("evil_tear", () -> new EvilTearItem(lumien.randomthings.lib.RTIds.item()));

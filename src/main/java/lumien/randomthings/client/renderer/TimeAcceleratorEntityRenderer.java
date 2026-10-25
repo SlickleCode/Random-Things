@@ -76,7 +76,7 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
             matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
             matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
 
-            state.item.render(matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY);
+            state.item.render(matrixStack, buffer, 15728880, OverlayTexture.NO_OVERLAY);
 
             matrixStack.popPose();
         }
