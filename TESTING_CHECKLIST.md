@@ -72,3 +72,13 @@ The scenarios assert state and pixel measurements for these (rows removed from B
 | 321-323, 390 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |
 | 346 | Runes: noisy texture, same-colour pixels join across the base edge, nothing flickers while you move |  |  |
 | 149-153 | Biome Radar particle colours; (#389 above) the crystal spins in the middle of the radar |  |  |
+
+## Museum report 2026-10-24 (all branches)
+
+| # | Check | Result | Notes |
+| --- | --- | --- | --- |
+| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
+| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (same flame shape and height) - was already cutout here (inherited from `FireBlock`), render scene `blazing_fire` checked 2026-10-24 |  |  |
+| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
+| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
+| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |

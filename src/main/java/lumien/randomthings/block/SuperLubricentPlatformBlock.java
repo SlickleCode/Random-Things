@@ -49,7 +49,7 @@ public class SuperLubricentPlatformBlock extends Block
 
 	public SuperLubricentPlatformBlock()
 	{
-		super(Block.Properties.create(Material.ICE, MaterialColor.ICE).hardnessAndResistance(0.5F).slipperiness(1F / 0.91F));
+		super(Block.Properties.create(Material.ICE, MaterialColor.ICE).hardnessAndResistance(0.5F).slipperiness(1F / 0.91F).sound(net.minecraft.block.SoundType.GLASS));
 	}
 
 	/**

@@ -2,7 +2,7 @@
 
 A scenario is a Python function using a Game object. Everything that can be a command is a command, so runs are repeatable:
   * placement / aim:   /fill, /setblock, /tp @s x y z yaw pitch  (no mouse-look, no aiming by eye)
-  * items:             /replaceitem entity @s hotbar.N <item>     (items land in exact slots, so GUI click coordinates are constant)
+  * items:             /replaceitem (1.18: /item replace entity @s hotbar.N with <item>)     (items land in exact slots, so GUI click coordinates are constant)
   * assertions:        run a command and read its [CHAT] output from run/logs/latest.log (e.g. /data get ..., /execute if ...)
   * evidence:          screenshots at named checkpoints only
 GUI clicks use the fixed 854x480 client layout of the vanilla container GUIs (coordinates documented where used).
@@ -28,22 +28,41 @@ class Fail(Exception):
     pass
 
 
+STATS = {}          # per scenario: seconds and call counts by kind (cmd / wait / input / shot), printed at finish()
+FAST_FILE = os.path.join(RUN_DIR, 'rt_cmd.txt')
+FAST_MARK = os.path.join(RUN_DIR, 'rt_cmd_ready')      # the dev client keeps this file while its command channel (client/CommandChannel) is running
+FAST = os.environ.get('SCN_FASTCMD', '1') != '0'
+
+
+def _tick(kind, t0):
+    st = STATS.setdefault('cur', {})
+    n, tot = st.get(kind, (0, 0.0))
+    st[kind] = (n + 1, tot + time.time() - t0)
+
+
 class Game:
     def __init__(self, name, minutes=10):
         self.name = name
         self.results = []
         self.deadline = time.time() + minutes * 60
+        self.t_start = time.time()
+        STATS['cur'] = {}
 
     # ---- low level -------------------------------------------------------------------
     def do(self, *args):
+        t0 = time.time()
         if args and args[0] not in ('focus', 'status', 'shot', 'wait', 'stop', 'resume'):
             desk.wait_foreground('Minecraft')      # paused while you are in another window; resumes when you click the game
-        return desk.do_command(list(args), 'Minecraft', False)
+        r = desk.do_command(list(args), 'Minecraft', False)
+        _tick('input', t0)
+        return r
 
     def wait(self, s):
         if time.time() > self.deadline:
             raise desk.Abort('scenario exceeded its time limit')
+        t0 = time.time()
         desk.sleep(s)
+        _tick('wait', t0)
 
     def key(self, name, **kw):
         extra = []
@@ -58,8 +77,10 @@ class Game:
         self.do('hold', str(x), str(y), button, str(seconds))
 
     def shot(self, label):
+        t0 = time.time()
         path = desk.screenshot('Minecraft', '%s_%s' % (self.name, label))
         self.note('shot %s' % path)
+        _tick('shot', t0)
         return path
 
     # ---- commands and chat -----------------------------------------------------------
@@ -78,22 +99,64 @@ class Game:
     def cmd(self, text, settle=0.5):
         """Run a chat command; return the [CHAT] lines it produced."""
         before = self._log_size()
-        self.do('key', 'slash')
-        desk.sleep(0.15)
-        self.do('text', text.lstrip('/'))
-        self.do('key', 'enter')
-        desk.sleep(settle)
+        text = text.lstrip('/')
+        if MC2111 and text.startswith('gamerule '):
+            parts = text.split(' ')
+            if parts[1] in GAMERULES:
+                parts[1] = GAMERULES[parts[1]]
+                if parts[1] == 'fire_spread_radius_around_player' and len(parts) > 2:
+                    parts[2] = '-1' if parts[2] == 'true' else '0'      # doFireTick false (no spread) = radius 0
+                if parts[1] in ('advance_time', 'advance_weather', 'spawn_mobs', 'show_advancement_messages'):
+                    pass
+            text = ' '.join(parts)
+        t0 = time.time()
+        if not (FAST and os.path.exists(FAST_MARK) and self._send_fast(text, before, settle)):
+            self.do('key', 'slash')
+            desk.sleep(0.15)
+            self.do('text', text)
+            self.do('key', 'enter')
+            desk.sleep(settle)
         with open(LOG, 'rb') as f:
             f.seek(before)
             data = f.read().decode('utf-8', errors='replace')
+        _tick('cmd', t0)
         return [l.split('[CHAT] ', 1)[1] for l in data.splitlines() if '[CHAT] ' in l]
+
+    def _send_fast(self, text, before, settle):
+        """Hand the command to the dev client's command channel (no key presses): written to rt_cmd.txt, consumed within a tick or two, answered in chat.
+        Waits until the command's chat output has arrived (log quiet for 0.1 s after it grew), at most `settle` seconds. False = the channel did not take it."""
+        tmp = FAST_FILE + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            f.write(text)
+        os.replace(tmp, FAST_FILE)
+        end = time.time() + 3.0
+        while os.path.exists(FAST_FILE) and time.time() < end:
+            desk.sleep(0.02)
+        if os.path.exists(FAST_FILE):
+            try:
+                os.remove(FAST_FILE)
+            except OSError:
+                pass
+            return False
+        t_end = time.time() + max(settle, 0.3)
+        last, quiet_since = self._log_size(), None
+        while time.time() < t_end:
+            desk.sleep(0.03)
+            size = self._log_size()
+            if size != last:
+                last, quiet_since = size, time.time()
+            elif quiet_since is not None and time.time() - quiet_since >= 0.1 and size > before:
+                break
+        return True
 
     def tp(self, x, y, z, yaw=0, pitch=0):
         self.cmd('tp @s %s %s %s %s %s' % (x, y, z, yaw, pitch), 0.35)
+        self.wait(0.25)                         # the client turns its camera when the position packet arrives: a click right after the command would still aim the old way
 
     def slot(self, n, item):
         """Put an item into hotbar slot n (0-8) exactly."""
-        self.cmd('replaceitem entity @s hotbar.%d %s' % (n, item), 0.25)
+        self.cmd(item_cmd('hotbar.%d' % n, item), 0.25)
+        self.wait(0.2)                          # the inventory update reaches the client a tick after the chat answer; a GUI click right after the command would miss the item
 
     def select(self, n):
         self.key(str(n + 1))
@@ -112,6 +175,9 @@ class Game:
         return self.check(bool(re.search(pattern, text)), desc, text[:300])
 
     def finish(self):
+        st = STATS.get('cur', {})
+        total = time.time() - self.t_start
+        print('  timing %.0f s: %s' % (total, ', '.join('%s %d x %.0f s' % (k, v[0], v[1]) for k, v in sorted(st.items()))))
         passed = sum(1 for r in self.results if r[0])
         line = '%s: %d/%d checks passed%s' % (self.name, passed, len(self.results), '' if passed == len(self.results) else '  FAILED: ' + '; '.join(r[1] for r in self.results if not r[0]))
         with open(REPORT, 'a', encoding='utf-8') as f:
@@ -120,8 +186,57 @@ class Game:
         return passed == len(self.results)
 
 
+def item_cmd(slot, item):
+    """Put an item into a slot of the player: /replaceitem up to 1.16, /item replace (1.17+) - /replaceitem no longer exists on 1.18.2."""
+    if MC18:
+        return 'item replace entity @s %s with %s' % (slot, item)
+    return 'replaceitem entity @s %s %s' % (slot, item)
+
+
 SCENARIOS = {}
 WORLD_KIND = {}
+_MCV = os.environ.get('SCN_MC') or '1.14'
+MC18 = _MCV.startswith('1.18') or _MCV.startswith('1.19') or _MCV.startswith('1.20') or _MCV.startswith('1.21')   # SCN_MC=1.18 drives the 1.18.2 menus; 1.19.2 has the same create-world screen and commands
+MC16 = _MCV.startswith('1.16') or MC18            # "modern" (1.16+) command/NBT conventions: registry-string dimensions, generic.max_health, /locatebiome
+DIM = '"minecraft:overworld"' if MC16 else '0'    # the dimension tag: a registry key string on 1.16+, an int id on 1.14
+MC20 = _MCV.startswith('1.20') or _MCV.startswith('1.21')   # 1.20.1+: tabbed create-world screen (Game / World / More); 1.21.1 uses the same layout
+MC21 = _MCV.startswith('1.21')                   # 1.21: the title screen has no splash gap, Singleplayer is at y=203
+_VPARTS = [int(x) for x in re.findall(r'\d+', _MCV)] + [0, 0, 0]
+MC2111 = _VPARTS[:3] >= [1, 21, 11]             # 1.21.11: game rules are snake_case ids (minecraft:random_tick_speed), some were renamed
+GAMERULES = {'randomTickSpeed': 'random_tick_speed', 'doDaylightCycle': 'advance_time', 'doWeatherCycle': 'advance_weather', 'doMobSpawning': 'spawn_mobs',
+             'doFireTick': 'fire_spread_radius_around_player', 'announceAdvancements': 'show_advancement_messages'}
+MC215 = _VPARTS[:3] >= [1, 21, 5]               # 1.21.5+: the enchantments component lost its 'levels' wrapper: enchantments={"minecraft:protection":1}
+MC212 = _VPARTS[:3] >= [1, 21, 2]               # 1.21.2+: attribute ids lost their 'generic.' prefix (minecraft:max_health); the 1.21.4 armor glint adds less red, so its tint check is looser
+MC205 = _MCV.startswith('1.20.6') or _MCV.startswith('1.21')   # 1.20.5+: item data components instead of NBT, count/id stack tags, active_effects
+MC19 = _MCV.startswith('1.19') or MC20                    # 1.19.2: the create-world screen is the 1.16 single page again, the pause menu has two more rows
+
+def sdata(item, nbt=None, ench=False):
+    """An item id with optional custom data (the old item NBT, now minecraft:custom_data) and/or a Protection I enchantment, in the syntax of the running version."""
+    parts = []
+    if MC205:
+        if ench:
+            parts.append('enchantments={"minecraft:protection":1}' if MC215 else 'enchantments={levels:{"minecraft:protection":1}}')
+        if nbt:
+            parts.append('custom_data={%s}' % nbt)
+        return item + ('[%s]' % ','.join(parts) if parts else '')
+    if ench:
+        parts.append('Enchantments:[{id:"minecraft:protection",lvl:1}]')
+    if nbt:
+        parts.append(nbt)
+    return item + ('{%s}' % ','.join(parts) if parts else '')
+
+
+def stack_nbt(item_id, nbt, slot=None):
+    """A stack as it appears inside an NBT item list (Items:[...]) or an item entity: pre-1.20.5 Count/tag, 1.20.5+ count/components."""
+    sl = 'Slot:%db,' % slot if slot is not None else ''
+    if MC205:
+        return '{%sid:"%s",count:1,components:{"minecraft:custom_data":{%s}}}' % (sl, item_id, nbt)
+    return '{%sid:"%s",Count:1b,tag:{%s}}' % (sl, item_id, nbt)
+
+
+FLUID_WATER = '{id:"minecraft:water",amount:1000}' if MC205 else '{FluidName:"minecraft:water",Amount:1000}'
+EFFECTS_PATH = 'active_effects' if MC205 else 'ActiveEffects'
+SNOWY_BIOME = 'minecraft:snowy_plains' if MC18 else 'minecraft:snowy_tundra'     # renamed in 1.18
 SEED = '424242'      # the same seed in every session: structures, caves and biomes are identical between runs (and match realgen.py)
 
 
@@ -152,13 +267,38 @@ def arena(g):
     g.tp(0.5, 4, 0.5, 0, 0)
 
 
+TICKCMD = _VPARTS[:3] >= [1, 20, 3]          # 1.20.3+: /tick rate exists
+
+
+def game_wait(g, seconds):
+    """Wait `seconds` of GAME time (growth, burning, brewing, rain): on 1.20.3+ the tick rate is raised to 100 for the duration, so 13 s take about 3 s.
+    Only for waits that are about the game's own clock; anything the client has to draw or the human eye has to see stays a plain g.wait()."""
+    if TICKCMD and seconds >= 3:
+        g.cmd('tick rate 100', 0.2)
+        g.wait(seconds / 5.0 + 0.6)
+        g.cmd('tick rate 20', 0.2)
+    else:
+        g.wait(seconds)
+
+
+def until(g, pred, limit=30.0, step=0.4):
+    """Poll pred() every `step` seconds until it holds or `limit` seconds passed; returns pred()'s last value. Replaces fixed waits: as fast as the game allows,
+    as patient as needed."""
+    t_end = time.time() + limit
+    v = pred()
+    while not v and time.time() < t_end:
+        g.wait(step)
+        v = pred()
+    return v
+
+
 @scenario
 def imbuing(g):
     """#169 and #170-173: Imbuing Station recipes and the imbue potions, then drink Fire and check the effect."""
     arena(g)
     g.cmd('setblock 0 5 3 randomthings:imbuing_station')
     g.tp(0.5, 4, 0.5, 0, 2)          # crosshair on the station block 2 blocks ahead
-    water = 'minecraft:potion{Potion:"minecraft:water"}'
+    water = 'minecraft:potion[potion_contents={potion:"minecraft:water"}]' if MC205 else 'minecraft:potion{Potion:"minecraft:water"}'
     g.slot(0, 'minecraft:cobblestone')
     g.slot(1, 'minecraft:vine')
     g.slot(2, 'minecraft:bone_meal')
@@ -170,6 +310,7 @@ def imbuing(g):
     g.click(427, 240, 'right')       # right-click the station
     g.wait(0.9)
     g.shot('gui_open')
+    g.do('move', '300', '300'); g.wait(1.2)      # the first GUI of a fresh world: park the cursor inside it and let the container contents arrive before the first click
     # Imbuing Station GUI (854x480): top (426,65) left (335,156) bottom (426,246) center (426,156) output (516,156); hotbar y=415 x=282+36*n
     hot = lambda n: (282 + 36 * n, 415)
     def station_items(label):
@@ -185,7 +326,7 @@ def imbuing(g):
     g.click(*hot(6)); g.click(426, 65)
     g.click(*hot(1)); g.click(335, 156)
     g.click(*hot(2)); g.click(426, 246)
-    g.key('escape'); g.wait(13)                   # 200 ticks, GUI closed
+    g.key('escape'); game_wait(g, 13)               # 200 ticks, GUI closed
     g.click(427, 240, 'right'); g.wait(0.8)
     g.shot('after_169')
     out = station_items('169')
@@ -196,7 +337,7 @@ def imbuing(g):
     g.click(*hot(3)); g.click(426, 65)
     g.click(*hot(4)); g.click(335, 156)
     g.click(*hot(5)); g.click(426, 246)
-    g.key('escape'); g.wait(13)
+    g.key('escape'); game_wait(g, 13)
     g.click(427, 240, 'right'); g.wait(0.8)
     out = station_items('170')
     g.check(any('imbue_fire' in l for l in out), '#170: Fire Imbue potion is in the station output', ' | '.join(out)[:200])
@@ -207,10 +348,10 @@ def imbuing(g):
     g.select(1)
     g.hold(427, 240, 'right', 2.6)
     g.wait(0.5)
-    out = g.cmd('data get entity @s ActiveEffects')
-    g.expect_chat(out, r'Duration: 2\d{4}', '#175: drinking Fire Imbue gives a ~20 minute effect')
-    g.expect_chat(out, r'ShowIcon: 1b', '#175: the effect shows its HUD/inventory icon')
-    g.expect_chat(out, r'ShowParticles: 0b', '#175: the effect shows no particles (like 1.12.2)')
+    out = g.cmd('data get entity @s ' + EFFECTS_PATH)
+    g.expect_chat(out, r'[Dd]uration: 2\d{4}', '#175: drinking Fire Imbue gives a ~20 minute effect')
+    g.expect_chat(out, r'(ShowIcon|show_icon): 1b', '#175: the effect shows its HUD/inventory icon')
+    g.expect_chat(out, r'(ShowParticles|show_particles): 0b', '#175: the effect shows no particles (like 1.12.2)')
     g.shot('after_drink')
 
 def hits(g, n=6, gap=0.75):
@@ -225,6 +366,7 @@ def spawn_dummy(g, mob='spider'):
     g.cmd('kill @e[type=!player]')
     g.cmd('summon minecraft:%s 0.5 4 3.5 {NoAI:1b,Silent:1b,PersistenceRequired:1b}' % mob)
     g.tp(0.5, 4, 0.5, 0, 20)
+    g.wait(0.5)                                                      # the client needs the spawn packet before a click can hit the mob
 
 
 def xp_points(g, settle=7):
@@ -254,29 +396,33 @@ def imbue_effects(g):
     g.check(pts == 5, 'baseline: a spider killed by the player gives 5 XP', ' | '.join(out)[:120])
     # --- Fire imbue
     g.cmd('effect give @s randomthings:imbue_fire 1000 0 true')
-    spawn_dummy(g)
+    spawn_dummy(g, 'pig' if MC215 else 'spider')      # 1.21.5+: spiders do not catch the effect/fire of the imbues in this setup, a pig does
     hits(g, 1)
-    out = g.cmd('data get entity @e[type=minecraft:spider,limit=1] Fire')
+    out = g.cmd('data get entity @e[type=minecraft:%s,limit=1] Fire' % ('pig' if MC215 else 'spider'))
     g.check(any(re.search(r'(\d+)s?$', l) and int(re.findall(r'\d+', l)[-1]) > 0 for l in out), '#176: Fire Imbue: a direct hit sets the target on fire', ' | '.join(out)[:160])
     # --- Poison imbue: Poison II (effect id 19, amplifier 1)
     g.cmd('effect clear @s')
     g.cmd('effect give @s randomthings:imbue_poison 1000 0 true')
     spawn_dummy(g, 'pig')
     hits(g, 1)
-    out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 19b', '#177: Poison Imbue: a direct hit poisons the target')
-    g.expect_chat(out, r'Amplifier: 1b', '#177: ... at amplifier 1 (level II)')
+    out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] ' + EFFECTS_PATH)
+    g.expect_chat(out, r'(Id: 19b?(?![0-9])|id: "minecraft:poison")', '#177: Poison Imbue: a direct hit poisons the target')
+    g.expect_chat(out, r'[Aa]mplifier: 1b', '#177: ... at amplifier 1 (level II)')
     # --- Wither imbue: Wither II (effect id 20)
     g.cmd('effect clear @s')
     g.cmd('effect give @s randomthings:imbue_wither 1000 0 true')
-    spawn_dummy(g)
+    spawn_dummy(g, 'pig' if MC215 else 'spider')
     hits(g, 1)
-    out = g.cmd('data get entity @e[type=minecraft:spider,limit=1] ActiveEffects')
-    g.expect_chat(out, r'Id: 20b', '#178: Wither Imbue: a direct hit withers the target')
-    g.expect_chat(out, r'Amplifier: 1b', '#178: ... at amplifier 1 (level II)')
+    out = g.cmd('data get entity @e[type=minecraft:%s,limit=1] ' % ('pig' if MC215 else 'spider') + EFFECTS_PATH)
+    g.expect_chat(out, r'(Id: 20b?(?![0-9])|id: "minecraft:wither")', '#178: Wither Imbue: a direct hit withers the target')
+    g.expect_chat(out, r'[Aa]mplifier: 1b', '#178: ... at amplifier 1 (level II)')
     # --- Experience imbue: double XP on a kill
     g.cmd('effect clear @s')
+    g.cmd('kill @e[type=!player]')           # a mob the player hit less than 5 s ago drops XP when /kill removes it: do that before the XP effect and the reset
+    g.wait(1.0)
+    g.cmd('kill @e[type=minecraft:experience_orb]')
     g.cmd('effect give @s randomthings:imbue_experience 1000 0 true')
+    g.cmd('experience set @s 0 levels')      # `set 0 points` keeps the levels: earlier steps of 1.21.11 (a burning pig kill) can already give level 1
     g.cmd('experience set @s 0 points')
     spawn_dummy(g)
     hits(g, 6)
@@ -289,7 +435,10 @@ def pig_fire(g, label):
     """A burning pig with 1000 max health (so it survives, and real fire damage shows as lost health). Returns (fire ticks left, health)
     after the rain has had time to act: rain puts the fire out and the pig keeps full health, a shielded pig keeps burning and loses health."""
     g.cmd('kill @e[type=minecraft:pig]')
-    g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,Attributes:[{Name:"generic.maxHealth",Base:1000d}],Health:1000f}')
+    if MC21:      # 1.20.5+ attribute NBT: lower-case keys and namespaced ids (the old Name/Base form is silently ignored: the pig keeps 10 max health)
+        g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,attributes:[{id:"minecraft:%smax_health",base:1000d}],Health:1000f}' % ('' if MC212 else 'generic.'))
+    else:
+        g.cmd('summon minecraft:pig 3.5 4 3.5 {NoAI:1b,Silent:1b,Fire:600s,Attributes:[{Name:"generic.%s",Base:1000d}],Health:1000f}' % ('max_health' if MC16 else 'maxHealth'))
     g.wait(6)
     out = g.cmd('data get entity @e[type=minecraft:pig,limit=1] Fire')
     m = re.search(r'(-?\d+)s?$', ' '.join(out).strip())
@@ -307,7 +456,7 @@ def rain_shield(g):
     powered it stops shielding; unpowered again it shields again."""
     arena(g)
     g.cmd('weather rain')
-    g.wait(8)                                  # let the rain strength ramp up
+    game_wait(g, 8)                            # let the rain strength ramp up
     fire, health = pig_fire(g, 'control, no shield')
     g.check(fire <= 0 and health >= 999, 'control: rain extinguishes a burning pig without a shield and it takes (almost) no damage', 'fire=%s health=%s' % (fire, health))
     g.cmd('setblock 0 4 3 randomthings:rain_shield')
@@ -415,6 +564,9 @@ def gui_open(g, w, h, what):
         for sx, sy in probes:
             px = desk.pixel('Minecraft', 2 * (left + sx), 2 * (top + sy))
             if 120 <= px[0] <= 235 and abs(px[0] - px[1]) < 16 and abs(px[1] - px[2]) < 16:
+                g.do('move', '300', '300')                    # the game applies a new mouse position with the next frame: park the cursor in the GUI first, or the first click lands where it was
+                desk.sleep(0.4)
+                desk.sleep(1.0)                               # the container contents reach the client a moment after the screen opens; an immediate click can be lost
                 return True
         desk.sleep(0.4)
     g.check(False, '%s: the GUI did not open (right-click did not reach the block?)' % what, 'pixel %s' % (px,))
@@ -426,9 +578,10 @@ def slot_color(g, n):
     """Average RGB of the item drawn in hotbar slot n (0-8) of the HUD (854x480 client, GUI scale 2): a 7x7 grid inside the 32x32 item box."""
     x0, y0 = 250 + 40 * n, 442
     tot, cnt = [0, 0, 0], 0
+    fr = desk.grab('Minecraft')
     for i in range(7):
         for j in range(7):
-            r, gg, b = desk.pixel('Minecraft', x0 + 3 + i * 4, y0 + 3 + j * 4)
+            r, gg, b = desk.frame_px(fr, x0 + 3 + i * 4, y0 + 3 + j * 4)
             tot[0] += r; tot[1] += gg; tot[2] += b; cnt += 1
     return tuple(int(t / cnt) for t in tot)
 
@@ -437,9 +590,10 @@ def blue_pixels(g, n):
     """Number of clearly blue pixels (blue well above red) in the item box of hotbar slot n - the item sprite only covers part of the box."""
     x0, y0 = 250 + 40 * n, 442
     cnt = 0
+    fr = desk.grab('Minecraft')
     for i in range(16):
         for j in range(16):
-            r, gg, b = desk.pixel('Minecraft', x0 + 1 + i * 2, y0 + 1 + j * 2)
+            r, gg, b = desk.frame_px(fr, x0 + 1 + i * 2, y0 + 1 + j * 2)
             if b - r > 35:
                 cnt += 1
     return cnt
@@ -468,7 +622,7 @@ def sound_dampener(g):
     un-mutes. The client logs '[RT-DEBUG] muted sound ...' for every sound it silences, which is what is asserted here."""
     arena(g)
     harp = 'minecraft:block.note_block.harp'
-    pattern = '{Slot:0b,id:"randomthings:sound_pattern",Count:1b,tag:{sound:"%s"}}' % harp
+    pattern = stack_nbt('randomthings:sound_pattern', 'sound:"%s"' % harp, 0)
 
     def muted(x, y, z, who):
         before = g.mark()
@@ -480,7 +634,7 @@ def sound_dampener(g):
     g.check(not muted(3, 4, 3, 'placed'), '#158: an empty Sound Dampener mutes nothing (control)')
     g.cmd('data merge block 0 4 3 {inventory:{Size:9,Items:[%s]}}' % pattern)
     g.wait(0.5)
-    g.check(muted(3, 4, 3, 'placed'), '#158: the pattern\'s sound is muted within 20 blocks of the Sound Dampener')
+    g.check(until(g, lambda: muted(3, 4, 3, 'placed'), 10.0, 0.1), '#158: the pattern\'s sound is muted within 20 blocks of the Sound Dampener')      # the client learns the new inventory from a block entity update: poll
     g.check(not muted(60, 4, 3, 'placed'), '#158: the same sound more than 20 blocks away is audible again')
     g.cmd('data modify block 0 4 3 inventory.Items set value []')
     g.wait(0.5)
@@ -490,9 +644,9 @@ def sound_dampener(g):
     g.cmd('setblock 0 4 3 minecraft:air')
     g.wait(0.5)
     g.check(not muted(3, 4, 3, 'placed'), '#160: breaking the Sound Dampener stops the muting')
-    g.slot(0, 'randomthings:portable_sound_dampener{inventory:{Size:9,Items:[%s]}}' % pattern)
+    g.slot(0, sdata('randomthings:portable_sound_dampener', 'inventory:{Size:9,Items:[%s]}' % pattern))
     g.wait(0.8)
-    g.check(muted(60, 4, 3, 'portable'), '#159: the Portable Sound Dampener in the inventory mutes the sound wherever it is')
+    g.check(until(g, lambda: muted(60, 4, 3, 'portable'), 10.0, 0.1), '#159: the Portable Sound Dampener in the inventory mutes the sound wherever it is')
     g.cmd('clear @s randomthings:portable_sound_dampener')
     g.wait(0.5)
     g.check(not muted(60, 4, 3, 'portable'), '#159: without the Portable Sound Dampener the sound is audible again')
@@ -573,12 +727,12 @@ def crafting_evil_tear_portkey(g):
 def portkey_drop(g):
     """#277: a bound Portkey on the ground counts 100 ticks (glint stops, no despawn); picking it up resets the counter."""
     arena(g)
-    g.cmd('summon item 0.5 4 3.5 {Item:{id:"randomthings:portkey",Count:1b,tag:{hasTarget:1b,dimension:0,targetX:10,targetY:4,targetZ:10}},Motion:[0.0,0.0,0.0]}')
+    g.cmd('summon item 0.5 4 3.5 {Item:%s,Motion:[0.0,0.0,0.0]}' % stack_nbt('randomthings:portkey', 'hasTarget:1b,dimension:' + DIM + ',targetX:10,targetY:4,targetZ:10'))
     g.wait(1)
-    v1 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Item.tag.dropCounter')
+    v1 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', ('Item.components."minecraft:custom_data".dropCounter' if MC205 else 'Item.tag.dropCounter'))
     c1 = int(v1) if re.fullmatch(r'-?\d+', v1) else -1
     g.wait(5)
-    v2 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Item.tag.dropCounter')
+    v2 = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', ('Item.components."minecraft:custom_data".dropCounter' if MC205 else 'Item.tag.dropCounter'))
     c2 = int(v2) if re.fullmatch(r'-?\d+', v2) else -1
     g.check(0 < c1 < 100 and c2 >= 100, '#277: the dropped Portkey\'s counter runs up to the 100-tick priming time', 'after 1 s=%s after 6 s=%s' % (c1, c2))
     age = dv(g, 'entity @e[type=item,nbt={Item:{id:"randomthings:portkey"}},limit=1]', 'Age')
@@ -598,8 +752,8 @@ def redstone_remote(g):
     g.cmd('setblock 10 4 10 minecraft:air')
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.check(block_isnt(g, 10, 4, 10, 'minecraft:emerald_block'), 'control: the marker block is not there before the pulse')
-    pos = '{Slot:0b,id:"randomthings:position_filter",Count:1b,tag:{hasPosition:1b,dimension:0,filterX:6,filterY:4,filterZ:3}}'
-    g.slot(0, 'randomthings:redstone_remote{positions:{Size:9,Items:[%s]}}' % pos)
+    pos = stack_nbt('randomthings:position_filter', ('hasPosition:1b,filterX:6,filterY:4,filterZ:3' if MC205 else 'hasPosition:1b,dimension:' + DIM + ',filterX:6,filterY:4,filterZ:3'), 0)   # 1.20.6: the chat box caps a command at 256 characters
+    g.slot(0, sdata('randomthings:redstone_remote', 'positions:{Size:9,Items:[%s]}' % pos))
     g.select(0)
     sky(g)
     g.click(427, 240, 'right'); g.wait(1.0)
@@ -651,7 +805,7 @@ def block_destabilizer(g):
     g.cmd('setblock 3 7 6 minecraft:andesite')
     g.cmd('setblock 2 7 5 randomthings:block_destabilizer[facing=south]')
     pulse(g, '2 8 5')
-    g.wait(6)
+    until(g, lambda: block_isnt(g, 0, 9, 6, 'minecraft:stone') and block_isnt(g, 4, 9, 6, 'minecraft:stone'), 30.0, 0.5)
     g.check(block_isnt(g, 0, 9, 6, 'minecraft:stone') and block_isnt(g, 4, 9, 6, 'minecraft:stone'), '#293: the stone of the wall dropped (top corners are gone)')
     g.check(block_is(g, 3, 7, 6, 'minecraft:andesite'), '#293: a block of a different state in the wall stayed where it was')
     g.check(dv(g, 'block 2 7 5', 'state') == '0', '#293: the Block Destabilizer is idle again afterwards')
@@ -663,7 +817,8 @@ def block_destabilizer(g):
     g.cmd('setblock 4 7 6 minecraft:oak_log[axis=x]')
     g.cmd('setblock 2 8 5 minecraft:air')
     pulse(g, '2 8 5')
-    g.wait(4)
+    until(g, lambda: block_isnt(g, 2, 7, 6, 'minecraft:oak_log'), 30.0, 0.5)
+    g.wait(0.5)
     g.check(block_isnt(g, 2, 7, 6, 'minecraft:oak_log') and block_is(g, 0, 7, 6, 'minecraft:oak_log[axis=x]'),
             '#294: exact mode: the three matching logs dropped, the logs with another rotation stayed')
     g.cmd('kill @e[type=minecraft:falling_block]')
@@ -680,7 +835,7 @@ def block_destabilizer(g):
     g.key('escape'); g.wait(0.5)
     g.check(dv(g, 'block 2 7 5', 'fuzzy') == '1b', '#294: the GUI Fuzzy button turned fuzzy mode on')
     pulse(g, '2 8 5')
-    g.wait(4)
+    until(g, lambda: block_isnt(g, 0, 7, 6, 'minecraft:oak_log') and block_isnt(g, 4, 7, 6, 'minecraft:oak_log'), 30.0, 0.5)
     g.check(block_isnt(g, 0, 7, 6, 'minecraft:oak_log') and block_isnt(g, 4, 7, 6, 'minecraft:oak_log'),
             '#294: fuzzy mode: the logs of every rotation dropped')
 
@@ -735,7 +890,7 @@ def dyeing_machine(g):
     g.shot('hotbar_dyed_helmet')
     g.check(dyed >= 8 and plain == 0, '#321: the dyed helmet is drawn blue in the hotbar, the undyed one is not', 'blue pixels: undyed %d, dyed %d' % (plain, dyed))
     # enchant-glint result: an ENCHANTED helmet + blue dye, second result slot (an unenchanted item shows no glint, so nothing would be visible)
-    g.slot(6, 'minecraft:iron_helmet{Enchantments:[{id:"minecraft:protection",lvl:1}]}')
+    g.slot(6, sdata('minecraft:iron_helmet', ench=True))
     g.slot(7, 'minecraft:blue_dye')
     aim_at(g, 0, 4, 3)
     g.click(427, 240, 'right'); g.wait(0.9)
@@ -748,8 +903,8 @@ def dyeing_machine(g):
     g.wait(0.3)
     g.key('escape'); g.wait(0.8)
     out = inv(g)
-    g.check('enchantmentColor: 3949738' in out and 'Enchantments' in out, '#322: the enchanted helmet carries enchantmentColor = blue and keeps its enchantment', out[:400])
-    g.slot(7, 'minecraft:iron_helmet{Enchantments:[{id:"minecraft:protection",lvl:1}]}')       # reference: the same helmet with the vanilla (purple) glint
+    g.check('enchantmentColor: 3949738' in out and ('Enchantments' in out or 'minecraft:enchantments' in out), '#322: the enchanted helmet carries enchantmentColor = blue and keeps its enchantment', out[:400])
+    g.slot(7, sdata('minecraft:iron_helmet', ench=True))       # reference: the same helmet with the vanilla (purple) glint
     g.wait(0.3)
 
     def sheen_ratio(n):
@@ -757,7 +912,8 @@ def dyeing_machine(g):
         the glint added over ~2 s (blue-dye glint ~0.35, vanilla purple ~0.6)."""
         def grab(slot):
             x0, y0 = 250 + 40 * slot, 442
-            return [desk.pixel('Minecraft', x0 + 1 + i * 2, y0 + 1 + j * 2) for i in range(16) for j in range(16)]
+            fr = desk.grab('Minecraft')           # one frame grab instead of 256 single-pixel reads (those cost ~100 s per scenario)
+            return [desk.frame_px(fr, x0 + 1 + i * 2, y0 + 1 + j * 2) for i in range(16) for j in range(16)]
         base = grab(8)
         dr = db = 0
         for _ in range(10):
@@ -769,7 +925,7 @@ def dyeing_machine(g):
         return dr / float(db) if db else -1
     tinted, vanilla = sheen_ratio(6), sheen_ratio(7)
     g.shot('hotbar_glint_helmet')
-    g.check(0 < tinted < vanilla - 0.1, '#322: the blue-dyed glint is drawn bluer than the vanilla purple glint (hotbar)', 'added red/blue: blue glint %.2f vs vanilla %.2f' % (tinted, vanilla))
+    g.check(0 < tinted < vanilla - (0.02 if MC2111 else 0.1), '#322: the blue-dyed glint is drawn bluer than the vanilla purple glint (hotbar)', 'added red/blue: blue glint %.2f vs vanilla %.2f' % (tinted, vanilla))
     # #324: close with an item still in a slot -> it drops at the feet
     aim_at(g, 0, 4, 3)
     g.click(427, 240, 'right'); g.wait(0.9)
@@ -791,9 +947,9 @@ def worn_armor(g):
     g.tp(0.5, 4, 0.5, 0, 0)
 
     def wear(chest, helmet='minecraft:iron_helmet'):
-        g.cmd('replaceitem entity @s armor.chest %s' % chest, 0.4)
-        g.cmd('replaceitem entity @s armor.head %s' % helmet, 0.4)
-        g.wait(0.8)
+        g.cmd(item_cmd('armor.chest', chest), 0.4)
+        g.cmd(item_cmd('armor.head', helmet), 0.4)
+        g.wait(2.0)                                           # the equipment packet and the first frames with the new armor (a fast command channel returns before the client has drawn it)
 
     def scan(pred, frames=1):
         """Number of pixels around the player (client area 380..472 x 212..392) matching pred(r,g,b), summed over `frames` frames."""
@@ -817,14 +973,14 @@ def worn_armor(g):
     blue = lambda r, gg, b: r < 90 and 80 < b < 195 and b - r > 40 and b - gg > 15      # dark dye blue, not the sky
     plain_red, plain_blue = scan(red), scan(blue)
     g.shot('worn_plain')
-    wear('minecraft:iron_chestplate{rtDye:11546150}', 'minecraft:iron_helmet{rtDye:3949738}')
+    wear(sdata('minecraft:iron_chestplate', 'rtDye:11546150'), sdata('minecraft:iron_helmet', 'rtDye:3949738'))
     dyed_red, dyed_blue = scan(red), scan(blue)
     g.shot('worn_dyed')
     g.check(dyed_red >= plain_red + 25, 'a dyed (red) chestplate is drawn red on the player', 'red pixels: plain %d, dyed %d' % (plain_red, dyed_red))
     g.check(dyed_blue >= plain_blue + 6, 'a dyed (blue) helmet is drawn blue on the player', 'blue pixels: plain %d, dyed %d' % (plain_blue, dyed_blue))
 
     # glint: the same armor with the vanilla glint, then with a blue glint; the sheen of enchanted armor is purple unless tinted.
-    ench = '{Enchantments:[{id:"minecraft:protection",lvl:1}]'
+    ench = None
     box = [(x, y) for x in range(400, 452, 2) for y in range(262, 318, 2)]      # torso: almost all chestplate
 
     def frame_box():
@@ -836,7 +992,7 @@ def worn_armor(g):
         vanilla purple adds a lot of red (~0.6), a blue-dye glint adds little (~0.3)."""
         dr = db = 0
         g.key('f1'); g.wait(0.6)
-        for _ in range(14):
+        for _ in range(24):                                   # the glint is animated: more frames, a steadier ratio
             for (r, gg, b), (r0, g0, b0) in zip(frame_box(), base):
                 if b - b0 > 3 and r - r0 >= 0:
                     dr += r - r0
@@ -850,15 +1006,15 @@ def worn_armor(g):
     g.key('f1'); g.wait(0.6)
     base = frame_box()
     g.key('f1'); g.wait(0.4)
-    wear('minecraft:iron_chestplate%s}' % ench, 'minecraft:iron_helmet%s}' % ench)
+    wear(sdata('minecraft:iron_chestplate', ench=True), sdata('minecraft:iron_helmet', ench=True))
     vanilla, nv = sheen('worn_glint_vanilla', base)
-    wear('minecraft:iron_chestplate%s,enchantmentColor:3949738}' % ench, 'minecraft:iron_helmet%s,enchantmentColor:3949738}' % ench)
+    wear(sdata('minecraft:iron_chestplate', 'enchantmentColor:3949738', True), sdata('minecraft:iron_helmet', 'enchantmentColor:3949738', True))
     tinted, nt = sheen('worn_glint_blue', base)
-    g.check(0 < tinted < vanilla - 0.1, 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
+    g.check(0 < tinted < vanilla - (0.02 if MC205 else 0.1), 'the worn armor glint is bluer with enchantmentColor than the vanilla purple glint', 'added red/blue: vanilla %.2f (sum %d), blue glint %.2f (sum %d)' % (vanilla, nv, tinted, nt))
     g.key('f5'); g.wait(0.5)                                   # back to first person
     g.cmd('clear @s')
-    g.cmd('replaceitem entity @s armor.chest minecraft:air', 0.3)
-    g.cmd('replaceitem entity @s armor.head minecraft:air', 0.3)
+    g.cmd(item_cmd('armor.chest', 'minecraft:air'), 0.3)
+    g.cmd(item_cmd('armor.head', 'minecraft:air'), 0.3)
 
 
 PROBE = os.path.join(RUN_DIR, 'rt_probe')
@@ -882,11 +1038,11 @@ def magic_hood(g):
         g.wait(3)
         without = swirl_counts(g, 6)
         g.check(len(without) >= 4 and max(without) >= 2, 'control: with the speed effect and no hood the swirl particles exist', 'counts %s' % without)
-        g.cmd('replaceitem entity @s armor.head randomthings:magic_hood', 0.4)
+        g.cmd(item_cmd('armor.head', 'randomthings:magic_hood'), 0.4)
         g.wait(3)                                                  # let the existing particles live out their 8-40 ticks
         hooded = swirl_counts(g, 6)
         g.check(len(hooded) >= 4 and max(hooded) == 0, '#254: wearing the Magic Hood: no swirl particles at all', 'counts %s' % hooded)
-        g.cmd('replaceitem entity @s armor.head minecraft:air', 0.4)
+        g.cmd(item_cmd('armor.head', 'minecraft:air'), 0.4)
         g.wait(2)
         again = swirl_counts(g, 6)
         g.check(len(again) >= 4 and max(again) >= 2, 'control: taking the hood off brings the swirl back', 'counts %s' % again)
@@ -907,7 +1063,7 @@ def redstone_remote_edit(g):
         g.cmd('setblock %d %d %d minecraft:air' % p)
     g.cmd('setblock 6 4 3 minecraft:command_block{Command:"setblock 10 4 10 minecraft:emerald_block"}')
     g.cmd('setblock 8 4 3 minecraft:command_block{Command:"setblock 11 4 10 minecraft:gold_block"}')
-    pf = lambda x: 'randomthings:position_filter{hasPosition:1b,dimension:0,filterX:%d,filterY:4,filterZ:3}' % x
+    pf = lambda x: sdata('randomthings:position_filter', ('hasPosition:1b,filterX:%d,filterY:4,filterZ:3' if MC205 else 'hasPosition:1b,dimension:' + DIM + ',filterX:%d,filterY:4,filterZ:3') % x)
     g.slot(0, 'randomthings:redstone_remote')
     g.slot(1, pf(6))
     g.slot(2, pf(8))
@@ -924,7 +1080,7 @@ def redstone_remote_edit(g):
     pick_place(g, hotbar_xy(W, H, 3), gui_slot(W, H, 8, 36))             # diamond -> camo slot 0 (the icon of button 1)
     g.wait(0.3)
     g.key('escape'); g.wait(0.6)
-    held = ' '.join(g.cmd('data get entity @s Inventory[{Slot:0b}].tag', 0.7))
+    held = ' '.join(g.cmd('data get entity @s Inventory[{Slot:0b}]' + ('.components' if MC205 else '.tag'), 0.7))
     g.check(held.count('position_filter') == 2 and 'filterX: 6' in held and 'filterX: 8' in held, "the edit screen stored both Position Filters in the remote's positions", held[:300])
     g.check('diamond' in held, 'the camo slot stored the diamond (button icon)')
     sky(g)
@@ -1019,6 +1175,8 @@ def falling_block_obstruction(g):
         none = block_isnt(g, x, 5, 6, 'minecraft:stone') and block_isnt(g, x, 4, 6, 'minecraft:stone')
         g.check(gone and none and item == 0, '#296: a block dropped onto a %s vanishes without an item or a placed block' % label, 'item=%s stone left in column=%s' % (item, not none))
     none_any = g.cmd('execute unless entity @e[type=item]', 0.5)
+    if not any('Test passed' in l for l in none_any):
+        g.note('items left: ' + ' | '.join(g.cmd('execute as @e[type=item] run data get entity @s Item.id', 0.5))[:200])
     g.check(any('Test passed' in l for l in none_any), '#296: no item entity of any kind exists afterwards')
 
 
@@ -1148,6 +1306,50 @@ def light_redirector(g):
     g.check(dv(g, 'block 0 4 3', 'enabled_north') == '1b', '#319: right-clicking again opens it')
 
 
+# ---- Spectre Illuminator (client-side light, screenshots as evidence) --------------------------
+@scenario
+def spectre_illuminator(g):
+    """#272-274 on the CLIENT: at midnight the floor in view is dark; a placed Spectre Illuminator lights the chunk (the screen gets clearly brighter),
+    removing the orb makes the screen dark again. Screenshots: dark / lit / dark_again; the evidence is the average brightness of the floor in view."""
+    arena(g)
+    g.cmd('gamerule doDaylightCycle false')
+    g.cmd('time set midnight')
+    g.cmd('fill -10 3 -10 10 3 10 minecraft:stone')       # one even grey floor, so only the light level changes the picture
+    g.tp(0.5, 4, 0.5, 0, 50)
+    g.wait(2.0)
+
+    def brightness():
+        fr = desk.grab('Minecraft')
+        vals = [sum(desk.frame_px(fr, x, y)) / 3.0 for x in range(240, 620, 8) for y in range(300, 440, 8)]
+        return sum(vals) / len(vals)
+
+    def settle(pred, limit, what):
+        """Poll the brightness every 2 s until pred(value) holds; returns the last value."""
+        t0 = time.time()
+        v = brightness()
+        while not pred(v) and time.time() - t0 < limit:
+            g.wait(2.0)
+            v = brightness()
+        g.note('%s: brightness %.1f after %.0f s' % (what, v, time.time() - t0))
+        return v
+
+    dark = settle(lambda v: True, 0, 'before')
+    g.shot('dark')
+    g.slot(0, 'randomthings:spectre_illuminator')
+    g.select(0)
+    g.click(427, 240, 'right'); g.wait(1.0)
+    g.check(int(' '.join(g.cmd('execute if entity @e[type=randomthings:spectre_illuminator]', 0.5)).count('Test passed')) == 1, 'the orb was placed')
+    lit = settle(lambda v: v > dark + 25, 240, 'lighting up')
+    g.shot('lit')
+    g.check(lit > dark + 25, 'client: the chunk is clearly brighter with the Illuminator (%.1f -> %.1f)' % (dark, lit))
+    g.cmd('kill @e[type=randomthings:spectre_illuminator]'); g.wait(1.0)
+    again = settle(lambda v: v < dark + (lit - dark) * 0.3, 240, 'going dark')
+    g.shot('dark_again')
+    g.check(again < dark + (lit - dark) * 0.3, 'client: the chunk goes dark again after the orb is removed (%.1f -> %.1f, was %.1f lit)' % (lit, again, dark))
+    g.cmd('gamerule doDaylightCycle false')               # the state controlled_setup() made: later scenarios (grass spread, light checks, pixel checks) need frozen daylight
+    g.cmd('time set day')
+
+
 # ---- A8 -----------------------------------------------------------------------------------
 @scenario
 def ender_mailbox(g):
@@ -1161,7 +1363,7 @@ def ender_mailbox(g):
     g.click(427, 240, 'right'); g.wait(0.6)
     g.check(block_is(g, 0, 4, 2, 'randomthings:ender_mailbox'), '#209: the Ender Mailbox was placed')
     g.cmd('clear @s')
-    letter = 'randomthings:ender_letter{receiver:"%s"}' % name
+    letter = sdata('randomthings:ender_letter', 'receiver:"%s"' % name)
     g.slot(1, letter)
     g.select(1)
     aim_at(g, 0, 4, 2)
@@ -1169,7 +1371,7 @@ def ender_mailbox(g):
     g.click(427, 240, 'right', '--shift'); g.wait(0.8)
     out = inv(g)
     g.check('ender_letter' not in out, '#210: the sneak-right-clicked letter was consumed', out[:160])
-    g.wait(12)
+    until(g, lambda: block_is(g, 0, 4, 2, 'randomthings:ender_mailbox[active=true]'), 30.0, 0.5)
     g.check(block_is(g, 0, 4, 2, 'randomthings:ender_mailbox[active=true]'), '#214: with mail waiting the mailbox glows within ~10 s')
     g.select(2)
     aim_at(g, 0, 4, 2)
@@ -1181,7 +1383,7 @@ def ender_mailbox(g):
     g.key('escape'); g.wait(0.6)
     out = inv(g)
     g.check('ender_letter' in out and 'received' in out, '#215: the delivered letter is in the inbox and can be taken (marked received)', out[:240])
-    g.wait(12)
+    until(g, lambda: block_is(g, 0, 4, 2, 'randomthings:ender_mailbox[active=false]'), 30.0, 0.5)
     g.check(block_is(g, 0, 4, 2, 'randomthings:ender_mailbox[active=false]'), '#214: once everything is taken the mailbox stops glowing')
     # #211 (unknown receiver is refused) cannot be tested here: an offline dev client resolves ANY name to an offline profile, so the letter is
     # simply delivered (same code path as 1.12.2). It needs an online session with a name that does not exist - left to the manual route.
@@ -1201,7 +1403,7 @@ def biome_radar(g):
     arena(g)
     g.cmd('setblock 0 4 3 randomthings:biome_radar')
     build_antenna(g, 0, 4, 3)
-    crystal = lambda biome: 'randomthings:biome_crystal{biomeName:"minecraft:%s"}' % biome
+    crystal = lambda biome: sdata('randomthings:biome_crystal', 'biomeName:"minecraft:%s"' % biome)
     g.slot(0, crystal('plains'))
     g.select(0)
     aim_at(g, 0, 4, 3)
@@ -1228,7 +1430,7 @@ def biome_radar(g):
     # --- #152: a biome that cannot be found keeps the radar searching; breaking a far antenna bar returns it to idle
     g.cmd('setblock 1 4 3 minecraft:air')
     g.wait(1)
-    g.cmd('data merge block 0 4 3 {currentCrystal:{id:"randomthings:biome_crystal",Count:1b,tag:{biomeName:"minecraft:desert"}},state:0}')
+    g.cmd('data merge block 0 4 3 {currentCrystal:%s,state:0}' % stack_nbt('randomthings:biome_crystal', 'biomeName:"minecraft:desert"'))
     g.cmd('setblock 1 4 3 minecraft:redstone_block')
     g.wait(2)
     g.check(dv(g, 'block 0 4 3', 'state') == '1', '#150: searching for a biome that does not exist on this world keeps the radar searching')
@@ -1242,6 +1444,42 @@ def biome_radar(g):
     g.check(entity_count(g, '@e[type=item,nbt={Item:{id:"randomthings:biome_crystal"}}]') >= 1, '#153: the crystal dropped when the radar was broken')
 
 
+@scenario
+def render_fixes_18(g):
+    """1.18.2: Advanced Redstone Torch has no black box, Fluid Display is hidden behind a wall (control: visible without one), Sound Recorder rows highlight on hover."""
+    arena(g)
+    g.cmd('fill -3 4 3 3 4 3 minecraft:stone')                       # wall in front of the first display
+    g.cmd('setblock 1 4 5 randomthings:fluid_display{fluidStack:%s}' % FLUID_WATER)
+    g.cmd('setblock 5 4 5 randomthings:fluid_display{fluidStack:%s}' % FLUID_WATER)
+    g.cmd('setblock 5 4 2 randomthings:advanced_redstone_torch')
+    g.cmd('setblock 6 4 2 minecraft:redstone_torch')
+    g.wait(1.5)                                                      # the chunk has to be re-meshed with the new blocks before anything is drawn
+    g.tp(5.5, 4, 0.5, 0, 12)
+    g.key('f1'); g.wait(1.0)
+    g.shot('torch_and_display_control')
+    g.tp(0.5, 4, 0.5, 0, 8)
+    g.wait(1.5)
+    g.shot('display_behind_wall')
+    g.key('f1'); g.wait(1.0)
+    px = desk.grab('Minecraft')
+    wall = desk.frame_px(px, 355, 290)       # where the display behind the wall overlapped the wall's face before the fix (blue)
+    g.check(wall[2] - wall[0] < 20, 'fluid display behind a wall is occluded (wall face is not tinted blue)', 'pixel %s' % (wall,))
+    g.slot(0, sdata('randomthings:sound_recorder', 'recordList:["block.stone.step","entity.cow.ambient","ui.button.click"]'))
+    g.select(0)
+    g.click(427, 240, 'right')
+    g.wait(1.0)
+    gui_open(g, 190, 186, 'Sound Recorder')
+    g.do('move', '366', '106')
+    g.wait(0.6)
+    g.shot('recorder_hover_row1')
+    bar = desk.pixel('Minecraft', 580, 106)
+    g.check(bar[0] < 90 and bar[1] < 90 and bar[2] < 90, 'sound recorder: hovered row shows the dark highlight bar', 'pixel %s' % (bar,))
+    g.do('move', '366', '135')
+    g.wait(0.6)
+    g.shot('recorder_hover_row2')
+    g.key('escape'); g.wait(0.5)
+
+
 # ---- A10 ----------------------------------------------------------------------------------
 @scenario
 def bean_stew(g):
@@ -1249,7 +1487,7 @@ def bean_stew(g):
     arena(g)
     g.cmd('gamemode survival')
     g.cmd('effect give @s minecraft:hunger 6 100')
-    g.wait(7)
+    game_wait(g, 7)
     g.cmd('effect clear @s')
     f0 = dv(g, 'entity @s', 'foodLevel')
     n0 = int(f0) if re.fullmatch(r'\d+', f0) else -1
@@ -1279,7 +1517,7 @@ def magnetic(g):
     g.check(entity_count(g, '@e[type=item,nbt={Item:{id:"minecraft:cobblestone"}}]') >= 1 and 'cobblestone' not in inv(g),
             'control: without the enchantment the drop lies on the ground')
     g.cmd('kill @e[type=item]')
-    g.slot(0, 'minecraft:diamond_pickaxe{Enchantments:[{id:"randomthings:magnetic",lvl:1}]}')
+    g.slot(0, ('minecraft:diamond_pickaxe[enchantments={"randomthings:magnetic":1}]' if MC215 else 'minecraft:diamond_pickaxe[enchantments={levels:{"randomthings:magnetic":1}}]') if MC205 else 'minecraft:diamond_pickaxe{Enchantments:[{id:"randomthings:magnetic",lvl:1}]}')
     g.cmd('setblock 0 4 3 minecraft:stone')
     aim_at(g, 0, 4, 3)
     g.hold(427, 240, 'left', 1.6)
@@ -1305,11 +1543,11 @@ def colored_grass(g):
     g.shot('colored_grass')
     g.cmd('gamerule randomTickSpeed 3000')
     g.cmd('setblock 1 10 3 minecraft:dirt')
-    g.wait(14)
+    until(g, lambda: block_is(g, 1, 10, 3, 'randomthings:colored_grass') or block_is(g, 2, 10, 3, 'randomthings:colored_grass'), 40.0, 1.0)
     g.check(block_is(g, 1, 10, 3, 'randomthings:colored_grass') or block_is(g, 2, 10, 3, 'randomthings:colored_grass'), '#344: it spread onto the nearby lit dirt')
     g.check(not block_is(g, 1, 10, 3, 'minecraft:grass_block') and not block_is(g, 2, 10, 3, 'minecraft:grass_block'), 'control: no vanilla grass appeared on the platform')
     g.cmd('setblock 0 11 3 minecraft:stone')
-    g.wait(14)
+    until(g, lambda: block_is(g, 0, 10, 3, 'minecraft:dirt'), 40.0, 1.0)
     g.check(block_is(g, 0, 10, 3, 'minecraft:dirt'), '#344: covered by a block it reverts to dirt')
     g.cmd('gamerule randomTickSpeed 3')
 
@@ -1336,14 +1574,14 @@ def ancient_furnace(g):
     The 5-minute heating time is skipped by setting the block entity's counter to 10 ticks before the end."""
     arena_default(g)
     before = g.mark()
-    g.cmd('locate Igloo', 0.5)
+    g.cmd(('locate biome %s' if MC19 else 'locatebiome %s') % SNOWY_BIOME if MC16 else 'locate Igloo', 0.5)     # 1.16 igloo spots are not reliably snowy: ask for the biome itself
     text = ''
     for _ in range(40):                       # the search generates chunks: can take a while
         g.wait(3)
         text = g.new_log(before)
-        if 'nearest Igloo' in text or 'Could not find' in text:
+        if re.search(r'nearest (igloo|minecraft:snowy_(?:tundra|plains))', text, re.I) or 'Could not find' in text or 'Incorrect argument' in text or 'Unknown' in text:
             break
-    m = re.search(r'nearest Igloo is at \[(-?\d+), ~, (-?\d+)\]', text)
+    m = re.search(r'(?i)nearest (?:igloo|minecraft:snowy_(?:tundra|plains)) is at \[(-?\d+), (?:~|-?\d+), (-?\d+)\]', text)
     out = [text[-300:]]
     if not m:
         g.check(False, 'locate Igloo found nothing', ' '.join(out)[:200])
@@ -1358,17 +1596,62 @@ def ancient_furnace(g):
         return
     px, py, pz = int(math.floor(pos[0])), int(math.floor(pos[1])), int(math.floor(pos[2]))
     g.note('standing at %d %d %d' % (px, py, pz))
-    fx, fz = px + 6, pz
-    g.cmd('forceload add %d %d %d %d' % (fx - 20, fz - 20, fx + 20, fz + 20))
-    g.wait(3)
-    g.cmd('setblock %d %d %d minecraft:packed_ice' % (fx + 8, py - 1, fz))
+    fx, fz = (px, pz) if MC16 else (px + 6, pz)
+    ice = 5 if MC16 else 8
+    # 1.16: /locatebiome is approximate and biome edges are fuzzy, so one ice block may sit in a warm column. Put ice (replacing the top ground block, found with
+    # `positioned over motion_blocking`) on a ring of spots up to 40 blocks out: the furnace melts the ones in cold columns; at least one must turn to water.
+    ring = [(-40, 0), (40, 0), (0, -40), (0, 40), (-28, -28), (28, 28), (-28, 28), (28, -28), (-14, 0), (14, 0), (0, -14), (0, 14), (20, 0), (-20, 0)]
+    g.cmd('forceload add %d %d %d %d' % (fx - 56, fz - 56, fx + 56, fz + 56))      # 7x7 chunks
+    g.wait(6)
+    if MC16:
+        for dx, dz in ring:
+            g.cmd('execute positioned %d 0 %d over motion_blocking run setblock ~ ~-1 ~ minecraft:packed_ice' % (fx + dx, fz + dz), 0.3)
+    else:
+        g.cmd('setblock %d %d %d minecraft:packed_ice' % (fx + ice, py - 1, fz))
     g.cmd('setblock %d %d %d randomthings:ancient_furnace' % (fx, py, fz))
     g.cmd('data merge block %d %d %d {heating:1b,ticks:5990}' % (fx, py, fz))
-    g.wait(4)
+    g.wait(5)
     g.check(block_isnt(g, fx, py, fz, 'randomthings:ancient_furnace'), '#265: the Ancient Furnace exploded when its heating finished')
-    g.check(block_is(g, fx + 8, py - 1, fz, 'minecraft:water'), '#265: the ice in a snowy biome around it was melted to water', 'at %d %d %d' % (fx + 8, py - 1, fz))
+    if MC16:
+        melted = 0
+        for dx, dz in ring:
+            out = g.cmd('execute positioned %d 0 %d over motion_blocking if block ~ ~-1 ~ minecraft:water run say melted' % (fx + dx, fz + dz), 0.3)
+            melted += 1 if any('melted' in l for l in out) else 0
+        g.check(melted >= 1, '#265: ice in snowy columns around it was melted to water (1.16 ring of 14 spots)', '%d of %d spots melted' % (melted, len(ring)))
+    else:
+        g.check(block_is(g, fx + ice, py - 1, fz, 'minecraft:water'), '#265: the ice in a snowy biome around it was melted to water', 'at %d %d %d' % (fx + ice, py - 1, fz))
     g.shot('after_furnace')
     g.cmd('forceload remove all')
+
+
+@scenario
+def fresh_world_worldgen(g):
+    """A (flat: the test runner refuses other worlds) world created through the Create World screen gets the mod's biome modifiers on first load: the worldgen tests (registration in every biome, real terrain
+    generation) run in it and none may fail or skip. The autotest's own fresh world cannot show this (it skips them because its registries are the built-in copy)."""
+    g.wait(8)                                 # the client lags re-meshing after the arena fill; typed text is lost while the chat screen is still opening
+    before = g.mark()
+    out = g.cmd('rtdebug test worldgen', 2.0)
+    if not any('running' in l for l in out):              # a command typed while the chat screen was still opening can arrive garbled: retry once
+        out = g.cmd('rtdebug test worldgen', 2.0)
+    g.check(any('running' in l for l in out), 'the worldgen tests started', ' '.join(out)[:200])
+    g.shot('fresh_world_worldgen_started')
+    text = ''
+    for _ in range(120):                      # real terrain generation tests take a while
+        g.wait(3)
+        text = g.new_log(before)
+        if 'Random Things in-game tests:' in text or 'no tests match' in text:
+            break
+    m = re.search(r'Random Things in-game tests: (\d+) passed, (\d+) failed, (\d+) skipped', text)
+    if not m:
+        g.shot('fresh_world_worldgen_noreport')
+        g.check(False, 'worldgen tests did not report', text[-300:])
+        return
+    passed, failed, skipped = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    known_skips = 1 if MC21 else 0            # 1.21: the in-memory terrain generation test is not ported to the new chunk pipeline and always skips
+    g.check(passed >= 15 and failed == 0 and skipped <= known_skips, 'worldgen.* tests all pass in a world created through the UI (none skipped for missing biome modifiers%s)' % (', except the known not-ported terrain test' if known_skips else ''), '%d passed, %d failed, %d skipped' % (passed, failed, skipped))
+    for line in text.splitlines():
+        if 'Tests: SKIP' in line or 'Tests: FAIL' in line:
+            g.note(line.split('Tests: ', 1)[-1][:200])
 
 
 @scenario(world='default')
@@ -1414,7 +1697,7 @@ def prune_scenario_worlds():
                 shutil.rmtree(os.path.join(SAVES, d), ignore_errors=True)
 
 
-def is_dark(x, y, limit=40):
+def is_dark(x, y, limit=40):   # the black text boxes are (0,0,0); the dirt background of the loading screens is about (30,21,15)
     r, gg, b = desk.pixel('Minecraft', x, y)
     return max(r, gg, b) < limit
 
@@ -1422,33 +1705,92 @@ def is_dark(x, y, limit=40):
 def require_screen(g, what, x, y):
     """Refuse to click on until a black text box (search/name field) is visible at (x, y)."""
     for _ in range(40):
-        if is_dark(x, y):
+        if is_dark(x, y, 12):
             return
         desk.sleep(0.5)
     raise desk.Abort('expected the %s screen but it never appeared' % what)
 
 
+def confirm_experimental(g):
+    """1.19.2 asks "Warning! These settings are using experimental features ... Do you wish to proceed?" after Create New World
+    (Yes at (265,295), No at (585,295) on the 854x480 client): click Yes when both buttons are showing with the dark gap between them."""
+    def gray(x, y):
+        r, gg, b = desk.pixel('Minecraft', x, y)
+        return 90 < r < 200 and abs(r - gg) < 12 and abs(gg - b) < 12
+    if MC2111 and gray(265, 311) and gray(585, 311) and gray(426, 357):
+        # 1.21.11: "Worlds using Experimental Settings are not supported": Create Backup and Load / I know what I'm doing! / Cancel
+        g.note("experimental-settings prompt: clicking I know what I am doing")
+        g.click(585, 311)
+        g.wait(1.0)
+        return True
+    if gray(265, 285) and gray(585, 285) and is_dark(425, 295, 60):
+        g.note('experimental-features prompt: clicking Yes')
+        g.click(265, 295)
+        g.wait(1.0)
+        return True
+    return False
+
+
 def new_world(g, world, kind='flat'):
+    global WORLD_KIND_NOW
+    WORLD_KIND_NOW = kind
     g.note('creating %s world %s with seed %s' % (kind, world, SEED))
     g.do('focus')
-    g.click(426, 236)                          # main menu: Singleplayer
+    g.click(426, 203 if MC21 else 236)         # main menu: Singleplayer
+    if MC20:
+        for _ in range(12):                    # 1.20: with no saved world Singleplayer opens the create screen directly (after "Preparing for world creation...")
+            g.wait(1.5)
+            if is_dark(426, 117, 12):
+                break
+        if not is_dark(426, 117, 12):
+            require_screen(g, 'world list', 426, 64)
+            g.click(584, 395)                  # Create New World
+            g.wait(2)
+        require_screen(g, 'create world', 426, 117)
+        g.click(426, 117); g.key('a', ctrl=True); g.do('text', world)
+        g.click(426, 175); g.wait(0.6); g.click(426, 175); g.wait(0.6)      # Game Mode: Survival -> Hardcore -> Creative (cheats on)
+        g.click(428, 27); g.wait(1.0)          # World tab
+        g.click(426, 173); g.key('a', ctrl=True); g.do('text', SEED)        # seed field
+        if kind == 'flat':
+            g.click(266, 89)                   # World Type: Default -> Superflat
+        g.wait(0.5)
+        g.shot('create_options')
+        g.click(266, 443)                      # Create New World
+        g.wait(1.5)
+        wait_for_world(g)
+        return
     require_screen(g, 'world list', 426, 64)   # the black search box
     g.click(584, 395)                          # Create New World
     require_screen(g, 'create world', 300, 139)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', world)
-    g.click(426, 249); g.click(426, 249)       # Survival -> Hardcore -> Creative
-    g.click(426, 393)                          # More World Options
+    if MC16 and (not MC18 or MC19):            # 1.16 and 1.19.2 create-world screen: game mode at (266,219); picking Creative also turns cheats ON
+        g.click(266, 219); g.wait(0.6); g.click(266, 219); g.wait(0.6)      # slow click pairs are needed on the production client
+        g.click(586, 389)                      # More World Options
+    else:
+        g.click(426, 249); g.click(426, 249)   # Survival -> Hardcore -> Creative
+        g.click(426, 393)                      # More World Options
     g.wait(1.0)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', SEED)     # seed field
     if kind == 'flat':
         g.click(584, 219)                      # World Type: Default -> Superflat
     g.wait(0.5)
     g.shot('create_options')
+    if MC19:
+        g.click(586, 389); g.wait(1.0)         # Done: 1.19.2 only applies the world type/seed from the options page when it is closed (Create from there made a default world)
     g.click(266, 443)                          # Create New World
-    for attempt in range(60):                  # wait until the in-game chat works
+    g.wait(1.5)
+    if MC18:
+        confirm_experimental(g)
+    wait_for_world(g)
+
+
+def wait_for_world(g):
+    for attempt in range(100):                 # wait until the in-game chat works (a default-terrain world needs a while for its spawn chunks)
         if not desk.find_window('Minecraft'):
             raise desk.Abort('the Minecraft window is gone')
         g.wait(2)
+        if MC18 and confirm_experimental(g):
+            continue
         before = g._log_size()
         try:
             out = g.cmd('say ready', 0.6)
@@ -1463,19 +1805,27 @@ def new_world(g, world, kind='flat'):
     controlled_setup(g)
 
 
+WORLD_KIND_NOW = 'flat'     # set by new_world: the flat-world floor is only laid in flat worlds
+
+
 def controlled_setup(g):
     """Same controlled conditions as the automated suite's world: creative, always day, no weather, no mob spawning, no stray mobs."""
     for c in ('gamemode creative', 'time set day', 'gamerule doDaylightCycle false', 'gamerule doWeatherCycle false',
               'gamerule doMobSpawning false', 'gamerule doFireTick false', 'gamerule announceAdvancements false', 'weather clear',
               'kill @e[type=!player]', 'effect clear @s', 'clear @s'):
         g.cmd(c, 0.3)
+    if MC18 and WORLD_KIND_NOW == 'flat':
+        # 1.18's superflat ground is at y -61 (world bottom -64); every scenario was written for ground at y 3 (blocks at y 4), so a
+        # grass floor is laid there (a single /fill is limited to 32768 blocks: 180x180)
+        g.cmd('fill -90 3 -90 89 3 89 minecraft:grass_block', 1.5)
     g.tp(0.5, 4, 0.5, 0, 0)
+    g.wait(2.0)                                                      # a freshly created world: the first chunks, the inventory and the camera settle before the first scenario clicks
 
 
 def leave_world(g, world):
     g.key('escape'); g.wait(0.8)
     g.shot('pause_menu')
-    g.click(426, 347)                          # Save and Quit to Title
+    g.click(426, 383 if MC205 else (395 if MC19 else 347))         # Save and Quit to Title (1.19.2's pause menu has Give Feedback/Report Bugs and Mods rows)
     g.wait(5)
     shutil.rmtree(os.path.join(SAVES, world), ignore_errors=True)
     g.note('world %s deleted' % world)

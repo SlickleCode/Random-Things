@@ -373,6 +373,7 @@ public class ModItems {
 
         registry.register(new SummoningPendulumItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("summoning_pendulum"));
         registry.register(new GoldenEggItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("golden_egg"));
+        registry.register(new lumien.randomthings.item.SpiritSpawnEggItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spirit_spawn_egg"));
         registerItemForBlock(registry, ModBlocks.FLUID_DISPLAY);
 
         registry.register(new EvilTearItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("evil_tear"));
