@@ -24,7 +24,7 @@ public class SuperLubricentStoneBlock extends Block
 {
 	public SuperLubricentStoneBlock()
 	{
-		super(Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F, 6.0F).friction(1F / 0.91F));
+		super(Properties.of(Material.STONE, MaterialColor.STONE).strength(1.5F, 6.0F).friction(1F / 0.91F).sound(net.minecraft.world.level.block.SoundType.GLASS));
 	}
 
 	/**

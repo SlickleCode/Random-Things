@@ -5,6 +5,7 @@ import lumien.randomthings.block.AdvancedItemCollectorBlock;
 import lumien.randomthings.block.AdvancedRedstoneTorchBlock;
 import lumien.randomthings.block.BeanStalkBlock;
 import lumien.randomthings.block.BiomeRadarBlock;
+import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ColoredGrassBlock;
 import lumien.randomthings.block.DiaphanousBlock;
 import lumien.randomthings.block.FlooBrickBlock;
@@ -74,6 +75,7 @@ public class RenderLayerSetup
             else if (block instanceof AdvancedItemCollectorBlock ||
                 block instanceof AdvancedRedstoneTorchBlock ||
                 block instanceof BeanStalkBlock ||
+                block instanceof BlazingFireBlock ||
                 block instanceof BiomeRadarBlock ||
                 block instanceof ColoredGrassBlock ||
                 block instanceof FlooBrickBlock ||

@@ -14,9 +14,38 @@ final class RetestBehaviorTests
 	{
 	}
 
+	// ---- Spirit spawn egg (museum report 2026-10-24) ---------------------------------------------------
+	static void addMuseumTests(List<RTTest> tests)
+	{
+		tests.add(RTTest.named("retest.spirit_spawn_egg.using_it_on_the_ground_spawns_a_spirit").run(c -> {
+			c.floor();
+			net.minecraft.core.BlockPos stand = c.at(0, 1, 0);
+			c.player.setPos(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
+			net.minecraft.world.item.Item egg = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.resources.ResourceLocation("randomthings:spirit_spawn_egg"));
+			c.check(egg != net.minecraft.world.item.Items.AIR, "the item is registered");
+			net.minecraft.world.item.ItemStack held = new net.minecraft.world.item.ItemStack(egg);
+			c.player.stopUsingItem();
+			c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, held);
+			c.eq(0, c.world.getEntitiesOfClass(lumien.randomthings.entity.SpiritEntity.class, c.area().inflate(8)).size(), "no spirit before");
+			net.minecraft.core.BlockPos clicked = c.at(2, 0, 0);
+			c.check(egg.useOn(new net.minecraft.world.item.context.UseOnContext(c.player, net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(clicked), net.minecraft.core.Direction.UP, clicked, false))).consumesAction(), "using the egg");
+			c.eq(1, c.world.getEntitiesOfClass(lumien.randomthings.entity.SpiritEntity.class, c.area().inflate(8)).size(), "one spirit after");
+
+			for (lumien.randomthings.entity.SpiritEntity spirit : c.world.getEntitiesOfClass(lumien.randomthings.entity.SpiritEntity.class, c.area().inflate(8)))
+			{
+				spirit.discard();
+			}
+
+			c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+			net.minecraft.core.BlockPos away = c.at(40, 1, 40);	// the player must not stand in the test area: later tests count drops there
+			c.player.setPos(away.getX() + 0.5, away.getY(), away.getZ() + 0.5);
+		}));
+	}
+
 	static List<RTTest> create()
 	{
 		List<RTTest> tests = new ArrayList<>();
+		addMuseumTests(tests);
 
 		tests.add(RTTest.named("retest.golden_chicken.drops_three_gold_ingots_when_the_timer_runs_out").run(c -> {
 			c.floor();
