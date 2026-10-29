@@ -48,6 +48,9 @@ public class ModItems {
     @ObjectHolder("ectoplasm")
     public static Item ECTOPLASM;
 
+    @ObjectHolder("luminous_powder")
+    public static Item LUMINOUS_POWDER;
+
     @ObjectHolder("bean_stew")
     public static Item BEAN_STEW;
 
@@ -214,6 +217,7 @@ public class ModItems {
         registry.register(new SpectreKeyItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1)).setRegistryName("spectre_key"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("biome_sensor"));
         registry.register(new Item(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("luminous_powder"));
+        registry.register(new BlackoutPowderItem(new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("blackout_powder"));
 
         registry.register(new BeanStewItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).food(new net.minecraft.item.Food.Builder().hunger(8).saturation(0.6F).build())).setRegistryName("bean_stew"));
         registry.register(new BlazeAndSteelItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1).maxDamage(64)).setRegistryName("blaze_and_steel"));
@@ -398,6 +402,7 @@ public class ModItems {
 
         registerItemForBlock(registry, ModBlocks.SPECTRE_ENERGY_INJECTOR);
         registerItemForBlock(registry, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+        registry.register(new lumien.randomthings.item.block.NumberedSpectreCoilBlockItem(ModBlocks.SPECTRE_COIL_NUMBER, new Item.Properties().group(RT_ITEM_GROUP)).setRegistryName("spectre_coil_number"));
 
         registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.NORMAL).setRegistryName("spectre_charger_normal"));
         registry.register(new SpectreChargerItem(new Item.Properties().group(RT_ITEM_GROUP).maxStackSize(1), SpectreChargerItem.Tier.REDSTONE).setRegistryName("spectre_charger_redstone"));

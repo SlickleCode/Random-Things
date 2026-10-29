@@ -25,6 +25,9 @@ overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch
 **Not done:** Peace Candle churches in every village type (needs the vanilla village pool / church piece names of desert, savanna, snowy and taiga villages, which this repo does not reference).
 Rows AF1-AF12 in section G of `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-2026-10-29.md`.
 
+**Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Luminous Powder recipe (glow rendering still missing), Numbered Spectre Coils and Blackout Powder;
+fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in section H of `TESTING_CHECKLIST.md`.
+
 ## Current state on this branch (`1.16.5`, 2026-10-14)
 
 - **Port:** the 1.14.4 feature set runs on Forge 36.2.39 (MatrixStack rendering, code-registered Spectre dimension, worldgen features, coremods ported;

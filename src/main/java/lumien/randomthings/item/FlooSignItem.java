@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -98,6 +99,10 @@ public class FlooSignItem extends Item {
         boolean valid = FlooNetworkHandler.get(worldIn).createFireplace(uuid, signName, player, pos, brickList);
 
         if (!valid) {
+            if (player != null && FlooNetworkHandler.get(worldIn).hasFireplaceNamed(signName)) {
+                player.sendStatusMessage(new TranslationTextComponent("floo.info.duplicate_name", signName), true);
+            }
+
             return ActionResultType.FAIL;
         }
 

@@ -68,7 +68,7 @@ public class RedstoneRemoteActivateMessage implements IRTMessage {
 
             BlockPos target = PositionFilterItem.getPosition(positionFilter);
 
-            if (target != null) {
+            if (target != null && player.world.getDimensionKey().getLocation().toString().equals(PositionFilterItem.getDimension(positionFilter))) {
                 RedstoneSignalHandler.get(player.world).addSignal(player.world, target, 20, 15);
             }
         });

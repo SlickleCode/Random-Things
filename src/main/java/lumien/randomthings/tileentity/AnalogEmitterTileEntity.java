@@ -59,11 +59,11 @@ public class AnalogEmitterTileEntity extends TileEntity implements INamedContain
 
 	/**
 	 * Re-derives the powering flag from the redstone signal coming in on the
-	 * facing side, matching 1.12.2's amplifier behavior.
+	 * facing side, matching 1.12.2 (getRedstonePower(pos.offset(facing), facing.getOpposite())).
 	 */
 	public void updateInput(World world, Direction facing)
 	{
-		boolean input = world.getRedstonePower(pos.offset(facing), facing) > 0;
+		boolean input = world.getRedstonePower(pos.offset(facing), facing.getOpposite()) > 0;
 
 		if (input != powering)
 		{

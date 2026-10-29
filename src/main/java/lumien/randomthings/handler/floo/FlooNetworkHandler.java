@@ -96,6 +96,12 @@ public class FlooNetworkHandler extends WorldSavedData {
         }
 
         BlockPos targetPos = targetFirePlace.getLastKnownPosition();
+
+        if (!world.isBlockLoaded(targetPos)) {
+            // Unloaded chunk: we can't tell whether the fireplace still exists, so neither teleport nor touch the registry
+            return false;
+        }
+
         TileEntity te = world.getTileEntity(targetPos);
 
         if (te instanceof FlooBrickTileEntity && ((FlooBrickTileEntity) te).isMaster()) {
@@ -160,6 +166,20 @@ public class FlooNetworkHandler extends WorldSavedData {
         compound.put("firePlaces", firePlaceTags);
 
         return compound;
+    }
+
+    public boolean hasFireplaceNamed(String name) {
+        if (name == null) {
+            return false;
+        }
+
+        for (FlooFireplace firePlace : firePlaces) {
+            if (name.equalsIgnoreCase(firePlace.getName())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public boolean createFireplace(UUID uuid, String name, PlayerEntity player, BlockPos pos, List<BlockPos> brickList) {

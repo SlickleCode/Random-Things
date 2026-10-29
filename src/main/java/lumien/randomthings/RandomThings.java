@@ -40,6 +40,7 @@ import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.potion.*;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.*;
@@ -195,6 +196,81 @@ public class RandomThings {
                     break;
                 }
             }
+        });
+
+        // Spectre Sapling conversion: right-clicking any vanilla sapling (the minecraft:saplings
+        // block tag, the equivalent of 1.12.2's "treeSapling" ore dictionary entry) with
+        // Ectoplasm turns it into a Spectre Sapling and uses up one Ectoplasm (not in creative).
+        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (equipped.isEmpty() || equipped.getItem() != ModItems.ECTOPLASM) {
+                return;
+            }
+
+            World world = event.getWorld();
+            BlockPos pos = event.getPos();
+            Block targetBlock = world.getBlockState(pos).getBlock();
+
+            if (targetBlock == ModBlocks.SPECTRE_SAPLING) {
+                return;
+            }
+
+            net.minecraft.tags.ITag<Block> saplings = BlockTags.getCollection().get(new ResourceLocation("minecraft:saplings"));
+
+            if (saplings == null || !saplings.contains(targetBlock)) {
+                return;
+            }
+
+            if (!world.isRemote) {
+                if (!event.getPlayer().abilities.isCreativeMode) {
+                    equipped.shrink(1);
+                }
+
+                world.setBlockState(pos, ModBlocks.SPECTRE_SAPLING.getDefaultState());
+            }
+
+            event.setCanceled(true);
+        });
+
+        // Runic Pattern from paper: right-clicking a placed Rune Base with a piece of paper copies
+        // its 4x4 pattern onto a Rune Pattern and uses up one paper (the pattern replaces the
+        // paper if it was the only one, else it goes into the inventory).
+        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (event.getWorld().isRemote || equipped.isEmpty() || equipped.getItem() != Items.PAPER) {
+                return;
+            }
+
+            World world = event.getWorld();
+            BlockPos pos = event.getPos();
+
+            if (world.getBlockState(pos).getBlock() != ModBlocks.RUNE_BASE) {
+                return;
+            }
+
+            TileEntity te = world.getTileEntity(pos);
+
+            if (!(te instanceof RuneBaseTileEntity)) {
+                return;
+            }
+
+            PlayerEntity player = event.getPlayer();
+            ItemStack patternStack = new ItemStack(ModItems.RUNE_PATTERN);
+            RunePatternItem.setPattern(patternStack, ((RuneBaseTileEntity) te).getRuneData());
+
+            if (equipped.getCount() == 1) {
+                player.setHeldItem(event.getHand(), patternStack);
+            } else {
+                equipped.shrink(1);
+
+                if (!player.inventory.addItemStackToInventory(patternStack)) {
+                    player.dropItem(patternStack, false);
+                }
+            }
+
+            event.setCanceled(true);
         });
 
         // Imbue Fire/Poison/Wither: whoever last drank an imbue potion applies its

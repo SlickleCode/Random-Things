@@ -1,5 +1,7 @@
 package lumien.randomthings.block;
 
+import java.util.Random;
+
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -13,6 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkHooks;
 import net.minecraft.util.ActionResultType;
 
@@ -61,6 +64,17 @@ public class RedstoneObserverBlock extends Block
 	{
 		TileEntity te = blockAccess.getTileEntity(pos);
 		return te instanceof RedstoneObserverTileEntity ? ((RedstoneObserverTileEntity) te).getStrongPower(side) : 0;
+	}
+
+	@Override
+	public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random random)
+	{
+		TileEntity te = worldIn.getTileEntity(pos);
+
+		if (te instanceof RedstoneObserverTileEntity)
+		{
+			((RedstoneObserverTileEntity) te).refreshAfterLoad();
+		}
 	}
 
 	@Override

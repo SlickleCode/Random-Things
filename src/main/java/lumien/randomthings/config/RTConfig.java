@@ -22,6 +22,7 @@ public class RTConfig
 	public static final BooleanValue SUMMONING_PENDULUM;
 	public static final BooleanValue BIOME_CRYSTAL;
 	public static final BooleanValue SLIME_CUBE;
+	public static final BooleanValue NUMBERED_SPECTRE_COILS;
 
 	public static final BooleanValue ARTIFICIAL_END_PORTAL;
 	public static final BooleanValue MAGNETIC_ENCHANTMENT;
@@ -56,6 +57,7 @@ public class RTConfig
 		SUMMONING_PENDULUM = b.comment("Add the Summoning Pendulum to dungeon and stronghold chests").define("SummoningPendulum", true);
 		BIOME_CRYSTAL = b.comment("Add Biome Crystals to vanilla chests").define("BiomeCrystal", true);
 		SLIME_CUBE = b.comment("Add the Slime Cube to dungeon and jungle temple chests").define("SlimeCube", true);
+		NUMBERED_SPECTRE_COILS = b.comment("Add Numbered Spectre Coils to dungeon, abandoned mineshaft and end city chests").define("NumberedSpectreCoils", true);
 		b.pop();
 
 		b.push("features");

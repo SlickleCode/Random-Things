@@ -26,8 +26,8 @@ import net.minecraftforge.energy.CapabilityEnergy;
  * Ported from 1.12.2's {@code BlockSpectreCoil} - a small block that attaches to a face of any
  * energy-capable neighbor and taps the placing player's Spectre energy pool into it (see
  * {@link SpectreCoilTileEntity}). One instance per {@link CoilType} tier, matching the original's 5
- * separate registered blocks sharing one class (this port skips {@code NUMBER} - see
- * {@link SpectreCoilTileEntity}'s javadoc).
+ * separate registered blocks sharing one class. {@code NUMBER} is the loot-only tier: it generates
+ * its {@code rate} per tick directly (like {@code GENESIS}) and has no recipe.
  *
  * <p>Disclosed simplification: 1.12.2 rendered this as a tiny (0.09375-thick) directional nub with a
  * custom per-face bounding box. This port uses a plain full-cube shape instead, matching the
@@ -41,6 +41,7 @@ public class SpectreCoilBlock extends Block {
         NORMAL("normal", 1024, 0x00FFFF),
         REDSTONE("redstone", 4096, 0xFF0000),
         ENDER("ender", 20480, 0xC800D2),
+        NUMBER("number", 128, 0x00FF00),
         GENESIS("genesis", 0, 0xFFA500);
 
         public final String suffix;

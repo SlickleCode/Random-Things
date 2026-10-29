@@ -111,6 +111,11 @@ public class ClientSetup {
             if (stack.hasTag() && stack.getTag().contains("spectreAnchor")) {
                 event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.spectre_anchor.item").mergeStyle(net.minecraft.util.text.TextFormatting.DARK_AQUA));
             }
+
+            // Luminous Powder glint (1.12.2 inserted the same yellow "Luminous" line at index 1)
+            if (lumien.randomthings.recipes.LuminousPowderRecipe.isLuminous(stack)) {
+                event.getToolTip().add(1, new TranslationTextComponent("tooltip.randomthings.luminous_enchantment").mergeStyle(net.minecraft.util.text.TextFormatting.YELLOW));
+            }
         });
 
         MinecraftForge.EVENT_BUS.addListener((ClientTickEvent event) -> {
