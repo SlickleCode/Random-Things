@@ -1,84 +1,62 @@
 # Random Things 1.14.4 - Testing Checklist (open items only)
 
-**Ready-made test world:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` opens a seed-424242 normal-terrain world with every block on show, set-ups and a stocked inventory - see [`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md).
+Only what still needs a person is listed. Everything an automated test checks is out: see [`docs/testing/covered-by-tests.md`](docs/testing/covered-by-tests.md). The full numbered sheet with your results from 2026-10-11 (227 rows passed) is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md); a 90 minute route with commands is [`docs/testing/playtest-route-1.14.4.md`](docs/testing/playtest-route-1.14.4.md); fix writeups are in [`docs/testing/fix-log/`](docs/testing/fix-log/README.md).
 
-The full numbered sheet with every row's test steps and your results (2026-10-11) is in [`docs/testing/checklist-archive/`](docs/testing/checklist-archive/README.md). This file lists only what still needs you. Record a result by filling the Result column here (Pass / Fail + one sentence), or just tell Claude the row number. Root-cause / fix writeups: [`docs/testing/fix-log/`](docs/testing/fix-log/README.md).
+**World for parts A-C:** `RT_AUTOTEST=true RT_MANUAL=true ./gradlew runClient` ([`docs/testing/manual-test-world.md`](docs/testing/manual-test-world.md)): every block on show with a sign, set-ups and a stocked inventory. It is deleted when the game closes. Parts D-E need a normal survival world.
 
-**Totals (original sheet, 392 rows):** PASS 227, never tested 105, DONE/REMOVED 44, FIXED 16. **90 of the 121 open rows were removed on 2026-10-14 because the automated suites/scripted scenarios now cover them** (list with evidence: [`docs/testing/covered-by-tests.md`](docs/testing/covered-by-tests.md)); 31 remain below.
+Fill in **Result** with `Pass` or `Fail` and a sentence in **Feedback**; blank = untested. Row numbers are the original sheet's. Several rows cover a group, written `327, 328`.
 
-**Ordered playtest route (about 90 minutes, with commands): [`docs/testing/playtest-route-1.14.4.md`](docs/testing/playtest-route-1.14.4.md).**
+## A. Look around the museum (rendering and item models)
 
-## A. Failing or partial (0)
-
-None.
-
-## B. Fixed, waiting for your retest (2)
-
-| # | Feature | Result | Feedback |
+| # | Look at | Result | Feedback |
 |---|---|---|---|
-| 261 | Rain Shield — the falling rain/snow visual itself IS now locally hidden near the shield (real behavior change from 1.12.2, per explicit request) | FIXED | |
-| 389 | **Biome Radar crystal hovered above the block (reported while watching the scripted run):** the renderer floated and bobbed the crystal ~1 block above the radar; 1.12.2 pinned the item's bob phase so it spins in place inside the block (`RenderBiomeRadar`). Now rendered at about 0.4 blocks up, no bobbing, spinning in place. | FIXED | Check by eye: insert a crystal, it spins in the middle of the radar, also while searching. |
+| 261 | Rain Shield: no rain or snow visible inside its radius (**fixed, waiting for your retest**) |  |  |
+| 389, 149-153 | Biome Radar: the crystal spins in the middle of the block (no bobbing above it, also while searching) (**fixed, waiting for your retest**); antenna particles change colour when the search ends |  |  |
+| M1 | Super Lubricent Stone / Ice / Platform / Filtered Platform: placing and breaking plays the ice (glass) sounds |  |  |
+| M2 | Blazing Fire on netherrack looks like vanilla fire (it was already cutout here) |  |  |
+| M5 | Time in a Bottle: every face of the accelerated block shows the spinning wheel of 1.12.2 (decagon rings, one more ring at time rate 2, 4, 8, 16 and 32), not the floating bottle icon - FIXED 2026-10-29 (`TimeWheel` + `TimeAcceleratorEntityRenderer`; render scenes `time_wheel` and `time_wheel_close` checked on all nine branches); the wheel is about a third of a block across, as in 1.12.2 |  |  |
+| M6, M13 | Spectre Illuminator lights its chunk after placing and darkens it again after removing the orb; the museum sign (south edge) names the closest plains village with a Peace Candle church, and the museum is deleted when the game closes (not run in game on this branch) |  |  |
+| M9, M10, M11, M12, M14 | Peace Candle item lit evenly; Spectre Block more opaque; Ender Mailbox item fits its slot and hand; Spirit texture a deep pure blue; Lotus and Bean Sprout render with proper transparency |  |  |
+| M16 | Ender Bucket and Reinforced Ender Bucket draw their fluid in the opening (water blue, lava orange); also held in first person |  |  |
+| 234 | Fluid Display: the poured fluid's texture and colour, still vs flowing |  |  |
+| 254 | Magic Hood: no potion swirl around you in F5, other players see no nametag (two clients) |  |  |
+| 277, 279 | Portkey: a dropped item shimmers, then stops glowing about 5 s later; a disguised Portkey looks like the donor item in hand, on the ground and in an item frame |  |  |
+| 319 | Light Redirector: open faces show the block on the opposite side (periscope) |  |  |
+| 321-323, 390 | Dyeing Machine: recolored items are tinted held, in the inventory, on the ground and worn; the glint result glows in the dye colour on items and worn armor |  |  |
+| 346, 347 | Runes: noisy texture, same-colour pixels join across the base edge, no flicker while moving; `FlatRunes = true` gives the plain texture |  |  |
+| 265 | Ancient Furnace: the area turns warm biome colours and the snow melts after the explosion (the heating logic is automated) |  |  |
 
-(What was fixed and why: the row's entry in `docs/testing/fix-log/`, or the row text in the archive.)
+## B. Machines and GUIs
 
-## C. Never tested (29 rows with no result)
-
-Row number, feature, and the archive file holding the full test steps. Mostly crafting-recipe rows (the automated suite crafts every data recipe) and secondary behaviour of features whose main rows passed. Fill any of them in when you do test it.
-
-| # | Feature (short) | Full steps in |
-|---|---|---|
-| 174 | Imbuing Station - progress arrow + the three per-slot "fill" animations only animate while a valid recipe is in pro... | 5-batch-3-remaining-non-block-items-1.md |
-| 211 | Ender Mailbox - sneak-right-click with an addressed letter naming a player who doesn't exist: get a "does not seem ... | 5-batch-3-remaining-non-block-items-1.md |
-| 213 | Ender Mailbox - right-click a mailbox someone else placed (not sneaking): "You are not the owner of this mailbox," ... | 5-batch-3-remaining-non-block-items-1.md |
-| 244 | Creative Player Interface - creative-menu-only (no survival crafting recipe, matching 1.12.2), otherwise behaves id... | 5-batch-3-remaining-non-block-items-1.md |
-| 309 | Spectre Coil (Genesis) - same attach/drop behavior as the other tiers, but generates a flat 10,000,000 FE/tick dire... | 5-batch-3-remaining-non-block-items-2.md |
-| 325 | Spirit - killing any living entity has a small chance to spawn a tiny flying wisp at the death spot (higher at nigh... | 5-batch-3-remaining-non-block-items-3.md |
-| 326 | Spirit - drifts aimlessly near where it appeared, floats through the air (not on the ground), and despawns on its o... | 5-batch-3-remaining-non-block-items-3.md |
-| 327 | Spirit - immune to regular attacks/arrows/fire/etc; only a Spectre Sword (or creative-mode/out-of-world damage) can... | 5-batch-3-remaining-non-block-items-3.md |
-| 328 | Spirit - killing it with a Spectre Sword drops 1-2 Ectoplasm | 5-batch-3-remaining-non-block-items-3.md |
-| 329 | Batch 1 block loot tables - break a spread of Batch 1 blocks in survival (stained brick, luminous block, biome ston... | 5-batch-3-remaining-non-block-items-3.md |
-| 330 | Bean Sprout - breaking a fully grown (age 7) sprout drops 3-4 beans total; a young sprout drops just 1 | 5-batch-3-remaining-non-block-items-3.md |
-| 331 | Colored Grass - breaking it drops plain Dirt; with a Silk Touch tool it drops itself | 5-batch-3-remaining-non-block-items-3.md |
-| 332 | Compressed Slime Block - breaking it drops a regular vanilla Slime Block | 5-batch-3-remaining-non-block-items-3.md |
-| 333 | Blocks that should drop nothing still drop nothing: Blazing Fire, Floo Brick, Rune Base, Bean Stalk/Lesser Bean Sta... | 5-batch-3-remaining-non-block-items-3.md |
-| 334 | Chest loot injection - Summoning Pendulum, Magic Hood and Slime Cube occasionally appear in dungeon chests; Magic H... | 5-batch-3-remaining-non-block-items-3.md |
-| 335 | Chest loot injection - a Biome Crystal shows up in roughly 1 in 5 vanilla chests, already tuned to a random biome (... | 5-batch-3-remaining-non-block-items-3.md |
-| 336 | Config - first launch creates `config/randomthings-common.toml` with `[worldgen]`, `[loot]`, `[features]` boolean o... | 5-batch-3-remaining-non-block-items-3.md |
-| 337 | Config - `MagneticEnchantment = false` stops Magnetic appearing at the enchanting table/on books and stops it pulli... | 5-batch-3-remaining-non-block-items-3.md |
-| 338 | Config - `MagicHood`/`SummoningPendulum`/`SlimeCube`/`BiomeCrystal = false` under `[loot]` stops that item being in... | 5-batch-3-remaining-non-block-items-3.md |
-| 339 | Bean Pod - breaking one drops iron (8-20), gold (4-15), diamonds (1-5), 0-2 emeralds, 4-8 beans and a Golden Egg (i... | 5-batch-3-remaining-non-block-items-3.md |
-| 340 | Bean Pod - `GoldenEgg = false` in the config removes the egg from the drops; blowing the pod up with TNT drops only... | 5-batch-3-remaining-non-block-items-3.md |
-| 345 | Spirit config - `[numbers]` section: `SpiritLifeTime`, `SpiritChanceNormal`, `SpiritChanceMoonMult`, `SpiritChanceE... | 5-batch-3-remaining-non-block-items-3.md |
-| 347 | Runes - `[visual] FlatRunes = true` in the config switches them to the plain flat texture (takes effect on the next... | 5-batch-3-remaining-non-block-items-3.md |
-| 348 | Recipes - open the recipe book / a crafting table and confirm the backfilled recipes appear and craft (45 new): Ite... | 5-batch-3-remaining-non-block-items-3.md |
-| 353 | Config - `[visual] HideCoordinates = true`: Portkey tooltip only says `<Target set>` / `<No target set>` (no dimens... | 5-batch-3-remaining-non-block-items-3.md |
-| 354 | Config - `[numbers] BlockDestabilizerLimit`: default 50 blocks per activation as before; raise it (e.g. 500) and a ... | 5-batch-3-remaining-non-block-items-3.md |
-| 355 | Config - `[numbers] TriggerGlassChainLimit`: default 20 as before; lower it (e.g. 3) and only that many touching Tr... | 5-batch-3-remaining-non-block-items-3.md |
-| 358 | Ender Anchor chunk loading - `[features] EnderAnchorChunkloading = false`: newly placed anchors don't force anythin... | 5-batch-3-remaining-non-block-items-3.md |
-| 359 | Ender Anchor tooltip - hovering the item (inventory/creative) shows "Keeps the chunk it is in loaded"; the line dis... | 5-batch-3-remaining-non-block-items-3.md |
-
-## D. Visual / audio spot-checks that the scripts only measure
-
-The scenarios assert state and pixel measurements for these (rows removed from B/C above), but only your eyes/ears confirm they look right - a quick look is enough.
-
-| # | Look/listen for | Result | Feedback |
+| # | Try | Result | Feedback |
 |---|---|---|---|
-| 158 | Sound Dampener: the muted sound is really silent near the block and audible again beyond 20 blocks |  |  |
-| 234 | Fluid Display: takes the poured fluid's texture/colour, still vs flowing looks right |  |  |
-| 254 | Magic Hood: no potion swirl around you in F5 view (and other players see no nametag, two-player check) |  |  |
-| 265 | Ancient Furnace: the area around it visibly turns warm biome colours and the snow melts after the explosion (automated: heating test + client resync test) |  |  |
-| 277/279 | Portkey: dropped item shimmers then stops glowing about 5 s later; a disguised Portkey looks like the donor item in hand/ground/item frame |  |  |
-| 319 | Light Redirector: open face shows the block on the opposite side (periscope picture) |  |  |
-| 321-323, 390 | Dyeing Machine: recolored items are tinted held/in inventory/on the ground/worn; the enchant-glint result glows in the dye colour on items AND worn armor |  |  |
-| 346 | Runes: noisy texture, same-colour pixels join across the base edge, nothing flickers while you move |  |  |
-| 149-153 | Biome Radar particle colours; (#389 above) the crystal spins in the middle of the radar |  |  |
+| 174 | Imbuing Station: arrow and per-slot fill animations only run while a recipe is in progress; the output slot rejects manual insertion |  |  |
+| 211, 213 | Ender Mailbox: sneak-right-click with a letter for an unknown player gives "does not seem to reside in this world" and leaves the letter; another player's mailbox says you are not the owner and opens no GUI |  |  |
+| 244 | Creative Player Interface is creative-menu only and behaves like the Player Interface |  |  |
+| 309 | Spectre Coil (Genesis) generates 10,000,000 FE/tick into what it is attached to (creative tab only) |  |  |
+| 348 | The recipe book shows and crafts the backfilled recipes (Item Collector, Igniter, Iron Dropper, detectors, Inventory Tester, Notification Interface, Redstone Observer/Tool, Advanced Redstone Repeater, Potion Vaporizer, Player Interface, Slime Cube, ...) |  |  |
 
-## Museum report 2026-10-24 (all branches)
+## C. Mobs in survival
 
-| # | Check | Result | Notes |
-| --- | --- | --- | --- |
-| M1 | Super Lubricent Stone, Ice, Platform and Filtered Platform: placing and breaking them plays the ice (glass) sounds, not stone sounds - FIXED (museum report 2026-10-24) |  |  |
-| M2 | Blazing Fire on netherrack or another non-flammable block looks like vanilla fire (same flame shape and height) - was already cutout here (inherited from `FireBlock`), render scene `blazing_fire` checked 2026-10-24 |  |  |
-| M4 | Spirit Spawn Egg exists in the creative tab (black egg, blue spots as in 1.12.2) and spawns a Spirit when used on a block - FIXED (client suite test `retest.spirit_spawn_egg...`) |  |  |
-| M5 | Time in a Bottle: the floating clock icons on the faces of the accelerated block are bright, not dark - FIXED (`TimeAcceleratorEntityRenderer` draws full-bright; 1.14.4 renders differently and was not changed, check it) |  |  |
-| M6 | Spectre Illuminator: the chunk lights up after placing and goes dark again after removing the orb (client side, with screenshots) - playtest scenario `spectre_illuminator`; not reproducible as a bug on 1.21.11 (lit 107 -> dark again 40, 34 s after removal) |  |  |
+| # | Try | Result | Feedback |
+|---|---|---|---|
+| 325, 326 | Spirit: killing mobs sometimes spawns one (more at night under a full moon, more after the Ender Dragon); it drifts in the air and despawns on its own |  |  |
+| 327, 328 | Spirit: ignores ordinary damage, dies in one hit from a Spectre Sword, which drops 1-2 Ectoplasm |  |  |
+
+## D. Sound
+
+| # | Listen for | Result | Feedback |
+|---|---|---|---|
+| 158 | Sound Dampener: the muted sound is silent near the block and audible again beyond 20 blocks |  |  |
+
+## E. Worldgen, loot and config (survival world)
+
+| # | Try | Result | Feedback |
+|---|---|---|---|
+| 329-333, 339 | Break blocks in survival: Batch 1 blocks drop themselves; Bean Sprout drops 3-4 beans when grown and 1 when young; Colored Grass drops Dirt (itself with Silk Touch); Compressed Slime Block drops a Slime Block; Blazing Fire, Floo Brick, Rune Base, Bean Stalks and Diaphanous Block drop nothing; Bean Pod drops iron 8-20, gold 4-15, diamonds 1-5, 0-2 emeralds, 4-8 beans and a Golden Egg |  |  |
+| 334, 335 | Chests: Summoning Pendulum, Magic Hood, Slime Cube appear in dungeon / weaponsmith / stronghold / jungle-temple chests; a Biome Crystal in about 1 of 5 vanilla chests, already tuned to a biome |  |  |
+| 336, 337 | First launch creates `config/randomthings-common.toml` with `[worldgen]`, `[loot]`, `[features]` booleans, all `true`; `MagneticEnchantment = false` hides Magnetic at the enchanting table and stops the pull; `ArtificialEndPortal = false` makes Evil Tear do nothing; `Lotus` / `AncientFurnace = false` stop new ones in fresh chunks |  |  |
+| 345 | `[numbers]` `SpiritLifeTime`, `SpiritChanceNormal`, `SpiritChanceMoonMult`, `SpiritChanceEndIncrease` change Spirit despawn time and spawn odds (`SpiritChanceNormal = 1.0` spawns one on every kill) |  |  |
+| 353 | `HideCoordinates = true`: Portkey tooltip only says `<Target set>` / `<No target set>`, Position Filter shows no coordinates and no "hold Shift" hint; `false` restores both |  |  |
+
+**Old worlds (M18):** `docs/testing/fixture-world.md` lists what survives an upgrade; the 1.14.4 to 1.16.5 hop loses the Spectre cube because this branch never saved it before the 2026-10-28 fix.

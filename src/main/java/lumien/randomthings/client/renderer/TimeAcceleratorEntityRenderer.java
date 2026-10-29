@@ -3,32 +3,20 @@ package lumien.randomthings.client.renderer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 
 /**
- * Draws the Time in a Bottle item icon as a camera-facing billboard on all 6
- * faces of the target block, close to each face's own surface - per user
- * request, 2026-09-27 ("make every side have the floating icon... closer to
- * the surface"). Replaces a brief first pass that reused vanilla's own
- * {@code SpriteRenderer} directly, which can only billboard at one fixed
- * position - fine for a single marker, not for "every side." The per-icon
- * transform sequence below (translate, rescale-normal, scale, the same
- * three rotations, then the item render call itself) is copied from {@code
- * SpriteRenderer#doRender} (confirmed via {@code javap -c}) so each of the
- * 6 icons billboards identically to how vanilla's own item-entity rendering
- * does it, just repeated once per {@link Direction} with a small offset
- * instead of once at the entity's own position.
+ * Draws the spinning wheel of 1.12.2's {@code RenderTimeAccelerator} on every face of the accelerated block: more rings the higher the time rate (see
+ * {@link TimeWheel}, which holds the geometry and colours and is the same file on every branch). It replaces the floating Time in a Bottle icons, which the
+ * 1.14 port had drawn instead of the wheel.
  */
 public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAcceleratorEntity> {
-    /** How far past the block's own half-width (0.5) each icon sits. */
-    private static final float SURFACE_GAP = 0.05F;
-
     public TimeAcceleratorEntityRenderer(EntityRendererManager renderManager) {
         super(renderManager);
 
@@ -37,24 +25,46 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
 
     @Override
     public void doRender(TimeAcceleratorEntity entity, double x, double y, double z, float entityYaw, float partialTicks) {
-        ItemStack stack = entity.getItem();
-        float offset = 0.5F + SURFACE_GAP;
+        float progress = 2 * (entity.ticksExisted + partialTicks);
+        float[][] faces = TimeWheel.build(entity.getTimeRate(), progress);
+        Direction[] directions = Direction.values();
 
-        this.bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+        Minecraft.getInstance().gameRenderer.disableLightmap();
+        GlStateManager.disableTexture();
+        GlStateManager.disableLighting();
+        GlStateManager.disableCull();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        for (Direction direction : Direction.values()) {
+        for (int face = 0; face < 6; face++) {
+            Direction direction = directions[face];
+            float[] triangles = faces[face];
+
             GlStateManager.pushMatrix();
-            GlStateManager.translatef((float) x + direction.getXOffset() * offset, (float) y + direction.getYOffset() * offset, (float) z + direction.getZOffset() * offset);
-            GlStateManager.enableRescaleNormal();
-            GlStateManager.rotatef(-this.renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-            GlStateManager.rotatef((this.renderManager.options.thirdPersonView == 2 ? -1.0F : 1.0F) * this.renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.translated(x, y, z);
+            GlStateManager.translated(direction.getXOffset() * TimeWheel.OFFSET, direction.getYOffset() * TimeWheel.OFFSET, direction.getZOffset() * TimeWheel.OFFSET);
+            // 1.12.2: rotate(90, z, y, x) - the figure lies in the XZ plane and is turned so that it faces outwards - then spin around its own normal
+            GlStateManager.rotatef(90.0F, direction.getZOffset(), direction.getYOffset(), direction.getXOffset());
+            GlStateManager.rotatef(progress, 0.0F, 1.0F, 0.0F);
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder buffer = tessellator.getBuffer();
+            buffer.begin(4, DefaultVertexFormats.POSITION_COLOR);
 
-            GlStateManager.disableRescaleNormal();
+            for (int i = 0; i + TimeWheel.STRIDE <= triangles.length; i += TimeWheel.STRIDE) {
+                buffer.pos(triangles[i], triangles[i + 1], triangles[i + 2]).color(triangles[i + 3], triangles[i + 4], triangles[i + 5], triangles[i + 6]).endVertex();
+            }
+
+            tessellator.draw();
             GlStateManager.popMatrix();
         }
+
+        GlStateManager.disableBlend();
+        GlStateManager.enableCull();
+        GlStateManager.enableLighting();
+        GlStateManager.enableTexture();
+        Minecraft.getInstance().gameRenderer.enableLightmap();
     }
 
     @Override

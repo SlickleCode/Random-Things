@@ -13,6 +13,7 @@ import lumien.randomthings.block.OnlineDetectorBlock;
 import lumien.randomthings.handler.ModDimensions;
 import lumien.randomthings.handler.floo.FlooNetworkHandler;
 import lumien.randomthings.handler.spectre.SpectreCube;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import lumien.randomthings.handler.spectre.SpectreHandler;
 import lumien.randomthings.item.ModItems;
 import lumien.randomthings.item.SoundPatternItem;
@@ -335,6 +336,72 @@ final class RemainingBehaviorTests
 			}
 
 			c.check(handler.getSpectreCubeFromPos(spectre, new BlockPos(cubeA.getSpawnBlock().getX(), 1, 40)) == null, "outside the cube row resolves to nothing");
+		}));
+
+		tests.add(RTTest.named("behavior.spectre.two_players_teleporting_in_each_land_in_their_own_cube_and_go_back").run(c -> {
+			SpectreHandler handler = SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerPlayerEntity one = c.player;
+
+			if (one.dimension.getId() != 0)
+			{
+				throw new TestCtx.Skip("the test player starts in dimension " + one.dimension.getId() + " (a world left behind by an interrupted run?), not the overworld");
+			}
+
+			ServerPlayerEntity two = net.minecraftforge.common.util.FakePlayerFactory.get(c.world, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "SpectreSecond"));
+			// a fake player has no connection; give it one that swallows every packet so it can change dimension like a real second player
+			two.connection = new net.minecraft.network.play.ServerPlayNetHandler(c.world.getServer(), new net.minecraft.network.NetworkManager(net.minecraft.network.PacketDirection.SERVERBOUND)
+			{
+				@Override
+				public void sendPacket(net.minecraft.network.IPacket<?> packet)
+				{
+				}
+
+				@Override
+				public void sendPacket(net.minecraft.network.IPacket<?> packet, io.netty.util.concurrent.GenericFutureListener<? extends io.netty.util.concurrent.Future<? super Void>> listener)
+				{
+				}
+			}, two);
+			double startX = one.posX;
+			double startZ = one.posZ;
+
+			try
+			{
+				handler.teleportPlayerToSpectreCube(one);
+				handler.teleportPlayerToSpectreCube(two);
+
+				World spectre = handler.getWorld();
+				SpectreCube cubeOne = handler.getSpectreCubeFromPos(spectre, one.getPosition());
+				SpectreCube cubeTwo = handler.getSpectreCubeFromPos(spectre, two.getPosition());
+
+				c.check(cubeOne != null && cubeOne.getOwner().equals(one.getGameProfile().getId()), "player one must stand in a cube they own, got " + (cubeOne == null ? "no cube" : "owner " + cubeOne.getOwner()) + " at " + one.getPosition());
+				c.check(cubeTwo != null && cubeTwo.getOwner().equals(two.getGameProfile().getId()), "player two must stand in a cube they own, got " + (cubeTwo == null ? "no cube" : "owner " + cubeTwo.getOwner()) + " at " + two.getPosition());
+				c.check(cubeOne != cubeTwo && cubeOne.getPosition() != cubeTwo.getPosition(), "the two players must not share a cube");
+
+				// leaving and going in again finds the same cube instead of generating another
+				handler.teleportPlayerBack(one);
+				handler.teleportPlayerToSpectreCube(one);
+				c.check(handler.getSpectreCubeFromPos(spectre, one.getPosition()) == cubeOne, "teleporting in a second time must reuse the player's cube");
+
+				// the protection check puts a player who wandered into the other cube back into their own
+				two.setPosition(cubeOne.getSpawnBlock().getX() + 0.5, 1, cubeOne.getSpawnBlock().getZ() + 0.5);
+				handler.checkPosition(two);
+				SpectreCube after = handler.getSpectreCubeFromPos(spectre, two.getPosition());
+				c.check(after == cubeTwo, "a non-creative player in someone else's cube must be moved back to their own");
+			}
+			finally
+			{
+				handler.teleportPlayerBack(one);
+				handler.teleportPlayerBack(two);
+			}
+
+			c.check(one.dimension.getId() == 0, "player one must be back in the overworld, is in dimension " + one.dimension.getId());
+			c.check(Math.abs(one.posX - startX) < 2 && Math.abs(one.posZ - startZ) < 2, "player one must be back where they left");
 		}));
 
 		// ---- Sound Box / Sound Dampener (server-visible state) --------------------------------

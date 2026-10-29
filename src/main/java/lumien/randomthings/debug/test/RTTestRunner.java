@@ -69,6 +69,7 @@ public final class RTTestRunner
 		all.addAll(UtilityBehaviorTests.create());
 		all.addAll(RemainingBehaviorTests.create());
 		all.addAll(RetestBehaviorTests.create());
+		all.addAll(ChecklistTests.create());
 		all.addAll(CoremodTests.create());
 		all.addAll(UseItemTests.create());
 		all.addAll(WorldgenTests.create());

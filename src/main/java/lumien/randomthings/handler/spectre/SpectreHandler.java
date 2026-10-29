@@ -150,6 +150,8 @@ public class SpectreHandler extends WorldSavedData {
         cube.generate(getWorld());
         cubes.put(uuid, cube);
         this.markDirty();
+        // the Spectre dimension unloads once nobody is in it, and Forge's unload saves its chunks but not its saved data: write the cubes now
+        ((ServerWorld) getWorld()).getSavedData().save();
         return cube;
     }
 

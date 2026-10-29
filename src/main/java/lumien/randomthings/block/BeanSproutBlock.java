@@ -63,4 +63,10 @@ public class BeanSproutBlock extends CropsBlock
 
 		return super.onBlockActivated(state, worldIn, pos, player, handIn, hit);
 	}
+
+	@Override
+	public net.minecraft.util.BlockRenderLayer getRenderLayer()
+	{
+		return net.minecraft.util.BlockRenderLayer.CUTOUT;
+	}
 }

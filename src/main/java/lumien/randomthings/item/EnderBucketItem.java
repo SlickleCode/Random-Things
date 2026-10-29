@@ -46,7 +46,7 @@ import java.util.Set;
  * wrapped capability/{@code IFluidHandler} system essentially unchanged from
  * how it stayed for years afterward, so nothing here is provisional.
  */
-public class EnderBucketItem extends Item {
+public class EnderBucketItem extends Item implements lumien.randomthings.lib.IRTItemColor {
     private static final int CAPACITY = 1000;
 
     public EnderBucketItem(Item.Properties properties) {
@@ -228,5 +228,15 @@ public class EnderBucketItem extends Item {
         }
 
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
+    }
+
+    {
+        // the bucket shows its fluid: models/item/*.json switches to the model with the fluid layer while this is 1
+        addPropertyOverride(new net.minecraft.util.ResourceLocation("randomthings", "fluid_filled"), (stack, world, entity) -> lumien.randomthings.client.BucketFluidModel.filled(stack) ? 1.0F : 0.0F);
+    }
+
+    @Override
+    public int getColorFromItemstack(net.minecraft.item.ItemStack stack, int tintIndex) {
+        return lumien.randomthings.client.BucketFluidModel.color(stack, tintIndex);
     }
 }
