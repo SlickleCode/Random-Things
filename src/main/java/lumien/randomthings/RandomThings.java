@@ -212,6 +212,81 @@ public class RandomThings {
             }
         });
 
+        // Spectre Sapling conversion: right-clicking any vanilla sapling (the minecraft:saplings
+        // block tag, the equivalent of 1.12.2's "treeSapling" ore dictionary entry) with
+        // Ectoplasm turns it into a Spectre Sapling and uses up one Ectoplasm (not in creative).
+        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (equipped.isEmpty() || equipped.getItem() != ModItems.ECTOPLASM) {
+                return;
+            }
+
+            Level world = event.getWorld();
+            BlockPos pos = event.getPos();
+            BlockState targetState = world.getBlockState(pos);
+
+            if (targetState.getBlock() == ModBlocks.SPECTRE_SAPLING) {
+                return;
+            }
+
+            net.minecraft.tags.TagKey<Block> saplings = net.minecraft.tags.TagKey.create(net.minecraft.core.Registry.BLOCK_REGISTRY, new ResourceLocation("minecraft:saplings"));
+
+            if (!targetState.is(saplings)) {
+                return;
+            }
+
+            if (!world.isClientSide) {
+                if (!event.getPlayer().getAbilities().instabuild) {
+                    equipped.shrink(1);
+                }
+
+                world.setBlockAndUpdate(pos, ModBlocks.SPECTRE_SAPLING.defaultBlockState());
+            }
+
+            event.setCanceled(true);
+        });
+
+        // Runic Pattern from paper: right-clicking a placed Rune Base with a piece of paper copies its
+        // 4x4 pattern onto a Rune Pattern and uses up one paper; the pattern replaces the paper if it
+        // was the only one, else it goes into the inventory (dropped if full).
+        MinecraftForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (event.getWorld().isClientSide || equipped.isEmpty() || equipped.getItem() != Items.PAPER) {
+                return;
+            }
+
+            Level world = event.getWorld();
+            BlockPos pos = event.getPos();
+
+            if (world.getBlockState(pos).getBlock() != ModBlocks.RUNE_BASE) {
+                return;
+            }
+
+            BlockEntity te = world.getBlockEntity(pos);
+
+            if (!(te instanceof RuneBaseTileEntity)) {
+                return;
+            }
+
+            Player player = event.getPlayer();
+            ItemStack patternStack = new ItemStack(ModItems.RUNE_PATTERN);
+            RunePatternItem.setPattern(patternStack, ((RuneBaseTileEntity) te).getRuneData());
+
+            if (equipped.getCount() == 1) {
+                player.setItemInHand(event.getHand(), patternStack);
+            } else {
+                equipped.shrink(1);
+
+                if (!player.getInventory().add(patternStack)) {
+                    player.drop(patternStack, false);
+                }
+            }
+
+            event.setCanceled(true);
+        });
+
         // Imbue Fire/Poison/Wither: whoever last drank an imbue potion applies its
         // on-hit effect to anything they deal direct damage to (not indirect, e.g.
         // arrows/thrown potions - matches the original's own

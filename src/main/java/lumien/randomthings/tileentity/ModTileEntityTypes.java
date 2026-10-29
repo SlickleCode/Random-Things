@@ -183,7 +183,7 @@ public class ModTileEntityTypes
 		registerSimple(registry, "block_destabilizer", BlockDestabilizerTileEntity::new, ModBlocks.BLOCK_DESTABILIZER);
 
 		registerSimple(registry, "spectre_energy_injector", SpectreEnergyInjectorTileEntity::new, ModBlocks.SPECTRE_ENERGY_INJECTOR);
-		registerSimple(registry, "spectre_coil", SpectreCoilTileEntity::new, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+		registerSimple(registry, "spectre_coil", SpectreCoilTileEntity::new, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_NUMBER, ModBlocks.SPECTRE_COIL_GENESIS);
 		registerSimple(registry, "spectre_lens", SpectreLensTileEntity::new, ModBlocks.SPECTRE_LENS);
 
 		registerSimple(registry, "light_redirector", LightRedirectorTileEntity::new, ModBlocks.LIGHT_REDIRECTOR);

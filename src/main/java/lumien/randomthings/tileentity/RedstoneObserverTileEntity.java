@@ -63,6 +63,31 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 		}
 	}
 
+	/** The power maps are not saved, so a freshly loaded observer recomputes them once its target is loaded. */
+	private boolean refreshPending = true;
+
+	/**
+	 * Called every tick by the block's ticker: after load, recomputes the output as soon as the target's
+	 * chunk is loaded (not inside onLoad itself, to avoid touching other chunks mid chunk-load).
+	 */
+	public void tick()
+	{
+		if (!refreshPending || this.level == null || this.level.isClientSide)
+		{
+			return;
+		}
+
+		if (this.target == null)
+		{
+			refreshPending = false;
+		}
+		else if (this.level.hasChunkAt(this.target))
+		{
+			refreshPending = false;
+			updateRedstoneState();
+		}
+	}
+
 	public static void notifyNeighbor(NeighborNotifyEvent event)
 	{
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(loadedObservers))

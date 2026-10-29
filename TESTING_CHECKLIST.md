@@ -132,3 +132,21 @@ Section letter G because E and F were already taken on this branch (the 1.14.4 b
 | AF10 | Ender Bucket / Reinforced Ender Bucket: clicking a different fluid than the one inside (or when full) does not remove the source block; watch for a neighbour-update blip when the block is put back |  |  |
 | AF11 | Eclipsed Clock: the dropped item keeps its target time and restores it when hung again; sneak-clicking from a target below 00:30 wraps to the evening instead of showing a negative time |  |  |
 | AF12 | Stable Ender Pearl with a tag but no stored player (or a broken UUID) does not crash, it acts as unbound |  |  |
+
+## H. Audit features and bug fixes, round 2 (2026-10-29; written without a compiler, NOT built or run - build, run the suites, then retest in game)
+
+Section letter H because G is the round 1 section on this branch. Details and unverified points: [`docs/project/audit-fixes-2026-10-29.md`](docs/project/audit-fixes-2026-10-29.md) (round 2 section). All rows are **fixed / added, waiting for your retest**.
+
+| # | Try | Result | Feedback |
+|---|---|---|---|
+| AG1 | Spectre Sapling: right click any vanilla sapling with Ectoplasm turns it into a Spectre Sapling and uses one Ectoplasm (creative keeps it) |  |  |
+| AG2 | Runic Pattern: right click a placed Rune Base (Runic Dust) with a piece of paper gives a Runic Pattern holding its 4x4 pattern and uses one paper (the pattern replaces the paper if it was the last) |  |  |
+| AG3 | Luminous Powder + an enchanted item (shapeless, 1 + 1) gives the item back with a yellow "Luminous" tooltip line and uses the powder. **The glow-in-the-dark glint itself is NOT implemented** (needs a glint coremod hook that forces full-bright lighting) |  |  |
+| AG4 | Numbered Spectre Coil: found in dungeon (10), abandoned mineshaft (8) and end city (30) chests, named "Spectre Coil Nr. N", no recipe, pushes 128 FE per tick into the energy block it is attached to (no Spectre pool needed); `NumberedSpectreCoils = false` removes it from chests |  |  |
+| AG5 | Blackout Powder (recipe: ink sac, coal block, lapis lazuli = 4): right click a block in a chunk lit by a Spectre Illuminator removes the orb, drops the Illuminator item next to the clicked block, relights the chunk and uses one powder (not in creative) |  |  |
+| AG6 | Floo: teleporting to a fireplace whose chunk is not loaded does nothing and does not delete the fireplace from the network |  |  |
+| AG7 | Floo Sign with a name that already exists (any case): action bar message, the sign is kept and no bricks convert |  |  |
+| AG8 | Stable Ender Pearl: a bound player in another dimension is moved to the pearl's dimension and position (watch for dimension-change side effects: no portal may be created) |  |  |
+| AG9 | Advanced Redstone Interface and Redstone Remote ignore Position Filters stored in another dimension (filters without a dimension count as the overworld) |  |  |
+| AG10 | Redstone Observer: its output is right after reloading the world (no wait for the target to change) |  |  |
+| AG11 | Analog Emitter: input is read from the opposite side like the original (power from a repeater or torch behind it) |  |  |

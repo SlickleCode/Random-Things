@@ -32,14 +32,7 @@ import net.minecraft.server.level.ServerLevel;
  * then quietly pulls the bound player to its resting position. If nobody
  * bound it (or the binding is gone), it grabs the nearest living entity
  * within 10 blocks instead - a "random teleport" fallback, matching 1.12.2.
- * <p>
- * Disclosed simplification: 1.12.2 additionally handled the rare case of the
- * dropped item ending up in a different dimension than the bound player
- * (e.g. dropped near a portal) by force-transferring that player's
- * dimension via a hand-rolled {@code SimpleTeleporter}. 1.14.4's dimension
- * API is a substantial rewrite from 1.12.2's, and this edge case isn't worth
- * porting in isolation - the normal (overwhelmingly common) same-dimension
- * case is unaffected.
+ * A bound player in another dimension is moved to the pearl's dimension first.
  */
 public class StableEnderpearlItem extends Item
 {
@@ -100,6 +93,13 @@ public class StableEnderpearlItem extends Item
 				if (player != null)
 				{
 					player.level.playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+
+					if (player.level != entityItem.level)
+					{
+						// SpectreTeleporter = "no portal search/creation", position is overwritten right below (same pattern as SpectreHandler.teleportPlayerBack)
+						player.changeDimension((ServerLevel) entityItem.level, lumien.randomthings.handler.spectre.SpectreTeleporter.INSTANCE);
+					}
+
 					player.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), player.getYRot(), player.getXRot());
 				}
 				else

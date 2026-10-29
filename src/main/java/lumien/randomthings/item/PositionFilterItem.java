@@ -81,6 +81,24 @@ public class PositionFilterItem extends Item
 		compound.putInt("filterZ", pos.getZ());
 	}
 
+	/**
+	 * The dimension id stored by {@link #setPosition} ("minecraft:overworld" if the filter has none),
+	 * or {@code null} if there is no position.
+	 */
+	public static String getDimension(ItemStack positionFilter)
+	{
+		CompoundTag compound = positionFilter.getTag();
+
+		if (compound == null || !compound.getBoolean("hasPosition"))
+		{
+			return null;
+		}
+
+		String dimension = compound.getString("dimension");
+
+		return dimension.isEmpty() ? "minecraft:overworld" : dimension;
+	}
+
 	public static BlockPos getPosition(ItemStack positionFilter)
 	{
 		CompoundTag compound = positionFilter.getTag();

@@ -1,6 +1,10 @@
 package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.EntityBlock;
+import lumien.randomthings.tileentity.ModTileEntityTypes;
+import lumien.randomthings.util.Tickers;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import net.minecraft.world.level.block.Block;
@@ -34,6 +38,12 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
 	{
 	    return new RedstoneObserverTileEntity(pos, state);
+	}
+
+	@Override
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type)
+	{
+		return Tickers.of(type, ModTileEntityTypes.REDSTONE_OBSERVER, (l, p, s2, be) -> be.tick());
 	}
 
 	@Override
