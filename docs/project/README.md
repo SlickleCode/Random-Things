@@ -12,6 +12,7 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [api-gotchas-1.14.4.md](api-gotchas-1.14.4.md) | Forge 28.2.26 / 1.14.4 API surprises |
 | [api-gotchas-1.16.5.md](api-gotchas-1.16.5.md) | Forge 36.2.39 / 1.16.5 behaviour changes that cost debugging time (culling/`notSolid`, glint render types, data-pack biomes, string dimensions, coremod names) |
 | [audit-fixes-2026-10-29.md](audit-fixes-2026-10-29.md) | bug fixes from the 2026-10-29 wiki audit, written without a compiler (unverified), with per-fix notes; round 2 adds Spectre Sapling / Runic Pattern / Luminous Powder / Numbered Coil / Blackout Powder and more fixes |
+| [cloud-session-limits-2026-10-29.md](cloud-session-limits-2026-10-29.md) | what the 2026-10-29 cloud session could not do (no compiler, jars or game), what is unproven and what to run first |
 | [pitfalls.md](pitfalls.md) | generalized lessons that cost real time |
 | [state-history-2026-10.md](state-history-2026-10.md) | detailed state and change-set history up to 2026-10-11 |
 | [slice-history.md](slice-history.md) | one line per porting slice |

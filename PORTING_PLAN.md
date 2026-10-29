@@ -26,7 +26,7 @@ overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch
 Rows AF1-AF12 in section G of `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-2026-10-29.md`.
 
 **Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Luminous Powder recipe (glow rendering still missing), Numbered Spectre Coils and Blackout Powder;
-fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in section H of `TESTING_CHECKLIST.md`.
+fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in section H of `TESTING_CHECKLIST.md`. The Magic Bean stalk now breaks blocks in its way (row AG12). What the cloud session could not do: `docs/project/cloud-session-limits-2026-10-29.md`.
 
 ## Current state on this branch (`1.16.5`, 2026-10-14)
 
