@@ -20,8 +20,10 @@ in that order).
   "images": ["images/foo.png"],       // optional, screenshot gallery (relative paths or full URLs)
   "videos": ["videos/foo.mp4"],       // optional, same gallery, rendered as <video>
   "recipe_images": ["images/bar.png"],// optional, one or more flat pictures of the recipe(s)
-  "recipe": { ... },                  // optional, structured recipe (see below) - takes
+  "recipe": { ... },                  // optional, one structured recipe (see below) - takes
                                        // priority over recipe_images when both are set
+  "recipes": [ { ... }, { ... } ],    // optional, several structured recipes, each may carry
+                                       // a "note" sentence shown under its grid (e.g. "Shapeless")
   "properties": [                     // optional, freeform quick-facts table
     { "label": "Teleport Delay", "value": "7 seconds" }
   ]
@@ -46,6 +48,10 @@ the generator will render it as a real recipe grid with resolved icons:
   "result": { "key": "advanced_redstone_torch", "count": 1 }
 }
 ```
+
+A feature with more than one crafting recipe uses `"recipes": [...]` instead (same object shape as `recipe`, plus an
+optional `"note": "..."` string rendered under the grid, used to say that a recipe is shapeless or applies to every
+color). `recipe` and `recipes` can both be present; `recipe` is shown first.
 
 Each grid slot is `null` (empty), a texture key string, or `{"key": "...", "label": "..."}` for
 an explicit display label. Keys are resolved in this order:

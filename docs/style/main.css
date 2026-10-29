@@ -520,3 +520,9 @@ img {
 @media only screen and (min-width: 1280px) {
 
 }
+.recipe-note {
+    text-align: center;
+    margin: 0 20px 16px;
+    font-size: 0.9em;
+    color: var(--recipe-slot-label-color);
+}

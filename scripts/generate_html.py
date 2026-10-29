@@ -37,6 +37,7 @@ def load_features() -> list:
         feature.setdefault("keywords", [])
         feature.setdefault("recipe_images", [])
         feature.setdefault("recipe", None)
+        feature.setdefault("recipes", [])
         features.append(feature)
     return sorted(features, key=lambda feature: feature["title"])
 
@@ -80,6 +81,7 @@ def resolve_recipe(recipe: dict | None, icon_index: dict) -> dict | None:
         result_icon = icon_index[result_key]
 
     return {
+        "note": recipe.get("note"),
         "shape": shape,
         "result": {
             "icon": result_icon,
@@ -117,7 +119,12 @@ def main() -> None:
 
     for feature in features:
         feature["icon"] = icon_index.get(feature["id"])
-        feature["recipe"] = resolve_recipe(feature.get("recipe"), icon_index)
+        # "recipes" (a list, each with an optional "note") supersedes the older
+        # single "recipe" object; both are normalised into one resolved list.
+        raw_recipes = list(feature.get("recipes") or [])
+        if feature.get("recipe"):
+            raw_recipes.insert(0, feature["recipe"])
+        feature["recipes"] = [resolve_recipe(r, icon_index) for r in raw_recipes]
 
     clean_output_dir()
 

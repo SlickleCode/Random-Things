@@ -47,21 +47,22 @@ def iter_recipe_keys():
         with open(path, "r") as feature_file:
             feature = json.load(feature_file)
 
-        recipe = feature.get("recipe")
-        if not recipe:
-            continue
+        recipes = list(feature.get("recipes") or [])
+        if feature.get("recipe"):
+            recipes.append(feature["recipe"])
 
-        for row in recipe.get("shape", []):
-            for slot in row:
-                if slot is None:
-                    continue
-                key = slot if isinstance(slot, str) else slot.get("key")
-                if key:
-                    yield key
+        for recipe in recipes:
+            for row in recipe.get("shape", []):
+                for slot in row:
+                    if slot is None:
+                        continue
+                    key = slot if isinstance(slot, str) else slot.get("key")
+                    if key:
+                        yield key
 
-        result_key = recipe.get("result", {}).get("key")
-        if result_key:
-            yield result_key
+            result_key = recipe.get("result", {}).get("key")
+            if result_key:
+                yield result_key
 
 
 def load_vanilla_name_overrides() -> dict:

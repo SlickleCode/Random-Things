@@ -24,12 +24,13 @@
   </table>
   {% endif %}
 
-  {% if feature.recipe %}
+  {% if feature.recipes %}
   <hr/>
   <h1>Recipe</h1>
+  {% for recipe in feature.recipes %}
   <div class="recipe-container">
     <div class="recipe-grid">
-      {% for row in feature.recipe.shape %}
+      {% for row in recipe.shape %}
         {% for slot in row %}
         <div class="recipe-slot" title="{{ slot.label if slot else '' }}">
           {% if slot and slot.icon %}
@@ -44,17 +45,21 @@
     <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
     </svg>
-    <div class="recipe-slot recipe-result" title="{{ feature.recipe.result.label }}">
-      {% if feature.recipe.result.icon %}
-      <img src="{{ feature.recipe.result.icon }}" alt="{{ feature.recipe.result.label }}">
+    <div class="recipe-slot recipe-result" title="{{ recipe.result.label }}">
+      {% if recipe.result.icon %}
+      <img src="{{ recipe.result.icon }}" alt="{{ recipe.result.label }}">
       {% else %}
-      <span class="recipe-slot-label">{{ feature.recipe.result.label }}</span>
+      <span class="recipe-slot-label">{{ recipe.result.label }}</span>
       {% endif %}
-      {% if feature.recipe.result.count and feature.recipe.result.count > 1 %}
-      <span class="recipe-result-count">&times;{{ feature.recipe.result.count }}</span>
+      {% if recipe.result.count and recipe.result.count > 1 %}
+      <span class="recipe-result-count">&times;{{ recipe.result.count }}</span>
       {% endif %}
     </div>
   </div>
+  {% if recipe.note %}
+  <p class="recipe-note">{{ recipe.note }}</p>
+  {% endif %}
+  {% endfor %}
   {% elif feature.recipe_images %}
   <hr/>
   <h1>Recipe</h1>
