@@ -18,3 +18,4 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [wiki-feature-status.md](wiki-feature-status.md) | full per-feature table and the "Not migrating" list |
 | [old-plan-intro.md](old-plan-intro.md) | the old plan's intro and file map |
 | [audit-fixes-2026-10-29.md](audit-fixes-2026-10-29.md) | bug fixes from the 2026-10-29 wiki audit (round 1) and the missing features plus more fixes (round 2), written without a compiler (unverified), with per-fix notes |
+| [cloud-session-limits-2026-10-29.md](cloud-session-limits-2026-10-29.md) | what the 2026-10-29 cloud session could not do (no compiler, jars or game), what is unproven and what to run first |

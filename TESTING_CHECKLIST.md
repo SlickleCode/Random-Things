@@ -150,3 +150,4 @@ Details and unverified points: [`docs/project/audit-fixes-2026-10-29.md`](docs/p
 | AG9 | Advanced Redstone Interface and Redstone Remote ignore Position Filters stored in another dimension (filters without a dimension count as the overworld) |  |  |
 | AG10 | Redstone Observer: its output is right after reloading the world (no wait for the target to change) |  |  |
 | AG11 | Analog Emitter: input is read from the opposite side like the original (power from a repeater or torch behind it) |  |  |
+| AG12 | Magic Bean stalk: grows through breakable blocks above it (stone, dirt...) up to the height limit with the block-break effect and no drops, becomes a Bean Pod under an unbreakable block (bedrock); the Lesser Magic Bean stalk still stops at the first solid block |  |  |
