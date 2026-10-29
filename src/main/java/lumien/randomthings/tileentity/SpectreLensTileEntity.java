@@ -59,7 +59,7 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
         super.remove();
 
         if (owner != null && !world.isRemote) {
-            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(world.getDimension().getType().getId(), owner);
         }
     }
 
@@ -79,7 +79,7 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
                     Effect primary = (Effect) PRIMARY_EFFECT.get(beacon);
                     Effect secondary = (Effect) SECONDARY_EFFECT.get(beacon);
 
-                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beacon.getLevels(), primary, secondary);
+                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(world.getDimension().getType().getId(), owner, beacon.getLevels(), primary, secondary);
                     return;
                 } catch (IllegalAccessException e) {
                     LogManager.getLogger().error("Spectre Lens could not access the beacon effect fields", e);
@@ -87,7 +87,7 @@ public class SpectreLensTileEntity extends TileEntity implements ITickableTileEn
             }
         }
 
-        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(world.getDimension().getType().getId(), owner);
     }
 
     @Override

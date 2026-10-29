@@ -3,6 +3,7 @@ package lumien.randomthings.tileentity;
 import lumien.randomthings.util.WeakSets;
 import java.util.Set;
 
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -43,6 +44,22 @@ public class SlimeCubeTileEntity extends TileEntity
 	{
 		super.remove();
 		cubes.remove(this);
+	}
+
+	@Override
+	public CompoundNBT write(CompoundNBT compound)
+	{
+		super.write(compound);
+		compound.putBoolean("powered", powered);
+
+		return compound;
+	}
+
+	@Override
+	public void read(CompoundNBT compound)
+	{
+		super.read(compound);
+		this.powered = compound.getBoolean("powered");
 	}
 
 	public boolean isPowered()

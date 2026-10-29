@@ -69,6 +69,7 @@ public class SoundBoxTileEntity extends TileEntity {
     @Override
     public CompoundNBT write(CompoundNBT compound) {
         super.write(compound);
+        compound.putBoolean("powered", powered);
 
         if (!pattern.isEmpty()) {
             compound.put("pattern", pattern.write(new CompoundNBT()));
@@ -80,6 +81,7 @@ public class SoundBoxTileEntity extends TileEntity {
     @Override
     public void read(CompoundNBT compound) {
         super.read(compound);
+        this.powered = compound.getBoolean("powered");
 
         this.pattern = compound.contains("pattern") ? ItemStack.read(compound.getCompound("pattern")) : ItemStack.EMPTY;
     }

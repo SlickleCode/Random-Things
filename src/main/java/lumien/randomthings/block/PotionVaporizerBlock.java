@@ -6,6 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer.Builder;
@@ -17,6 +18,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.items.IItemHandler;
 
 /**
  * Faces an enclosed room and vaporizes a stored potion into it over time,
@@ -55,6 +57,27 @@ public class PotionVaporizerBlock extends Block
 	public BlockState getStateForPlacement(BlockItemUseContext context)
 	{
 		return this.getDefaultState().with(FACING, context.getNearestLookingDirection().getOpposite());
+	}
+
+	@Override
+	public void onReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	{
+		if (state.getBlock() != newState.getBlock())
+		{
+			TileEntity te = worldIn.getTileEntity(pos);
+
+			if (te instanceof PotionVaporizerTileEntity)
+			{
+				IItemHandler handler = ((PotionVaporizerTileEntity) te).itemHandler();
+
+				for (int i = 0; i < handler.getSlots(); i++)
+				{
+					InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), handler.getStackInSlot(i));
+				}
+			}
+		}
+
+		super.onReplaced(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override

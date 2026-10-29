@@ -58,6 +58,10 @@ public class BasicRedstoneInterfaceBlock extends Block {
 
     @Override
     public boolean onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (player.getHeldItem(handIn).getItem() instanceof lumien.randomthings.item.RedstoneToolItem) {
+            return false;
+        }
+
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
 

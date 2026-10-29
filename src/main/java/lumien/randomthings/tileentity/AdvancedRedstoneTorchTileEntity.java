@@ -64,10 +64,12 @@ public class AdvancedRedstoneTorchTileEntity extends TileEntity implements IName
 	public void setSignalStrengthGreen(int newValue)
 	{
 		this.signalStrengthGreen = newValue;
+		this.markDirty();
 	}
 
 	public void setSignalStrengthRed(int newValue)
 	{
 		this.signalStrengthRed = newValue;
+		this.markDirty();
 	}
 }

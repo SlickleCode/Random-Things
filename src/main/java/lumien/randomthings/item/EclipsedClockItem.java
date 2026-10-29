@@ -56,7 +56,11 @@ public class EclipsedClockItem extends Item {
             return ActionResultType.FAIL;
         }
 
-        HangingEntity hanging = new EclipsedClockEntity(context.getWorld(), placedPos, facing);
+        EclipsedClockEntity hanging = new EclipsedClockEntity(context.getWorld(), placedPos, facing);
+
+        if (stack.hasTag() && stack.getTag().contains("targetTime")) {
+            hanging.setTargetTime(stack.getTag().getInt("targetTime"));
+        }
 
         if (hanging.onValidSurface()) {
             if (!context.getWorld().isRemote) {
