@@ -36,7 +36,11 @@ public class EclipsedClockItem extends Item implements IClientItemProperties{
             return InteractionResult.FAIL;
         }
 
-        HangingEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+        EclipsedClockEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+
+        if (stack.hasTag() && stack.getTag().contains("targetTime")) {
+            hanging.setTargetTime(stack.getTag().getInt("targetTime"));
+        }
 
         if (hanging.survives()) {
             if (!context.getLevel().isClientSide) {

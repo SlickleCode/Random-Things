@@ -72,6 +72,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag compound) {
         super.saveAdditional(compound);
+        compound.putBoolean("powered", powered);
 
         if (!pattern.isEmpty()) {
             compound.put("pattern", pattern.save(new CompoundTag()));
@@ -82,6 +83,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     @Override
     public void load(CompoundTag compound) {
         super.load(compound);
+        this.powered = compound.getBoolean("powered");
 
         this.pattern = compound.contains("pattern") ? ItemStack.of(compound.getCompound("pattern")) : ItemStack.EMPTY;
     }

@@ -17,3 +17,4 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [slice-history.md](slice-history.md) | one line per porting slice |
 | [wiki-feature-status.md](wiki-feature-status.md) | full per-feature table and the "Not migrating" list |
 | [old-plan-intro.md](old-plan-intro.md) | the old plan's intro and file map |
+| [audit-fixes-2026-10-29.md](audit-fixes-2026-10-29.md) | bug fixes from the 2026-10-29 wiki audit, written without a compiler (unverified), with per-fix notes |

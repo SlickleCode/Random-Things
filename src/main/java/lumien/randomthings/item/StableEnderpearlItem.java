@@ -84,11 +84,17 @@ public class StableEnderpearlItem extends Item
 				ItemStack itemStack = entityItem.getItem();
 				ServerPlayer player = null;
 
-				if (itemStack.getTag() != null)
+				if (itemStack.getTag() != null && itemStack.getTag().contains("player-uuid"))
 				{
-					String uuidString = itemStack.getTag().getString("player-uuid");
-					UUID uuid = UUID.fromString(uuidString);
-					player = ((ServerLevel) entityItem.level).getServer().getPlayerList().getPlayer(uuid);
+					try
+					{
+						UUID uuid = UUID.fromString(itemStack.getTag().getString("player-uuid"));
+						player = ((ServerLevel) entityItem.level).getServer().getPlayerList().getPlayer(uuid);
+					}
+					catch (IllegalArgumentException e)
+					{
+						// malformed uuid: treat as unbound
+					}
 				}
 
 				if (player != null)

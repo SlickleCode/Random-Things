@@ -30,6 +30,14 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 - **Museum report fixes (2026-10-24):** Super Lubricent blocks use the glass (ice) sound type; Blazing Fire is a cutout block like vanilla fire (`RenderLayerSetup`). Also: Spirit Spawn Egg, Time in a Bottle icons full-bright, Spectre Illuminator client playtest scenario. Checklist rows M1-M6.
 - **Time Accelerator wheel (2026-10-29):** the accelerated block shows the spinning decagon wheel of 1.12.2 on all six faces (rings grow with the time rate) instead of the floating Time in a Bottle icons. Geometry and colours are one version-neutral file, `client/renderer/TimeWheel.java` (identical on every branch); each branch only has its own `TimeAcceleratorEntityRenderer` that transforms the triangles and draws them unlit and translucent. Render scenes `time_wheel` (six rates in a row) and `time_wheel_close`.
 
+## Audit bug fixes (2026-10-29, unverified)
+
+A wiki audit (branch `wiki`) found behaviour bugs; the 12 fixes of `1.14.4` commit `03be7448` were mirrored here **without a compiler or Forge jars (cloud session) - build, run both suites and retest before trusting them**:
+Redstone Tool plain-click linking, Online Detector case sensitivity, Lotus Seeds on farmland only, Peace Candle denies slimes, Spectre Lens per player per dimension (keyed by dimension id string), Ender Letter store always the
+overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch `setChanged`, Potion Vaporizer drops its contents, Ender Bucket drain check, Eclipsed Clock target time, Stable Ender Pearl guard.
+Test `use_item.lotus_seeds.plant_on_grass_but_not_on_stone` was renamed/rewritten (`plant_on_farmland_but_not_on_grass_or_stone`) because it asserted the old behaviour. Not done: Peace Candle churches in every village type (blocked).
+Rows AF1-AF12 in section G of `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-2026-10-29.md`.
+
 ## What to do next
 
 1. M3-M6 in order (chat, rendering/client, coremods, boot + suites); update the plan + this file after each. M2 (worldgen + restored worldgen tests) is done, see the plan's "M2 result".
