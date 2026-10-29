@@ -49,4 +49,4 @@ and reading the original 1.12.2 source. APIs were only used where the same call 
 
 ## 6. The wiki
 
-`wiki` describes the intended behaviour, not the bugs. Two claims still depend on code that is missing: the Luminous glint glow (section 4) and, until the stalk fix is retested, the Magic Bean stalk breaking blocks.
+`wiki` describes the intended behaviour, not the bugs. One claim still depends on code that is missing: the Luminous glint glow (section 4). The Magic Bean stalk breaking blocks was added on 2026-10-29 and has to be retested (row AG12).
