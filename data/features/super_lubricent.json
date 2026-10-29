@@ -1,7 +1,49 @@
 {
   "title": "Super Lubricent",
   "category": "item",
-  "description": "Super slippery oil",
-  "keywords": ["Super", "Lubricent", "Bean"],
-  "images": []
+  "description": "The Super Lubricent Tincture is a crafting ingredient and has no use on its own. It is used to craft Super Lubricent Boots.",
+  "keywords": [
+    "Super",
+    "Lubricent",
+    "Bean"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted"
+    },
+    {
+      "label": "Used for",
+      "value": "Crafting Super Lubricent Boots"
+    }
+  ],
+  "images": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "wheat_seeds",
+          {
+            "key": "potion",
+            "label": "Water Bottle"
+          },
+          null
+        ],
+        [
+          "beans",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "super_lubricent_tincture",
+        "count": 4
+      }
+    }
+  ]
 }

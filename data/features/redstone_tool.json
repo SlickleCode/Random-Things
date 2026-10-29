@@ -1,0 +1,55 @@
+{
+  "title": "Redstone Tool",
+  "category": "item",
+  "description": "The Redstone Tool is the item meant for setting the target of Redstone Observers and basic Redstone Interfaces. Shift right click a Redstone Observer or a basic Redstone Interface to start a link, the item then shows an enchantment glow. Then shift right click the block you want it to watch to finish the link. The target can be any block and there is no range limitation.\n\nThe Advanced Redstone Interface cannot be linked with the tool, it uses Position Filters instead.",
+  "keywords": [
+    "Redstone",
+    "Tool",
+    "Link",
+    "Observer",
+    "Interface"
+  ],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Used on",
+      "value": "Redstone Observer, Redstone Interface"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone",
+          null,
+          null
+        ],
+        [
+          {
+            "key": "stick",
+            "label": "Stick"
+          },
+          null,
+          null
+        ],
+        [
+          {
+            "key": "stick",
+            "label": "Stick"
+          },
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "redstone_tool",
+        "count": 1
+      }
+    }
+  ]
+}

@@ -1,11 +1,15 @@
 {
   "title": "Weather Eggs",
   "category": "item",
-  "description": "When thrown Weather Eggs will spawn a small cloud that will start to slowly go upwards. Once it reaches the sky it will change the weather to the type of the egg (Sunny, Rain, Thunderstorm).",
+  "description": "When thrown Weather Eggs will spawn a small cloud that will start to slowly go upwards. Once it reaches the sky it will change the weather to the type of the egg (Sunny, Rain, Thunderstorm) and disappear. The new weather lasts between 5 and 15 minutes.\n\nThere are three eggs: Sun, Rain (rain without thunder) and Storm (rain with thunder). Each craft gives 2 eggs. They can also be fired from dispensers.",
   "keywords": [
     "Weather",
     "Egg",
-    "Throwable"
+    "Throwable",
+    "Sun",
+    "Rain",
+    "Storm",
+    "Thunder"
   ],
   "images": [
     "images/weather-eggs.png"
@@ -14,12 +18,86 @@
     {
       "label": "Weather Effects",
       "value": "Clear, Rain, Storm"
+    },
+    {
+      "label": "Obtain",
+      "value": "Crafted, 2 eggs per craft (see recipes)"
+    },
+    {
+      "label": "Duration",
+      "value": "5 to 15 minutes"
     }
   ],
-  "recipe_images": [
-    "images/crafting-weather-eggs-sun.png",
-    "images/crafting-weather-eggs-rain.png",
-    "images/crafting-weather-eggs-storm.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "obsidian",
+          "potion",
+          "obsidian"
+        ],
+        [
+          "lapis_lazuli",
+          "fire_charge",
+          "lapis_lazuli"
+        ],
+        [
+          "obsidian",
+          "potion",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "weather_egg_rain",
+        "count": 2
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "sugar",
+          "obsidian"
+        ],
+        [
+          "lapis_lazuli",
+          "fire_charge",
+          "lapis_lazuli"
+        ],
+        [
+          "obsidian",
+          "sugar",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "weather_egg_storm",
+        "count": 2
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "feather",
+          "obsidian"
+        ],
+        [
+          "sunflower",
+          "fire_charge",
+          "sunflower"
+        ],
+        [
+          "obsidian",
+          "feather",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "weather_egg_sun",
+        "count": 2
+      }
+    }
+  ]
 }

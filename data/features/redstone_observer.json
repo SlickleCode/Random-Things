@@ -1,16 +1,56 @@
 {
   "title": "Redstone Observer",
   "category": "block",
-  "description": "The Redstone Observer emits redstone based on whether the block it's linked to emits redstone. To specify the target of a redstone observer you have to use a Redstone Tool . First right click on the redstone observer and then on the block you want to link it to. While holding a redstone tool you are able to see these connections as red lines as long as you are close to the block the observer is linked to.",
+  "description": "The Redstone Observer emits redstone based on whether the block it's linked to emits redstone. To specify the target of a redstone observer you have to use a Redstone Tool . First shift right click on the redstone observer and then shift right click on the block you want to link it to. While holding a redstone tool you are able to see these connections as red lines as long as you are close to the block the observer is linked to.\n\nIt copies the signal strength of the target (0 to 15) for each side, not just on or off. Right clicking the observer opens a gui that shows its current target or \"No Target\". There is no range limitation.\n\nIt keeps working after the world is reloaded.",
   "keywords": [
     "Observer",
     "Redstone"
   ],
+  "properties": [
+    {
+      "label": "Targets",
+      "value": "1"
+    },
+    {
+      "label": "Range",
+      "value": "Unlimited"
+    },
+    {
+      "label": "Redstone",
+      "value": "Copies the target's signal strength, side by side"
+    },
+    {
+      "label": "Linking",
+      "value": "Redstone Tool"
+    }
+  ],
   "images": [
     "images/redstone-observer.png"
   ],
-  "recipe_images": [
-    "images/crafting-redstone-observer.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone",
+          "quartz",
+          "redstone"
+        ],
+        [
+          "quartz",
+          "ender_eye",
+          "quartz"
+        ],
+        [
+          "redstone",
+          "quartz",
+          "redstone"
+        ]
+      ],
+      "result": {
+        "key": "redstone_observer",
+        "count": 1
+      }
+    }
+  ]
 }

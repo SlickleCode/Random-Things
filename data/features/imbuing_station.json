@@ -1,14 +1,51 @@
 {
   "title": "Imbuing Station",
   "category": "block",
-  "description": "The Imbuing Station is used to create Imbues that give your player on hit effects.\n\nThere are currently 4 different imbues available:\n\nFire Imbue, Sets hit enemies on fire for 10 seconds, Poison Imbue, Applies Poison II to hit enemies lasting 10 seconds, Experience Imbue, Enemies killed while active drop 50% more experience, Wither Imbue, Applies Wither II to hit enemies lasting 5 seconds\n\nYou can only have one imbue active at a time. Drinking another one while one is still active will cancel the first one. All imbues last 20 minutes.",
+  "description": "The Imbuing Station is used to create Imbues that give your player on hit effects. Put a water bottle in the center slot and three ingredients in the other slots; after 200 ticks (10 seconds) it produces the imbue and uses up one of each.\n\nThere are currently 4 different imbues available:\n\n- Fire Imbue (coal, flint, blaze powder): Sets hit enemies on fire for 10 seconds\n\n- Poison Imbue (spider eye, rotten flesh, red mushroom): Applies Poison II to hit enemies lasting 10 seconds\n\n- Experience Imbue (lesser magic bean, lapis lazuli, glowstone dust): Enemies killed while active drop 100% more experience (double)\n\n- Wither Imbue (wither skeleton skull, nether brick, ghast tear): Applies Wither II to hit enemies lasting 5 seconds\n\nThe on hit effects only apply to melee hits (not arrows). You can only have one imbue active at a time. Drinking another one while one is still active will cancel the first one. All imbues last 20 minutes.\n\nThe station can also turn a cobblestone in the center slot (with a water bottle, vine and bone meal) into mossy cobblestone.",
   "keywords": [
     "Imbuing",
-    "Station"
+    "Station",
+    "Imbue",
+    "Fire Imbue",
+    "Poison Imbue",
+    "Experience Imbue",
+    "Wither Imbue"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-imbuing-station.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Brew time",
+      "value": "200 ticks (10 seconds)"
+    },
+    {
+      "label": "Imbue duration",
+      "value": "20 minutes"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "water_bucket",
+          null
+        ],
+        [
+          "vine",
+          "terracotta",
+          "vine"
+        ],
+        [
+          "lily_pad",
+          "emerald",
+          "lily_pad"
+        ]
+      ],
+      "result": {
+        "key": "imbuing_station",
+        "count": 1
+      }
+    }
+  ]
 }

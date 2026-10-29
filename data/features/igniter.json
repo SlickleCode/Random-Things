@@ -1,13 +1,56 @@
 {
   "title": "Igniter",
   "category": "block",
-  "description": "The Igniter is basically the block version of flint and steel, if powered by redstone it ignites the block in front of it. If it becomes unpowered it puts out the flame in front of it.\n\nIn its GUI you can switch between 3 modes:\n\n- Toggle Fire (default): Will ignite the block in front when powered and extinguish it when unpowered.\n\n- Ignite: Will ignite the block in front when powered\n\n- Keep Ignited: Will ignite the block in front and keep reigniting it on block updates.",
+  "description": "The Igniter is basically the block version of flint and steel, if powered by redstone it places fire in the air block in front of it. In Toggle Fire mode, if it becomes unpowered it puts out the flame in front of it.\n\nIn its GUI you can switch between 2 modes:\n\n- Toggle Fire (default): Will ignite the block in front when powered and extinguish it when unpowered.\n\n- Ignite: Will ignite the block in front when powered. The fire stays when unpowered.\n\nThe front faces the direction you were looking when you placed it.",
   "keywords": [
     "Igniter"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-igniter.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Toggle Fire reacts to a rising and a falling signal; Ignite only to a rising signal"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "netherrack",
+          {
+            "key": "cobblestone",
+            "label": "Cobblestone"
+          },
+          {
+            "key": "cobblestone",
+            "label": "Cobblestone"
+          }
+        ],
+        [
+          "netherrack",
+          "flint_and_steel",
+          {
+            "key": "cobblestone",
+            "label": "Cobblestone"
+          }
+        ],
+        [
+          "netherrack",
+          {
+            "key": "cobblestone",
+            "label": "Cobblestone"
+          },
+          {
+            "key": "cobblestone",
+            "label": "Cobblestone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "igniter",
+        "count": 1
+      }
+    }
+  ]
 }

@@ -1,10 +1,32 @@
 {
   "title": "Golden Egg",
   "category": "item",
-  "description": "When thrown a Chicken with a Golden Wattle will hatch that lays gold ingots instead of eggs. There is always one inside of a Bean Pod on top of a grown Magic Bean .",
+  "description": "When thrown a Golden Chicken is spawned where the egg lands. Golden Chickens lay gold ingots when they are fed gold ore: drop a gold ore item next to the chicken and it will eat it, and 30 to 60 seconds later it lays 3 gold ingots. It needs another gold ore for every batch. Golden Chickens cannot breed.\n\nA Golden Egg cannot be crafted. There is one inside of every Bean Pod (on top of a grown Magic Bean), unless the pod is destroyed by an explosion, which only gives a chance of it. This can be turned off in the config.",
   "keywords": [
     "Egg",
-    "Golden"
+    "Golden",
+    "Chicken",
+    "Gold",
+    "Ingot",
+    "Golden Chicken"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Dropped by Bean Pods"
+    },
+    {
+      "label": "Config",
+      "value": "GoldenEgg (default true): whether Bean Pods drop a Golden Egg"
+    },
+    {
+      "label": "Chicken output",
+      "value": "3 gold ingots per gold ore eaten, after 30 to 60 seconds"
+    },
+    {
+      "label": "Chicken health",
+      "value": "4"
+    }
   ],
   "images": [
     "images/golden-egg.png"

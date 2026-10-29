@@ -1,17 +1,61 @@
 {
   "title": "Light Redirector",
   "category": "block",
-  "description": "The Light Redirector switches the model of a block placed next to it with the model of the block that is on the opposite side of it. Right clicking one of the sides will disable it. Blocks on disabled sides won't change appereance. You can for example use it to make blocks like lamps look like normal blocks.",
+  "description": "The Light Redirector switches the model of a block placed next to it with the model of the block that is on the opposite side of it. Right clicking one of the sides will disable it; right clicking it again enables it again. Blocks on disabled sides won't change appearance. You can for example use it to make blocks like lamps look like normal blocks.\n\nThe effect is visual only: it does not change real lighting or collision.",
   "keywords": [
     "Light",
     "Redirector"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-light-redirector.png"
+  "properties": [
+    {
+      "label": "Right click",
+      "value": "Toggles that side on or off (all sides start enabled)"
+    },
+    {
+      "label": "Effect",
+      "value": "Visual only"
+    }
   ],
+  "images": [],
   "videos": [
     "videos/light-redirector-1.mp4",
     "videos/light-redirector-2.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "oak_planks",
+            "label": "Any Planks"
+          },
+          "glass",
+          {
+            "key": "oak_planks",
+            "label": "Any Planks"
+          }
+        ],
+        [
+          "glass",
+          null,
+          "glass"
+        ],
+        [
+          {
+            "key": "oak_planks",
+            "label": "Any Planks"
+          },
+          "glass",
+          {
+            "key": "oak_planks",
+            "label": "Any Planks"
+          }
+        ]
+      ],
+      "result": {
+        "key": "light_redirector",
+        "count": 1
+      }
+    }
   ]
 }

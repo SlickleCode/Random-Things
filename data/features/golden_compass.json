@@ -1,14 +1,46 @@
 {
   "title": "Golden Compass",
   "category": "item",
-  "description": "The Golden Compass is a Compass whose target you can set using a position filter, simply combine the golden compass & a position filter in the crafting grid. The compass will now point towards the location of the position filter.",
+  "description": "The Golden Compass is a Compass whose target you can set using a position filter, simply combine the golden compass & a position filter in the crafting grid. The compass will now point towards the location of the position filter.\n\nOnly the X and Z coordinates of the position are used; height and dimension are ignored. The position filter is not used up. A compass without a target wobbles randomly.",
   "keywords": [
     "Compass",
     "Golden"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-golden-compass.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "gold_ingot",
+          null
+        ],
+        [
+          "gold_ingot",
+          "compass",
+          "gold_ingot"
+        ],
+        [
+          null,
+          "gold_ingot",
+          null
+        ]
+      ],
+      "result": {
+        "key": "golden_compass",
+        "count": 1
+      }
+    }
+  ]
 }

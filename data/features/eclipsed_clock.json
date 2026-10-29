@@ -1,16 +1,64 @@
 {
   "title": "Eclipsed Clock",
   "category": "item",
-  "description": "An eclipsed clock allows you to change the time of day. After you hang it on a wall you can (shift) right click it to decrease and increase its target time. Hovering over it with a Time in a Bottle in your hand will display the time necessary to fast forward to the set time. Right clicking it with the Time in a Bottle will consume that amount of time from the bottle and set the time of day to that of the clock.",
+  "description": "An eclipsed clock allows you to change the time of day. After you hang it on a wall you can right click it to increase its target time by 600 ticks (half a minute of in-game time per click) and shift right click to decrease it. The target time is shown as a clock time above the clock for a few seconds after a click, and whenever you look at it.\n\nRight clicking it with a Time in a Bottle will consume the time needed to reach the target from the bottle and move the time of day forward to that of the clock (never backwards, so the wait can be up to a full day). The time does not jump: it speeds forward for up to about 12 seconds while particles and a chime play. If the bottle does not hold enough time, nothing happens.",
   "keywords": [
     "Clock",
-    "Eclipsed"
+    "Eclipsed",
+    "Time",
+    "Day",
+    "Night",
+    "Time in a Bottle"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted (see recipe); the Ghast Tear is part of the recipe"
+    },
+    {
+      "label": "Placement",
+      "value": "Hangs on the side of a wall, not on floor or ceiling"
+    },
+    {
+      "label": "Time per click",
+      "value": "600 ticks forward, shift: 600 ticks back"
+    },
+    {
+      "label": "Skip speed",
+      "value": "100 ticks of day time per server tick, up to about 12 seconds for a full day"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    }
   ],
   "images": [
     "images/eclipsed-clock.png"
   ],
-  "recipe_images": [
-    "images/crafting-eclipsed-clock.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "obsidian",
+          "gold_ingot",
+          "obsidian"
+        ],
+        [
+          "gold_ingot",
+          "ghast_tear",
+          "gold_ingot"
+        ],
+        [
+          "obsidian",
+          "gold_ingot",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "eclipsed_clock",
+        "count": 1
+      }
+    }
+  ]
 }

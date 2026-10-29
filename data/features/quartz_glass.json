@@ -7,8 +7,54 @@
     "Quartz"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-quartz-glass.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ],
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          "quartz_block",
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ],
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ]
+      ],
+      "result": {
+        "key": "quartz_glass",
+        "count": 8
+      }
+    }
+  ]
 }

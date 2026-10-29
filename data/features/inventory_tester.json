@@ -1,7 +1,7 @@
 {
   "title": "Inventory Tester",
   "category": "block",
-  "description": "The Inventory Tester has to be placed against an inventory and will continuously simulate inserting the ItemStack you specifiy in its gui into the inventory it's attached to. While successful it will emit a redstone signal (You can invert the redstone output with the button in the gui). Since it's only simulated no items will actually be inserted.",
+  "description": "The Inventory Tester has to be placed against an inventory and will continuously simulate inserting the ItemStack you specifiy in its gui into the inventory it's attached to. While successful (the whole stack would fit) it will emit a redstone signal (You can invert the redstone output with the button in the gui). Since it's only simulated no items will actually be inserted.\n\nIt checks every 2 ticks. If its slot is empty or there is no inventory behind it, it keeps its last signal.",
   "keywords": [
     "Inventory",
     "Tester"
@@ -9,8 +9,40 @@
   "images": [
     "images/inventory-tester.png"
   ],
-  "recipe_images": [
-    "images/crafting-inventory-tester.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Power 15 on all sides while the stack fits (or while it does not fit, if inverted)"
+    },
+    {
+      "label": "Check rate",
+      "value": "Every 2 ticks"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "stone",
+          null,
+          null
+        ],
+        [
+          "stone",
+          "comparator",
+          "stone"
+        ],
+        [
+          "chest",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "inventory_tester",
+        "count": 2
+      }
+    }
+  ]
 }

@@ -1,11 +1,21 @@
 {
   "title": "Magnetic Enchantment",
   "category": "misc",
-  "description": "Magnetic is an enchantment available for pickaxes / axes / shovels which causes drops from blocks you break using the enchanted tool to go directly into your inventory instead of falling on the ground. It has roughly the same chance of appearing as Silktouch and it only has one level.",
+  "description": "Magnetic is an enchantment available for pickaxes / axes / shovels which causes drops from blocks you break using the enchanted tool to go directly into your inventory instead of falling on the ground. It has roughly the same chance of appearing as Silktouch and it only has one level.\n\nExperience orbs and mob drops are not affected. A Block Breaker always mines as if it had Magnetic.\n\nIt cannot be put on hoes or shears.",
   "keywords": [
     "Enchantment",
     "Magnetic"
   ],
   "images": [],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Max level",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "MagneticEnchantment (default true) - when false the enchantment cannot be obtained from the enchanting table or books and has no effect"
+    }
+  ]
 }

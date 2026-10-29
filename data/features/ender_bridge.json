@@ -1,18 +1,110 @@
 {
   "title": "Ender Bridge",
   "category": "block",
-  "description": "The Ender Bridge theoretically allows you to teleport across your world with no distance limit. The only requirement is a line of air blocks between the ender bridge and the ender anchor. However the teleportation is not instant, the normal ender bridge takes 5 seconds to teleport you across 100 blocks (\"Scans\" 20 blocks per second). The Prismarine Ender Bridge is much faster and would only take half a second for the same distance (\"Scans\" 200 Blocks per second). Ender Bridges will only check loaded chunks for Ender Anchors, this however is not an issue as the Ender Anchors load the chunk they are in.\n\nThe Bridges start to \"search\" for an ender anchor once a redstone signal is applied to them, once they find one they will teleport every player in a 2 block radius around them to the ender anchor and then go into cooldown mode where they will stay till they no longer receive a redstone signal.\n\nThe Bridges ignore the block immediately in front of them so you can place a pressure plate on top of them and still let them face upwards.",
+  "description": "The Ender Bridge theoretically allows you to teleport across your world with no distance limit. The only requirement is a line of air blocks between the ender bridge and the ender anchor. However the teleportation is not instant, the normal ender bridge takes 5 seconds to teleport you across 100 blocks (\"Scans\" 20 blocks per second). The Prismarine Ender Bridge is much faster and would only take half a second for the same distance (\"Scans\" 200 Blocks per second). Ender Bridges will only check loaded chunks for Ender Anchors, this however is not an issue as the Ender Anchors load the chunk they are in (this can be turned off in the config).\n\nThe Bridges face the direction you were looking when placing them. They start to \"search\" for an ender anchor once a redstone signal is applied to them, once they find one they will teleport every player, dropped item and minecart in a 2 block area around them to the block above the ender anchor and then go into cooldown mode where they will stay till they no longer receive a redstone signal. Any other block in the way stops the search.\n\nThe Bridges ignore the block immediately in front of them so you can place a pressure plate on top of them and still let them face upwards.",
   "keywords": [
     "Bridge",
-    "Ender"
+    "Ender",
+    "Ender Anchor",
+    "Prismarine",
+    "Teleport",
+    "Chunk"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Ender Bridge, Prismarine Ender Bridge and Ender Anchor are crafted (see recipes)"
+    },
+    {
+      "label": "Redstone",
+      "value": "A rising signal starts the search"
+    },
+    {
+      "label": "Scan speed",
+      "value": "Ender Bridge 20 blocks per second, Prismarine Ender Bridge 200 blocks per second"
+    },
+    {
+      "label": "Destination",
+      "value": "The block above the Ender Anchor"
+    },
+    {
+      "label": "Config",
+      "value": "EnderAnchorChunkloading (default true): each Ender Anchor keeps its chunk loaded"
+    }
   ],
   "images": [
     "images/ender-bridge.png"
   ],
-  "recipe_images": [
-    "images/crafting-ender-bridge-1.png",
-    "images/crafting-ender-bridge-2.png",
-    "images/crafting-ender-bridge-3.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "obsidian",
+          "obsidian",
+          "obsidian"
+        ],
+        [
+          "obsidian",
+          "stable_enderpearl",
+          "obsidian"
+        ],
+        [
+          "obsidian",
+          "obsidian",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "ender_anchor",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "end_stone",
+          "end_stone",
+          "end_stone"
+        ],
+        [
+          "end_stone",
+          "redstone",
+          "stable_enderpearl"
+        ],
+        [
+          "end_stone",
+          "end_stone",
+          "end_stone"
+        ]
+      ],
+      "result": {
+        "key": "ender_bridge",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "prismarine_shard",
+          "prismarine_crystals",
+          "prismarine_shard"
+        ],
+        [
+          "prismarine_crystals",
+          "ender_bridge",
+          "prismarine_crystals"
+        ],
+        [
+          "prismarine_shard",
+          "prismarine_crystals",
+          "prismarine_shard"
+        ]
+      ],
+      "result": {
+        "key": "prismarine_ender_bridge",
+        "count": 1
+      }
+    }
+  ]
 }

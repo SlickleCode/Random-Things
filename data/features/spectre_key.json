@@ -1,17 +1,64 @@
 {
   "title": "Spectre Key",
   "category": "item",
-  "description": "The Spectre Key grants you access to your own private room. Using it for 5 seconds (Like a bow) will teleport you to a room that at the beginning is 16*16*4 big. In the middle of the room you will find the spectre core, right clicking more Ectoplasm on it will increase the rooms height (1 per Ectoplasm ), in theory you can make your room go as high as the height limit allows. If you use the Spectre Key while in your room it will teleport you back to the position you came from.\n\nYou can place anything you want in your spectre cube, it will be easily accessible from anywhere using your key. You cannot access the rooms of other players unless you are in creative mode.",
+  "description": "The Spectre Key grants you access to your own private room. Using it for 5 seconds (Like a bow) will teleport you to a room that at the beginning is 16*16*4 big (the outer size: the space inside is 14 x 14 blocks and 2 blocks high). In the middle of the room you will find the spectre core, right clicking more Ectoplasm on it will increase the rooms height (1 per Ectoplasm ), in theory you can make your room go as high as the height limit allows. If you use the Spectre Key while in your room it will teleport you back to the position you came from. Right clicking the spectre core with an empty hand does the same.\n\nYou can place anything you want in your spectre cube, it will be easily accessible from anywhere using your key. The key works from any dimension. You cannot access the rooms of other players unless you are in creative mode.\n\nThe Spectre Core can not be broken or obtained as an item. The Spectre Key is crafted from Spectre Ingots and a Stable Enderpearl.\n\nThe position you came from is kept, so the key returns you there even if you die in your room.",
   "keywords": [
     "Spectre",
     "Key",
-    "Dimension"
+    "Dimension",
+    "Core",
+    "Room",
+    "Cube"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafting"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Use time",
+      "value": "5 seconds (hold right click)"
+    },
+    {
+      "label": "Starting room",
+      "value": "16 x 16 x 4 blocks outside, 14 x 14 x 2 inside"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
   "images": [
     "images/spectre-key.png"
   ],
-  "recipe_images": [
-    "images/crafting-spectre-key.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "spectre_ingot",
+          null,
+          null
+        ],
+        [
+          "spectre_ingot",
+          "stable_enderpearl",
+          null
+        ],
+        [
+          null,
+          null,
+          "spectre_ingot"
+        ]
+      ],
+      "result": {
+        "key": "spectre_key",
+        "count": 1
+      }
+    }
+  ]
 }

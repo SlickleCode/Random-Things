@@ -1,16 +1,57 @@
 {
   "title": "Rainbow Lamp",
   "category": "block",
-  "description": "The Rainbow Lamp is a Redstone Lamp that is always on but changes color depending on the signal strength it receives.",
+  "description": "The Rainbow Lamp is a Redstone Lamp that is always on (light level 15) but changes color depending on the signal strength it receives.\n\nSignal strength 0 to 15 gives, in order: white, orange, magenta, light blue, yellow, lime, pink, gray, light gray, cyan, purple, blue, brown, green, red, black.",
   "keywords": [
     "Lamp",
     "Rainbow"
   ],
+  "properties": [
+    {
+      "label": "Light level",
+      "value": "15 (always on)"
+    },
+    {
+      "label": "Redstone",
+      "value": "Color follows the incoming signal strength, 0 to 15"
+    }
+  ],
   "images": [
     "images/rainbow-lamp.png"
   ],
-  "recipe_images": [
-    "images/crafting-rainbow-lamp.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          {
+            "key": "green_dye",
+            "label": "Green Dye"
+          },
+          null
+        ],
+        [
+          {
+            "key": "red_dye",
+            "label": "Red Dye"
+          },
+          "redstone_lamp",
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          }
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "rainbow_lamp",
+        "count": 1
+      }
+    }
+  ]
 }

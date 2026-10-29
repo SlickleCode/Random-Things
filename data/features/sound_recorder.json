@@ -1,16 +1,63 @@
 {
   "title": "Sound Recorder",
   "category": "item",
-  "description": "A Sound Recorder allows you to record and save sounds in sound patterns that can then be used in the Sound Box and ( Portable ) Sound Dampener . Shift-Right click with it in your hand to start recording, shift-right click again to stop recording. It will also stop recording by itself after it has recorded 10 unique sounds. After recording some sounds right click to open up its gui, put sound patterns in the left slot and select a recorded sound from the list to save it inside the pattern.",
+  "description": "A Sound Recorder allows you to record and save sounds in sound patterns that can then be used in the Sound Box and ( Portable ) Sound Dampener . Shift-Right click with it in your hand to start recording, shift-right click again to stop recording. It will also stop recording by itself after it has recorded 10 unique sounds. After recording some sounds right click to open up its gui, put sound patterns in the left slot and select a recorded sound from the list to save it inside the pattern.\n\nStarting a new recording erases the sounds saved by the previous one. You cannot open the GUI while it is recording. Music and music discs are not recorded, and neither are sounds already muted by a placed Sound Dampener. The recorder records while it is anywhere in your hotbar or main inventory, not only in your hand, and it never saves the same sound twice.\n\nIn the GUI, the pattern slot is on the left and the result comes out of the slot on the right. Each click on a sound in the list uses up one pattern from the left slot. Clicking the same sound again adds to the stack in the output slot. The slot of the hotbar holding the recorder is locked while the GUI is open.\n\nThis works in multiplayer, on both servers and clients.",
   "keywords": [
     "Recorder",
-    "Sound"
+    "Sound",
+    "Record",
+    "Stop",
+    "Unique"
   ],
   "images": [
     "images/sound-recorder.png"
   ],
-  "recipe_images": [
-    "images/crafting-sound-recorder.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Start / stop",
+      "value": "Sneak + right click"
+    },
+    {
+      "label": "Limit",
+      "value": "10 unique sounds, then it stops by itself"
+    },
+    {
+      "label": "Records in",
+      "value": "Hotbar and main inventory"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_bars",
+          "glass",
+          "glass"
+        ],
+        [
+          "iron_ingot",
+          "lapis_lazuli",
+          "iron_ingot"
+        ],
+        [
+          "iron_ingot",
+          "iron_ingot",
+          "iron_ingot"
+        ]
+      ],
+      "result": {
+        "key": "sound_recorder",
+        "count": 1
+      }
+    }
+  ]
 }

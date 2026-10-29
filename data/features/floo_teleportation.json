@@ -1,21 +1,145 @@
 {
   "title": "Floo Teleportation",
   "category": "misc",
-  "description": "Right clicking a connected line of bricks with a Floo Sign will turn them into Floo Bricks and create a Floo Fireplace. When you are holding Floo Dust while standing on top of Floo Bricks & type a message in chat you will be teleported to the fireplace which name is closest to the message you typed. The name of a fireplace is defined by the name of the Floo Sign used to create it (Rename it in an Anvil). Fireplaces without a name can still be used to teleport but can't be teleported to. Players will arrrive facing the opposite direction you were facing while creating the fireplace.\n\nYou can also craft Floo Tokens which allow you to use the Floo Network on the go without a Fireplace, simply throw them on the ground and wait a bit. A \"temporary fireplace\" will appear that you can use like a normal brick fireplace.\n\nInstead of having Floo Powder in your hand you can also have a floo pouch anywhere in your inventory. It holds 128 Floo Powder and is filled with floo powder from your inventory when you shift right click it.",
+  "description": "Right clicking a connected line of bricks with a Floo Sign will turn them into Floo Bricks and create a Floo Fireplace (up to about 20 bricks on the same level). When you are holding Floo Powder in your main hand while standing on top of Floo Bricks & type a message in chat you will be teleported to the fireplace which name is closest to the message you typed. Each teleport uses up one Floo Powder. The name of a fireplace is defined by the name of the Floo Sign used to create it (Rename it in an Anvil). Fireplaces without a name can still be used to teleport but can't be teleported to. Players will arrive facing the opposite direction you were facing while creating the fireplace. Breaking any Floo Brick turns the whole fireplace back into plain bricks.\n\nYou can also craft Floo Tokens which allow you to use the Floo Network on the go without a Fireplace, simply throw them on the ground and wait a few seconds. A \"temporary fireplace\" will appear that lasts about 13 seconds. It can be used like a normal brick fireplace, but it does not cost any Floo Powder.\n\nInstead of having Floo Powder in your hand you can also have a floo pouch anywhere in your inventory. It holds 128 Floo Powder and is filled with floo powder from your inventory when you shift right click it.\n\nFireplaces only work within the same dimension: you cannot teleport to a fireplace in another dimension.",
   "keywords": [
     "Floo",
-    "Teleportation"
+    "Teleportation",
+    "Floo Powder",
+    "Floo Sign",
+    "Floo Token",
+    "Floo Pouch",
+    "Floo Brick",
+    "Fireplace"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Floo Powder, Floo Pouch, Floo Sign and Floo Token are crafted (see recipes)"
+    },
+    {
+      "label": "Cost",
+      "value": "1 Floo Powder or 1 pouch charge per teleport"
+    },
+    {
+      "label": "Pouch capacity",
+      "value": "128 Floo Powder"
+    },
+    {
+      "label": "Temporary fireplace",
+      "value": "About 13 seconds, free to use"
+    },
+    {
+      "label": "Naming",
+      "value": "Rename the Floo Sign in an Anvil"
+    },
+    {
+      "label": "Dimensions",
+      "value": "Same dimension only"
+    }
   ],
   "images": [
     "images/floo-teleportation-1.png",
     "images/floo-teleportation-2.png",
     "images/floo-teleportation-3.png"
   ],
-  "recipe_images": [
-    "images/crafting-floo-teleportation-1.png",
-    "images/crafting-floo-teleportation-2.png",
-    "images/crafting-floo-teleportation-3.png",
-    "images/crafting-floo-pouch.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "leather",
+          null
+        ],
+        [
+          "leather",
+          "floo_powder",
+          "leather"
+        ],
+        [
+          "leather",
+          "leather",
+          "leather"
+        ]
+      ],
+      "result": {
+        "key": "floo_pouch",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "ender_pearl",
+          "redstone",
+          null
+        ],
+        [
+          "gunpowder",
+          "beans",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "floo_powder",
+        "count": 16
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid."
+    },
+    {
+      "shape": [
+        [
+          "floo_powder",
+          "floo_powder",
+          "floo_powder"
+        ],
+        [
+          "floo_powder",
+          {
+            "key": "oak_sign",
+            "label": "Any Sign"
+          },
+          "floo_powder"
+        ],
+        [
+          "floo_powder",
+          "floo_powder",
+          "floo_powder"
+        ]
+      ],
+      "result": {
+        "key": "floo_sign",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "floo_powder",
+          "floo_powder",
+          "floo_powder"
+        ],
+        [
+          "floo_powder",
+          "paper",
+          "floo_powder"
+        ],
+        [
+          "floo_powder",
+          "floo_powder",
+          "floo_powder"
+        ]
+      ],
+      "result": {
+        "key": "floo_token",
+        "count": 2
+      }
+    }
+  ]
 }

@@ -1,16 +1,48 @@
 {
   "title": "Rain Shield",
   "category": "block",
-  "description": "The Rain Shield shields block in its range (5 Chunks by default, configurable) from rain. In its radius there will be no rain particles / sounds & stuff like fire that would normally react to rain will act as if it wasn't raining.\nBy applying a redstone signal to it you can disable its effect. There will also be no snow forming on top of blocks in snowy biomes.",
+  "description": "The Rain Shield shields blocks in its range (80 blocks = 5 chunks, horizontally, not configurable) from rain. Within its range blocks that would normally react to rain, like fire, will act as if it wasn't raining.\nBy applying a redstone signal to it you can disable its effect. There will also be no snow forming on top of blocks in snowy biomes.\n\nIt has to be placed on top of a solid block.\n\nRain particles and rain sounds are also suppressed in its range.",
   "keywords": [
     "Rain",
     "Shield"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-rain-shield.png"
-  ],
   "videos": [
     "videos/rain-shield.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Range",
+      "value": "80 blocks horizontally (fixed)"
+    },
+    {
+      "label": "Redstone",
+      "value": "A redstone signal disables it"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "flint",
+          null
+        ],
+        [
+          null,
+          "blaze_rod",
+          null
+        ],
+        [
+          "netherrack",
+          "netherrack",
+          "netherrack"
+        ]
+      ],
+      "result": {
+        "key": "rain_shield",
+        "count": 1
+      }
+    }
   ]
 }

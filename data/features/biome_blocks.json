@@ -1,7 +1,7 @@
 {
   "title": "Biome Blocks",
-  "category": "block",
-  "description": "All of these Biome Blocks change their color depending on the biome they are in. The Biome Crystals needed to craft them can be found in all dungeon chests.",
+  "category": "legacy",
+  "description": "Not in the current mod: this feature was removed or is not migrated. The text below is kept for reference.\n\nAll of these Biome Blocks change their color depending on the biome they are in. The Biome Crystals needed to craft them can be found in all dungeon chests.",
   "keywords": [
     "Biome",
     "Blocks"

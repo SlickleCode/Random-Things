@@ -1,23 +1,225 @@
 {
   "title": "Divining Rods",
   "category": "item",
-  "description": "Holding a divining rod in your main or off hand will show you nearby ore through walls. The range is is a 11x11x11 cube centered on you.\n\nThe basic divining rods only show you one ore while the vanilla one shows all vanilla ores at once.\n\nDepending on the mods you have installed more divining rods might be available, if you would like one to be added for another mods ores feel free to create an issue on github.",
+  "description": "Holding a divining rod in your main or off hand will show you nearby ore through walls as small cubes. The range is an 11x11x11 cube centered on you.\n\nThe basic divining rods (coal, iron, gold, lapis, redstone, emerald and diamond) only show you one ore while the vanilla one shows all seven of these ores at once, each in its own color. Nether quartz and nether gold are not shown. Ores are detected by their Forge ore tag, so any block in the matching tag is shown.\n\nThe rods only work visually on your own screen and have no effect on the world.",
   "keywords": [
     "Divining",
-    "Rods"
+    "Rods",
+    "Ore",
+    "Coal",
+    "Iron",
+    "Gold",
+    "Lapis",
+    "Redstone",
+    "Emerald",
+    "Diamond"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-divining-rods-coal.png",
-    "images/crafting-divining-rods-diamond.png",
-    "images/crafting-divining-rods-emerald.png",
-    "images/crafting-divining-rods-gold.png",
-    "images/crafting-divining-rods-iron.png",
-    "images/crafting-divining-rods-lapis.png",
-    "images/crafting-divining-rods-redstone.png",
-    "images/crafting-divining-rods-universal.png"
-  ],
   "videos": [
     "videos/divining-rods.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Rods",
+      "value": "Coal, Iron, Gold, Lapis, Redstone, Emerald, Diamond, Vanilla"
+    },
+    {
+      "label": "Range",
+      "value": "11x11x11 cube centered on you"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "coal",
+          "stick",
+          "coal"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_coal",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "diamond",
+          "stick",
+          "diamond"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_diamond",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "emerald",
+          "stick",
+          "emerald"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_emerald",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "gold_ingot",
+          "stick",
+          "gold_ingot"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_gold",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          "stick",
+          "iron_ingot"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_iron",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "lapis_lazuli",
+          "stick",
+          "lapis_lazuli"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_lapis",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "redstone",
+          "stick",
+          "redstone"
+        ],
+        [
+          "stick",
+          "spider_eye",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_redstone",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "divining_rod_coal",
+          "stick",
+          "divining_rod_diamond"
+        ],
+        [
+          "divining_rod_iron",
+          "slime_ball",
+          "divining_rod_emerald"
+        ],
+        [
+          "divining_rod_gold",
+          "divining_rod_lapis",
+          "divining_rod_redstone"
+        ]
+      ],
+      "result": {
+        "key": "divining_rod_vanilla",
+        "count": 1
+      }
+    }
   ]
 }

@@ -1,14 +1,51 @@
 {
   "title": "Fertilized Dirt",
   "category": "block",
-  "description": "Works pretty much the same as vanilla farmland, except it does not require any nearby water blocks, increases the growth of plants by a factor of 3 and crops are not destroyed when walking or jumping on the Fertilized Dirt like it sometimes happens with vanilla farmland.",
+  "description": "Works pretty much the same as vanilla farmland, except it does not require any nearby water blocks, speeds up the growth of the plants on top of it and crops are not destroyed when walking or jumping on the Fertilized Dirt like it sometimes happens with vanilla farmland.\n\nEach time the dirt gets a random tick it gives the plant above it up to 3 extra growth ticks. Use a hoe on it to till it for crops. Glowing Mushrooms can also be placed on it.",
   "keywords": [
     "Dirt",
-    "Fertilized"
+    "Fertilized",
+    "Fertilized Dirt"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-fertilized-dirt.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted; drops itself"
+    },
+    {
+      "label": "Water",
+      "value": "Not needed"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "rotten_flesh",
+          "bone_meal",
+          "rotten_flesh"
+        ],
+        [
+          "bone_meal",
+          "dirt",
+          "bone_meal"
+        ],
+        [
+          "rotten_flesh",
+          "bone_meal",
+          "rotten_flesh"
+        ]
+      ],
+      "result": {
+        "key": "fertilized_dirt",
+        "count": 2
+      }
+    }
+  ]
 }

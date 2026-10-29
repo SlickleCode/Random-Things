@@ -1,11 +1,25 @@
 {
   "title": "Compressed Slime Block",
   "category": "block",
-  "description": "You make compressed slime blocks by right clicking vanilla slime blocks with a shovel. Any entity that comes in contact with one gets bounced upwards. You can right click it 2 more times to compress it further, increasing its bounciness.",
+  "description": "You make compressed slime blocks by right clicking vanilla slime blocks with a shovel; this costs the shovel 1 durability. Any entity that comes in contact with one gets bounced upwards. You can right click it 2 more times to compress it further, increasing its bounciness (each step costs 1 durability too). Compressed slime blocks cannot be crafted, and breaking one drops a plain slime block.\n\nEach right click compresses the block by one step.",
   "keywords": [
     "Block",
     "Compressed",
     "Slime"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Right click a slime block with a shovel"
+    },
+    {
+      "label": "Compression levels",
+      "value": "3 (0 to 2)"
+    },
+    {
+      "label": "Bounce speed",
+      "value": "0.8, 1.2 and 1.6 blocks/tick upwards per level"
+    }
   ],
   "images": [
     "images/compressed-slime-block.png"

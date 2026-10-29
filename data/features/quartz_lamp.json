@@ -1,14 +1,46 @@
 {
   "title": "Quartz Lamp",
   "category": "block",
-  "description": "The Quartz Lamp is kinda the opposite of the Lapis Lamp . The Quartz Lamp emits a light level of 15. However the light of this lamp is not actually visible. It still prevents stuff like mob spawning though.",
+  "description": "The Quartz Lamp is kinda the opposite of the Lapis Lamp. It gives off no visible light, but it still prevents hostile mobs from spawning nearby.",
   "keywords": [
     "Lamp",
     "Quartz"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-quartz-lamp.png"
+  "properties": [
+    {
+      "label": "Light",
+      "value": "None visible"
+    },
+    {
+      "label": "Effect",
+      "value": "Prevents hostile mobs from spawning nearby"
+    }
   ],
-  "videos": []
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "quartz",
+          null,
+          null
+        ],
+        [
+          "quartz",
+          "redstone_lamp",
+          "quartz"
+        ],
+        [
+          "quartz",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "quartz_lamp",
+        "count": 1
+      }
+    }
+  ]
 }

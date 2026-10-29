@@ -1,16 +1,118 @@
 {
   "title": "Contact Button & Lever",
   "category": "block",
-  "description": "Contact Buttons & Contact Levers act like normal buttons / levers except that they are full blocks and they don't react to themselves but the block in front of them being right clicked. So if you place a block of stone in front of them and right click that stone they will react to that.",
+  "description": "Contact Buttons & Contact Levers act like normal buttons / levers except that they are full blocks and they don't react to themselves but the block in front of them being right clicked. So if you place a block of stone in front of them and right click that stone they will react to that.\n\nThe block in front can be any block and only a right click with the main hand counts. A Contact Button gives a 20 tick (1 second) pulse, a Contact Lever switches on and off with every click. When powered they emit a signal of 15 on all sides.",
   "keywords": [
     "Button",
     "Contact",
-    "Lever"
+    "Lever",
+    "Contact Button",
+    "Contact Lever"
+  ],
+  "properties": [
+    {
+      "label": "Button Pulse",
+      "value": "20 ticks (1 second)"
+    },
+    {
+      "label": "Signal Strength",
+      "value": "15 on all sides while powered"
+    },
+    {
+      "label": "Trigger",
+      "value": "Right click on the block in front of it"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-contact-button-&-lever-1.png",
-    "images/crafting-contact-button-&-lever-2.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "iron_bars",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "stone_button",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "contact_button",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "iron_bars",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "lever",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "contact_lever",
+        "count": 1
+      }
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "title": "Inventory Rerouter",
-  "category": "block",
-  "description": "Each side of the inventory rerouter is connected to a side of the block in front of it. You can reassign the sides by right clicking them. Items that are inserted / extracted into / from the Inventory Rerouter are instead inserted / extracted into / from the configured side of the inventory in front of it.",
+  "category": "legacy",
+  "description": "Not in the current mod: this feature was removed or is not migrated. The text below is kept for reference.\n\nEach side of the inventory rerouter is connected to a side of the block in front of it. You can reassign the sides by right clicking them. Items that are inserted / extracted into / from the Inventory Rerouter are instead inserted / extracted into / from the configured side of the inventory in front of it.",
   "keywords": [
     "Inventory",
     "Rerouter"

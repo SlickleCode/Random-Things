@@ -1,15 +1,69 @@
 {
   "title": "Block of Sticks",
   "category": "block",
-  "description": "Block of Sticks are temporary building blocks, they will break 10 seconds after you place without dropping anything. You can use them to get to high places without leaving behind ugly block pillar.\nThe Returning Block of Sticks don't just break but return to the inventory of the closest player after the 10 seconds pass.",
+  "description": "Block of Sticks are temporary building blocks, they will break 10 seconds after you place without dropping anything. You can use them to get to high places without leaving behind ugly block pillar. Mining one by hand before then does drop it.\n\nThe Returning Block of Sticks don't just break but return to the inventory of the closest player after the 10 seconds pass. The player has to be within 50 blocks, and nothing is returned to players in creative mode.",
   "keywords": [
     "Block",
     "Sticks"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-block-of-sticks-1.png",
-    "images/crafting-block-of-sticks-2.png"
+  "properties": [
+    {
+      "label": "Lifetime",
+      "value": "10 seconds (200 ticks) after placing"
+    },
+    {
+      "label": "Returning range",
+      "value": "50 blocks"
+    }
   ],
-  "videos": []
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "stick",
+          "stick",
+          "stick"
+        ],
+        [
+          "stick",
+          null,
+          "stick"
+        ],
+        [
+          "stick",
+          "stick",
+          "stick"
+        ]
+      ],
+      "result": {
+        "key": "block_of_sticks",
+        "count": 16
+      }
+    },
+    {
+      "shape": [
+        [
+          "block_of_sticks",
+          "block_of_sticks",
+          "block_of_sticks"
+        ],
+        [
+          "block_of_sticks",
+          "ender_pearl",
+          "block_of_sticks"
+        ],
+        [
+          "block_of_sticks",
+          "block_of_sticks",
+          "block_of_sticks"
+        ]
+      ],
+      "result": {
+        "key": "block_of_sticks_returning",
+        "count": 8
+      }
+    }
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "title": "Ancient Furnace",
   "category": "misc",
-  "description": "You can rarely find Ancient Furnaces in cold biomes. Right clicking the opening on the top with a nether star will activate it, after heating up it will turn an area of 10000 blocks (configurable) around it into a warmer biome removing any surface snow in the process. It will explode once it's done.",
+  "description": "You can rarely find Ancient Furnaces in cold biomes. Right clicking it with a nether star will activate it (the star is used up), and after heating up for 5 minutes it will turn the area within 56 blocks around it (about 10000 columns) into a warmer biome, removing any surface snow and melting ice in the process. This radius and the heating time are fixed. It will explode once it's done.\n\nOnly some cold biomes are changed (for example taiga, snowy tundra, ice spikes and frozen oceans and rivers); biomes not on that list, like warm ones, stay as they are.",
   "keywords": [
     "Ancient",
     "Furnace"
@@ -9,5 +9,23 @@
   "images": [
     "images/ancient-furnace.png"
   ],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "World generation in cold biomes (rare); not craftable"
+    },
+    {
+      "label": "Heating time",
+      "value": "6000 ticks (5 minutes), fixed"
+    },
+    {
+      "label": "Range",
+      "value": "Radius 56 blocks, fixed"
+    },
+    {
+      "label": "Config",
+      "value": "AncientFurnace (worldgen), default true - turns world generation off only"
+    }
+  ]
 }

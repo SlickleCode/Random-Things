@@ -1,16 +1,56 @@
 {
   "title": "Escape Rope",
   "category": "item",
-  "description": "Holding right click with an Escape Rope in your hand while in a cave will make it search for a way to the surface. Once it finds one you will be teleported there and the rope takes some damage. Depending on the size of the cave the search might take up to a minute. You have to keep holding right click while it searches. You can use it 21 times before it breaks.",
+  "description": "Holding right click with an Escape Rope in your hand while in a cave will make it search for a way to the surface. The rope only works in a place that has no open sky above it, and not while you stand in water. Once it finds a way up you will be teleported there and the rope takes 1 durability. Depending on the size of the cave the search might take up to a minute. You have to keep holding right click while it searches. If it finds no way to the surface, the rope is dropped as an item. You can use it 20 times before it breaks. It only works inside the same dimension.",
   "keywords": [
     "Escape",
     "Rope"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-escape-rope.png"
-  ],
   "videos": [
     "videos/escape-rope.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Durability",
+      "value": "20 uses"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Max search time",
+      "value": "60 seconds"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "string",
+          "gold_ingot",
+          "ender_pearl"
+        ],
+        [
+          "gold_ingot",
+          "string",
+          "gold_ingot"
+        ],
+        [
+          "ender_pearl",
+          "gold_ingot",
+          "string"
+        ]
+      ],
+      "result": {
+        "key": "escape_rope",
+        "count": 1
+      }
+    }
   ]
 }

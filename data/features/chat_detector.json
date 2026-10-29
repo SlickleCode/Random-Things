@@ -1,18 +1,88 @@
 {
   "title": "Chat Detector",
   "category": "block",
-  "description": "The Chat Detector is a Block that outputs a redstone signal when the player it was placed by enters something in the chat. If you open up its gui you can enter the message its supposed to detect and also change the mode its in.\nBy default the chat message its detecting will still be displayed in chat. However if you change the mode in the gui it will \"consume\" the message so it won't appear in chat.\n\nThe Global Chat Detector isn't limited to the player that placed it, instead it will react to chat messages from any player. However for the \"consuming\" mode to work it will require an ID Card of the player that typed the message.",
+  "description": "The Chat Detector is a Block that outputs a redstone signal when the player it was placed by enters something in the chat. If you open up its gui you can enter the message its supposed to detect and also change the mode its in. The message has to match the entered text exactly (the whole message, case-sensitive).\n\nWhen it detects the message it gives off a redstone pulse of 20 ticks. The owner is fixed when the block is placed.\n\nBy default the chat message its detecting will still be displayed in chat. However if you change the mode in the gui (Hide Message) it will \"consume\" the message so it won't appear in chat.\n\nThe Global Chat Detector isn't limited to the player that placed it, instead it will react to chat messages from any player. It has 9 slots for ID Cards. For the \"consuming\" mode to work it will require an ID Card of the player that typed the message in one of its slots.\n\nThe Global Chat Detector has no special bypass for operators; consuming a message always needs the ID Card of that player.",
   "keywords": [
     "Chat",
-    "Detector"
+    "Detector",
+    "Global Chat Detector"
   ],
   "images": [
     "images/chat-detector-1.png",
     "images/chat-detector-2.png"
   ],
-  "recipe_images": [
-    "images/crafting-chat-detector-1.png",
-    "images/crafting-chat-detector-2.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Pulse of 20 ticks, power 15 on all sides"
+    },
+    {
+      "label": "Match",
+      "value": "Exact, case-sensitive, whole message"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "repeater",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          "repeater",
+          {
+            "key": "red_dye",
+            "label": "Red Dye"
+          },
+          "repeater"
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "repeater",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "chat_detector",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "redstone_torch",
+          null,
+          null
+        ],
+        [
+          "redstone",
+          "chat_detector",
+          "redstone"
+        ],
+        [
+          "redstone",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "global_chat_detector",
+        "count": 1
+      }
+    }
+  ]
 }

@@ -1,14 +1,50 @@
 {
   "title": "Blaze and Steel",
   "category": "item",
-  "description": "The Fire created by this item burns and spreads significantly faster than vanilla fire.",
+  "description": "Blaze and Steel lights a Blazing Fire on the block face you click. The fire created by this item burns and spreads significantly faster than vanilla fire; it updates twice as often as vanilla fire.\n\nEvery use costs 1 durability, even if the fire could not be placed.",
   "keywords": [
     "Blaze",
     "Steel"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-blaze-and-steel.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Durability",
+      "value": "64"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          "blaze_powder",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "blaze_and_steel",
+        "count": 1
+      }
+    }
+  ]
 }

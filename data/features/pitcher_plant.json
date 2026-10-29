@@ -1,7 +1,7 @@
 {
   "title": "Pitcher Plant",
-  "category": "block",
-  "description": "Right clicking a Pitcher Plant with a fluid container will fill the fluid container with water. It also slowly fills cauldrons or other fluid tanks next to it with water.",
+  "category": "legacy",
+  "description": "Not in the current mod: this feature was removed or is not migrated. The text below is kept for reference.\n\nRight clicking a Pitcher Plant with a fluid container will fill the fluid container with water. It also slowly fills cauldrons or other fluid tanks next to it with water.",
   "keywords": [
     "Pitcher",
     "Plant"

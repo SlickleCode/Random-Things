@@ -1,18 +1,58 @@
 {
   "title": "Platforms",
   "category": "block",
-  "description": "Platforms are special blocks that are solid from the top and not solid from all other sides (You can walk on top of them but go right through them from the sides or the bottom). If you hold shift you fall through them even from the top.",
+  "description": "Platforms are special blocks that are solid from the top and not solid from all other sides (You can walk on top of them but go right through them from the sides or the bottom). If you hold shift you fall through them even from the top.\n\nOnly the top 2/16 of the block is solid, and anything whose feet are below that top slab (in the lower 14/16 of the block) passes through. There is one Platform for each of the six vanilla wood types: oak, spruce, birch, jungle, acacia and dark oak.",
   "keywords": [
-    "Platforms"
+    "Platforms",
+    "Platform",
+    "Oak",
+    "Spruce",
+    "Birch",
+    "Jungle",
+    "Acacia",
+    "Dark Oak"
+  ],
+  "properties": [
+    {
+      "label": "Types",
+      "value": "Oak, Spruce, Birch, Jungle, Acacia, Dark Oak"
+    },
+    {
+      "label": "Solid part",
+      "value": "Top 2/16 of the block"
+    },
+    {
+      "label": "Sneak",
+      "value": "Fall through from the top"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-platforms-1.png",
-    "images/crafting-platforms-2.png",
-    "images/crafting-platforms-3.png",
-    "images/crafting-platforms-4.png",
-    "images/crafting-platforms-5.png",
-    "images/crafting-platforms-6.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "oak_planks",
+          "oak_planks",
+          "oak_planks"
+        ],
+        [
+          null,
+          "ender_pearl",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "platform_oak",
+        "count": 6,
+        "label": "Platform"
+      },
+      "note": "Use spruce, birch, jungle, acacia or dark oak planks instead of oak planks to get the other platform types."
+    }
+  ]
 }

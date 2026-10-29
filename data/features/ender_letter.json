@@ -1,15 +1,58 @@
 {
   "title": "Ender Letter",
   "category": "item",
-  "description": "The Ender Letter can be used to send other people on a server items and messages.\n\nWhen you right click with an ender letter in your hand i will open an GUI where you can add items to the letter and specify the receiver.\nTo send / receive letters you need an Ender Mailbox. To send a letter you simply shift right click on any ender mailbox. Letters you receive will appear in every Ender Mailbox you placed yourself.\n\nNote that you can only remove items from a received Ender Letter, once the letter is empty it will vanish.",
+  "description": "The Ender Letter can be used to send other people on a server items and messages.\n\nWhen you right click with an ender letter in your hand i will open an GUI where you can add items to the letter (9 slots), specify the receiver and write a message of up to 200 characters.\nTo send / receive letters you need an Ender Mailbox (see its own page). To send a letter you simply shift right click on any ender mailbox. If the receiver has never joined the server, or their inbox is full, the letter is not sent. Letters you receive will appear in every Ender Mailbox you placed yourself, and only you can open your mailboxes. A mailbox starts to glow when it holds mail for you, with up to 10 seconds delay.\n\nNote that you can only remove items from a received Ender Letter, once the letter is empty and closed it will vanish.\n\nLetters and Ender Mailboxes work across dimensions.",
   "keywords": [
     "Ender",
-    "Letter"
+    "Letter",
+    "Mailbox",
+    "Ender Mailbox",
+    "Mail",
+    "Message"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Ender Letter is crafted (see recipe); letters are sent and received with an Ender Mailbox"
+    },
+    {
+      "label": "Letter slots",
+      "value": "9"
+    },
+    {
+      "label": "Message length",
+      "value": "200 characters"
+    },
+    {
+      "label": "Receiver",
+      "value": "Name of a player who has joined the server"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-ender-letter-1.png",
-    "images/crafting-ender-letter-2.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          "paper",
+          "ender_pearl",
+          "paper"
+        ],
+        [
+          null,
+          "paper",
+          null
+        ]
+      ],
+      "result": {
+        "key": "ender_letter",
+        "count": 1
+      }
+    }
+  ]
 }

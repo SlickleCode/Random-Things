@@ -1,17 +1,139 @@
 {
   "title": "Spectre Tools",
   "category": "item",
-  "description": "Using Ectoplasm you can craft Spectre versions of vanilla tools. All of these tools have higher durability & enchantability than their diamond counterpart. The Spectre Pickaxe / Axe / Shovel all increase your block range by 3 while holding them. The Spectre Sword is able to hurt Spirits so you don't need to use potions to kill them anymore.",
+  "description": "Using Spectre Ingots (made from Ectoplasm) and obsidian you can craft Spectre versions of vanilla tools. All of these tools have higher durability & enchantability than their diamond counterpart. The Spectre Pickaxe / Axe / Shovel all increase your block range by 3 while holding them in your main hand. The Spectre Sword does not increase your range, but it is able to hurt Spirits so you don't need to use potions to kill them anymore (the hit has to be made with the sword in your main hand).\n\nSpectre Ingots can also be used to repair the tools.",
   "keywords": [
     "Spectre",
-    "Tools"
+    "Tools",
+    "Sword",
+    "Pickaxe",
+    "Axe",
+    "Shovel"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafting"
+    },
+    {
+      "label": "Durability",
+      "value": "2000"
+    },
+    {
+      "label": "Enchantability",
+      "value": "22"
+    },
+    {
+      "label": "Mining speed",
+      "value": "8.0"
+    },
+    {
+      "label": "Harvest level",
+      "value": "3"
+    },
+    {
+      "label": "Reach bonus",
+      "value": "+3 blocks (Pickaxe, Axe, Shovel; main hand only)"
+    },
+    {
+      "label": "Repair with",
+      "value": "Spectre Ingot"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-spectre-tools-1.png",
-    "images/crafting-spectre-tools-2.png",
-    "images/crafting-spectre-tools-3.png",
-    "images/crafting-spectre-tools-4.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "spectre_ingot",
+          "spectre_ingot",
+          null
+        ],
+        [
+          "spectre_ingot",
+          "obsidian",
+          null
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_axe",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "spectre_ingot",
+          "spectre_ingot",
+          "spectre_ingot"
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_pickaxe",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          null,
+          "spectre_ingot",
+          null
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_shovel",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          null,
+          "spectre_ingot",
+          null
+        ],
+        [
+          null,
+          "spectre_ingot",
+          null
+        ],
+        [
+          null,
+          "obsidian",
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_sword",
+        "count": 1
+      }
+    }
+  ]
 }

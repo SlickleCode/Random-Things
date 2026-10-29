@@ -1,0 +1,61 @@
+{
+  "title": "Ender Mailbox",
+  "category": "block",
+  "description": "The Ender Mailbox is used to send and receive Ender Letters.\n\nTo send a letter, hold a finished Ender Letter (with a receiver set) and shift right click on any Ender Mailbox, yours or someone else's. If the receiver has never joined the server, the letter is not sent and you keep it. If the receiver's inbox is full, the letter is rejected.\n\nWhoever places an Ender Mailbox becomes its owner. Letters you receive show up in every Ender Mailbox you placed yourself: right click one to open its \"Incoming Mail\" window with the 9 inbox slots. Only the owner can open a mailbox. A mailbox starts to glow when it holds mail for its owner, with up to 10 seconds delay.\n\nThe Ender Mailbox needs free space above it.\n\nMailboxes work across dimensions: a letter sent from one dimension can be received in another.",
+  "keywords": [
+    "Ender",
+    "Mailbox",
+    "Mail",
+    "Letter",
+    "Ender Letter"
+  ],
+  "images": [],
+  "videos": [],
+  "properties": [
+    {
+      "label": "Send",
+      "value": "Shift right click with an Ender Letter"
+    },
+    {
+      "label": "Receive",
+      "value": "Right click your own mailbox"
+    },
+    {
+      "label": "Inbox",
+      "value": "9 letters per player"
+    },
+    {
+      "label": "Owner",
+      "value": "The player who placed it; only the owner can open it"
+    },
+    {
+      "label": "Dimensions",
+      "value": "Works across dimensions"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "ender_pearl",
+          "hopper",
+          "ender_pearl"
+        ],
+        [
+          "iron_ingot",
+          "iron_ingot",
+          "iron_ingot"
+        ],
+        [
+          null,
+          "oak_fence",
+          null
+        ]
+      ],
+      "result": {
+        "key": "ender_mailbox",
+        "count": 1
+      }
+    }
+  ]
+}

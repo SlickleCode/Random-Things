@@ -1,7 +1,7 @@
 {
   "title": "Iron Dropper",
   "category": "block",
-  "description": "The Iron Dropper is an advanced configurable Dropper. You can change the pickup delay of items dropped, whether the dropper spits the items out \"perfectly straight\" (Nice for Superlubricent Ice/Stone), whether there are any particles/sound effects & how it reacts to redstone.",
+  "description": "The Iron Dropper is an advanced configurable Dropper with 9 slots. In its gui you can change:\n\n- Redstone mode: Pulse (drops one item per redstone pulse) or Repeat Powered (drops an item every 4 ticks while powered, default)\n\n- Pickup delay of items dropped: None, 5 ticks (default) or 20 ticks\n\n- Motion: whether the dropper spits the items out \"perfectly straight\" (Nice for Superlubricent Ice/Stone) or randomly\n\n- Effects: whether there are any particles/sound effects (None by default)\n\nIt drops one item at a time. If the block in front has an inventory, the item is inserted into it instead.",
   "keywords": [
     "Dropper",
     "Iron"
@@ -9,8 +9,61 @@
   "images": [
     "images/iron-dropper.png"
   ],
-  "recipe_images": [
-    "images/crafting-iron-dropper.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Pulse or Repeat Powered (every 4 ticks)"
+    },
+    {
+      "label": "Pickup delay",
+      "value": "None, 5 or 20 ticks"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          }
+        ],
+        [
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          null
+        ],
+        [
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          "redstone",
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          }
+        ]
+      ],
+      "result": {
+        "key": "iron_dropper",
+        "count": 1
+      }
+    }
+  ]
 }

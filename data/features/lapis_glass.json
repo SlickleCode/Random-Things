@@ -7,8 +7,54 @@
     "Lapis"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-lapis-glass.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ],
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          "lapis_block",
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ],
+        [
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          },
+          {
+            "key": "glass",
+            "label": "Glass"
+          }
+        ]
+      ],
+      "result": {
+        "key": "lapis_glass",
+        "count": 8
+      }
+    }
+  ]
 }

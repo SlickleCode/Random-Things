@@ -1,0 +1,33 @@
+{
+  "title": "Biome Crystal",
+  "category": "item",
+  "description": "The Biome Crystal stores a single biome. It cannot be crafted. It can be found in chests around the world: every vanilla chest loot table (dungeons, mineshafts, temples, villages and so on) has a 20% chance to contain one, tuned to a random biome. Crystals are also available in the creative menu, but those are not tuned to any biome and a Biome Radar will not start a search with them.\n\nThe name and tooltip of the crystal show which biome it is tuned to.\n\nPut a Biome Crystal into a Biome Radar to search for that biome. It is also used to craft the Biome Sensor needed for the Biome Radar.",
+  "keywords": [
+    "Biome",
+    "Crystal",
+    "Biome Crystal",
+    "Radar",
+    "Biome Sensor"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Chest loot, 20% chance per chest loot table"
+    },
+    {
+      "label": "Config",
+      "value": "BiomeCrystal (default true) - turns the chest loot on or off"
+    },
+    {
+      "label": "Stores",
+      "value": "One biome"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipe_images": []
+}

@@ -1,7 +1,7 @@
 {
   "title": "Peace Candle",
   "category": "block",
-  "description": "Peace Candles prevent Natural Mob Spawning in a 3 Chunk Radius around them. There is a chance of 33% for one to be in a village church.",
+  "description": "Peace Candles prevent hostile mobs from spawning naturally in a 3 Chunk Radius around them. There is a chance of 33% for one to be in a village church.\n\nThis also applies to mobs from spawners, but not to mobs spawned with spawn eggs.",
   "keywords": [
     "Candle",
     "Peace"
@@ -9,5 +9,19 @@
   "images": [
     "images/peace-candle.png"
   ],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Creative inventory; may generate in a village church"
+    },
+    {
+      "label": "Range",
+      "value": "3 chunks around the candle"
+    },
+    {
+      "label": "Config",
+      "value": "PeaceCandle (worldgen), default true - turns the village church candle off"
+    }
+  ]
 }

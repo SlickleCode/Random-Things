@@ -1,0 +1,101 @@
+{
+  "title": "Spectre Ingot and Spectre String",
+  "category": "item",
+  "description": "Spectre Ingots and Spectre String are crafting materials made from Ectoplasm. They have no use on their own.\n\nA Spectre Ingot is crafted from lapis lazuli, a gold ingot and Ectoplasm. A block version of the recipe turns a lapis block, a gold block and 8 Ectoplasm into 9 Spectre Ingots at once. Spectre String is crafted from Ectoplasm, string and a diamond and gives 4 Spectre String.\n\nSpectre Ingots are used for the Spectre Key, the Spectre Lens, the Spectre Tools (which they also repair) and the Spectre Coils and Chargers. Spectre String is used for the Spectre Charger, the Spectre Coils and the Spectre Energy Injector.\n\nThe Spectre Core in the Spectre Key room can not be obtained as an item.",
+  "keywords": [
+    "Spectre",
+    "Ingot",
+    "String",
+    "Ectoplasm",
+    "Spectre Ingot",
+    "Spectre String",
+    "Spectre Core"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafting"
+    },
+    {
+      "label": "Made from",
+      "value": "Ectoplasm"
+    },
+    {
+      "label": "Used for",
+      "value": "Spectre Key, Lens, Tools, Coils, Chargers, Energy Injector"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "lapis_lazuli",
+          null
+        ],
+        [
+          null,
+          "gold_ingot",
+          null
+        ],
+        [
+          null,
+          "ectoplasm",
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_ingot",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "ectoplasm",
+          "lapis_block",
+          "ectoplasm"
+        ],
+        [
+          "ectoplasm",
+          "gold_block",
+          "ectoplasm"
+        ],
+        [
+          "ectoplasm",
+          "ectoplasm",
+          "ectoplasm"
+        ]
+      ],
+      "result": {
+        "key": "spectre_ingot",
+        "count": 9
+      }
+    },
+    {
+      "shape": [
+        [
+          "ectoplasm",
+          "string",
+          "ectoplasm"
+        ],
+        [
+          "string",
+          "diamond",
+          "string"
+        ],
+        [
+          "ectoplasm",
+          "string",
+          "ectoplasm"
+        ]
+      ],
+      "result": {
+        "key": "spectre_string",
+        "count": 4
+      }
+    }
+  ]
+}

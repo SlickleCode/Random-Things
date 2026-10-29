@@ -1,14 +1,61 @@
 {
   "title": "Online Detector",
   "category": "block",
-  "description": "The Online Detector is a block that emits a redstone signal when a player you specify is online. Simply right click the block to open up its gui and input the name of the player you want to detect. While the specified player is online the block will emit a redstone signal, otherwise it won't.\n\nWhen Open Computers is installed it also provides a component called \"online_detector\" with the following functions:\n\n- isPlayerOnline(username) : Returns whether username is currently online.\n\n- getPlayerList() : Returns a table that contains every user that is currently online.",
+  "description": "The Online Detector is a block that emits a redstone signal when a player you specify is online. Simply right click the block to open up its gui and input the name of the player you want to detect. While the specified player is online the block will emit a redstone signal, otherwise it won't. It checks once per second and goes by the username.\n\nThe player name is case sensitive.",
   "keywords": [
     "Detector",
     "Online"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-online-detector.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Power 15 on all sides while the player is online"
+    },
+    {
+      "label": "Check rate",
+      "value": "Once per second"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "repeater",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          "repeater",
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          },
+          "repeater"
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "repeater",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "online_detector",
+        "count": 1
+      }
+    }
+  ]
 }

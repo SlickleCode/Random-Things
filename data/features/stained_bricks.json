@@ -1,18 +1,82 @@
 {
   "title": "Stained Bricks",
   "category": "block",
-  "description": "Stained Bricks are colored versions of the vanilla bricks. They are also available in a Luminous Version that glows in the dark.",
+  "description": "Stained Bricks are colored versions of the vanilla bricks, made from vanilla Bricks blocks and a dye. They are also available in a Luminous Version that glows in the dark.",
   "keywords": [
     "Bricks",
     "Stained"
+  ],
+  "properties": [
+    {
+      "label": "Colors",
+      "value": "16 dye colors"
+    },
+    {
+      "label": "Luminous version",
+      "value": "Light level 15"
+    }
   ],
   "images": [
     "images/stained-bricks-1.png",
     "images/stained-bricks-2.png"
   ],
-  "recipe_images": [
-    "images/crafting-stained-bricks-1.png",
-    "images/crafting-stained-bricks-2.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "stained_brick",
+            "label": "Stained Brick (any color)"
+          },
+          "luminous_powder",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "luminous_stained_brick",
+        "count": 1,
+        "label": "Luminous Stained Brick"
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid. The result has the same color as the Stained Brick used."
+    },
+    {
+      "shape": [
+        [
+          "bricks",
+          "bricks",
+          "bricks"
+        ],
+        [
+          "bricks",
+          {
+            "key": "dye",
+            "label": "Any Dye"
+          },
+          "bricks"
+        ],
+        [
+          "bricks",
+          "bricks",
+          "bricks"
+        ]
+      ],
+      "result": {
+        "key": "stained_brick",
+        "count": 8,
+        "label": "Stained Brick"
+      },
+      "note": "The dye decides the color; all 16 dye colors work."
+    }
+  ]
 }

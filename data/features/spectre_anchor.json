@@ -1,16 +1,59 @@
 {
   "title": "Spectre Anchor",
   "category": "item",
-  "description": "The Spectre Anchor allows you to anchor items. Anchored items won't drop out of your inventory when you die.\n\nTo anchor an item you just have to combine it with a spectre anchor in a crafting grid, this only works with items that aren't stackable.",
+  "description": "The Spectre Anchor allows you to anchor items. Anchored items won't drop out of your inventory when you die and are put back into the same slot when you respawn. If that slot is already taken, the item goes into the first free slot; if your inventory is full, it drops where you died. Anchored items stay with you in the same way when the keepInventory game rule is on.\n\nTo anchor an item, put it and one Spectre Anchor in a crafting grid. This only works with items that can not be stacked (stack size 1) and that are not anchored yet. The anchor is used up and the item gets an \"Anchored\" line in its tooltip.",
   "keywords": [
     "Anchor",
-    "Spectre"
+    "Spectre",
+    "Death",
+    "Keep Inventory",
+    "Anchored"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafting"
+    },
+    {
+      "label": "Stack size",
+      "value": "64"
+    },
+    {
+      "label": "Works on",
+      "value": "Items with stack size 1"
+    },
+    {
+      "label": "Consumed",
+      "value": "Yes, when anchoring an item"
+    }
   ],
   "images": [
     "images/spectre-anchor.png"
   ],
-  "recipe_images": [
-    "images/crafting-spectre-anchor.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "iron_ingot",
+          null
+        ],
+        [
+          "iron_ingot",
+          "ectoplasm",
+          "iron_ingot"
+        ],
+        [
+          "iron_ingot",
+          "iron_ingot",
+          "iron_ingot"
+        ]
+      ],
+      "result": {
+        "key": "spectre_anchor",
+        "count": 1
+      }
+    }
+  ]
 }

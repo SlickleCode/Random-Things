@@ -1,18 +1,54 @@
 {
   "title": "Redstone Interface",
   "category": "block",
-  "description": "The Redstone Interface allows you to redstone-power blocks wirelessly. Unlike other wireless redstone mechanics it directly powers the target, therefore not requiring any kind of receiver. Generally the redstone interface will act as the block that it's linked to (redstone wise). It does not have a range limitation but it does not work across dimensions.\n\nTo specify the target of a redstone interface you have to use a Redstone Tool. First right click on the redstone interface and then on the block you want to link it to. While holding a redstone tool you are able to see these connections as red lines as long as you are close to the redstone interface they are connected to.\n\nIf you have Open Computers installed this block also provides a component called \"basic_redstone_interface\" that provides the following functions:\n\n- setTarget(x,y,z) : Sets the target of the Redstone Interface\n\n- getTarget() : Returns the target of the Redstone Interface (nil if it doesn't have one)\n\nThere is also an advanced version of this block which can be linked to up to 9 blocks at the same time.",
+  "description": "The Redstone Interface allows you to redstone-power blocks wirelessly. Unlike other wireless redstone mechanics it directly powers the target, therefore not requiring any kind of receiver. Generally the redstone interface will act as the block that it's linked to (redstone wise). It does not have a range limitation but it does not work across dimensions.\n\nTo specify the target of a redstone interface you have to use a Redstone Tool. First shift right click on the redstone interface and then shift right click on the block you want to link it to. While holding a redstone tool you are able to see these connections as red lines as long as you are close to the redstone interface they are connected to.\n\nRight clicking the interface opens a gui that shows its current target or \"No Target\". If several interfaces point at the same block, the strongest signal counts.\n\nThere is also an advanced version of this block which can be linked to up to 9 blocks at the same time.",
   "keywords": [
     "Interface",
-    "Redstone"
+    "Redstone",
+    "Basic Redstone Interface"
+  ],
+  "properties": [
+    {
+      "label": "Targets",
+      "value": "1"
+    },
+    {
+      "label": "Range",
+      "value": "Unlimited"
+    },
+    {
+      "label": "Linking",
+      "value": "Redstone Tool"
+    }
   ],
   "images": [
     "images/redstone-interface-1.png",
     "images/redstone-interface-2.png"
   ],
-  "recipe_images": [
-    "images/crafting-redstone-interface-1.png",
-    "images/crafting-redstone-interface-2.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          "redstone",
+          "iron_ingot"
+        ],
+        [
+          "redstone",
+          "stable_enderpearl",
+          "redstone"
+        ],
+        [
+          "iron_ingot",
+          "redstone",
+          "iron_ingot"
+        ]
+      ],
+      "result": {
+        "key": "basic_redstone_interface",
+        "count": 1
+      }
+    }
+  ]
 }

@@ -1,13 +1,28 @@
 {
   "title": "Glowing Mushrooms",
   "category": "item",
-  "description": "Glowing Mushrooms can be found in caves, they can be used as a replacement for glowstone in all brewing recipes and are also used to craft Luminous Powder .",
+  "description": "Glowing Mushrooms can be found in caves, below the surface and without sky access. They are used to craft Luminous Powder .\n\nThey give off light and slowly spread to nearby dark spots on grass, dirt, stone, Fertilized Dirt or mycelium, as long as there are fewer than 5 of them close by. A Glowing Mushroom breaks and drops itself if its light level gets too high.",
   "keywords": [
     "Glowing",
-    "Mushrooms"
+    "Mushrooms",
+    "Glowing Mushroom"
   ],
   "images": [
     "images/glowing-mushrooms.png"
   ],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Found in caves (world generation); drops itself when broken"
+    },
+    {
+      "label": "Light level",
+      "value": "12"
+    },
+    {
+      "label": "Config",
+      "value": "GlowingMushrooms (worldgen), default true - turns world generation off"
+    }
+  ]
 }

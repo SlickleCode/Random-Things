@@ -1,18 +1,61 @@
 {
   "title": "Artificial End Portal",
   "category": "misc",
-  "description": "With Random Things installed you no longer have to run to the nearest Fortress to get to the end (Once you've been there anyway :P). You can just build your own End Portal. Build the Structure shown in the first Screenshot and right click the End Rod with an Evil Tear, the portal will then open. The second screenshot shows the portal after it has been opened, the structure has to stay intact or otherwise the portal will close again & you will have to use another evil tear to reopen it.",
+  "description": "With Random Things installed you no longer have to run to the nearest Fortress to get to the end (Once you've been there anyway :P). You can just build your own End Portal. Build the Structure shown in the first Screenshot and right click the End Rod with an Evil Tear, the portal will then charge for 10 seconds and open. The second screenshot shows the portal after it has been opened, the structure has to stay intact or otherwise the portal will close again & you will have to use another evil tear to reopen it. If the structure is wrong, nothing happens and the tear is kept.\n\nThe portal only sends players to the End. Items and mobs are not transported. The Evil Tear is crafted from a Wither Skeleton Skull, a Ghast Tear and an Ender Pearl, and the portal can be turned off in the config.",
   "keywords": [
     "Artificial",
     "End",
-    "Portal"
+    "Portal",
+    "Evil Tear",
+    "Dimension"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Evil Tear: crafted (see recipe)"
+    },
+    {
+      "label": "Charge time",
+      "value": "10 seconds"
+    },
+    {
+      "label": "Config",
+      "value": "ArtificialEndPortal (default true): whether Evil Tears can create portals"
+    },
+    {
+      "label": "Structure check",
+      "value": "Every 2 seconds the portal re-checks its structure"
+    }
   ],
   "images": [
     "images/artificial-end-portal-1.png",
     "images/artificial-end-portal-2.png"
   ],
-  "recipe_images": [
-    "images/crafting-artificial-end-portal.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "wither_skeleton_skull",
+          "ghast_tear",
+          "ender_pearl"
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "evil_tear",
+        "count": 1
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid."
+    }
+  ]
 }

@@ -1,0 +1,102 @@
+{
+  "title": "Configuration",
+  "category": "misc",
+  "description": "All options live in the file randomthings-common.toml, in the sections worldgen, loot, features, visual and numbers. Options are read when they are used; loot options are read when loot tables load, so they need a world reload or restart.\n\n- worldgen: turn generation of Lotus, Peace Candle churches, Ancient Furnaces and Glowing Mushrooms on or off.\n- loot: turn chest loot additions on or off.\n- features: turn some optional mod features on or off.\n- visual: client look options.\n- numbers: limits and chances.\n\nOptions are listed below as section.key, with the default and what each does.",
+  "keywords": [
+    "Configuration",
+    "Config",
+    "Options",
+    "Settings",
+    "randomthings-common.toml",
+    "worldgen",
+    "loot",
+    "features",
+    "visual",
+    "numbers"
+  ],
+  "properties": [
+    {
+      "label": "worldgen.Lotus",
+      "value": "default true - Lotus plants generate in Snowy biomes."
+    },
+    {
+      "label": "worldgen.PeaceCandle",
+      "value": "default true - Village churches may contain a Peace Candle."
+    },
+    {
+      "label": "worldgen.AncientFurnace",
+      "value": "default true - Ancient Furnaces generate in cold biomes."
+    },
+    {
+      "label": "worldgen.GlowingMushrooms",
+      "value": "default true - Glowing Mushroom patches generate in caves."
+    },
+    {
+      "label": "loot.MagicHood",
+      "value": "default true - Magic Hood can appear in dungeon and village weaponsmith chests."
+    },
+    {
+      "label": "loot.SummoningPendulum",
+      "value": "default true - Summoning Pendulum can appear in dungeon and stronghold corridor chests."
+    },
+    {
+      "label": "loot.BiomeCrystal",
+      "value": "default true - Chests can contain a Biome Crystal."
+    },
+    {
+      "label": "loot.SlimeCube",
+      "value": "default true - Slime Cube can appear in dungeon and jungle temple chests."
+    },
+    {
+      "label": "features.ArtificialEndPortal",
+      "value": "default true - An Evil Tear used on an End Rod can create an Artificial End Portal."
+    },
+    {
+      "label": "features.MagneticEnchantment",
+      "value": "default true - The Magnetic enchantment can be obtained from enchanting tables and books and works."
+    },
+    {
+      "label": "features.GoldenEgg",
+      "value": "default true - Bean Pods also drop a Golden Egg."
+    },
+    {
+      "label": "features.EnderAnchorChunkloading",
+      "value": "default true - Ender Anchors keep their chunk loaded."
+    },
+    {
+      "label": "visual.FlatRunes",
+      "value": "default false - Runes use a flat texture."
+    },
+    {
+      "label": "visual.HideCoordinates",
+      "value": "default false - Hides the coordinates shown on Portkeys and Position Filters."
+    },
+    {
+      "label": "numbers.BlockDestabilizerLimit",
+      "value": "default 50 - Maximum number of blocks a Block Destabilizer affects; 0 means unlimited."
+    },
+    {
+      "label": "numbers.TriggerGlassChainLimit",
+      "value": "default 20 - Maximum number of touching Trigger Glass blocks triggered per pulse; 0 means unlimited."
+    },
+    {
+      "label": "numbers.SpiritLifeTime",
+      "value": "default 400 - Ticks before a Spirit disappears (minimum 1)."
+    },
+    {
+      "label": "numbers.SpiritChanceNormal",
+      "value": "default 0.01 - Base chance (0 to 1) that an entity killed by a player spawns a Spirit."
+    },
+    {
+      "label": "numbers.SpiritChanceMoonMult",
+      "value": "default 2.0 - Multiplier (0 to 1000) for the extra Spirit chance at night under open sky, scaled by the moon phase."
+    },
+    {
+      "label": "numbers.SpiritChanceEndIncrease",
+      "value": "default 0.07 - Extra Spirit chance added once the Ender Dragon has been killed."
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipe_images": []
+}

@@ -1,16 +1,48 @@
 {
   "title": "Trigger Glass",
   "category": "block",
-  "description": "When powered by redstone Trigger Glass will loose its collision box for 3 seconds so entities will fall through it. Adjacent Trigger Glass will also be activated so it's enough to power one block of connected Trigger Glass.",
+  "description": "When powered by redstone Trigger Glass will loose its collision box for 3 seconds so entities will fall through it. Adjacent Trigger Glass will also be activated so it's enough to power one block of connected Trigger Glass.\n\nSand and gravel fall through it while it is open. After the 3 seconds it closes again, even if the power is still on; a new redstone update opens it again. At most 20 connected blocks are opened at once by default (config TriggerGlassChainLimit, 0 = unlimited).",
   "keywords": [
     "Glass",
     "Trigger"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-trigger-glass.png"
+  "properties": [
+    {
+      "label": "Open Time",
+      "value": "3 seconds (60 ticks)"
+    },
+    {
+      "label": "Config",
+      "value": "TriggerGlassChainLimit, default 20 (0 = unlimited)"
+    }
   ],
+  "images": [],
   "videos": [
     "videos/trigger-glass.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "lapis_glass",
+          null,
+          null
+        ],
+        [
+          "quartz_glass",
+          "redstone",
+          "quartz_glass"
+        ],
+        [
+          "lapis_glass",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "trigger_glass",
+        "count": 4
+      }
+    }
   ]
 }

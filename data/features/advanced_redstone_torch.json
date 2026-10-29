@@ -1,12 +1,13 @@
 {
   "title": "Advanced Redstone Torch",
   "category": "block",
-  "description": "Unlike a normal redstone torch which just emits either a redstone signal of 15 or 0 with an advanced one you can configure the signal strength for the two states freely. It's green while powered and red while unpowered.",
+  "description": "Unlike a normal redstone torch which just emits either a redstone signal of 15 or 0 with an advanced one you can configure the signal strength for the two states freely. It's green while powered and red while unpowered.\n\nRight click it to open a gui with a \"Green Strength\" and a \"Red Strength\" row. The - and + buttons change the value by 1, from 0 to 15. By default the red state emits 15 and the green state emits 0. It can be placed on the floor or on walls and burns out like a normal redstone torch if it is toggled too quickly.",
   "keywords": [
     "Redstone",
     "Torch",
     "Advanced",
-    "Signal"
+    "Signal",
+    "Wall Torch"
   ],
   "images": [
     "images/advanced-redstone-torch-1.png"
@@ -14,29 +15,6 @@
   "videos": [
     "videos/advanced-redstone-torch-2.mp4"
   ],
-  "recipe": {
-    "shape": [
-      [
-        null,
-        "redstone",
-        null
-      ],
-      [
-        "redstone",
-        "iron_ingot",
-        "redstone"
-      ],
-      [
-        null,
-        "stick",
-        null
-      ]
-    ],
-    "result": {
-      "key": "advanced_redstone_torch",
-      "count": 1
-    }
-  },
   "properties": [
     {
       "label": "Powered Color",
@@ -49,6 +27,42 @@
     {
       "label": "Configurable Signal Strength",
       "value": "Yes, for both states"
+    },
+    {
+      "label": "Strength Range",
+      "value": "0 to 15"
+    },
+    {
+      "label": "Default Strength",
+      "value": "Red 15, Green 0"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "redstone",
+          null
+        ],
+        [
+          "redstone",
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          "redstone"
+        ],
+        [
+          null,
+          "stick",
+          null
+        ]
+      ],
+      "result": {
+        "key": "advanced_redstone_torch",
+        "count": 1
+      }
     }
   ]
 }

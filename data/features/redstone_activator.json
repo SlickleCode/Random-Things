@@ -1,17 +1,53 @@
 {
   "title": "Redstone Activator",
   "category": "item",
-  "description": "The Redstone Activator temporarily powers blocks with redstone when you right click them. For example Doors open, tnt ignites, lamps / redstone turns on.\n\nYou can change the duration of the signal between 2 / 20 / 100 Ticks by (shift)-right clicking into the air with it.",
+  "description": "The Redstone Activator temporarily powers blocks with redstone when you right click them. For example Doors open, tnt ignites, lamps / redstone turns on.\n\nYou can change the duration of the signal between 2 / 20 / 100 Ticks by (shift)-right clicking into the air with it. The default is 20 ticks and the tooltip shows the current duration. The signal has a strength of 15 and the clicked block itself is the one that gets powered.",
   "keywords": [
     "Redstone",
     "Activator",
     "Signal"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-redstone-activator.png"
+  "properties": [
+    {
+      "label": "Durations",
+      "value": "2 / 20 / 100 ticks, default 20"
+    },
+    {
+      "label": "Signal Strength",
+      "value": "15"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    }
   ],
+  "images": [],
   "videos": [
     "videos/redstone-activator.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          "redstone",
+          "iron_ingot"
+        ],
+        [
+          "iron_ingot",
+          "redstone_torch",
+          "iron_ingot"
+        ],
+        [
+          "iron_ingot",
+          "iron_ingot",
+          "iron_ingot"
+        ]
+      ],
+      "result": {
+        "key": "redstone_activator",
+        "count": 1
+      }
+    }
   ]
 }

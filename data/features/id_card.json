@@ -1,0 +1,48 @@
+{
+  "title": "ID Card",
+  "category": "item",
+  "description": "The ID Card stores a player. Right click with it in your hand to bind it to yourself; right clicking again overwrites the stored player. The tooltip shows the player's name.\n\n- Combine an ID Card with an Emerald Compass in a crafting table to make the compass point to that player. The card is not used up.\n\n- Put it in the filter slot of an Entity Detector in custom mode to match only that player. An unbound card matches any player.\n\n- Put it in the whitelist slots of a Global Chat Detector so that consuming chat messages only works for that player.",
+  "keywords": [
+    "ID",
+    "Card",
+    "Player",
+    "Filter"
+  ],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "64"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "paper",
+          "ink_sac",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "id_card",
+        "count": 1
+      }
+    }
+  ]
+}

@@ -4,13 +4,54 @@
   "description": "Putting a Spectre Lens on top of a beacon will apply the effects of that beacon to your player no matter where you are in the dimension of the beacon. You can only use 1 Spectre Lens per dimension at once, having multiple ones will make them overwrite each other.",
   "keywords": [
     "Lens",
-    "Spectre"
+    "Spectre",
+    "Beacon"
+  ],
+  "properties": [
+    {
+      "label": "Placement",
+      "value": "Directly on top of a beacon"
+    },
+    {
+      "label": "Applies to",
+      "value": "The player who placed the lens"
+    },
+    {
+      "label": "Beacon",
+      "value": "Needs a complete pyramid (at least level 1)"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
   "images": [
     "images/spectre-lens.png"
   ],
-  "recipe_images": [
-    "images/crafting-spectre-lens.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "spectre_ingot",
+          "emerald",
+          "spectre_ingot"
+        ],
+        [
+          "diamond",
+          "glass",
+          "diamond"
+        ],
+        [
+          "spectre_ingot",
+          "emerald",
+          "spectre_ingot"
+        ]
+      ],
+      "result": {
+        "key": "spectre_lens",
+        "count": 1
+      }
+    }
+  ]
 }

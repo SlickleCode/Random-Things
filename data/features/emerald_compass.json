@@ -1,14 +1,53 @@
 {
   "title": "Emerald Compass",
   "category": "item",
-  "description": "The Emerald Compass is a compass that points to a specific player. You can change the target player by combining the compass with an ID Card in a crafting table.",
+  "description": "The Emerald Compass is a compass that points to a specific player. You can change the target player by combining the compass with an ID Card in a crafting table. The ID Card must be bound to a player and is not used up by this.\n\nThe target position is updated once per second while the compass is anywhere in an inventory. It uses the target's X and Z coordinates only, so it also points to those coordinates if the player is in another dimension. If the target player is offline, the needle wobbles randomly.",
   "keywords": [
     "Compass",
-    "Emerald"
+    "Emerald",
+    "ID",
+    "Card",
+    "Player"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-emerald-compass.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Update rate",
+      "value": "Once per second"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "emerald",
+          null
+        ],
+        [
+          "emerald",
+          "compass",
+          "emerald"
+        ],
+        [
+          null,
+          "emerald",
+          null
+        ]
+      ],
+      "result": {
+        "key": "emerald_compass",
+        "count": 1
+      }
+    }
+  ]
 }

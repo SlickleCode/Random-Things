@@ -1,16 +1,61 @@
 {
   "title": "Entity Detector",
   "category": "block",
-  "description": "The Entity Detector is a block that emits a redstone signal if it detects a certain type of entity in a configurable radius around it. If you right click on the block it will open a gui in where you can change the radius & the type of entity the detector is supposed to react to. You can also invert the filter (If you invert \"Players\" the detector will emit a redstone signal if any entity that is NOT a player is inside of its radius). If you set the Filter to Custom the block will use the Entity Filter in its inventory slot as its filter.",
+  "description": "The Entity Detector is a block that emits a redstone signal if it detects a certain type of entity in a configurable radius around it. If you right click on the block it will open a gui in where you can change the radius (0 to 10 for each axis, 5 by default) & the type of entity the detector is supposed to react to (All, Living, Animals, Monsters, Players, Items or Custom). You can also invert the filter (If you invert \"Players\" the detector will emit a redstone signal while there is NO player inside of its radius). If you set the Filter to Custom the block will use the Entity Filter in its inventory slot as its filter; with no filter in the slot nothing is detected.\n\nA button in the gui switches the output between Weak and Strong power.",
   "keywords": [
     "Detector",
-    "Entity"
+    "Entity",
+    "Entity Filter"
   ],
   "images": [
     "images/entity-detector.png"
   ],
-  "recipe_images": [
-    "images/crafting-entity-detector.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Radius",
+      "value": "0 to 10 per axis (default 5)"
+    },
+    {
+      "label": "Redstone",
+      "value": "Power 15 while active; Weak (default) or Strong"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "redstone_torch",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ],
+        [
+          "ender_pearl",
+          "stone_pressure_plate",
+          "ender_pearl"
+        ],
+        [
+          {
+            "key": "stone",
+            "label": "Stone"
+          },
+          "redstone_torch",
+          {
+            "key": "stone",
+            "label": "Stone"
+          }
+        ]
+      ],
+      "result": {
+        "key": "entity_detector",
+        "count": 1
+      }
+    }
+  ]
 }

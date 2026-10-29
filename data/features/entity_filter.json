@@ -1,14 +1,58 @@
 {
   "title": "Entity Filter",
   "category": "item",
-  "description": "A Filter that allows you to filter by entity type. Right clicking on an entity will set the filter to that entity.",
+  "description": "A Filter that allows you to filter by entity type. Right clicking on a living entity will set the filter to that entity. Only the exact entity type matches. A filter with no entity set matches every entity.",
   "keywords": [
     "Entity",
     "Filter"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-entity-filter.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          },
+          null,
+          null
+        ],
+        [
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          },
+          "paper",
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          }
+        ],
+        [
+          {
+            "key": "blue_dye",
+            "label": "Blue Dye"
+          },
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "entity_filter",
+        "count": 1
+      }
+    }
+  ]
 }

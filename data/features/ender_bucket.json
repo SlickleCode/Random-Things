@@ -1,15 +1,77 @@
 {
   "title": "Ender Bucket",
   "category": "item",
-  "description": "An Ender Bucket works mostly like a normal Iron Bucket. However when you right click a non source block it will try to find the closest connected source block and pick that up instead of doing nothing.\n\nThe Reinforced version can hold 10 Buckets of Fluid instead of just one. Also when you hold shift while picking up fluids it won't stop after it finds one source block but will keep going until it is either full or there is no fluid left.",
+  "description": "An Ender Bucket works mostly like a normal Iron Bucket. However when you right click a non source block it will try to find the closest connected source block and pick that up instead of doing nothing. Empty Ender Buckets stack to 16.\n\nThe Reinforced version can hold 10 Buckets of Fluid instead of just one. Also when you hold shift while picking up fluids it won't stop after it finds one source block but will keep going until it is either full or there is no fluid left. Right clicking a fluid with a Reinforced Ender Bucket always picks up, to place fluid right click a non fluid block.",
   "keywords": [
     "Bucket",
-    "Ender"
+    "Ender",
+    "Reinforced",
+    "Fluid",
+    "Water",
+    "Lava"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Ender Bucket and Reinforced Ender Bucket are crafted (see recipes)"
+    },
+    {
+      "label": "Capacity",
+      "value": "Ender Bucket 1 bucket (1000 mB), Reinforced 10 buckets (10000 mB)"
+    },
+    {
+      "label": "Search limit",
+      "value": "Up to 2000 connected fluid blocks"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-ender-bucket.png",
-    "images/crafting-ender-bucket-reinforced.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          null,
+          "iron_ingot"
+        ],
+        [
+          null,
+          "ender_pearl",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "ender_bucket",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "ender_bucket",
+          "obsidian"
+        ],
+        [
+          null,
+          "stable_enderpearl",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "reinforced_ender_bucket",
+        "count": 1
+      }
+    }
+  ]
 }

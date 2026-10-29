@@ -1,16 +1,67 @@
 {
   "title": "Time in a Bottle",
   "category": "item",
-  "description": "This item allows you to accelerate the rate at which blocks tick. It passively collects time while in your inventory which you can consume by right clicking a block with it. The first click requires 30 Seconds, the second 60, the third 120 the fourth 240 and the fifth 480. The speed at which the block ticks doubles with each click. The effect lasts 30 seconds.",
+  "description": "This item allows you to accelerate the rate at which blocks tick. It passively collects time while in your inventory (20 ticks of stored time every second, in any inventory slot) which you can consume by right clicking a block with it. The tooltip shows the stored time as hours, minutes and seconds.\n\nThe first click on a block creates a time accelerator there for 30 seconds and costs 30 seconds of stored time. Each further click on the same block doubles the speed (2x, 4x, 8x, 16x, 32x) and costs 30, 60, 120, 240 and 480 seconds respectively, so reaching 32x takes six clicks. Upgrading also extends the remaining duration. At 32x further clicks do nothing. If the bottle does not hold enough time, a red message is shown. Creative players pay nothing.\n\nThe accelerator ticks tile entities (furnaces, hoppers and similar blocks) extra times and gives other blocks additional random ticks. If you carry several bottles, only the one with the most stored time keeps its time. The bottle also feeds the Eclipsed Clock.",
   "keywords": [
     "Bottle",
-    "Time"
+    "Time",
+    "Accelerate",
+    "Speed",
+    "Eclipsed Clock"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted (see recipe)"
+    },
+    {
+      "label": "Time gain",
+      "value": "20 ticks of stored time per second, in any inventory slot"
+    },
+    {
+      "label": "Storage cap",
+      "value": "622080000 ticks"
+    },
+    {
+      "label": "Base duration",
+      "value": "30 seconds (extended by upgrades)"
+    },
+    {
+      "label": "Max speed",
+      "value": "32x"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-time-in-a-bottle.png"
-  ],
   "videos": [
     "videos/time-in-a-bottle.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "gold_ingot",
+          "gold_ingot",
+          "gold_ingot"
+        ],
+        [
+          "diamond",
+          "clock",
+          "diamond"
+        ],
+        [
+          "lapis_lazuli",
+          "glass_bottle",
+          "lapis_lazuli"
+        ]
+      ],
+      "result": {
+        "key": "time_in_a_bottle",
+        "count": 1
+      }
+    }
   ]
 }

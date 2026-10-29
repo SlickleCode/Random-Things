@@ -1,16 +1,45 @@
 {
   "title": "Sided Block of Redstone",
   "category": "block",
-  "description": "Works like a normal Block of Redstone except it only outputs power on one side.",
+  "description": "Works like a normal Block of Redstone except it only outputs power on one side.\n\nThe output side depends on the direction you are looking when you place it. It emits a signal of 15 on that one side.",
   "keywords": [
     "Redstone",
-    "Sided"
+    "Sided",
+    "Block of Redstone"
+  ],
+  "properties": [
+    {
+      "label": "Signal Strength",
+      "value": "15, on one side only"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-sided-redstone.png"
-  ],
   "videos": [
     "videos/sided-redstone.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "gunpowder",
+          "gunpowder",
+          "redstone"
+        ],
+        [
+          "gunpowder",
+          "gunpowder",
+          "redstone"
+        ],
+        [
+          "gunpowder",
+          "gunpowder",
+          "redstone"
+        ]
+      ],
+      "result": {
+        "key": "sided_redstone",
+        "count": 1
+      }
+    }
   ]
 }

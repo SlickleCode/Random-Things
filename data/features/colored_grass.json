@@ -1,15 +1,84 @@
 {
   "title": "Colored Grass",
   "category": "block",
-  "description": "Dye Grass in any of the vanilla colors! Just pick up some grass with your silktouch shovel, put it in a crafting table to get grass seeds and then color the seeds. Right clicking with a grass seed on a piece of dirt will turn it into grass with the color of the seed.\nColored Grass spreads like normal grass but will not grow over normal grass.",
+  "description": "Dye Grass in any of the 16 vanilla colors! Craft a grass block into Grass Seeds, then combine the seeds with a dye to color them. Right clicking with a colored grass seed on a piece of dirt will turn it into grass with the color of the seed. Plain Grass Seeds turn dirt into normal grass. Only plain dirt works (not coarse dirt, podzol or Fertilized Dirt).\n\nColored Grass spreads like normal grass to nearby dirt but will not grow over normal grass or other colors, and it turns back into dirt when covered. Breaking it gives dirt; with Silk Touch you get the Colored Grass block.\n\nThe block and its item are named \"<Color> Grass Block\" (for example Red Grass Block), and a shovel is its preferred tool.",
   "keywords": [
     "Colored",
-    "Grass"
+    "Grass",
+    "Grass Seeds",
+    "Colored Grass"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-colored-grass-1.png",
-    "images/crafting-colored-grass-2.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Seeds are crafted from a grass block and a dye; Silk Touch gives the block"
+    },
+    {
+      "label": "Seeds",
+      "value": "17 kinds: plain and one per dye color"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "grass_block",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "grass_seeds",
+        "count": 1
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid."
+    },
+    {
+      "shape": [
+        [
+          {
+            "key": "grass_seeds",
+            "label": "Grass Seeds"
+          },
+          {
+            "key": "dye",
+            "label": "Any Dye"
+          },
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "grass_seeds",
+        "count": 1,
+        "label": "Colored Grass Seeds"
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid. The dye decides the color; all 16 dye colors work."
+    }
+  ]
 }

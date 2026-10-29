@@ -1,16 +1,45 @@
 {
   "title": "Notification Interface",
   "category": "block",
-  "description": "The Notification Interface allows you to send yourself toast notifications with customizable title,description & icon. It's activated by a redstone signal.\n\nWhen Open Computers is installed it also provides a component called \"notification_interface\" with the following functions:\n\n- notify(title, description, iconName, iconMeta) Example: notify(\"Custom Title\", \"Custom Description\", \"minecraft:cake\", 0)",
+  "description": "The Notification Interface allows you to send yourself toast notifications with customizable title,description & icon. It's activated by a redstone signal (when the signal turns on). Right click it to enter the title and description and to pick the icon: click the icon slot with an item to use that item as icon, or with an empty hand to clear it.\n\nThe notification is shown to the player who placed the block, and only while that player is online.",
   "keywords": [
     "Interface",
-    "Notification"
+    "Notification",
+    "Toast"
   ],
   "images": [
     "images/notification-interface.png"
   ],
-  "recipe_images": [
-    "images/crafting-notification-interface.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Redstone",
+      "value": "Fires when the signal turns on"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "stone",
+          "paper",
+          "stone"
+        ],
+        [
+          "paper",
+          "quartz",
+          "paper"
+        ],
+        [
+          "stone",
+          "paper",
+          "stone"
+        ]
+      ],
+      "result": {
+        "key": "notification_interface",
+        "count": 1
+      }
+    }
+  ]
 }

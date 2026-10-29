@@ -1,16 +1,59 @@
 {
   "title": "Sound Pattern",
   "category": "item",
-  "description": "Represents a specific sound effect. Used for the Sound Box / Sound Recorder / ( Portable ) Sound Dampener . Has the sound it \"contains\" in its name & tooltip.",
+  "description": "Represents a specific sound effect. Used for the Sound Box / Sound Recorder / ( Portable ) Sound Dampener . Has the sound it \"contains\" in its name & tooltip.\n\nA blank pattern holds no sound and is filled with a Sound Recorder. A recorded pattern shows the sound name in its item name and the full sound id in its tooltip, and looks different from a blank one. Sneak and right click with a pattern in your hand to clear its sound; this empties every pattern in the held stack. Recorded patterns can be taken out of a Sound Box by right clicking it. The Sound Dampeners only accept recorded patterns, while the Sound Box accepts both kinds.",
   "keywords": [
     "Pattern",
-    "Sound"
+    "Sound",
+    "Blank",
+    "Record",
+    "Sound id"
   ],
   "images": [
     "images/sound-pattern.png"
   ],
-  "recipe_images": [
-    "images/crafting-sound-pattern.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "64"
+    },
+    {
+      "label": "Blank",
+      "value": "No sound; fill it with a Sound Recorder"
+    },
+    {
+      "label": "Clear",
+      "value": "Sneak + right click"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "string",
+          null
+        ],
+        [
+          null,
+          "paper",
+          null
+        ],
+        [
+          null,
+          "lapis_lazuli",
+          null
+        ]
+      ],
+      "result": {
+        "key": "sound_pattern",
+        "count": 1
+      }
+    }
+  ]
 }

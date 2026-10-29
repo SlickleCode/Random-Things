@@ -1,18 +1,82 @@
 {
   "title": "Luminous Blocks",
   "category": "block",
-  "description": "Luminous Blocks are bright single colored blocks that glow in the dark. Translucent Luminous Blocks are the same except they are semi transparent.",
+  "description": "Luminous Blocks are bright single colored blocks that glow in the dark. Translucent Luminous Blocks are the same except they are semi transparent. Both come in all 16 dye colors and are real light sources.",
   "keywords": [
     "Blocks",
     "Luminous"
+  ],
+  "properties": [
+    {
+      "label": "Light level",
+      "value": "15"
+    },
+    {
+      "label": "Colors",
+      "value": "16 dye colors, opaque and translucent"
+    }
   ],
   "images": [
     "images/luminous-blocks-1.png",
     "images/luminous-blocks-2.png"
   ],
-  "recipe_images": [
-    "images/crafting-luminous-blocks-1.png",
-    "images/crafting-luminous-blocks-2.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "luminous_powder",
+          {
+            "key": "dye",
+            "label": "Any Dye"
+          },
+          null
+        ],
+        [
+          "luminous_powder",
+          "luminous_powder",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "luminous_block",
+        "count": 1,
+        "label": "Luminous Block"
+      },
+      "note": "The dye decides the color; all 16 dye colors work."
+    },
+    {
+      "shape": [
+        [
+          null,
+          "glass_pane",
+          null
+        ],
+        [
+          "glass_pane",
+          {
+            "key": "luminous_block",
+            "label": "Luminous Block (any color)"
+          },
+          "glass_pane"
+        ],
+        [
+          null,
+          "glass_pane",
+          null
+        ]
+      ],
+      "result": {
+        "key": "luminous_block_translucent",
+        "count": 1,
+        "label": "Translucent Luminous Block"
+      },
+      "note": "The result has the same color as the Luminous Block used."
+    }
+  ]
 }

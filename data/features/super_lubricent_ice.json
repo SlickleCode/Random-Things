@@ -1,0 +1,113 @@
+{
+  "title": "Super Lubricent Ice and Platforms",
+  "category": "block",
+  "description": "Super Lubricent Ice is slippery ice that takes away all friction from entities standing on it. Super Lubricent Platform is the same material as a thin platform: only the top 2/16 of the block is solid, so anything whose feet are below that top slab (in the lower 14/16 of the block) passes through, and a sneaking player falls through from the top. The Filtered Super Lubricent Platform is a Super Lubricent Platform that also lets dropped items fall through.\n\nRight click a Filtered Super Lubricent Platform to open its GUI. It has a single example-item slot: dropped items of the same item type as the example item fall through the platform, all other items, players and mobs still stand on it. Breaking the platform drops the example item.\n\nEntities that stand on these blocks keep sliding until they hit something, but their horizontal speed is capped at 0.35 blocks per tick. Boats on them are also capped at 0.35 blocks per tick and turn at most 15 degrees per tick.",
+  "keywords": [
+    "Super",
+    "Lubricent",
+    "Ice",
+    "Platform",
+    "Filtered",
+    "Slippery",
+    "Friction",
+    "Boat"
+  ],
+  "properties": [
+    {
+      "label": "Blocks",
+      "value": "Super Lubricent Ice, Super Lubricent Platform, Filtered Super Lubricent Platform"
+    },
+    {
+      "label": "Effect",
+      "value": "Removes friction from entities standing on it"
+    },
+    {
+      "label": "Speed cap",
+      "value": "0.35 blocks/tick horizontal"
+    },
+    {
+      "label": "Boat turn cap",
+      "value": "15 degrees/tick"
+    },
+    {
+      "label": "Filter GUI",
+      "value": "Right click the Filtered Platform; one example-item slot"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "paper",
+          null,
+          null
+        ],
+        [
+          "super_lubricent_platform",
+          null,
+          null
+        ],
+        [
+          "string",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "filtered_super_lubricent_platform",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          {
+            "key": "slime_ball",
+            "label": "Slimeball"
+          },
+          null,
+          null
+        ],
+        [
+          "ice",
+          null,
+          null
+        ],
+        [
+          "water_bucket",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "super_lubricent_ice",
+        "count": 16
+      }
+    },
+    {
+      "shape": [
+        [
+          "super_lubricent_ice",
+          "super_lubricent_ice",
+          "super_lubricent_ice"
+        ],
+        [
+          "ender_pearl",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "super_lubricent_platform",
+        "count": 6
+      }
+    }
+  ]
+}

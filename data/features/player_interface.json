@@ -1,7 +1,7 @@
 {
   "title": "Player Interface",
   "category": "block",
-  "description": "The Player Interface is a block that allows you to access the inventory of your player as if it was a chest.\n\nLooking at the block after you placed it down you can see that it has 4 different sides:\n\nHotbar, Storage, Armor, Shield\n\nThere also is the Creative Player Interface which provides an Open Computers component to set the target player.",
+  "description": "The Player Interface is a block that allows you to access the inventory of your player as if it was a chest. It only works while the player who placed it is online.\n\nThe block has 4 different sides:\n\n- Top: Armor\n\n- Bottom: Hotbar\n\n- North: Shield (offhand)\n\n- East, South, West: Storage (the main inventory)\n\nThere also is the Creative Player Interface, which is only available in the creative menu.",
   "keywords": [
     "Interface",
     "Player"
@@ -12,8 +12,36 @@
     "images/player-interface-3.png",
     "images/player-interface-4.png"
   ],
-  "recipe_images": [
-    "images/crafting-player-interface.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Sides",
+      "value": "Top: Armor, Bottom: Hotbar, North: Shield, other sides: Storage"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "obsidian",
+          "ender_chest",
+          "obsidian"
+        ],
+        [
+          "obsidian",
+          "nether_star",
+          "obsidian"
+        ],
+        [
+          "obsidian",
+          "stable_enderpearl",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "player_interface",
+        "count": 1
+      }
+    }
+  ]
 }

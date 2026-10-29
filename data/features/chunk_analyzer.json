@@ -1,7 +1,7 @@
 {
   "title": "Chunk Analyzer",
   "category": "item",
-  "description": "The Chunk Analyzer allows you to check what blocks a chunk contains. Open its gui and press Scan. After a few seconds you will get the results for the chunk you are in.",
+  "description": "The Chunk Analyzer allows you to check what blocks a chunk contains. Right click with it in your main hand to open its gui and press Scan. After several seconds you will get the results for the chunk you are in, sorted by count. The scan counts every block from the bottom of the world up to the surface, including caves. The results are saved on the item, so they are still there after you close the gui.",
   "keywords": [
     "Analyzer",
     "Chunk"
@@ -9,8 +9,40 @@
   "images": [
     "images/chunk-analyzer.png"
   ],
-  "recipe_images": [
-    "images/crafting-chunk-analyzer.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_bars",
+          null,
+          "iron_bars"
+        ],
+        [
+          "iron_ingot",
+          "glass",
+          "iron_ingot"
+        ],
+        [
+          "stone",
+          "iron_ingot",
+          "dirt"
+        ]
+      ],
+      "result": {
+        "key": "chunk_analyzer",
+        "count": 1
+      }
+    }
+  ]
 }

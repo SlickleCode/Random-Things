@@ -1,17 +1,54 @@
 {
   "title": "Advanced Redstone Interface",
   "category": "block",
-  "description": "Compared to the basic Redstone Interface the advanced one can be linked to a total of 9 blocks. Instead of the Redstone Tool you use Position Filters which you insert into the gui of the block.",
+  "description": "Compared to the basic Redstone Interface the advanced one can be linked to a total of 9 blocks. Instead of the Redstone Tool you use Position Filters which you insert into the gui of the block.\n\nThe gui has 9 slots and only accepts Position Filters. Each filter with a position set is one target; empty filters are ignored. Every target acts the same way as the target of a basic Redstone Interface: it receives the redstone input of the interface, side by side. If several interfaces point at the same block, the strongest signal counts. Breaking the block drops the inserted Position Filters.\n\nIts targets are kept when the world is saved and reloaded.",
   "keywords": [
     "Advanced",
     "Interface",
-    "Redstone"
+    "Redstone",
+    "Position Filter"
+  ],
+  "properties": [
+    {
+      "label": "Targets",
+      "value": "Up to 9 (one per Position Filter)"
+    },
+    {
+      "label": "Gui",
+      "value": "9 slots, Position Filters only"
+    },
+    {
+      "label": "Linking",
+      "value": "Position Filters, not the Redstone Tool"
+    }
   ],
   "images": [
     "images/advanced-redstone-interface.png"
   ],
-  "recipe_images": [
-    "images/crafting-advanced-redstone-interface.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone_block",
+          "obsidian",
+          "redstone_block"
+        ],
+        [
+          "obsidian",
+          "basic_redstone_interface",
+          "obsidian"
+        ],
+        [
+          "redstone_block",
+          "obsidian",
+          "redstone_block"
+        ]
+      ],
+      "result": {
+        "key": "advanced_redstone_interface",
+        "count": 1
+      }
+    }
+  ]
 }

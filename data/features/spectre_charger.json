@@ -1,16 +1,134 @@
 {
   "title": "Spectre Charger",
   "category": "item",
-  "description": "When toggled on by right clicking Spectre Charger will transfer energy from your spectre energy buffer into any item in your inventory that can accept it.\n\nThe energy per tick each item gets increases with the tier.\n\nNormal: 1024 per Tick Redstone: 4096 per Tick Ender: 20480 per Tick\n\nThe Genesis Charger is creative only and basically charges the items as fast as possible for free.",
+  "description": "When toggled on by right clicking, the Spectre Charger will transfer energy from your spectre energy buffer into any item in your inventory that can accept it. The charger has to be carried in your inventory (any slot) to work. Right click again to toggle it off.\n\nThe energy per tick each item gets increases with the tier. The rate applies to every item being charged, not to all items together.\n\n- Normal: 1024 per Tick\n\n- Redstone: 4096 per Tick\n\n- Ender: 20480 per Tick\n\nThe Genesis Charger is creative only and basically charges the items as fast as possible for free.\n\nYour spectre energy buffer holds up to 1,000,000 energy and is filled by the Spectre Energy Injector. The injector connects to the buffer of the player who placed it and accepts energy from any side; it can not give energy back out.\n\nYour spectre energy buffer is shared between all dimensions.",
   "keywords": [
     "Charger",
-    "Spectre"
+    "Spectre",
+    "Energy",
+    "Injector",
+    "Genesis"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafting (Genesis Charger: creative only)"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Charge rate",
+      "value": "Normal 1024, Redstone 4096, Ender 20480 per tick per item"
+    },
+    {
+      "label": "Buffer capacity",
+      "value": "1,000,000"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    },
+    {
+      "label": "Dimensions",
+      "value": "The energy buffer is shared between all dimensions"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-spectre-charger.png",
-    "images/crafting-spectre-charger-redstone.png",
-    "images/crafting-spectre-charger-ender.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "stable_enderpearl",
+          "spectre_string",
+          "ender_pearl"
+        ],
+        [
+          "spectre_string",
+          "spectre_charger_redstone",
+          "spectre_string"
+        ],
+        [
+          "ender_pearl",
+          "spectre_string",
+          "stable_enderpearl"
+        ]
+      ],
+      "result": {
+        "key": "spectre_charger_ender",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "iron_bars",
+          "obsidian",
+          "spectre_string"
+        ],
+        [
+          "obsidian",
+          "spectre_ingot",
+          "obsidian"
+        ],
+        [
+          "spectre_string",
+          "obsidian",
+          "iron_bars"
+        ]
+      ],
+      "result": {
+        "key": "spectre_charger_normal",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "redstone_block",
+          "spectre_string",
+          "redstone"
+        ],
+        [
+          "spectre_string",
+          "spectre_charger_normal",
+          "spectre_string"
+        ],
+        [
+          "redstone",
+          "spectre_string",
+          "redstone_block"
+        ]
+      ],
+      "result": {
+        "key": "spectre_charger_redstone",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "spectre_lens",
+          "obsidian"
+        ],
+        [
+          "spectre_string",
+          "beacon",
+          "spectre_string"
+        ],
+        [
+          "obsidian",
+          "spectre_string",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "spectre_energy_injector",
+        "count": 1
+      }
+    }
+  ]
 }

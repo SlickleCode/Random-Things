@@ -1,17 +1,60 @@
 {
   "title": "Advanced Redstone Repeater",
   "category": "block",
-  "description": "The Advanced Redstone Repeater is a redstone repeater with configurable turn on / turn off delay.",
+  "description": "The Advanced Redstone Repeater is a redstone repeater with configurable turn on / turn off delay.\n\nRight click it to open a gui with a \"Turn On Delay\" and a \"Turn Off Delay\" row. The - and + buttons change the value by 1 tick per click. Each delay can be set from 0 to 120 ticks and both default to 20 ticks.",
   "keywords": [
     "Advanced",
     "Redstone",
-    "Repeater"
+    "Repeater",
+    "Delay"
+  ],
+  "properties": [
+    {
+      "label": "Turn On Delay",
+      "value": "0 to 120 ticks, default 20"
+    },
+    {
+      "label": "Turn Off Delay",
+      "value": "0 to 120 ticks, default 20"
+    },
+    {
+      "label": "Step",
+      "value": "1 tick per click"
+    }
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-advanced-redstone-repeater.png"
-  ],
   "videos": [
     "videos/advanced-redstone-repeater.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone_torch",
+          "redstone",
+          "redstone_torch"
+        ],
+        [
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          "stone",
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          }
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "advanced_redstone_repeater",
+        "count": 1
+      }
+    }
   ]
 }

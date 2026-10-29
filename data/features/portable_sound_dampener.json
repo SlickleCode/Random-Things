@@ -1,17 +1,64 @@
 {
   "title": "Portable Sound Dampener",
   "category": "item",
-  "description": "Portable Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played for the player that has one in their inventory.",
+  "description": "Portable Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played for the player that has one in their inventory.\n\nIt works while it is anywhere in your hotbar or main inventory. It does not work in the offhand or an armor slot. There is no range limit: it only affects the player carrying it. With several in your inventory, any one that contains the sound mutes it. Music and music discs are never muted.\n\nRight click with it in your main hand to open its 9 slots. Only Sound Patterns that already contain a sound fit in them (blank patterns are rejected). The patterns stay stored in the item.\n\nThis works in multiplayer, on both servers and clients.",
   "keywords": [
     "Dampener",
     "Portable",
-    "Sound"
+    "Sound",
+    "Mute",
+    "Silence",
+    "Inventory"
   ],
   "images": [
     "images/portable-sound-dampener.png"
   ],
-  "recipe_images": [
-    "images/crafting-portable-sound-dampener.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Active in",
+      "value": "Hotbar and main inventory (not offhand or armor)"
+    },
+    {
+      "label": "Range",
+      "value": "None, only for the carrier"
+    },
+    {
+      "label": "Slots",
+      "value": "9, recorded Sound Patterns only"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_ingot",
+          "string",
+          "iron_ingot"
+        ],
+        [
+          "string",
+          "lapis_lazuli",
+          "string"
+        ],
+        [
+          "iron_ingot",
+          "string",
+          "iron_ingot"
+        ]
+      ],
+      "result": {
+        "key": "portable_sound_dampener",
+        "count": 1
+      }
+    }
+  ]
 }

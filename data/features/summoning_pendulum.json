@@ -1,10 +1,32 @@
 {
   "title": "Summoning Pendulum",
   "category": "item",
-  "description": "The Summoning Pendulum allows you move entities (excluding monsters) around. You store entities inside of it by right clicking on them while holding the Summoning Pendulum in your hand, you release them again by right clicking on the ground. Holding shift while looking at one in your inventory lists the entities that are inside of it at the moment. It's capable of holding 5 entities at once. It can only be found in dungeon chests & stronghold corridor chests.",
+  "description": "The Summoning Pendulum allows you move entities (excluding monsters and players) around. You store entities inside of it by right clicking on them while holding the Summoning Pendulum in your hand, you release them again by right clicking on a block. The oldest stored entity is released first. Holding shift while looking at one in your inventory lists the entities that are inside of it at the moment. It's capable of holding 5 entities at once. The bar on the item shows how full it is, and it glows when full. It can only be found in dungeon chests & stronghold corridor chests.",
   "keywords": [
     "Pendulum",
-    "Summoning"
+    "Summoning",
+    "Entity",
+    "Mob",
+    "Animal",
+    "Capture"
+  ],
+  "properties": [
+    {
+      "label": "Capacity",
+      "value": "5 entities"
+    },
+    {
+      "label": "Obtain",
+      "value": "Dungeon chests (10%) and stronghold corridor chests (50%); cannot be crafted"
+    },
+    {
+      "label": "Config",
+      "value": "SummoningPendulum (default true): whether it appears in chest loot"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    }
   ],
   "images": [],
   "videos": [

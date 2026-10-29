@@ -1,7 +1,7 @@
 {
   "title": "Obsidian Skull",
-  "category": "item",
-  "description": "The Obsidian Skull basically grants you immunity to low fire damage. As long as its in your inventory whenever you are hit by fire damage there is a chance that it will be negated. That chance is higher the lower the damage is.\n\nWhen you have Baubles installed you can craft an Obsidian Skull Ring that has the same effect but can be worn in your ring slot.",
+  "category": "legacy",
+  "description": "Not in the current mod: this feature was removed or is not migrated. The text below is kept for reference.\n\nThe Obsidian Skull basically grants you immunity to low fire damage. As long as its in your inventory whenever you are hit by fire damage there is a chance that it will be negated. That chance is higher the lower the damage is.\n\nWhen you have Baubles installed you can craft an Obsidian Skull Ring that has the same effect but can be worn in your ring slot.",
   "keywords": [
     "Obsidian",
     "Skull"

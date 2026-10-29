@@ -1,12 +1,18 @@
 {
   "title": "Creative Player Interface",
   "category": "block",
-  "description": "When Open Computers is installed this block provides a component called \"creative_player_interface\" with the following functions:\n\n- getPlayerName() : Returns the name of the player that's currently connected to this player interface.\n\n- getPlayerUUID() : Returns the uuid of the player that's currently connected to this player interface.\n\n- setPlayerName(username) : Sets the name of the player that's connected to the player interface.\n\n- setPlayerUUID(uuid) : Sets the uuid of the player that's currently connected to the player interface.\n\n- isCurrentlyConnected(): Returns a boolean that's based on whether the player interface is currently connected to the player's inventory. (False if the player is for example offline)",
+  "description": "The Creative Player Interface works like the Player Interface (it gives access to the inventory of the player who placed it, as if it was a chest) but it can't be crafted. It is only available from the creative menu.",
   "keywords": [
     "Creative",
     "Interface",
     "Player"
   ],
   "images": [],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Creative menu only (no crafting recipe)"
+    }
+  ]
 }

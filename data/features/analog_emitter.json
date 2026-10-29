@@ -1,14 +1,65 @@
 {
   "title": "Analog Emitter",
   "category": "block",
-  "description": "The Analog Emitter is a block that allows you to easily produce analog redstone signals with a custom strength. If its input side (circle) is powered (strength is irrelevant) it will output a redstone signal of the strength specified in its gui on the other sides (Squares).",
+  "description": "The Analog Emitter is a block that allows you to easily produce analog redstone signals with a custom strength. If its input side (circle) is powered (strength is irrelevant) it will output a redstone signal of the strength specified in its gui on the other sides (Squares).\n\nRight click it to open the gui. The < and > buttons change the signal strength by 1, from 0 to 15. The default strength is 1.",
   "keywords": [
     "Analog",
     "Emitter"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-analog-emitter.png"
+  "properties": [
+    {
+      "label": "Signal Strength",
+      "value": "0 to 15, default 1"
+    },
+    {
+      "label": "Input",
+      "value": "Any redstone power on the circle side"
+    },
+    {
+      "label": "Output",
+      "value": "Configured strength on the other sides"
+    }
   ],
-  "videos": []
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone_torch",
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          "redstone"
+        ],
+        [
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          }
+        ],
+        [
+          "redstone",
+          {
+            "key": "iron_ingot",
+            "label": "Iron Ingot"
+          },
+          "redstone_torch"
+        ]
+      ],
+      "result": {
+        "key": "analog_emitter",
+        "count": 1
+      }
+    }
+  ]
 }

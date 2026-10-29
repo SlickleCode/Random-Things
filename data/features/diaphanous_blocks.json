@@ -1,18 +1,52 @@
 {
   "title": "Diaphanous Blocks",
   "category": "block",
-  "description": "Diaphanous Blocks change their opacity depending on the distance to the player. By combining them with any block in a crafting table you can change their appeareance to any block that doesn't have a tileentity. By default they don't have a collision box and vanish when you get close to them. The inverted version you get by putting them in a crafting table on their own has a collision box and appears when you get close.",
+  "description": "Diaphanous Blocks change their opacity depending on the distance to the player. By combining one with any other block item in a crafting table you can change its appearance to that block, as long as that block does not have a tile entity. The other block is not used up. By default they don't have a collision box and vanish when you get close to them. The inverted version you get by putting them in a crafting table on their own has a collision box and appears when you get close. Putting an inverted one in a crafting table on its own turns it back.\n\nWhen broken, a Diaphanous Block drops itself and keeps its appearance and inverted setting.\n\nThe change is gradual: a normal Diaphanous Block is fully transparent within about 3.6 blocks of you and fully opaque beyond about 6.2 blocks. The inverted version does the opposite.",
   "keywords": [
     "Blocks",
     "Diaphanous"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-diaphanous-blocks-3.png",
-    "images/crafting-diaphanous-blocks-2.png",
-    "images/crafting-diaphanous-blocks-1.png"
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Craft the base block, then combine it with another block to set its appearance"
+    },
+    {
+      "label": "Inverted",
+      "value": "Craft a single Diaphanous Block alone to toggle"
+    },
+    {
+      "label": "Fade distance",
+      "value": "Transparent within about 3.6 blocks, opaque beyond about 6.2 (reversed when inverted)"
+    }
   ],
+  "images": [],
   "videos": [
     "videos/diaphanous-blocks.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "green_stained_glass",
+          null
+        ],
+        [
+          "red_stained_glass",
+          "quartz_glass",
+          "blue_stained_glass"
+        ],
+        [
+          null,
+          "yellow_stained_glass",
+          null
+        ]
+      ],
+      "result": {
+        "key": "diaphanous_block",
+        "count": 4
+      }
+    }
   ]
 }

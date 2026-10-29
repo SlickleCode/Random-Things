@@ -1,7 +1,7 @@
 {
   "title": "Super Lubricent Boots",
   "category": "item",
-  "description": "Wearing Super Lubricent Boots has the same effect as walking on Super Lubricent Ice, your player won't get slowed down by friction once he's moving.",
+  "description": "Wearing Super Lubricent Boots has the same effect as walking on Super Lubricent Ice, your player won't get slowed down by friction once he's moving. Your horizontal speed on the ground is capped at 0.35 blocks per tick. Sneaking turns the effect off. The boots work on any living entity that wears them.\n\nAs armor they have the same protection and durability as iron boots.",
   "keywords": [
     "Super",
     "Lubricent",
@@ -13,12 +13,42 @@
     {
       "label": "Slot",
       "value": "Feet"
+    },
+    {
+      "label": "Rarity",
+      "value": "Uncommon"
+    },
+    {
+      "label": "Config",
+      "value": "None"
     }
-  ],
-  "recipe_images": [
-    "images/crafting-super-lubricent-boots.png"
   ],
   "videos": [
     "videos/super-lubricent-boots.mp4"
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "iron_boots",
+          null,
+          null
+        ],
+        [
+          "super_lubricent_tincture",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "super_lubricent_boots",
+        "count": 1
+      }
+    }
   ]
 }

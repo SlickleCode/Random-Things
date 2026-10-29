@@ -1,15 +1,66 @@
 {
   "title": "Item Collector",
   "category": "block",
-  "description": "The Item Collector is basically a hopper with a range. You can place it on any Inventory you want and it will start collecting items in a 3 block radius around the item collector.\nSimply (shift) place the item collector on the inventory the collected items are supposed to go into.\n\nThe Advanced Item Collector is the upgraded version of the Item Collector, its range can be configured to be between 0 and 10 for each direction and you can also insert an Item Filter to specify which items are / are not supposed to be picked up.\nFor the Advanced Item Collector right click on it to bring up the GUI to configure its range and insert an Item Filter .",
+  "description": "The Item Collector is basically a hopper with a range. You can place it on any Inventory you want and it will start collecting items in a 3 block radius around the item collector (a cube, 7x7x7 blocks).\nSimply (shift) place the item collector on the inventory the collected items are supposed to go into.\n\nThe Advanced Item Collector is the upgraded version of the Item Collector, its range can be set between 0 and 16 blocks for each axis (X, Y and Z, 5 by default) and you can also put an example item into its filter slot so that only items of that kind are picked up.\nFor the Advanced Item Collector right click on it to bring up the GUI to configure its range and set the filter item.",
   "keywords": [
     "Collector",
-    "Item"
+    "Item",
+    "Advanced Item Collector"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-item-collector-1.png",
-    "images/crafting-item-collector-2.png"
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "redstone_torch",
+          null,
+          null
+        ],
+        [
+          "glowstone_dust",
+          "item_collector",
+          "glowstone_dust"
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "advanced_item_collector",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "ender_pearl",
+          null,
+          null
+        ],
+        [
+          "hopper",
+          null,
+          null
+        ],
+        [
+          "obsidian",
+          "obsidian",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "item_collector",
+        "count": 1
+      }
+    }
   ],
-  "videos": []
+  "properties": [
+    {
+      "label": "Advanced range",
+      "value": "0 to 16 blocks per axis (X, Y, Z), default 5 (set in its GUI)"
+    }
+  ]
 }

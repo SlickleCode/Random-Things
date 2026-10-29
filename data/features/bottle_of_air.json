@@ -1,0 +1,32 @@
+{
+  "title": "Bottle of Air",
+  "category": "item",
+  "description": "The Bottle of Air refills your air supply. Hold right click while you are in water to drink it; when you finish, your breath is back to full and the bottle is used up.\n\nIt cannot be crafted and is not found in chests, it is only available from the creative tab.",
+  "keywords": [
+    "Bottle",
+    "Air",
+    "Breath",
+    "Underwater"
+  ],
+  "properties": [
+    {
+      "label": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "label": "Stack size",
+      "value": "1"
+    },
+    {
+      "label": "Obtain",
+      "value": "Creative tab only"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
+  ],
+  "images": [],
+  "videos": [],
+  "recipe_images": []
+}

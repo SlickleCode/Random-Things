@@ -1,16 +1,59 @@
 {
   "title": "Sound Dampener",
   "category": "block",
-  "description": "Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played in a 20 block radius around it.",
+  "description": "Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played in a 20 block radius around it.\n\nThe 20 block radius is measured from the dampener to where the sound is made, not to the player. The muting happens on each player's own client, only in the same dimension, and only for sounds that exactly match one of the patterns. Music and music discs are never muted. Several dampeners add up, and sounds from a Sound Box are muted too if its pattern is inside.\n\nRight click it to open its 9 slots. Only Sound Patterns that already contain a sound fit in them (blank patterns are rejected), and shift-click moves them in and out. Breaking the block drops everything inside.\n\nThis works in multiplayer, on both servers and clients.",
   "keywords": [
     "Dampener",
-    "Sound"
+    "Sound",
+    "Mute",
+    "Radius",
+    "Silence"
   ],
   "images": [
     "images/sound-dampener.png"
   ],
-  "recipe_images": [
-    "images/crafting-sound-dampener.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Range",
+      "value": "20 blocks, from the dampener to the sound origin"
+    },
+    {
+      "label": "Slots",
+      "value": "9, recorded Sound Patterns only"
+    },
+    {
+      "label": "Redstone",
+      "value": "None"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "oak_planks",
+          "white_wool",
+          "oak_planks"
+        ],
+        [
+          "white_wool",
+          "portable_sound_dampener",
+          "white_wool"
+        ],
+        [
+          "oak_planks",
+          "white_wool",
+          "oak_planks"
+        ]
+      ],
+      "result": {
+        "key": "sound_dampener",
+        "count": 1
+      }
+    }
+  ]
 }

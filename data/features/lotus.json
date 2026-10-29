@@ -1,12 +1,28 @@
 {
   "title": "Lotus",
   "category": "block",
-  "description": "You can find Lotus plants in biomes with the \"Snowy\" tag. When fully grown you can right click them to get a Lotus Blossom which you can eat to get some experience. When broken, Lotus plants will drop 1 lotus seed so you can plant them somewhere else.",
+  "description": "You can find Lotus plants in biomes with the \"Snowy\" tag. A Lotus grows through four stages. When fully grown you can right click it to get a Lotus Blossom, which resets the plant to its first stage. Eating a Lotus Blossom gives 3 to 11 experience.\n\nWhen broken, Lotus plants will drop 1 lotus seed (at any growth stage) so you can plant them somewhere else. Lotus Seeds can only be planted on farmland (tilled soil).",
   "keywords": [
-    "Lotus"
+    "Lotus",
+    "Lotus Seeds",
+    "Lotus Blossom"
   ],
   "images": [
     "images/lotus.png"
   ],
-  "videos": []
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Found in Snowy biomes (world generation); no crafting recipe"
+    },
+    {
+      "label": "Config",
+      "value": "Lotus (worldgen), default true - turns world generation off"
+    },
+    {
+      "label": "Growth",
+      "value": "Grows on farmland only; needs no light or water"
+    }
+  ]
 }

@@ -1,14 +1,62 @@
 {
   "title": "Lapis Lamp",
   "category": "block",
-  "description": "The Lapis Lamp emits a light level of 15. However the light of this lamp does not prevent anything that requires darkness (e.g. Mob Spawning).",
+  "description": "The Lapis Lamp emits a light level of 15. Unlike normal light sources, it does not stop hostile mobs from spawning: they can still spawn within 4 blocks of it, even where it is bright. On Peaceful difficulty nothing hostile spawns, as usual.\n\nThis also applies to mobs from spawners, but not to mobs spawned with spawn eggs.",
   "keywords": [
     "Lamp",
     "Lapis"
   ],
-  "images": [],
-  "recipe_images": [
-    "images/crafting-lapis-lamp.png"
+  "properties": [
+    {
+      "label": "Light level",
+      "value": "15"
+    },
+    {
+      "label": "Effect",
+      "value": "Hostile mobs can still spawn within 4 blocks"
+    },
+    {
+      "label": "Config",
+      "value": "None"
+    }
   ],
-  "videos": []
+  "images": [],
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          {
+            "key": "lapis_lazuli",
+            "label": "Lapis Lazuli"
+          },
+          null,
+          null
+        ],
+        [
+          {
+            "key": "lapis_lazuli",
+            "label": "Lapis Lazuli"
+          },
+          "redstone_lamp",
+          {
+            "key": "lapis_lazuli",
+            "label": "Lapis Lazuli"
+          }
+        ],
+        [
+          {
+            "key": "lapis_lazuli",
+            "label": "Lapis Lazuli"
+          },
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "lapis_lamp",
+        "count": 1
+      }
+    }
+  ]
 }

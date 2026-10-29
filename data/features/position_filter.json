@@ -1,7 +1,7 @@
 {
   "title": "Position Filter",
   "category": "item",
-  "description": "Position Filters can store the position of a block. Right clicking on a block sets it, while holding it in your hand the selected block will show a purple cube around it.",
+  "description": "Position Filters can store the position of a block. Right clicking on a block sets it.\n\nHold Shift to see the stored dimension and coordinates in the tooltip. The stored position is used by the Golden Compass and by other items and machines that accept a position.",
   "keywords": [
     "Position",
     "Filter"
@@ -9,12 +9,38 @@
   "images": [],
   "properties": [
     {
-      "label": "Highlight Color",
-      "value": "Purple"
+      "label": "Stack size",
+      "value": "64"
+    },
+    {
+      "label": "Config",
+      "value": "HideCoordinates (default false) - hides the coordinates in the tooltip"
     }
   ],
-  "recipe_images": [
-    "images/crafting-position-filter.png"
-  ],
-  "videos": []
+  "videos": [],
+  "recipes": [
+    {
+      "shape": [
+        [
+          null,
+          "purple_dye",
+          null
+        ],
+        [
+          "purple_dye",
+          "paper",
+          "purple_dye"
+        ],
+        [
+          null,
+          "purple_dye",
+          null
+        ]
+      ],
+      "result": {
+        "key": "position_filter",
+        "count": 1
+      }
+    }
+  ]
 }
