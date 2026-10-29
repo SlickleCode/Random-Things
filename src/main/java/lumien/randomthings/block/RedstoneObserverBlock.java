@@ -14,6 +14,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 
 /**
@@ -54,6 +56,17 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 	{
 		BlockEntity te = blockAccess.getBlockEntity(pos);
 		return te instanceof RedstoneObserverTileEntity ? ((RedstoneObserverTileEntity) te).getStrongPower(side) : 0;
+	}
+
+	@Override
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
+	{
+		BlockEntity te = worldIn.getBlockEntity(pos);
+
+		if (te instanceof RedstoneObserverTileEntity)
+		{
+			((RedstoneObserverTileEntity) te).refreshAfterLoad();
+		}
 	}
 
 	@Override

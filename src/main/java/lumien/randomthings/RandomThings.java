@@ -180,6 +180,79 @@ public class RandomThings {
             }
         });
 
+        // Spectre Sapling conversion: right-clicking any vanilla sapling (the minecraft:saplings
+        // block tag, the equivalent of 1.12.2's "treeSapling" ore dictionary entry) with
+        // Ectoplasm turns it into a Spectre Sapling and uses up one Ectoplasm (not in creative).
+        NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (equipped.isEmpty() || equipped.getItem() != ModItems.ECTOPLASM) {
+                return;
+            }
+
+            Level world = event.getLevel();
+            BlockPos pos = event.getPos();
+            BlockState targetState = world.getBlockState(pos);
+
+            if (targetState.getBlock() == ModBlocks.SPECTRE_SAPLING) {
+                return;
+            }
+
+            if (!targetState.is(net.minecraft.tags.TagKey.create(Registries.BLOCK, ResourceLocation.parse("minecraft:saplings")))) {
+                return;
+            }
+
+            if (!world.isClientSide) {
+                if (!event.getEntity().getAbilities().instabuild) {
+                    equipped.shrink(1);
+                }
+
+                world.setBlockAndUpdate(pos, ModBlocks.SPECTRE_SAPLING.defaultBlockState());
+            }
+
+            event.setCanceled(true);
+        });
+
+        // Runic Pattern from paper: right-clicking a placed Rune Base with a piece of paper copies
+        // its 4x4 pattern onto a Rune Pattern and uses up one paper; the pattern replaces the
+        // paper if it was the only one, else it goes into the inventory (1.12.2 RTEventHandler.playerInteract).
+        NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            ItemStack equipped = event.getItemStack();
+
+            if (event.getLevel().isClientSide || equipped.isEmpty() || equipped.getItem() != Items.PAPER) {
+                return;
+            }
+
+            Level world = event.getLevel();
+            BlockPos pos = event.getPos();
+
+            if (world.getBlockState(pos).getBlock() != ModBlocks.RUNE_BASE) {
+                return;
+            }
+
+            BlockEntity te = world.getBlockEntity(pos);
+
+            if (!(te instanceof RuneBaseTileEntity)) {
+                return;
+            }
+
+            Player player = event.getEntity();
+            ItemStack patternStack = new ItemStack(ModItems.RUNE_PATTERN);
+            RunePatternItem.setPattern(patternStack, ((RuneBaseTileEntity) te).getRuneData());
+
+            if (equipped.getCount() == 1) {
+                player.setItemInHand(event.getHand(), patternStack);
+            } else {
+                equipped.shrink(1);
+
+                if (!player.addItem(patternStack)) {
+                    player.drop(patternStack, false);
+                }
+            }
+
+            event.setCanceled(true);
+        });
+
         // Contact Button/Lever aren't triggered by clicking them directly - they're
         // mounted facing another block, and right-clicking THAT block is what
         // activates them (like a hidden pressure sensor). Ported straight from

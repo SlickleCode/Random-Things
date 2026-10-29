@@ -158,6 +158,7 @@
   "block.randomthings.spectre_coil_normal": "Spectre Coil",
   "block.randomthings.spectre_coil_redstone": "Redstone Spectre Coil",
   "block.randomthings.spectre_coil_ender": "Ender Spectre Coil",
+  "block.randomthings.spectre_coil_number": "Spectre Coil Nr. %d",
   "block.randomthings.spectre_coil_genesis": "Genesis Spectre Coil",
   "item.randomthings.spectre_charger_normal": "Spectre Charger",
   "item.randomthings.spectre_charger_redstone": "Redstone Spectre Charger",
@@ -207,6 +208,7 @@
   "item.randomthings.floo_sign": "Floo Sign",
   "item.randomthings.floo_token": "Floo Token",
   "floo.info.same": "You are already at this destination",
+  "floo.info.duplicate_name": "A fireplace named \"%s\" already exists",
   "floo.info.teleport": "Teleported to %s",
   "item.randomthings.eclipsed_clock": "Eclipsed Clock",
   "item.randomthings.weather_egg_sun": "Weather Egg <Sun>",
@@ -240,6 +242,7 @@
   "item.randomthings.sound_recorder": "Sound Recorder",
   "item.randomthings.portable_sound_dampener": "Portable Sound Dampener",
   "item.randomthings.luminous_powder": "Luminous Powder",
+  "item.randomthings.blackout_powder": "Blackout Powder",
   "item.randomthings.rune_pattern": "Rune Pattern",
   "item.randomthings.rune_dust_white": "White Rune Dust",
   "item.randomthings.rune_dust_orange": "Orange Rune Dust",
@@ -375,5 +378,6 @@
   "tooltip.randomthings.portkey.y": "Y: %d",
   "tooltip.randomthings.portkey.z": "Z: %d",
   "item.randomthings.spectre_anchor": "Spectre Anchor",
-  "tooltip.randomthings.spectre_anchor.item": "Anchored"
+  "tooltip.randomthings.spectre_anchor.item": "Anchored",
+  "tooltip.randomthings.luminous_enchantment": "Luminous"
 }

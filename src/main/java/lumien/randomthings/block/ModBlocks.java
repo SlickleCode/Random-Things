@@ -257,6 +257,9 @@ public class ModBlocks
 	@ObjectHolder(registryName = "minecraft:block", value = "randomthings:spectre_coil_ender")
 	public static Block SPECTRE_COIL_ENDER;
 
+	@ObjectHolder(registryName = "minecraft:block", value = "randomthings:spectre_coil_number")
+	public static Block SPECTRE_COIL_NUMBER;
+
 	@ObjectHolder(registryName = "minecraft:block", value = "randomthings:spectre_coil_genesis")
 	public static Block SPECTRE_COIL_GENESIS;
 
@@ -406,6 +409,7 @@ public class ModBlocks
 		registry.register("spectre_coil_normal", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.NORMAL));
 		registry.register("spectre_coil_redstone", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.REDSTONE));
 		registry.register("spectre_coil_ender", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.ENDER));
+		registry.register("spectre_coil_number", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.NUMBER));
 		registry.register("spectre_coil_genesis", () -> new SpectreCoilBlock(SpectreCoilBlock.CoilType.GENESIS));
 
 		registry.register("spectre_lens", () -> new SpectreLensBlock());
