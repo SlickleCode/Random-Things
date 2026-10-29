@@ -68,6 +68,7 @@ public final class ManualTestWorld
 
 		giveInventory(player);
 		report.addAll(biomeDistances(level, player));
+		report.add(churchDirections(level, spawn, o.offset(30, 1, 60)));
 
 		player.setGameMode(net.minecraft.world.level.GameType.CREATIVE);
 		level.setDayTime(6000);
@@ -312,6 +313,75 @@ public final class ManualTestWorld
 		ItemStack stack = mod("biome_crystal", 1);
 		stack.getOrCreateTag().putString("biomeName", biomeId);
 		return stack;
+	}
+
+	// ---- the closest plains village whose church holds a Peace Candle (a third of them do) ----------------------
+
+	private static String churchDirections(ServerLevel level, BlockPos spawn, BlockPos signPos)
+	{
+		java.util.Set<Long> seen = new java.util.HashSet<>();
+		BlockPos best = null;
+		double bestDistance = Double.MAX_VALUE;
+
+		// the nearest-structure search only returns one village per origin: probe a grid so that every village within ~3000 blocks is considered
+		for (int gx = -2; gx <= 2; gx++)
+		{
+			for (int gz = -2; gz <= 2; gz++)
+			{
+				BlockPos found = level.findNearestMapStructure(net.minecraft.tags.StructureTags.VILLAGE, spawn.offset(gx * 1000, 0, gz * 1000), 64, false);
+
+				if (found == null || !seen.add(net.minecraft.world.level.ChunkPos.asLong(found.getX() >> 4, found.getZ() >> 4)))
+				{
+					continue;
+				}
+
+				BlockPos church = peaceCandleChurchIn(level, found);
+
+				if (church != null)
+				{
+					double dx = church.getX() - spawn.getX();
+					double dz = church.getZ() - spawn.getZ();
+
+					if (dx * dx + dz * dz < bestDistance)
+					{
+						bestDistance = dx * dx + dz * dz;
+						best = church;
+					}
+				}
+			}
+		}
+
+		if (best == null)
+		{
+			sign(level, signPos, "Peace Candle", "church village:", "none within", "~3000 blocks");
+			return "peace candle church: no plains village with one within ~3000 blocks";
+		}
+
+		int dx = best.getX() - spawn.getX();
+		int dz = best.getZ() - spawn.getZ();
+		String[] names = { "east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east" };
+		String direction = names[(int) Math.floorMod(Math.round(Math.atan2(dz, dx) / (Math.PI / 4)), 8L)];
+		int distance = (int) Math.sqrt(bestDistance);
+		sign(level, signPos, "Peace Candle", "church: " + distance + " m " + direction, "x " + best.getX() + " z " + best.getZ(), "(/tp there)");
+		return "peace candle church: " + distance + " blocks " + direction + " (x " + best.getX() + ", z " + best.getZ() + ")";
+	}
+
+	private static BlockPos peaceCandleChurchIn(ServerLevel level, BlockPos villagePos)
+	{
+		net.minecraft.world.level.chunk.ChunkAccess chunk = level.getChunkSource().getChunk(villagePos.getX() >> 4, villagePos.getZ() >> 4, net.minecraft.world.level.chunk.ChunkStatus.STRUCTURE_STARTS, true);
+
+		for (net.minecraft.world.level.levelgen.structure.StructureStart start : chunk.getAllStarts().values())
+		{
+			for (net.minecraft.world.level.levelgen.structure.StructurePiece piece : start.getPieces())
+			{
+				if (piece instanceof net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece pool && pool.getElement().toString().contains("peace_candle_church"))
+				{
+					return piece.getBoundingBox().getCenter();
+				}
+			}
+		}
+
+		return null;
 	}
 
 	// ---- how far each crystal's biome is from the spawn: the game's own locate command prints it into the chat ----

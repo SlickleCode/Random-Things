@@ -149,3 +149,34 @@ These rows of the original sheet were removed from the root `TESTING_CHECKLIST.m
 | 142 | Escape Rope — deep underground, hold right-click: charges, searches, teleports to daylight | test `use_item.escape_rope.charges_then_teleports_out_through_the_doorway_and_costs_one_durability` (also `..._a_sealed_room_has_no_way_out_so_the_rope_is_dropped`, `..._refuses_to_start_under_open_sky`) |
 | 143 | Escape Rope — release right-click partway | test `use_item.escape_rope.letting_go_before_the_search_finishes_cancels_the_teleport` |
 | 144 | Escape Rope — full durability (20): on 1.18.2 it breaks on the **20th** successful use (vanilla `hurtAndBreak` breaks at damage >= max; 1.12.2 broke on the 21st) | test `use_item.escape_rope.the_twentieth_successful_use_breaks_it` |
+
+
+## Removed 2026-10-28 (covered by automated tests)
+
+These rows were taken out of `TESTING_CHECKLIST.md` because a dev test checks the behaviour they describe (the test names exist on every branch; the glass, bucket, tooltip and config tests are in `debug/test/ChecklistTests.java`; rows that only partly match a test stay on the sheet).
+
+| Row | Covered by |
+|---|---|
+| #16 | checklist.trigger_glass.powered_is_passable_and_unsuffocating_and_solid_again_about_60_ticks_after_the_power_goes |
+| #17 | checklist.trigger_glass.powered_is_passable_and_unsuffocating_and_solid_again_about_60_ticks_after_the_power_goes |
+| #19 | checklist.trigger_glass.powered_is_passable_and_unsuffocating_and_solid_again_about_60_ticks_after_the_power_goes |
+| #20 | checklist.trigger_glass.sand_falls_through_while_triggered_and_stops_on_it_when_not |
+| #21 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #22 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #23 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #24 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #25 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #26 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #27 | checklist.lapis_and_quartz_glass.collision_depends_on_who_is_asking_and_neither_suffocates |
+| #67 | checklist.lotus.grows_through_four_stages_and_is_harvested_at_the_last_without_breaking |
+| #221 | checklist.ender_bucket.name_shows_the_fluid_only_while_full |
+| #223 | checklist.reinforced_ender_bucket.bar_shows_the_fill_and_takes_the_fluid_colour |
+| #338 | checklist.config.chest_loot_pools_are_there_exactly_when_their_toggle_is_on |
+| #340 | checklist.config.golden_egg_off_removes_the_egg_from_bean_pods |
+| #354 | checklist.config.block_destabilizer_limit_caps_how_many_blocks_fall |
+| #355 | checklist.trigger_glass.chain_limit_config_caps_how_many_touching_blocks_trigger |
+| #358 | checklist.config.ender_anchor_chunkloading_off_registers_nothing_and_on_registers_and_releases_the_anchor |
+| #359 | checklist.tooltips.ender_anchor_line_follows_the_chunkloading_config |
+| M4 | client suite test `retest.spirit_spawn_egg...` |
+
+_2026-10-28 consolidation: the rows that carried an "Auto 2026-10-23" note (retest.* tests) and the version-specific rows duplicated by other rows were folded into the grouped sheet; the old rows are in git history of `TESTING_CHECKLIST.md`._
