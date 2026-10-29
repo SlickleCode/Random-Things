@@ -69,7 +69,7 @@ public class SpiritEntity extends FlyingMob {
         spiritAge++;
 
         if (!this.level().isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
-            this.kill();
+            this.discard();      // not kill(): its generic-kill damage is refused by hurt(), so a Spirit never despawned
         }
     }
 
