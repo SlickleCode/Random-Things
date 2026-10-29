@@ -57,6 +57,9 @@ public class ModItems {
     @ObjectHolder(registryName = "minecraft:item", value = "randomthings:ectoplasm")
     public static Item ECTOPLASM;
 
+    @ObjectHolder(registryName = "minecraft:item", value = "randomthings:luminous_powder")
+    public static Item LUMINOUS_POWDER;
+
     @ObjectHolder(registryName = "minecraft:item", value = "randomthings:bean_stew")
     public static Item BEAN_STEW;
 
@@ -222,6 +225,7 @@ public class ModItems {
         registry.register("spectre_key", () -> new SpectreKeyItem(lumien.randomthings.lib.RTIds.item().stacksTo(1)));
         registry.register("biome_sensor", () -> new Item(lumien.randomthings.lib.RTIds.item()));
         registry.register("luminous_powder", () -> new Item(lumien.randomthings.lib.RTIds.item()));
+        registry.register("blackout_powder", () -> new BlackoutPowderItem(lumien.randomthings.lib.RTIds.item()));
 
         registry.register("bean_stew", () -> new BeanStewItem(lumien.randomthings.lib.RTIds.item().stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.6F).build())));
         registry.register("blaze_and_steel", () -> new BlazeAndSteelItem(lumien.randomthings.lib.RTIds.item().stacksTo(1).durability(64)));
@@ -404,6 +408,7 @@ public class ModItems {
 
         registerItemForBlock(registry, ModBlocks.SPECTRE_ENERGY_INJECTOR);
         registerItemForBlock(registry, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+        registry.register(RegUtil.id(ModBlocks.SPECTRE_COIL_NUMBER), () -> new lumien.randomthings.item.block.NumberedSpectreCoilBlockItem(ModBlocks.SPECTRE_COIL_NUMBER, lumien.randomthings.lib.RTIds.item().useBlockDescriptionPrefix()));
 
         registry.register("spectre_charger_normal", () -> new SpectreChargerItem(lumien.randomthings.lib.RTIds.item().stacksTo(1), SpectreChargerItem.Tier.NORMAL));
         registry.register("spectre_charger_redstone", () -> new SpectreChargerItem(lumien.randomthings.lib.RTIds.item().stacksTo(1), SpectreChargerItem.Tier.REDSTONE));

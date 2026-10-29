@@ -30,8 +30,7 @@ import com.google.gson.JsonDeserializationContext;
 
 /**
  * Injects this mod's items into vanilla chest loot, port of 1.12.2's {@code LootHandler}.
- * Lava Charm (removed from this port) and Numbered Spectre Coils (not ported) are omitted;
- * gated by {@link RTConfig} (the 1.12.2 {@code Worldgen} toggles).
+ * Lava Charm (removed from this port) is omitted; gated by {@link RTConfig} (the 1.12.2 {@code Worldgen} toggles).
  * 1.12.2's {@code village_blacksmith} table is {@code village/village_weaponsmith}
  * in 1.14.4.
  */
@@ -41,6 +40,8 @@ public class LootHandler
 	public static final Identifier VILLAGE_WEAPONSMITH = Identifier.fromNamespaceAndPath("minecraft", "chests/village/village_weaponsmith");
 	public static final Identifier STRONGHOLD_CORRIDOR = Identifier.fromNamespaceAndPath("minecraft", "chests/stronghold_corridor");
 	public static final Identifier JUNGLE_TEMPLE = Identifier.fromNamespaceAndPath("minecraft", "chests/jungle_temple");
+	public static final Identifier ABANDONED_MINESHAFT = Identifier.fromNamespaceAndPath("minecraft", "chests/abandoned_mineshaft");
+	public static final Identifier END_CITY_TREASURE = Identifier.fromNamespaceAndPath("minecraft", "chests/end_city_treasure");
 
 	public static void addLoot(LootTableLoadEvent event)
 	{
@@ -55,6 +56,18 @@ public class LootHandler
 				addSingleItemWithChance(table, ModItems.MAGIC_HOOD, 5);
 			if (RTConfig.SLIME_CUBE.get())
 				addSingleItemWithChance(table, ModBlocks.SLIME_CUBE.asItem(), 10);
+			if (RTConfig.NUMBERED_SPECTRE_COILS.get())
+				addSingleItemWithChance(table, ModBlocks.SPECTRE_COIL_NUMBER.asItem(), 10);
+		}
+		else if (name.equals(ABANDONED_MINESHAFT))
+		{
+			if (RTConfig.NUMBERED_SPECTRE_COILS.get())
+				addSingleItemWithChance(table, ModBlocks.SPECTRE_COIL_NUMBER.asItem(), 8);
+		}
+		else if (name.equals(END_CITY_TREASURE))
+		{
+			if (RTConfig.NUMBERED_SPECTRE_COILS.get())
+				addSingleItemWithChance(table, ModBlocks.SPECTRE_COIL_NUMBER.asItem(), 30);
 		}
 		else if (name.equals(VILLAGE_WEAPONSMITH))
 		{

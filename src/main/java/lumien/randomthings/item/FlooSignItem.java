@@ -98,6 +98,10 @@ public class FlooSignItem extends Item {
         boolean valid = FlooNetworkHandler.get(worldIn).createFireplace(uuid, signName, player, pos, brickList);
 
         if (!valid) {
+            if (player != null && FlooNetworkHandler.get(worldIn).hasFireplaceNamed(signName)) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("floo.info.duplicate_name", signName), true);
+            }
+
             return InteractionResult.FAIL;
         }
 

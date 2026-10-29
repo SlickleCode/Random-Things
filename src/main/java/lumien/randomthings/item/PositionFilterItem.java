@@ -76,6 +76,22 @@ public class PositionFilterItem extends Item
 		});
 	}
 
+	/**
+	 * The dimension id string stored by {@link #setPosition} ({@code minecraft:overworld} for a filter without one),
+	 * or {@code null} if there is no position.
+	 */
+	public static String getDimension(ItemStack positionFilter)
+	{
+		CompoundTag compound = StackTag.get(positionFilter);
+
+		if (compound == null || !compound.getBooleanOr("hasPosition", false))
+		{
+			return null;
+		}
+
+		return compound.getStringOr("dimension", "minecraft:overworld");
+	}
+
 	public static BlockPos getPosition(ItemStack positionFilter)
 	{
 		CompoundTag compound = StackTag.get(positionFilter);

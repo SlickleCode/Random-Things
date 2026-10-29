@@ -57,6 +57,17 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 	}
 
 	@Override
+	public void tick(BlockState state, net.minecraft.server.level.ServerLevel worldIn, BlockPos pos, net.minecraft.util.RandomSource rand)
+	{
+		BlockEntity te = worldIn.getBlockEntity(pos);
+
+		if (te instanceof RedstoneObserverTileEntity)
+		{
+			((RedstoneObserverTileEntity) te).refreshAfterLoad();
+		}
+	}
+
+	@Override
 	public InteractionResult useItemOn(net.minecraft.world.item.ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
 	{
 		if (heldStack.getItem() instanceof lumien.randomthings.item.RedstoneToolItem)

@@ -965,7 +965,7 @@ final class RetestBehaviorTests
 		// ---- Special crafting recipes (#138, #140, #279, #315-316, Spectre Anchor) -------------------------------------
 		tests.add(RTTest.named("retest.recipes.every_special_crafting_recipe_is_registered_and_not_hidden_behind_a_missing_serializer").run(c -> {
 			java.util.Set<Class<?>> wanted = new java.util.HashSet<>(List.of(lumien.randomthings.recipes.GoldenCompassSetPositionRecipe.class, lumien.randomthings.recipes.EmeraldCompassSetTargetRecipe.class, lumien.randomthings.recipes.PortkeyCamoRecipe.class,
-					lumien.randomthings.recipes.DiaphanousSetRecipe.class, lumien.randomthings.recipes.DiaphanousInvertRecipe.class, lumien.randomthings.recipes.SpectreAnchorCombineRecipe.class));
+					lumien.randomthings.recipes.DiaphanousSetRecipe.class, lumien.randomthings.recipes.DiaphanousInvertRecipe.class, lumien.randomthings.recipes.SpectreAnchorCombineRecipe.class, lumien.randomthings.recipes.LuminousPowderRecipe.class));
 
 			for (net.minecraft.world.item.crafting.RecipeHolder<?> holder : c.world.getServer().getRecipeManager().getRecipes())
 			{

@@ -68,6 +68,11 @@ public class AdvancedRedstoneInterfaceTileEntity extends RedstoneInterfaceTileEn
             ItemStack stack = positionInventory.getStackInSlot(i);
             BlockPos target = stack.isEmpty() ? null : PositionFilterItem.getPosition(stack);
 
+            // Position Filters only work within their own dimension (wiki: "does not work across dimensions")
+            if (target != null && !PositionFilterItem.getDimension(stack).equals(this.level.dimension().identifier().toString())) {
+                target = null;
+            }
+
             if (target != null) {
                 newTargets.add(target);
             }
