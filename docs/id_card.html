@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
+    <title>ID Card - Random Things Wiki</title>
+    <meta name="description" content="The ID Card stores a player. Right click with it in your hand to bind it to yourself; right clicking again overwrites the stored player. The tooltip s">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="master-container">
+      <div class="sidebar-component">
+  <a class="sidebar-title" href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+    Random Things
+  </a>
+  <div class="sidebar-search-line">
+    <svg xmlns="http://www.w3.org/2000/svg" id="close-sidebar" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    <input type="text" id="search-field" class="sidebar-search-field" name="search" placeholder="Search...">
+    <button type="button" id="theme-toggle" class="theme-toggle-button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="4" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="sidebar-item-list" id="sidebar-item-list">
+    
+      
+      
+      <div class="sidebar-category" data-category="item">
+        <button type="button" class="sidebar-header-item" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="sidebar-header-label">Items</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-header-chevron h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div class="sidebar-category-items">
+          
+          <a class="sidebar-line-item"
+             href="bean.html"
+             data-keywords="beans ingredient bean">
+            Beans
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="biome_crystal.html"
+             data-keywords="biome crystal biome crystal biome crystal radar biome sensor">
+            Biome Crystal
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="blaze_and_steel.html"
+             data-keywords="blaze and steel blaze steel">
+            Blaze and Steel
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="bottle_of_air.html"
+             data-keywords="bottle of air bottle air breath underwater">
+            Bottle of Air
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="chunk_analyzer.html"
+             data-keywords="chunk analyzer analyzer chunk">
+            Chunk Analyzer
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="divining_rods.html"
+             data-keywords="divining rods divining rods ore coal iron gold lapis redstone emerald diamond">
+            Divining Rods
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="eclipsed_clock.html"
+             data-keywords="eclipsed clock clock eclipsed time day night time in a bottle">
+            Eclipsed Clock
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="ectoplasm.html"
+             data-keywords="ectoplasm ectoplasm spectre spirit spirit spawn egg">
+            Ectoplasm
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="emerald_compass.html"
+             data-keywords="emerald compass compass emerald id card player">
+            Emerald Compass
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="ender_bucket.html"
+             data-keywords="ender bucket bucket ender reinforced fluid water lava">
+            Ender Bucket
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="ender_letter.html"
+             data-keywords="ender letter ender letter mailbox ender mailbox mail message">
+            Ender Letter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="entity_filter.html"
+             data-keywords="entity filter entity filter">
+            Entity Filter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="escape_rope.html"
+             data-keywords="escape rope escape rope">
+            Escape Rope
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="glowing_mushrooms.html"
+             data-keywords="glowing mushrooms glowing mushrooms glowing mushroom">
+            Glowing Mushrooms
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="golden_compass.html"
+             data-keywords="golden compass compass golden">
+            Golden Compass
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="golden_egg.html"
+             data-keywords="golden egg egg golden chicken gold ingot golden chicken">
+            Golden Egg
+          </a>
+          
+          <a class="sidebar-line-item sidebar-line-item-active"
+             href="id_card.html"
+             data-keywords="id card id card player filter">
+            ID Card
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="luminous_powder.html"
+             data-keywords="luminous powder luminous powder">
+            Luminous Powder
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="magic_hood.html"
+             data-keywords="magic hood hood magic weaponsmith helmet">
+            Magic Hood
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="portable_sound_dampener.html"
+             data-keywords="portable sound dampener dampener portable sound mute silence inventory">
+            Portable Sound Dampener
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="portkey.html"
+             data-keywords="portkey portkey teleport camouflage appearance">
+            Portkey
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="position_filter.html"
+             data-keywords="position filter position filter">
+            Position Filter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="redstone_activator.html"
+             data-keywords="redstone activator redstone activator signal">
+            Redstone Activator
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="redstone_remote.html"
+             data-keywords="redstone remote redstone remote">
+            Redstone Remote
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="redstone_tool.html"
+             data-keywords="redstone tool redstone tool link observer interface">
+            Redstone Tool
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="runic_dust.html"
+             data-keywords="runic dust dust runic">
+            Runic Dust
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="sound_pattern.html"
+             data-keywords="sound pattern pattern sound blank record sound id">
+            Sound Pattern
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="sound_recorder.html"
+             data-keywords="sound recorder recorder sound record stop unique">
+            Sound Recorder
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_anchor.html"
+             data-keywords="spectre anchor anchor spectre death keep inventory anchored">
+            Spectre Anchor
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_charger.html"
+             data-keywords="spectre charger charger spectre energy injector genesis">
+            Spectre Charger
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_illuminator.html"
+             data-keywords="spectre illuminator illuminator spectre">
+            Spectre Illuminator
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_ingot.html"
+             data-keywords="spectre ingot and spectre string spectre ingot string ectoplasm spectre ingot spectre string spectre core">
+            Spectre Ingot and Spectre String
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_key.html"
+             data-keywords="spectre key spectre key dimension core room cube">
+            Spectre Key
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_tools.html"
+             data-keywords="spectre tools spectre tools sword pickaxe axe shovel">
+            Spectre Tools
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="stable_ender_pearl.html"
+             data-keywords="stable ender pearl enderpearl ender pearl teleportation stable bound">
+            Stable Ender Pearl
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="summoning_pendulum.html"
+             data-keywords="summoning pendulum pendulum summoning entity mob animal capture">
+            Summoning Pendulum
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="super_lubricent.html"
+             data-keywords="super lubricent super lubricent bean">
+            Super Lubricent
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="super_lubricent_boots.html"
+             data-keywords="super lubricent boots super lubricent armor boots">
+            Super Lubricent Boots
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="time_in_a_bottle.html"
+             data-keywords="time in a bottle bottle time accelerate speed eclipsed clock">
+            Time in a Bottle
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="weather_egg.html"
+             data-keywords="weather eggs weather egg throwable sun rain storm thunder">
+            Weather Eggs
+          </a>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="sidebar-category" data-category="block">
+        <button type="button" class="sidebar-header-item" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          <span class="sidebar-header-label">Blocks</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-header-chevron h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div class="sidebar-category-items">
+          
+          <a class="sidebar-line-item"
+             href="advanced_redstone_interface.html"
+             data-keywords="advanced redstone interface advanced interface redstone position filter">
+            Advanced Redstone Interface
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="advanced_redstone_repeater.html"
+             data-keywords="advanced redstone repeater advanced redstone repeater delay">
+            Advanced Redstone Repeater
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="advanced_redstone_torch.html"
+             data-keywords="advanced redstone torch redstone torch advanced signal wall torch">
+            Advanced Redstone Torch
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="analog_emitter.html"
+             data-keywords="analog emitter analog emitter">
+            Analog Emitter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="biome_radar.html"
+             data-keywords="biome radar biome radar">
+            Biome Radar
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="block_breaker.html"
+             data-keywords="block breaker block breaker">
+            Block Breaker
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="block_destabilizer.html"
+             data-keywords="block destabilizer block destabilizer">
+            Block Destabilizer
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="block_of_sticks.html"
+             data-keywords="block of sticks block sticks">
+            Block of Sticks
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="chat_detector.html"
+             data-keywords="chat detector chat detector global chat detector">
+            Chat Detector
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="colored_grass.html"
+             data-keywords="colored grass colored grass grass seeds colored grass">
+            Colored Grass
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="compressed_slime_block.html"
+             data-keywords="compressed slime block block compressed slime">
+            Compressed Slime Block
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="contact_button_lever.html"
+             data-keywords="contact button &amp; lever button contact lever contact button contact lever">
+            Contact Button &amp; Lever
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="creative_player_interface.html"
+             data-keywords="creative player interface creative interface player">
+            Creative Player Interface
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="diaphanous_blocks.html"
+             data-keywords="diaphanous blocks blocks diaphanous">
+            Diaphanous Blocks
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="dyeing_machine.html"
+             data-keywords="dyeing machine dyeing machine">
+            Dyeing Machine
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="ender_bridge.html"
+             data-keywords="ender bridge bridge ender ender anchor prismarine teleport chunk">
+            Ender Bridge
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="ender_mailbox.html"
+             data-keywords="ender mailbox ender mailbox mail letter ender letter">
+            Ender Mailbox
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="entity_detector.html"
+             data-keywords="entity detector detector entity entity filter">
+            Entity Detector
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="fertilized_dirt.html"
+             data-keywords="fertilized dirt dirt fertilized fertilized dirt">
+            Fertilized Dirt
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="fluid_display.html"
+             data-keywords="fluid display display fluid">
+            Fluid Display
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="igniter.html"
+             data-keywords="igniter igniter">
+            Igniter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="imbuing_station.html"
+             data-keywords="imbuing station imbuing station imbue fire imbue poison imbue experience imbue wither imbue">
+            Imbuing Station
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="inventory_tester.html"
+             data-keywords="inventory tester inventory tester">
+            Inventory Tester
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="iron_dropper.html"
+             data-keywords="iron dropper dropper iron">
+            Iron Dropper
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="item_collector.html"
+             data-keywords="item collector collector item advanced item collector">
+            Item Collector
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="lapis_glass.html"
+             data-keywords="lapis glass glass lapis">
+            Lapis Glass
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="lapis_lamp.html"
+             data-keywords="lapis lamp lamp lapis">
+            Lapis Lamp
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="light_redirector.html"
+             data-keywords="light redirector light redirector">
+            Light Redirector
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="lotus.html"
+             data-keywords="lotus lotus lotus seeds lotus blossom">
+            Lotus
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="luminous_blocks.html"
+             data-keywords="luminous blocks blocks luminous">
+            Luminous Blocks
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="notification_interface.html"
+             data-keywords="notification interface interface notification toast">
+            Notification Interface
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="online_detector.html"
+             data-keywords="online detector detector online">
+            Online Detector
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="peace_candle.html"
+             data-keywords="peace candle candle peace">
+            Peace Candle
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="platforms.html"
+             data-keywords="platforms platforms platform oak spruce birch jungle acacia dark oak">
+            Platforms
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="player_interface.html"
+             data-keywords="player interface interface player">
+            Player Interface
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="potion_vaporizer.html"
+             data-keywords="potion vaporizer potion vaporizer">
+            Potion Vaporizer
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="quartz_glass.html"
+             data-keywords="quartz glass glass quartz">
+            Quartz Glass
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="quartz_lamp.html"
+             data-keywords="quartz lamp lamp quartz">
+            Quartz Lamp
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="rain_shield.html"
+             data-keywords="rain shield rain shield">
+            Rain Shield
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="rainbow_lamp.html"
+             data-keywords="rainbow lamp lamp rainbow">
+            Rainbow Lamp
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="redstone_interface.html"
+             data-keywords="redstone interface interface redstone basic redstone interface">
+            Redstone Interface
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="redstone_observer.html"
+             data-keywords="redstone observer observer redstone">
+            Redstone Observer
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="sided_redstone.html"
+             data-keywords="sided block of redstone redstone sided block of redstone">
+            Sided Block of Redstone
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="slime_cube.html"
+             data-keywords="slime cube cube slime">
+            Slime Cube
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="sound_box.html"
+             data-keywords="sound box box sound pattern redstone note">
+            Sound Box
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="sound_dampener.html"
+             data-keywords="sound dampener dampener sound mute radius silence">
+            Sound Dampener
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_coils.html"
+             data-keywords="spectre coils coils spectre">
+            Spectre Coils
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_lens.html"
+             data-keywords="spectre lens lens spectre beacon">
+            Spectre Lens
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="spectre_sapling.html"
+             data-keywords="spectre sapling sapling spectre">
+            Spectre Sapling
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="stained_bricks.html"
+             data-keywords="stained bricks bricks stained">
+            Stained Bricks
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="super_lubricent_ice.html"
+             data-keywords="super lubricent ice and platforms super lubricent ice platform filtered slippery friction boat">
+            Super Lubricent Ice and Platforms
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="super_lubricent_stone.html"
+             data-keywords="super lubricent stone super lubricent stone">
+            Super Lubricent Stone
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="trigger_glass.html"
+             data-keywords="trigger glass glass trigger">
+            Trigger Glass
+          </a>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="sidebar-category" data-category="misc">
+        <button type="button" class="sidebar-header-item" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <span class="sidebar-header-label">Misc</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-header-chevron h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div class="sidebar-category-items">
+          
+          <a class="sidebar-line-item"
+             href="ancient_furnace.html"
+             data-keywords="ancient furnace ancient furnace">
+            Ancient Furnace
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="artificial_end_portal.html"
+             data-keywords="artificial end portal artificial end portal evil tear dimension">
+            Artificial End Portal
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="configuration.html"
+             data-keywords="configuration configuration config options settings randomthings-common.toml worldgen loot features visual numbers">
+            Configuration
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="floo_teleportation.html"
+             data-keywords="floo teleportation floo teleportation floo powder floo sign floo token floo pouch floo brick fireplace">
+            Floo Teleportation
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="magnetic_enchantment.html"
+             data-keywords="magnetic enchantment enchantment magnetic">
+            Magnetic Enchantment
+          </a>
+          
+        </div>
+      </div>
+      
+    
+      
+      
+      <div class="sidebar-category" data-category="legacy">
+        <button type="button" class="sidebar-header-item" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          <span class="sidebar-header-label">Legacy / Not in the current mod</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-header-chevron h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div class="sidebar-category-items">
+          
+          <a class="sidebar-line-item"
+             href="biome_blocks.html"
+             data-keywords="biome blocks biome blocks">
+            Biome Blocks
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="custom_crafting_tables.html"
+             data-keywords="custom crafting tables crafting custom tables">
+            Custom Crafting Tables
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="inventory_rerouter.html"
+             data-keywords="inventory rerouter inventory rerouter">
+            Inventory Rerouter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="item_filter.html"
+             data-keywords="item filter filter item">
+            Item Filter
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="lava_charm.html"
+             data-keywords="lava charm charm lava">
+            Lava Charm
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="lava_waders.html"
+             data-keywords="lava waders lava waders">
+            Lava Waders
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="obsidian_skull.html"
+             data-keywords="obsidian skull obsidian skull">
+            Obsidian Skull
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="obsidian_water_walking_boots.html"
+             data-keywords="obsidian water walking boots boots obsidian walking water">
+            Obsidian Water Walking Boots
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="pitcher_plant.html"
+             data-keywords="pitcher plant pitcher plant">
+            Pitcher Plant
+          </a>
+          
+          <a class="sidebar-line-item"
+             href="water_walking_boots.html"
+             data-keywords="water walking boots water armor boots">
+            Water Walking Boots
+          </a>
+          
+        </div>
+      </div>
+      
+    
+  </div>
+</div>
+      <div class="mobile-banner-component">
+        <svg xmlns="http://www.w3.org/2000/svg" id="open-sidebar" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span>Random Things</span>
+      </div>
+      <div class="information-body-component">
+        
+<div class="information-card-component">
+  <h1>ID Card</h1>
+  <p class="feature-category-badge">Item</p>
+
+  <h1>Description</h1>
+  <p class="item-description">The ID Card stores a player. Right click with it in your hand to bind it to yourself; right clicking again overwrites the stored player. The tooltip shows the player&#39;s name.
+
+- Combine an ID Card with an Emerald Compass in a crafting table to make the compass point to that player. The card is not used up.
+
+- Put it in the filter slot of an Entity Detector in custom mode to match only that player. An unbound card matches any player.
+
+- Put it in the whitelist slots of a Global Chat Detector so that consuming chat messages only works for that player.</p>
+
+  
+  <hr/>
+  <h1>Properties</h1>
+  <table class="properties-table">
+    
+    <tr>
+      <th>Stack size</th>
+      <td>64</td>
+    </tr>
+    
+    <tr>
+      <th>Config</th>
+      <td>None</td>
+    </tr>
+    
+  </table>
+  
+
+  
+  <hr/>
+  <h1>Recipe</h1>
+  
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Paper">
+          
+          <span class="recipe-slot-label">Paper</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Ink Sac">
+          
+          <span class="recipe-slot-label">Ink Sac</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Id Card">
+      
+      <span class="recipe-slot-label">Id Card</span>
+      
+      
+    </div>
+  </div>
+  
+  
+  
+
+  
+</div>
+
+      </div>
+    </div>
+    <div id="modal">
+      <img id="modal-picture">
+    </div>
+    <script src="js/main.js" async defer></script>
+  </body>
+</html>
