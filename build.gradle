@@ -42,6 +42,8 @@ minecraft {
             property 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
             // RT_MANUAL=true (with RT_AUTOTEST=true): open the manual-testing world (seed 424242, normal terrain) and build the showroom; see docs/testing/manual-test-world.md
             property 'randomthings.autotest.manual', System.getenv('RT_MANUAL') ?: 'false'
+            // RT_FIXTURE=build|verify (with RT_AUTOTEST=true): the old-world loading check, docs/testing/fixture-world.md
+            property 'randomthings.autotest.fixture', System.getenv('RT_FIXTURE') ?: ''
             property 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
             property 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
             // RT_AUTOTEST_SOUND=true keeps the game audio on during the client autotest (muted by default)

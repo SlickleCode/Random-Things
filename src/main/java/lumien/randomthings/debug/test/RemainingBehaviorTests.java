@@ -42,6 +42,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ServerChatEvent;
@@ -335,6 +336,72 @@ final class RemainingBehaviorTests
 			}
 
 			c.check(handler.getSpectreCubeFromPos(spectre, new BlockPos(cubeA.getSpawnBlock().getX(), 1, 40)) == null, "outside the cube row resolves to nothing");
+		}));
+
+		tests.add(RTTest.named("behavior.spectre.two_players_teleporting_in_each_land_in_their_own_cube_and_go_back").run(c -> {
+			SpectreHandler handler = SpectreHandler.getInstance(c.world.getServer());
+
+			if (handler == null)
+			{
+				throw new TestCtx.Skip("the Spectre dimension is not available in this world");
+			}
+
+			ServerPlayer one = c.player;
+
+			if (one.level.dimension() != Level.OVERWORLD)
+			{
+				throw new TestCtx.Skip("the test player starts in " + one.level.dimension().location() + " (a world left behind by an interrupted run?), not the overworld");
+			}
+
+			ServerPlayer two = net.minecraftforge.common.util.FakePlayerFactory.get(c.world, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "SpectreSecond"));
+			// a fake player has no connection; give it one that swallows every packet so it can change dimension like a real second player
+			two.connection = new net.minecraft.server.network.ServerGamePacketListenerImpl(c.world.getServer(), new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND)
+			{
+				@Override
+				public void send(net.minecraft.network.protocol.Packet<?> packet)
+				{
+				}
+
+				@Override
+				public void send(net.minecraft.network.protocol.Packet<?> packet, io.netty.util.concurrent.GenericFutureListener<? extends io.netty.util.concurrent.Future<? super Void>> listener)
+				{
+				}
+			}, two);
+			double startX = one.getX();
+			double startZ = one.getZ();
+
+			try
+			{
+				handler.teleportPlayerToSpectreCube(one);
+				handler.teleportPlayerToSpectreCube(two);
+
+				Level spectre = handler.getWorld();
+				SpectreCube cubeOne = handler.getSpectreCubeFromPos(spectre, one.blockPosition());
+				SpectreCube cubeTwo = handler.getSpectreCubeFromPos(spectre, new BlockPos(two.getX(), two.getY(), two.getZ()));
+
+				c.check(cubeOne != null && cubeOne.getOwner().equals(one.getGameProfile().getId()), "player one must stand in a cube they own, got " + (cubeOne == null ? "no cube" : "owner " + cubeOne.getOwner()) + " at " + one.blockPosition());
+				c.check(cubeTwo != null && cubeTwo.getOwner().equals(two.getGameProfile().getId()), "player two must stand in a cube they own, got " + (cubeTwo == null ? "no cube" : "owner " + cubeTwo.getOwner()) + " at " + new BlockPos(two.getX(), two.getY(), two.getZ()));
+				c.check(cubeOne != cubeTwo && cubeOne.getPosition() != cubeTwo.getPosition(), "the two players must not share a cube");
+
+				// leaving and going in again finds the same cube instead of generating another
+				handler.teleportPlayerBack(one);
+				handler.teleportPlayerToSpectreCube(one);
+				c.check(handler.getSpectreCubeFromPos(spectre, one.blockPosition()) == cubeOne, "teleporting in a second time must reuse the player's cube");
+
+				// the protection check puts a player who wandered into the other cube back into their own
+				two.setPos(cubeOne.getSpawnBlock().getX() + 0.5, 1, cubeOne.getSpawnBlock().getZ() + 0.5);
+				handler.checkPosition(two);
+				SpectreCube after = handler.getSpectreCubeFromPos(spectre, new BlockPos(two.getX(), two.getY(), two.getZ()));
+				c.check(after == cubeTwo, "a non-creative player in someone else's cube must be moved back to their own");
+			}
+			finally
+			{
+				handler.teleportPlayerBack(one);
+				handler.teleportPlayerBack(two);
+			}
+
+			c.check(one.level.dimension() == Level.OVERWORLD, "player one must be back in the overworld, is in " + one.level.dimension().location());
+			c.check(Math.abs(one.getX() - startX) < 2 && Math.abs(one.getZ() - startZ) < 2, "player one must be back where they left");
 		}));
 
 		// ---- Sound Box / Sound Dampener (server-visible state) --------------------------------
