@@ -63,6 +63,31 @@ public class RedstoneObserverTileEntity extends BlockEntity implements MenuProvi
 		}
 	}
 
+	@Override
+	public void onLoad()
+	{
+		super.onLoad();
+
+		// The power maps are not saved, so after a reload they would stay 0
+		// until the target changes. Recompute shortly after load (not inside
+		// onLoad itself, to avoid touching other chunks mid chunk-load).
+		if (this.level != null && !this.level.isClientSide && this.target != null)
+		{
+			this.level.scheduleTick(this.worldPosition, ModBlocks.REDSTONE_OBSERVER, 1);
+		}
+	}
+
+	/**
+	 * Called from the block's scheduled tick after load.
+	 */
+	public void refreshAfterLoad()
+	{
+		if (this.level != null && this.target != null && this.level.hasChunkAt(this.target))
+		{
+			updateRedstoneState();
+		}
+	}
+
 	public static void notifyNeighbor(NeighborNotifyEvent event)
 	{
 		for (RedstoneObserverTileEntity observer : WeakSets.snapshot(loadedObservers))

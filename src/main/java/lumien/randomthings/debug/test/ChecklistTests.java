@@ -384,6 +384,7 @@ final class ChecklistTests
 			c.eq(RTConfig.SUMMONING_PENDULUM.get(), hasPool.test(lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, "randomthings:summoning_pendulum"), "#338: Summoning Pendulum pool vs its toggle");
 			c.eq(RTConfig.MAGIC_HOOD.get(), hasPool.test(lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, "randomthings:magic_hood"), "#338: Magic Hood pool vs its toggle");
 			c.eq(RTConfig.BIOME_CRYSTAL.get(), hasPool.test(lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, "randomthings:biome_crystal"), "#338: Biome Crystal pool vs its toggle");
+			c.eq(RTConfig.NUMBERED_SPECTRE_COILS.get(), hasPool.test(lumien.randomthings.handler.LootHandler.END_CITY_TREASURE, "randomthings:spectre_coil_number"), "Numbered Spectre Coil pool vs its toggle");
 		}));
 
 		// ---- Lotus: #67 ---------------------------------------------------------------------------------------------

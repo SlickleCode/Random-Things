@@ -38,6 +38,9 @@ overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch
 Test `use_item.lotus_seeds.plant_on_grass_but_not_on_stone` was renamed/rewritten (`plant_on_farmland_but_not_on_grass_or_stone`) because it asserted the old behaviour. Not done: Peace Candle churches in every village type (blocked).
 Rows AF1-AF12 in section G of `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-2026-10-29.md`.
 
+**Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Luminous Powder recipe (glow rendering still missing), Numbered Spectre Coils and Blackout Powder;
+fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in section H of `TESTING_CHECKLIST.md`.
+
 ## What to do next
 
 1. M3-M6 in order (chat, rendering/client, coremods, boot + suites); update the plan + this file after each. M2 (worldgen + restored worldgen tests) is done, see the plan's "M2 result".
