@@ -51,3 +51,16 @@ Still open from the "reported" list (not requested): Block Breaker Magnetic conf
 Floo duplicate sign names, Analog Emitter input side, Position Filter dimension ignored by the Advanced Interface/Remote, Observer output on load, Entity Detector empty Custom filter,
 Stable Ender Pearl cross-dimension, and every item in PARITY_BUGS.md.
 Known per-branch limits: 1.21.x fix AF1 only covers the main hand on 1.21.1 / 1.21.4 (1.14.4 also covers the off-hand); every "return PASS lets Item.useOn run" assumption is unverified in game.
+
+## Round 2 (2026-10-29, all nine branches, also written WITHOUT a compiler; rows AG1-AG11 in each TESTING_CHECKLIST.md)
+ADDED (matching 1.12.2): Spectre Sapling from a vanilla sapling + Ectoplasm; Runic Pattern from paper on a placed Rune Base (the original trigger; the wiki sentence "Runic Dust on the ground with a piece of paper"
+is only loosely the same); Luminous Powder recipe + flag + tooltip; Numbered Spectre Coils (chest loot 10/8/30, config `loot.NumberedSpectreCoils`, 128 FE/tick, no recipe); Blackout Powder.
+FIXED: Floo teleport into an unloaded chunk no longer deletes the fireplace; Floo duplicate sign name now shows a message; Stable Ender Pearl changes the bound player's dimension; Advanced Redstone Interface and
+Redstone Remote respect a Position Filter's dimension; Redstone Observer recomputes after load; Analog Emitter reads its input from the opposite side again.
+CORRECTIONS to the list above: Entity Detector with an empty Custom filter + Invert is the original behaviour (no change, a test was added); the Floo Sign was never consumed on a duplicate name (only the message was missing);
+the Stable Ender Pearl bound to an offline player already matched the original.
+NOT DONE: the glow-in-the-dark Luminous glint RENDERING (needs a glint coremod hook that forces full bright lighting, as 1.12.2's AsmHandler.preEnchantment/postEnchantment did), Nature Core and the Magic Bean source (still will-not-migrate),
+Peace Candle churches in all village types (needs the vanilla pool/church names).
+Branch differences: 1.18.2 refreshes the Observer through a block entity ticker instead of a tick scheduled in onLoad; Position Filter dimensions are strings from 1.16.5 on; 1.20.6/1.21.1/1.21.4/1.21.11 build the enchanted check
+of the Luminous recipe by looping over the enchantment registry (assumed API combination, unverified); sapling/paper listeners cancel RightClickBlock (no precedent on the 1.20.6+ branches).
+Wiki pages left as is (spectre_sapling, runic_dust, luminous_powder, spectre_coils, spectre_illuminator, bean) now describe features that exist, except the Luminous glow and Nature Core / Magic Bean; their recipe pictures are old.
