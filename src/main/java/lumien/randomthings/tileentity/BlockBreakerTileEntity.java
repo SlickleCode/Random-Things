@@ -216,7 +216,7 @@ public class BlockBreakerTileEntity extends BlockEntity {
         super.load(compound);
 
         if (compound.contains("uuid")) {
-            uuid = NbtUtils.loadUUID(compound.getCompound("uuid"));
+            uuid = lumien.randomthings.util.UuidTag.read(compound.get("uuid"));
         }
         mining = compound.getBoolean("mining");
         canMine = compound.getBoolean("canMine");

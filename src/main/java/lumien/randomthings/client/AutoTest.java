@@ -34,7 +34,9 @@ public class AutoTest
 {
 	/** {@code RT_MANUAL=true}: not a test run - open/create the normal-terrain manual-testing world and build the showroom ({@code /rtdebug manual}). */
 	private static final boolean MANUAL = Boolean.getBoolean("randomthings.autotest.manual");
-	private static final String WORLD = MANUAL ? "RTManual" : "RTAutoTest";
+	/** {@code RT_FIXTURE=build|verify}: the old-world loading check, see {@code docs/testing/fixture-world.md}. */
+	private static final String FIXTURE = System.getProperty("randomthings.autotest.fixture", "");
+	private static final String WORLD = !FIXTURE.isEmpty() ? "RTFixture" : MANUAL ? "RTManual" : "RTAutoTest";
 
 	private enum State
 	{
@@ -47,6 +49,23 @@ public class AutoTest
 	private static boolean enabled()
 	{
 		return Boolean.getBoolean("randomthings.autotest");
+	}
+
+	private static void deleteMuseum(java.nio.file.Path dir)
+	{
+		if (!java.nio.file.Files.exists(dir))
+		{
+			return;
+		}
+
+		try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(dir))
+		{
+			files.sorted(java.util.Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+		}
+		catch (java.io.IOException e)
+		{
+			RTDebug.log("AutoTest: could not delete the museum world: {}", e);
+		}
 	}
 
 	@SubscribeEvent
@@ -74,6 +93,19 @@ public class AutoTest
 				if (mc.screen instanceof TitleScreen && ticks > 60)
 				{
 					RTDebug.log("AutoTest: opening world {}", WORLD);
+
+					if (FIXTURE.equals("build"))
+					{
+						deleteMuseum(net.minecraftforge.fml.loading.FMLPaths.GAMEDIR.get().resolve("saves").resolve(WORLD));      // a fixture is always built into a fresh world
+					}
+
+					if (MANUAL)
+					{
+						// the museum is rebuilt from scratch on every start and removed again when the game closes
+						java.nio.file.Path museum = net.minecraftforge.fml.loading.FMLPaths.GAMEDIR.get().resolve("saves").resolve(WORLD);
+						deleteMuseum(museum);
+						Runtime.getRuntime().addShutdownHook(new Thread(() -> deleteMuseum(museum)));
+					}
 
 					if (mc.getLevelSource().levelExists(WORLD))
 					{
@@ -140,6 +172,22 @@ public class AutoTest
 				}
 				break;
 			case SETTLING:
+				if (!FIXTURE.isEmpty())
+				{
+					if (ticks == 100)
+					{
+						mc.player.commandUnsigned("gamemode creative");
+						mc.player.commandUnsigned("rtdebug fixture " + FIXTURE);
+					}
+					else if (ticks > 260)
+					{
+						// the anchors need a few ticks to register, then the world is saved by quitting
+						state = State.DONE;
+						mc.stop();
+					}
+					break;
+				}
+
 				if (MANUAL)
 				{
 					if (ticks > 100)

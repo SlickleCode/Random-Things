@@ -51,7 +51,7 @@ import java.util.Set;
  * instead of hardcoding a lookup table that would silently miss anything
  * not in it.
  */
-public class ReinforcedEnderBucketItem extends Item {
+public class ReinforcedEnderBucketItem extends Item implements lumien.randomthings.item.IClientItemProperties, lumien.randomthings.lib.IRTItemColor {
     private static final int CAPACITY = 1000 * 10;
 
     public ReinforcedEnderBucketItem(Item.Properties properties) {
@@ -243,5 +243,16 @@ public class ReinforcedEnderBucketItem extends Item {
         }
 
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.drain(CAPACITY, FluidAction.SIMULATE)).filter(fluid -> !fluid.isEmpty()).orElse(null);
+    }
+
+    @Override
+    public void registerClientProperties() {
+        // the bucket shows its fluid: models/item/*.json switches to the model with the fluid layer while this is 1
+        net.minecraft.client.renderer.item.ItemProperties.register(this, new net.minecraft.resources.ResourceLocation("randomthings", "fluid_filled"), (stack, level, entity, seed) -> lumien.randomthings.client.BucketFluidModel.filled(stack) ? 1.0F : 0.0F);
+    }
+
+    @Override
+    public int getColorFromItemstack(net.minecraft.world.item.ItemStack stack, int tintIndex) {
+        return lumien.randomthings.client.BucketFluidModel.color(stack, tintIndex);
     }
 }
