@@ -1,0 +1,102 @@
+features 100
+advanced_redstone_interface|Advanced Redstone Interface|block|RECIPE-IMAGE-ONLY
+advanced_redstone_repeater|Advanced Redstone Repeater|block|RECIPE-IMAGE-ONLY
+advanced_redstone_torch|Advanced Redstone Torch|block|
+analog_emitter|Analog Emitter|block|RECIPE-IMAGE-ONLY
+ancient_furnace|Ancient Furnace|misc|NO-RECIPE
+artificial_end_portal|Artificial End Portal|misc|RECIPE-IMAGE-ONLY
+bean|Beans|item|RECIPE-IMAGE-ONLY
+biome_blocks|Biome Blocks|block|RECIPE-IMAGE-ONLY
+biome_radar|Biome Radar|block|RECIPE-IMAGE-ONLY
+blaze_and_steel|Blaze and Steel|item|RECIPE-IMAGE-ONLY
+block_breaker|Block Breaker|block|RECIPE-IMAGE-ONLY
+block_destabilizer|Block Destabilizer|block|RECIPE-IMAGE-ONLY
+block_of_sticks|Block of Sticks|block|RECIPE-IMAGE-ONLY
+chat_detector|Chat Detector|block|RECIPE-IMAGE-ONLY
+chunk_analyzer|Chunk Analyzer|item|RECIPE-IMAGE-ONLY
+colored_grass|Colored Grass|block|RECIPE-IMAGE-ONLY
+compressed_slime_block|Compressed Slime Block|block|NO-RECIPE
+contact_button_lever|Contact Button & Lever|block|RECIPE-IMAGE-ONLY
+creative_player_interface|Creative Player Interface|block|NO-RECIPE
+custom_crafting_tables|Custom Crafting Tables|block|RECIPE-IMAGE-ONLY
+diaphanous_blocks|Diaphanous Blocks|block|RECIPE-IMAGE-ONLY
+divining_rods|Divining Rods|item|RECIPE-IMAGE-ONLY
+dyeing_machine|Dyeing Machine|block|RECIPE-IMAGE-ONLY
+eclipsed_clock|Eclipsed Clock|item|RECIPE-IMAGE-ONLY
+ectoplasm|Ectoplasm|item|RECIPE-IMAGE-ONLY
+emerald_compass|Emerald Compass|item|RECIPE-IMAGE-ONLY
+ender_bridge|Ender Bridge|block|RECIPE-IMAGE-ONLY
+ender_bucket|Ender Bucket|item|RECIPE-IMAGE-ONLY
+ender_letter|Ender Letter|item|RECIPE-IMAGE-ONLY
+entity_detector|Entity Detector|block|RECIPE-IMAGE-ONLY
+entity_filter|Entity Filter|item|RECIPE-IMAGE-ONLY
+escape_rope|Escape Rope|item|RECIPE-IMAGE-ONLY
+fertilized_dirt|Fertilized Dirt|block|RECIPE-IMAGE-ONLY
+floo_teleportation|Floo Teleportation|misc|RECIPE-IMAGE-ONLY
+fluid_display|Fluid Display|block|RECIPE-IMAGE-ONLY
+glowing_mushrooms|Glowing Mushrooms|item|NO-RECIPE
+golden_compass|Golden Compass|item|RECIPE-IMAGE-ONLY
+golden_egg|Golden Egg|item|NO-RECIPE
+igniter|Igniter|block|RECIPE-IMAGE-ONLY
+imbuing_station|Imbuing Station|block|RECIPE-IMAGE-ONLY
+inventory_rerouter|Inventory Rerouter|block|RECIPE-IMAGE-ONLY
+inventory_tester|Inventory Tester|block|RECIPE-IMAGE-ONLY
+iron_dropper|Iron Dropper|block|RECIPE-IMAGE-ONLY
+item_collector|Item Collector|block|RECIPE-IMAGE-ONLY
+item_filter|Item Filter|item|RECIPE-IMAGE-ONLY
+lapis_glass|Lapis Glass|block|RECIPE-IMAGE-ONLY
+lapis_lamp|Lapis Lamp|block|RECIPE-IMAGE-ONLY
+lava_charm|Lava Charm|item|NO-RECIPE
+lava_waders|Lava Waders|item|RECIPE-IMAGE-ONLY
+light_redirector|Light Redirector|block|RECIPE-IMAGE-ONLY
+lotus|Lotus|block|NO-RECIPE
+luminous_blocks|Luminous Blocks|block|RECIPE-IMAGE-ONLY
+luminous_powder|Luminous Powder|item|RECIPE-IMAGE-ONLY
+magic_hood|Magic Hood|item|NO-RECIPE
+magnetic_enchantment|Magnetic Enchantment|misc|NO-RECIPE
+notification_interface|Notification Interface|block|RECIPE-IMAGE-ONLY
+obsidian_skull|Obsidian Skull|item|RECIPE-IMAGE-ONLY
+obsidian_water_walking_boots|Obsidian Water Walking Boots|item|RECIPE-IMAGE-ONLY
+online_detector|Online Detector|block|RECIPE-IMAGE-ONLY
+peace_candle|Peace Candle|block|NO-RECIPE
+pitcher_plant|Pitcher Plant|block|NO-RECIPE
+platforms|Platforms|block|RECIPE-IMAGE-ONLY
+player_interface|Player Interface|block|RECIPE-IMAGE-ONLY
+portable_sound_dampener|Portable Sound Dampener|item|RECIPE-IMAGE-ONLY
+portkey|Portkey|item|RECIPE-IMAGE-ONLY
+position_filter|Position Filter|item|RECIPE-IMAGE-ONLY
+potion_vaporizer|Potion Vaporizer|block|RECIPE-IMAGE-ONLY
+quartz_glass|Quartz Glass|block|RECIPE-IMAGE-ONLY
+quartz_lamp|Quartz Lamp|block|RECIPE-IMAGE-ONLY
+rain_shield|Rain Shield|block|RECIPE-IMAGE-ONLY
+rainbow_lamp|Rainbow Lamp|block|RECIPE-IMAGE-ONLY
+redstone_activator|Redstone Activator|item|RECIPE-IMAGE-ONLY
+redstone_interface|Redstone Interface|block|RECIPE-IMAGE-ONLY
+redstone_observer|Redstone Observer|block|RECIPE-IMAGE-ONLY
+redstone_remote|Redstone Remote|item|RECIPE-IMAGE-ONLY
+runic_dust|Runic Dust|item|RECIPE-IMAGE-ONLY
+sided_redstone|Sided Block of Redstone|block|RECIPE-IMAGE-ONLY
+slime_cube|Slime Cube|block|RECIPE-IMAGE-ONLY
+sound_box|Sound Box|block|RECIPE-IMAGE-ONLY
+sound_dampener|Sound Dampener|block|RECIPE-IMAGE-ONLY
+sound_pattern|Sound Pattern|item|RECIPE-IMAGE-ONLY
+sound_recorder|Sound Recorder|item|RECIPE-IMAGE-ONLY
+spectre_anchor|Spectre Anchor|item|RECIPE-IMAGE-ONLY
+spectre_charger|Spectre Charger|item|RECIPE-IMAGE-ONLY
+spectre_coils|Spectre Coils|block|RECIPE-IMAGE-ONLY
+spectre_illuminator|Spectre Illuminator|item|RECIPE-IMAGE-ONLY
+spectre_key|Spectre Key|item|RECIPE-IMAGE-ONLY
+spectre_lens|Spectre Lens|block|RECIPE-IMAGE-ONLY
+spectre_sapling|Spectre Sapling|block|NO-RECIPE
+spectre_tools|Spectre Tools|item|RECIPE-IMAGE-ONLY
+stable_ender_pearl|Stable Ender Pearl|item|RECIPE-IMAGE-ONLY
+stained_bricks|Stained Bricks|block|RECIPE-IMAGE-ONLY
+summoning_pendulum|Summoning Pendulum|item|NO-RECIPE
+super_lubricent|Super Lubricent|item|NO-RECIPE
+super_lubricent_boots|Super Lubricent Boots|item|RECIPE-IMAGE-ONLY
+super_lubricent_stone|Super Lubricent Stone|block|NO-RECIPE
+time_in_a_bottle|Time in a Bottle|item|RECIPE-IMAGE-ONLY
+trigger_glass|Trigger Glass|block|RECIPE-IMAGE-ONLY
+water_walking_boots|Water Walking Boots|item|NO-RECIPE
+weather_egg|Weather Eggs|item|RECIPE-IMAGE-ONLY
+ORPHAN-HTML []
