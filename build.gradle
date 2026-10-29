@@ -33,6 +33,7 @@ runs {
         systemProperty 'randomthings.autotest', System.getenv('RT_AUTOTEST') ?: 'false'
         // RT_MANUAL=true (with RT_AUTOTEST=true): open the manual-testing world (seed 424242, normal terrain) and build the showroom; see docs/testing/manual-test-world.md
         systemProperty 'randomthings.autotest.manual', System.getenv('RT_MANUAL') ?: 'false'
+        systemProperty 'randomthings.autotest.fixture', System.getenv('RT_FIXTURE') ?: ''
         systemProperty 'randomthings.autotest.noguis', System.getenv('RT_AUTOTEST_NO_GUIS') ?: 'false'
         systemProperty 'randomthings.autotest.filter', System.getenv('RT_AUTOTEST_FILTER') ?: ''
         // RT_AUTOTEST_SOUND=true keeps the game audio on during the client autotest (muted by default)

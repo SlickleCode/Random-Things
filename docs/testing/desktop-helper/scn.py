@@ -296,6 +296,7 @@ def until(g, pred, limit=30.0, step=0.4):
 def imbuing(g):
     """#169 and #170-173: Imbuing Station recipes and the imbue potions, then drink Fire and check the effect."""
     arena(g)
+    g.wait(1.0)                      # 1.19.2: without this pause the first right-click below was lost in a chat screen with a stray '/' (cause not found; the pause makes it go away)
     g.cmd('setblock 0 5 3 randomthings:imbuing_station')
     g.tp(0.5, 4, 0.5, 0, 2)          # crosshair on the station block 2 blocks ahead
     water = 'minecraft:potion[potion_contents={potion:"minecraft:water"}]' if MC205 else 'minecraft:potion{Potion:"minecraft:water"}'
@@ -1444,6 +1445,52 @@ def biome_radar(g):
     g.check(entity_count(g, '@e[type=item,nbt={Item:{id:"randomthings:biome_crystal"}}]') >= 1, '#153: the crystal dropped when the radar was broken')
 
 
+def bucket_item(item, fluid):
+    """An Ender Bucket holding 1000 mB of `fluid` (the fluid component on 1.20.5+, the FluidHandlerItemStack NBT before)."""
+    if globals().get('MC205'):
+        return '%s[randomthings:fluid={id:"minecraft:%s",amount:1000}]' % (item, fluid)
+    return '%s{Fluid:{FluidName:"minecraft:%s",Amount:1000}}' % (item, fluid)
+
+
+@scenario
+def bucket_held(g):
+    """Ender Bucket and Reinforced Ender Bucket as the held item (first person, looking at the grass): while the bucket holds water the opening is drawn blue,
+    with lava orange, and an empty bucket shows neither. Counted in the lower right of the screen where the hand item is, against the empty bucket of the same kind."""
+    arena(g)
+    g.cmd('gamerule doDaylightCycle false')
+    g.cmd('time set 6000')
+    g.tp(0.5, 4, 0.5, 0, 25)                                  # look at the grass ahead: the hand item is in view and the sky (above y 120) stays out of the counted area
+    g.key('1'); g.wait(0.3)
+    blue = lambda r, gg, b: b > 60 and b - gg > 25 and b - r > 40                  # water: dark navy once lit and tinted, e.g. (21,40,77)
+    orange = lambda r, gg, b: r > 70 and r - b > 50 and r - gg > 25                # lava: dark orange, e.g. (105,51,13)
+    xs, ys = range(560, 850, 3), range(150, 430, 3)
+
+    def scan(item, label):
+        g.cmd(item_cmd('hotbar.0', item), 0.4)
+        g.wait(1.4)                                           # the equip animation of the new stack and the first frames with it
+        fr = desk.grab('Minecraft')
+        nb = no = 0
+        for x in xs:
+            for y in ys:
+                px = desk.frame_px(fr, x, y)
+                if blue(*px):
+                    nb += 1
+                if orange(*px):
+                    no += 1
+        g.shot('held_' + label)
+        return nb, no
+
+    for name, item in (('ender', 'randomthings:ender_bucket'), ('reinforced', 'randomthings:reinforced_ender_bucket')):
+        empty_b, empty_o = scan(item, name + '_empty')
+        water_b, water_o = scan(bucket_item(item, 'water'), name + '_water')
+        lava_b, lava_o = scan(bucket_item(item, 'lava'), name + '_lava')
+        g.check(water_b >= empty_b + 12, 'a held %s bucket with water is drawn with blue in its opening' % name, 'blue pixels: empty %d, water %d' % (empty_b, water_b))
+        g.check(lava_o >= empty_o + 12, 'a held %s bucket with lava is drawn with orange in its opening' % name, 'orange pixels: empty %d, lava %d' % (empty_o, lava_o))
+        g.check(water_o <= empty_o + 3 and lava_b <= empty_b + 3, 'the %s bucket shows only its own fluid (no orange with water, no blue with lava)' % name,
+                'water: orange %d (empty %d); lava: blue %d (empty %d)' % (water_o, empty_o, lava_b, empty_b))
+    g.cmd(item_cmd('hotbar.0', 'minecraft:air'), 0.3)
+
+
 @scenario
 def render_fixes_18(g):
     """1.18.2: Advanced Redstone Torch has no black box, Fluid Display is hidden behind a wall (control: visible without one), Sound Recorder rows highlight on hover."""
@@ -1793,7 +1840,15 @@ def wait_for_world(g):
             continue
         before = g._log_size()
         try:
-            out = g.cmd('say ready', 0.6)
+            if FAST and os.path.exists(FAST_MARK):
+                # the world is not up yet: hand the command to the channel only. Typing it as a fallback opens the chat with a stray '/' when the world appears mid-way,
+                # and the first click of the first scenario then lands in the chat
+                g._send_fast('say ready', before, 0.6)
+                with open(LOG, 'rb') as f:
+                    f.seek(before)
+                    out = [l.split('[CHAT] ', 1)[1] for l in f.read().decode('utf-8', errors='replace').splitlines() if '[CHAT] ' in l]
+            else:
+                out = g.cmd('say ready', 0.6)
         except desk.Abort:
             raise                              # window gone, stop key pressed, wrong window: stop at once, never retry
         except Exception:

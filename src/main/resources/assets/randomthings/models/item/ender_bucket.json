@@ -2,5 +2,13 @@
   "parent": "item/generated",
   "textures": {
     "layer0": "randomthings:item/ender_bucket"
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "randomthings:fluid_filled": 1
+      },
+      "model": "randomthings:item/ender_bucket_filled"
+    }
+  ]
 }

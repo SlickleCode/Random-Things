@@ -94,7 +94,7 @@ public final class RenderScenes
 			ids.add("blocks_" + i);
 		}
 
-		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
+		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "time_wheel", "time_wheel_close", "entities_c", "armor_and_items", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
 		return ids;
 	}
 
@@ -328,6 +328,36 @@ public final class RenderScenes
 
 				world.addFreshEntity(new EclipsedClockEntity(world, origin.offset(1, 2, 5), Direction.NORTH));
 				camera(player, 1, 3, -3, 0, 22);
+				return null;
+			}
+			case "time_wheel":
+			{
+				// one accelerated block per time rate (1, 2, 4, 8, 16, 32): the wheel gets a ring more at 2, 4, 8, 16 and 32
+				int[] rates = { 1, 2, 4, 8, 16, 32 };
+
+				for (int i = 0; i < rates.length; i++)
+				{
+					BlockPos target = origin.offset(-5 + 2 * i, 0, 4);
+					place(world, target, Blocks.STONE);
+					TimeAcceleratorEntity accelerator = new TimeAcceleratorEntity(world, target, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+					accelerator.setTimeRate(rates[i]);
+					accelerator.setRemainingTime(100000);
+					world.addFreshEntity(accelerator);
+				}
+
+				camera(player, 0, 2.6, -2, 0, 24);
+				return null;
+			}
+			case "time_wheel_close":
+			{
+				// the wheel of the highest time rate on the face turned towards the camera, seen from about half a block
+				BlockPos target = origin.offset(0, 0, 3);
+				place(world, target, Blocks.STONE);
+				TimeAcceleratorEntity accelerator = new TimeAcceleratorEntity(world, target, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+				accelerator.setTimeRate(32);
+				accelerator.setRemainingTime(100000);
+				world.addFreshEntity(accelerator);
+				camera(player, 0, -1.12, 2.0, 0, 0);
 				return null;
 			}
 			case "entities_c":
