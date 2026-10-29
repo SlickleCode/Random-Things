@@ -58,6 +58,12 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
+		if (player.getMainHandItem().getItem() instanceof lumien.randomthings.item.RedstoneToolItem || player.getOffhandItem().getItem() instanceof lumien.randomthings.item.RedstoneToolItem)
+		{
+			// the Redstone Tool links with a plain right click: pass so the item's useOn runs instead of the GUI
+			return InteractionResult.PASS;
+		}
+
 		if (!worldIn.isClientSide)
 		{
 			BlockEntity te = worldIn.getBlockEntity(pos);

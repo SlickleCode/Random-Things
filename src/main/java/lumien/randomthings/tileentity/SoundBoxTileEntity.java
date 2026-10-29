@@ -80,6 +80,7 @@ public class SoundBoxTileEntity extends BlockEntity {
             compound.put("pattern", StackTag.saveStack(pattern));
         }
 
+        compound.putBoolean("powered", powered);
     }
 
     @Override
@@ -87,5 +88,6 @@ public class SoundBoxTileEntity extends BlockEntity {
         super.loadAdditional(compound, registries);
 
         this.pattern = compound.contains("pattern") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("pattern")) : ItemStack.EMPTY;
+        this.powered = compound.getBoolean("powered");
     }
 }

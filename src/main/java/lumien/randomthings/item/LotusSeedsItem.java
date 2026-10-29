@@ -35,6 +35,10 @@ public class LotusSeedsItem extends Item implements IPlantable {
 
         net.minecraft.world.level.block.state.BlockState groundState = world.getBlockState(pos);
 
+        if (groundState.getBlock() != net.minecraft.world.level.block.Blocks.FARMLAND) {
+            return InteractionResult.FAIL;
+        }
+
         if (!groundState.getBlock().canSustainPlant(groundState, world, pos, Direction.UP, this)) {
             return InteractionResult.FAIL;
         }

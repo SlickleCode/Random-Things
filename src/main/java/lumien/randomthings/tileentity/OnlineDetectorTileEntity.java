@@ -57,7 +57,9 @@ public class OnlineDetectorTileEntity extends BlockEntity implements MenuProvide
 		{
 			MinecraftServer server = this.level.getServer();
 
-			boolean playerCheck = server != null && !username.isEmpty() && server.getPlayerList().getPlayerByName(username) != null;
+			// PlayerList.getPlayerByName ignores case; the detector matches the exact name
+			ServerPlayer found = server != null && !username.isEmpty() ? server.getPlayerList().getPlayerByName(username) : null;
+			boolean playerCheck = found != null && found.getGameProfile().getName().equals(username);
 
 			if (playerCheck != playerOnline)
 			{

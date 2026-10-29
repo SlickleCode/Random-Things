@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -38,7 +37,7 @@ public class EnderLetterHandler extends SavedData {
     }
 
     public static EnderLetterHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(EnderLetterHandler::new, EnderLetterHandler::loadFrom, null), ID);
+        return world.getServer().getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(new net.minecraft.world.level.saveddata.SavedData.Factory<>(EnderLetterHandler::new, EnderLetterHandler::loadFrom, null), ID);
     }
 
     public ItemStackHandler getOrCreateInventoryForPlayer(UUID playerUUID) {
