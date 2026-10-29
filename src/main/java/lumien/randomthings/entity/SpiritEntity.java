@@ -95,7 +95,7 @@ public class SpiritEntity extends Mob {
         spiritAge++;
 
         if (!this.level().isClientSide() && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
-            this.kill((net.minecraft.server.level.ServerLevel) this.level());
+            this.discard();      // not kill(): its generic-kill damage is refused by hurtServer, so a Spirit never despawned
         }
     }
 

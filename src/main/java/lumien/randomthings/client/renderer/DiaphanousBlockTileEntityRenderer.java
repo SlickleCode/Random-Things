@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import lumien.randomthings.tileentity.DiaphanousBlockTileEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -18,7 +18,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
@@ -30,14 +30,17 @@ import net.minecraft.world.phys.Vec3;
  * camera - close up it's mostly invisible, fading to fully opaque-looking past 33 blocks, the opposite curve when {@link DiaphanousBlockTileEntity#isInverted()}.
  * Direct port of 1.12.2's {@code RenderBlockDiaphanous}'s fade math.
  * <p>
- * 1.21.6+ renders in two steps (extract the state, then submit geometry), so the alpha is simply handed to {@code putBulkData} while the quads are written
- * (no vertex consumer wrapper is needed any more); faces that touch a solid neighbour are skipped, as the original's face culling did.
+ * 1.21.6+ renders in two steps (extract the state, then submit geometry). The quads are written by vanilla's own {@code ModelBlockRenderer.tesselateBlock}
+ * (smooth lighting, ambient occlusion, per-face shading and face culling against solid neighbours, exactly as for a placed block) into a consumer that
+ * replaces the alpha of every vertex.
  */
 public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<DiaphanousBlockTileEntity, DiaphanousBlockTileEntityRenderer.State>
 {
 	public static class State extends BlockEntityRenderState
 	{
-		public final List<BakedQuad> quads = new ArrayList<>();
+		public final List<BlockModelPart> parts = new ArrayList<>();
+		public BlockState display;
+		public Level level;
 		public float alpha;
 	}
 
@@ -58,7 +61,7 @@ public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<Di
 	{
 		BlockEntityRenderer.super.extractRenderState(te, state, partialTicks, cameraPos, crumbling);
 
-		state.quads.clear();
+		state.parts.clear();
 		state.alpha = 0;
 
 		BlockState display = te.getDisplayState();
@@ -83,38 +86,95 @@ public class DiaphanousBlockTileEntityRenderer implements BlockEntityRenderer<Di
 
 		BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModel(display);
 		random.setSeed(display.getSeed(te.getBlockPos()));
-		List<BlockModelPart> parts = model.collectParts(random);
-
-		for (BlockModelPart part : parts)
-		{
-			for (Direction side : Direction.values())
-			{
-				if (!world.getBlockState(te.getBlockPos().relative(side)).isSolidRender())
-				{
-					state.quads.addAll(part.getQuads(side));
-				}
-			}
-
-			state.quads.addAll(part.getQuads(null));
-		}
+		state.parts.addAll(model.collectParts(random));
+		state.display = display;
+		state.level = world;
 	}
 
 	@Override
 	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera)
 	{
-		if (state.alpha <= 0.004F || state.quads.isEmpty())
+		if (state.alpha <= 0.004F || state.parts.isEmpty())
 		{
 			return;
 		}
 
-		float alpha = state.alpha;
-		int light = state.lightCoords;
+		int alpha = Math.round(Math.min(1.0F, state.alpha) * 255);
+		BlockPos pos = state.blockPos;
 
 		collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, consumer) -> {
-			for (BakedQuad quad : state.quads)
-			{
-				consumer.putBulkData(pose, quad, 1.0F, 1.0F, 1.0F, alpha, light, OverlayTexture.NO_OVERLAY);
-			}
+			PoseStack stack = new PoseStack();
+			stack.last().set(pose);
+			Minecraft.getInstance().getBlockRenderer().getModelRenderer().tesselateBlock(state.level, state.parts, state.display, pos, stack, new AlphaConsumer(consumer, alpha), true, OverlayTexture.NO_OVERLAY);
 		});
+	}
+
+	/** Passes everything through to the real consumer but with a fixed alpha. */
+	private static final class AlphaConsumer implements VertexConsumer
+	{
+		private final VertexConsumer delegate;
+		private final int alpha;
+
+		AlphaConsumer(VertexConsumer delegate, int alpha)
+		{
+			this.delegate = delegate;
+			this.alpha = alpha;
+		}
+
+		@Override
+		public VertexConsumer addVertex(float x, float y, float z)
+		{
+			delegate.addVertex(x, y, z);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setColor(int r, int g, int b, int a)
+		{
+			delegate.setColor(r, g, b, alpha);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setColor(int argb)
+		{
+			delegate.setColor((argb >> 16) & 0xFF, (argb >> 8) & 0xFF, argb & 0xFF, alpha);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setUv(float u, float v)
+		{
+			delegate.setUv(u, v);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setUv1(int u, int v)
+		{
+			delegate.setUv1(u, v);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setUv2(int u, int v)
+		{
+			delegate.setUv2(u, v);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setNormal(float x, float y, float z)
+		{
+			delegate.setNormal(x, y, z);
+			return this;
+		}
+
+		@Override
+		public VertexConsumer setLineWidth(float width)
+		{
+			delegate.setLineWidth(width);
+			return this;
+		}
 	}
 }

@@ -94,7 +94,7 @@ public final class RenderScenes
 			ids.add("blocks_" + i);
 		}
 
-		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "entities_a", "entities_b", "entities_c", "armor_and_items", "armor_glint", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
+		Collections.addAll(ids, "rune_base", "fluid_display", "biome_radar", "diaphanous_near", "museum_checks", "bucket_fluids", "entities_a", "entities_b", "time_wheel", "time_wheel_close", "entities_c", "armor_and_items", "armor_glint", "light_redirector", "magic_hood", "blazing_fire", "rain_with_shield", "rain_without_shield", "spectre", "spectre_back");
 		return ids;
 	}
 
@@ -282,6 +282,50 @@ public final class RenderScenes
 				camera(player, 2, 2.6, -3.2, 0, 14);
 				return null;
 			}
+			case "bucket_fluids":
+			{
+				// Ender Buckets: empty, water, lava; Reinforced: water, lava (the fluid layer is tinted from the fluid's own texture)
+				net.minecraft.world.item.Item[] buckets = { ModItems.ENDER_BUCKET, ModItems.ENDER_BUCKET, ModItems.ENDER_BUCKET, ModItems.REINFORCED_ENDER_BUCKET, ModItems.REINFORCED_ENDER_BUCKET };
+				net.minecraft.world.level.material.Fluid[] fluids = { null, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.material.Fluids.LAVA, net.minecraft.world.level.material.Fluids.WATER, net.minecraft.world.level.material.Fluids.LAVA };
+
+				for (int i = 0; i < buckets.length; i++)
+				{
+					ItemStack stack = new ItemStack(buckets[i]);
+
+					if (fluids[i] != null)
+					{
+						stack.set(lumien.randomthings.lib.ModDataComponents.FLUID, net.neoforged.neoforge.fluids.SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(fluids[i], 1000)));
+					}
+
+					groundItem(world, stack, origin.getX() + 0.5 + i * 0.6, origin.getY() + 0.6, origin.getZ() + 0.5);
+				}
+
+				camera(player, 1.7, 1.3, -1.6, 0, 14);
+				return null;
+			}
+			case "museum_checks":
+			{
+				// Peace Candle, a Diaphanous Stone Bricks block set into a stone-brick wall, Spectre Block, Ender Mailbox: shading and translucency as in the museum
+				place(world, origin.offset(-3, 0, 0), ModBlocks.PEACE_CANDLE);
+
+				for (int x = 0; x < 3; x++)
+				{
+					for (int y = 0; y < 3; y++)
+					{
+						place(world, origin.offset(x, y, 0), Blocks.STONE_BRICKS);
+					}
+				}
+
+				place(world, origin.offset(1, 0, 0), ModBlocks.DIAPHANOUS_BLOCK);
+				tile(world, origin.offset(1, 0, 0), DiaphanousBlockTileEntity.class).setDisplayState(Blocks.STONE_BRICKS.defaultBlockState(), false);
+				place(world, origin.offset(4, 0, 0), ModBlocks.SPECTRE_BLOCK);
+				place(world, origin.offset(6, 0, 0), ModBlocks.ENDER_MAILBOX);
+				place(world, origin.offset(8, -1, 0), Blocks.WATER);
+				place(world, origin.offset(8, 0, 0), ModBlocks.LOTUS);
+				place(world, origin.offset(10, 0, 0), ModBlocks.BEAN_SPROUT);
+				camera(player, 3, 2.2, -7, 0, 10);
+				return null;
+			}
 			case "diaphanous_near":
 			{
 				Block[] shown = { Blocks.OAK_PLANKS, Blocks.GLASS, Blocks.GOLD_BLOCK };
@@ -328,6 +372,36 @@ public final class RenderScenes
 
 				world.addFreshEntity(new EclipsedClockEntity(world, origin.offset(1, 2, 5), Direction.NORTH));
 				camera(player, 1, 3, -3, 0, 22);
+				return null;
+			}
+			case "time_wheel":
+			{
+				// one accelerated block per time rate (1, 2, 4, 8, 16, 32): the wheel gets a ring more at 2, 4, 8, 16 and 32
+				int[] rates = { 1, 2, 4, 8, 16, 32 };
+
+				for (int i = 0; i < rates.length; i++)
+				{
+					BlockPos target = origin.offset(-5 + 2 * i, 0, 4);
+					place(world, target, Blocks.STONE);
+					TimeAcceleratorEntity accelerator = new TimeAcceleratorEntity(world, target, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+					accelerator.setTimeRate(rates[i]);
+					accelerator.setRemainingTime(100000);
+					world.addFreshEntity(accelerator);
+				}
+
+				camera(player, 0, 2.6, -2, 0, 24);
+				return null;
+			}
+			case "time_wheel_close":
+			{
+				// the wheel of the highest time rate on the face turned towards the camera, seen from about half a block
+				BlockPos target = origin.offset(0, 0, 3);
+				place(world, target, Blocks.STONE);
+				TimeAcceleratorEntity accelerator = new TimeAcceleratorEntity(world, target, target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+				accelerator.setTimeRate(32);
+				accelerator.setRemainingTime(100000);
+				world.addFreshEntity(accelerator);
+				camera(player, 0, -1.12, 2.0, 0, 0);
 				return null;
 			}
 			case "entities_c":

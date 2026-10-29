@@ -1,6 +1,18 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "randomthings:item/reinforced_ender_bucket"
+    "type": "minecraft:condition",
+    "property": "randomthings:fluid_filled",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/reinforced_ender_bucket_filled",
+      "tints": [
+        { "type": "minecraft:constant", "value": -1 },
+        { "type": "randomthings:fluid" }
+      ]
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "randomthings:item/reinforced_ender_bucket"
+    }
   }
 }

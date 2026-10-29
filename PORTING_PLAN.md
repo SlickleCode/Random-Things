@@ -16,7 +16,7 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 | `1.20.6` | NeoForge 20.6.141 port (complete; JDK 21, NeoGradle 7, Gradle 8.13, Mojang names also in production) | `docs/migration/plans/1.20.6-port-plan.md`, `docs/project/api-gotchas-1.20.6.md` |
 | `1.21.1` | NeoForge 21.1.264 port (complete; same toolchain as 1.20.6) | `docs/migration/plans/1.21.1-port-plan.md`, `docs/project/api-gotchas-1.21.1.md` |
 | `1.21.4` | NeoForge 21.4.161 port (this branch, complete: compiles, server suite 424/0/4 + normal pass 1/0/0, client suite 383/0/2, audit clean, GUI click test 28 GUIs/0 failures, render hook checks 5/5; real NeoForge 21.4.161 install passes server 381/0/4 and client 383/0/2; all 28 scripted scenarios pass on the dev client) | `docs/migration/plans/1.21.4-port-plan.md`, `docs/project/api-gotchas-1.21.4.md` |
-| `1.21.11` | NeoForge 21.11.48 port (this branch: compiles, dev server suite 427/0/4, client suite 429/0/2, audit clean, GUI click test 28 GUIs/37 clicks/0 failures, render hook checks 5/6; **open:** coloured enchant glint, scripted playtest; the real NeoForge 21.11.48 install passes: server 427/0/4, client 429/0/2) | `docs/migration/plans/1.21.11-port-plan.md`, `docs/project/api-gotchas-1.21.11.md` |
+| `1.21.11` | NeoForge 21.11.48 port (this branch: compiles, dev server suite 427/0/4, client suite 429/0/2, audit clean, GUI click test 28 GUIs/37 clicks/0 failures, render hook checks 6/6 (coloured glint included, 2026-10-28); **open:** scripted playtest; the real NeoForge 21.11.48 install passes: server 427/0/4, client 429/0/2) | `docs/migration/plans/1.21.11-port-plan.md`, `docs/project/api-gotchas-1.21.11.md` |
 | `master` | untouched 1.12.2-era source (`git show origin/1.12.2:<path>`) | |
 | `main` | landing README only | |
 
@@ -26,11 +26,12 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 ## Current state on this branch (`1.21.11`, 2026-10-23)
 
 - **Branch:** cut from `1.21.4` (`f857bd7`); NeoForge 21.11.48 / NeoGradle 7.0.192 / Gradle 8.13 / JDK 21, Mojang names everywhere. Plan: `docs/migration/plans/1.21.11-port-plan.md`; every API change: `docs/project/api-gotchas-1.21.11.md`.
-- **Automated (dev):** dedicated-server suite 427 / 0 / 4, client suite 429 / 0 / 2 with the resource audit at 0 failures, GUI click test 28 GUIs / 37 clicks / 0 failures, render hook checks 5 of 6 (the glint tint is the open one).
+- **Automated (dev):** dedicated-server suite 427 / 0 / 4, client suite 429 / 0 / 2 with the resource audit at 0 failures, GUI click test 28 GUIs / 37 clicks / 0 failures, render hook checks 6 of 6 (re-run 2026-10-28: items and armor draw the tinted glint, `glint_modulated` fires with the right colours).
 - **Biggest changes:** NeoForge dropped the JavaScript coremods (all 14 transformers are Java class processors now, `asm/transform/`), the item/fluid/energy handler capabilities became the transaction based transfer API (`itemhandler/` keeps the old slot API on top), block entities and entities save through `ValueInput`/`ValueOutput` (`util/TagIO` bridges the old `CompoundTag` code), rendering is two step (extract state, submit) with pipeline based render types, `ResourceLocation` is `Identifier`.
-- **Open:** coloured enchant glint (needs an own pipeline and shader), Divining Rod cubes are depth tested now, scripted playtest, the manual checklist rows.
+- **Open:** Divining Rod cubes are depth tested now, scripted playtest, the manual checklist rows.
 
 - **Museum report fixes (2026-10-24):** Super Lubricent blocks use the glass (ice) sound type; Blazing Fire is a cutout block like vanilla fire (`RenderLayerSetup`); the custom-glint items (Spectre Key/Sword, Redstone Tool, Escape Rope) no longer render faded (`ClientAsmHandler.appendGlintColor`); the creative-tab scene parks the cursor so no tooltip covers items. Also: Spirit Spawn Egg, Time in a Bottle icons full-bright, Spectre Illuminator client playtest scenario, GUI text colours with alpha (1.21.6+). Checklist rows M1-M7.
+- **Time Accelerator wheel (2026-10-29):** the accelerated block shows the spinning decagon wheel of 1.12.2 on all six faces (rings grow with the time rate) instead of the floating Time in a Bottle icons. Geometry and colours are one version-neutral file, `client/renderer/TimeWheel.java` (identical on every branch); each branch only has its own `TimeAcceleratorEntityRenderer` that transforms the triangles and draws them unlit and translucent. Render scenes `time_wheel` (six rates in a row) and `time_wheel_close`.
 
 ## What to do next
 
