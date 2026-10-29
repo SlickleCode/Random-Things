@@ -37,7 +37,11 @@ public class EclipsedClockItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        HangingEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+        EclipsedClockEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+
+        if (StackTag.contains(stack, "targetTime")) {
+            hanging.setTargetTime(StackTag.getInt(stack, "targetTime"));
+        }
 
         if (hanging.survives()) {
             if (!context.getLevel().isClientSide) {

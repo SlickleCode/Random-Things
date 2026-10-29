@@ -181,6 +181,15 @@ public class AsmHandler {
     public static boolean overrideSpawnResult(boolean original, EntityType<?> type, net.minecraft.world.level.ServerLevelAccessor iWorld, BlockPos pos) {
         Level world = iWorld.getLevel();
 
+        if (type.getCategory() == MobCategory.MONSTER) {
+            // Peace Candle first: it denies every MONSTER-class spawn, slimes included (they'd otherwise hit the Slime Cube early return below)
+            for (PeaceCandleTileEntity candle : WeakSets.snapshot(PeaceCandleTileEntity.candles)) {
+                if (candle.isInRange(world, pos, PEACE_CANDLE_CHUNK_RADIUS)) {
+                    return false;
+                }
+            }
+        }
+
         if (type == EntityType.SLIME) {
             ChunkPos chunkPos = new ChunkPos(pos);
 
@@ -194,12 +203,6 @@ public class AsmHandler {
         }
 
         if (type.getCategory() == MobCategory.MONSTER) {
-            for (PeaceCandleTileEntity candle : WeakSets.snapshot(PeaceCandleTileEntity.candles)) {
-                if (candle.isInRange(world, pos, PEACE_CANDLE_CHUNK_RADIUS)) {
-                    return false;
-                }
-            }
-
             for (BlockPos p : BlockPos.betweenClosed(pos.offset(-4, -4, -4), pos.offset(4, 4, 4))) {
                 Block block = world.getBlockState(p).getBlock();
 

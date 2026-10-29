@@ -26,6 +26,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.Containers;
+import net.neoforged.neoforge.items.IItemHandler;
 
 /**
  * Faces an enclosed room and vaporizes a stored potion into it over time,
@@ -63,6 +65,27 @@ public class PotionVaporizerBlock extends Block implements EntityBlock {
 	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
 		return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+	}
+
+	@Override
+	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	{
+		if (state.getBlock() != newState.getBlock())
+		{
+			BlockEntity te = worldIn.getBlockEntity(pos);
+
+			if (te instanceof PotionVaporizerTileEntity)
+			{
+				IItemHandler handler = ((PotionVaporizerTileEntity) te).itemHandler();
+
+				for (int i = 0; i < handler.getSlots(); i++)
+				{
+					Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), handler.getStackInSlot(i));
+				}
+			}
+		}
+
+		super.onRemove(state, worldIn, pos, newState, isMoving);
 	}
 
 	@Override

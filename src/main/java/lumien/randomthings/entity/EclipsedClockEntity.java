@@ -196,7 +196,8 @@ public class EclipsedClockEntity extends HangingEntity {
                     targetTime += 20 * 30;
                 }
 
-                targetTime = targetTime % 24000;
+                // 1.12.2 only did '% 24000' here, which goes negative when sneaking down from < 30s; wrap into 0..23999 instead
+                targetTime = ((targetTime % 24000) + 24000) % 24000;
 
                 setTargetTime(targetTime);
             } else {
@@ -250,7 +251,10 @@ public class EclipsedClockEntity extends HangingEntity {
                 return;
             }
 
-            this.spawnAtLocation(serverLevel, new ItemStack(ModItems.ECLIPSED_CLOCK), 0.0F);
+            ItemStack drop = new ItemStack(ModItems.ECLIPSED_CLOCK);
+            final int storedTime = getTargetTime();
+            lumien.randomthings.util.StackTag.edit(drop, t -> t.putInt("targetTime", storedTime));
+            this.spawnAtLocation(serverLevel, drop, 0.0F);
         }
     }
 

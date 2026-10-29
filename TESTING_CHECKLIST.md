@@ -91,7 +91,7 @@ Fill in **Result** with `Pass` or `Fail` and a sentence in **Feedback**; blank =
 | 313 | Spectre Lens on a powered Beacon gives its owner the beacon effects everywhere |  |  |
 | P7, Q6 | Imbue bottles: drinking applies the effect for 20 minutes (a second kind replaces the first); melee hits ignite/poison/wither, arrows and thrown potions do not; experience drops grow |  |  |
 | Q1 | Magnetic: shows at the enchanting table and on books for pickaxes/axes/shovels, correct anvil cost and name; drops go into the inventory; the Block Breaker picks up with it |  |  |
-| Q3 | Lotus Seeds and Spectre Sapling plant on dirt, grass, farmland and Fertilized Dirt, not on stone; Fertilized Dirt still grows crops, stems and desert plants |  |  |
+| Q3 | Spectre Sapling plants on dirt, grass, farmland and Fertilized Dirt (Lotus Seeds: farmland only since AF3), not on stone; Fertilized Dirt still grows crops, stems and desert plants |  |  |
 | N9 | Fertilized Dirt and Colored Grass mine fast with a shovel, Platforms and Block of Sticks with an axe |  |  |
 | P15 | Blazing Fire catches flammable blocks about 4 times as often as vanilla fire |  |  |
 | 348 | The recipe book shows and crafts the backfilled recipes (Item Collector, Igniter, Iron Dropper, detectors, Inventory Tester, Notification Interface, Redstone Observer/Tool, Advanced Redstone Repeater, Potion Vaporizer, Player Interface, Slime Cube, ...) |  |  |
@@ -121,3 +121,22 @@ Fill in **Result** with `Pass` or `Fail` and a sentence in **Feedback**; blank =
 | 383, R8 | Dedicated server with a real client: Spectre entry, exit to the same overworld position, unload; right-clicking an Eclipsed Clock with a charged Time in a Bottle fast-forwards without a crash |  |  |
 | P12 | Two clients: Notification Interface toast, Biome Radar antenna particles, Redstone Remote, Sound Recorder, Eclipsed Clock hands, chat features |  |  |
 | P14, M18 | Open a world saved by the previous version (`docs/testing/fixture-world.md` lists what survives and the three known upgrade problems: 1.14.4 Spectre cube, 1.16.5 to 1.18.2 world refuses to open, 1.20.1 to 1.20.6 item stack counts and data) |  |  |
+
+## G. Audit bug fixes (2026-10-29; written without a compiler, NOT built or run - build, run the suites, then retest in game)
+
+Details and unverified points: [`docs/project/audit-fixes-2026-10-29.md`](docs/project/audit-fixes-2026-10-29.md). All rows are **fixed, waiting for your retest**. (Lettered G here because E and F were already taken on this branch.)
+
+| # | Try | Result | Feedback |
+|---|---|---|---|
+| AF1 | Redstone Tool: a plain right click (no sneaking) on a Redstone Observer or a basic Redstone Interface starts a link (glint), a right click on any block finishes it; sneaking still works; both blocks still open their GUI with an empty hand |  |  |
+| AF2 | Online Detector: a name that differs from the player's name only in upper/lower case does not power it (`behavior.online_detector.matches_the_player_name_case_sensitively`) |  |  |
+| AF3 | Lotus Seeds only plant on farmland (not on grass or dirt; `use_item.lotus_seeds.plant_on_farmland_but_not_on_grass_or_stone`); naturally generated Lotus in snowy biomes stays put |  |  |
+| AF4 | Peace Candle within 3 chunks stops slime spawns too, also inside an unpowered Slime Cube's chunk (`coremod.spawn.peace_candle_denies_slimes_even_inside_an_unpowered_slime_cube_chunk`); Slime Cube, Lapis Lamp and Quartz Lamp unchanged elsewhere |  |  |
+| AF5 | Spectre Lens: one lens per player per dimension, it only affects its owner while the owner is in the lens's dimension; a second lens by the same owner in the same dimension replaces the first; old worlds: a lens re-registers within 80 ticks |  |  |
+| AF6 | Ender Letters and Ender Mailboxes work across dimensions (send from the Nether, receive in the Overworld); letters from before the change are still there |  |  |
+| AF7 | Sound Box and Slime Cube keep their powered state through save and reload (no replayed sound, no reset slime gate) |  |  |
+| AF8 | Advanced Redstone Torch: edited green/red strengths are still set after save and reload |  |  |
+| AF9 | Potion Vaporizer drops its stored items when broken (and not when its blockstate only changes) |  |  |
+| AF10 | Ender Bucket / Reinforced Ender Bucket: clicking a different fluid than the one inside (or when full) does not remove the source block; watch for a neighbour-update blip when the block is put back |  |  |
+| AF11 | Eclipsed Clock: the dropped item keeps its target time and restores it when hung again; sneak-clicking from a target below 00:30 wraps to the evening instead of showing a negative time |  |  |
+| AF12 | Stable Ender Pearl with a tag but no stored player (or a broken UUID) does not crash, it acts as unbound |  |  |
