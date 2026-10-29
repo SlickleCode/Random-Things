@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -98,6 +99,10 @@ public class FlooSignItem extends Item {
         boolean valid = FlooNetworkHandler.get(worldIn).createFireplace(uuid, signName, player, pos, brickList);
 
         if (!valid) {
+            if (player != null && FlooNetworkHandler.get(worldIn).hasFireplaceNamed(signName)) {
+                player.displayClientMessage(Component.translatable("floo.info.duplicate_name", signName), true);
+            }
+
             return InteractionResult.FAIL;
         }
 

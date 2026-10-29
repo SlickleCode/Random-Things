@@ -1,6 +1,8 @@
 package lumien.randomthings.block;
 
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 
 import lumien.randomthings.tileentity.RedstoneObserverTileEntity;
 import net.minecraft.world.level.block.Block;
@@ -55,6 +57,17 @@ public class RedstoneObserverBlock extends Block implements EntityBlock {
 	{
 		BlockEntity te = blockAccess.getBlockEntity(pos);
 		return te instanceof RedstoneObserverTileEntity ? ((RedstoneObserverTileEntity) te).getStrongPower(side) : 0;
+	}
+
+	@Override
+	public void tick(BlockState state, ServerLevel worldIn, BlockPos pos, RandomSource random)
+	{
+		BlockEntity te = worldIn.getBlockEntity(pos);
+
+		if (te instanceof RedstoneObserverTileEntity)
+		{
+			((RedstoneObserverTileEntity) te).refreshAfterLoad();
+		}
 	}
 
 	@Override
