@@ -67,5 +67,5 @@ Wiki pages left as is (spectre_sapling, runic_dust, luminous_powder, spectre_coi
 
 ## Wiki claims that still depend on unfixed mod behaviour (the six formerly left-as-is pages were updated 2026-10-29)
 - Luminous Powder: the wiki says the glint glows in the dark; the recipe and flag exist but the glow rendering is not implemented (needs a glint coremod hook with full-bright lighting).
-- Bean: the wiki (and the original) say a Magic Bean stalk grows to the height limit breaking blocks in its way; the mod's stalk stops at the first solid block (`BeanStalkBlock`, original `BlockBeanStalk` broke blocks with hardness != -1).
+- Bean: FIXED (2026-10-29, unverified, all nine branches, row AG12): the Magic Bean stalk now breaks breakable blocks in its way and becomes a pod under an unbreakable block, as the wiki and the original describe. Retest it in game.
 - Magic Bean has no survival source (Nature Core is not ported, as decided); the page says it is creative-only.
