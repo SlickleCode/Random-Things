@@ -1,0 +1,23 @@
+{
+  "title": "Divining Rods",
+  "category": "item",
+  "description": "Holding a divining rod in your main or off hand will show you nearby ore through walls. The range is is a 11x11x11 cube centered on you.\n\nThe basic divining rods only show you one ore while the vanilla one shows all vanilla ores at once.\n\nDepending on the mods you have installed more divining rods might be available, if you would like one to be added for another mods ores feel free to create an issue on github.",
+  "keywords": [
+    "Divining",
+    "Rods"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-divining-rods-coal.png",
+    "images/crafting-divining-rods-diamond.png",
+    "images/crafting-divining-rods-emerald.png",
+    "images/crafting-divining-rods-gold.png",
+    "images/crafting-divining-rods-iron.png",
+    "images/crafting-divining-rods-lapis.png",
+    "images/crafting-divining-rods-redstone.png",
+    "images/crafting-divining-rods-universal.png"
+  ],
+  "videos": [
+    "videos/divining-rods.mp4"
+  ]
+}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ feature.title }} - Random Things Wiki{% endblock %}
+{% block meta_description %}{{ feature.description[:150] }}{% endblock %}
+
+{% block content %}
+<div class="information-card-component">
+  <h1>{{ feature.title }}</h1>
+  <p class="feature-category-badge">{{ feature.category | capitalize }}</p>
+
+  <h1>Description</h1>
+  <p class="item-description">{{ feature.description }}</p>
+
+  {% if feature.properties %}
+  <hr/>
+  <h1>Properties</h1>
+  <table class="properties-table">
+    {% for prop in feature.properties %}
+    <tr>
+      <th>{{ prop.label }}</th>
+      <td>{{ prop.value }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if feature.recipe %}
+  <hr/>
+  <h1>Recipe</h1>
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      {% for row in feature.recipe.shape %}
+        {% for slot in row %}
+        <div class="recipe-slot" title="{{ slot.label if slot else '' }}">
+          {% if slot and slot.icon %}
+          <img src="{{ slot.icon }}" alt="{{ slot.label }}">
+          {% elif slot %}
+          <span class="recipe-slot-label">{{ slot.label }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="{{ feature.recipe.result.label }}">
+      {% if feature.recipe.result.icon %}
+      <img src="{{ feature.recipe.result.icon }}" alt="{{ feature.recipe.result.label }}">
+      {% else %}
+      <span class="recipe-slot-label">{{ feature.recipe.result.label }}</span>
+      {% endif %}
+      {% if feature.recipe.result.count and feature.recipe.result.count > 1 %}
+      <span class="recipe-result-count">&times;{{ feature.recipe.result.count }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% elif feature.recipe_images %}
+  <hr/>
+  <h1>Recipe</h1>
+  {% for recipe_image in feature.recipe_images %}
+  <img class="recipe-picture" src="{{ recipe_image }}">
+  {% endfor %}
+  {% endif %}
+
+  {% if feature.images or feature.videos %}
+  <hr/>
+  <h1>Screenshots</h1>
+  <div class="screenshot-thumbnail-container">
+    {% for image in feature.images %}
+    <img src="{{ image }}" onclick="openModalWithPicture(this)">
+    {% endfor %}
+    {% for video in feature.videos %}
+    <video src="{{ video }}" controls muted></video>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

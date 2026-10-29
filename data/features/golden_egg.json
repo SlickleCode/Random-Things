@@ -1,0 +1,13 @@
+{
+  "title": "Golden Egg",
+  "category": "item",
+  "description": "When thrown a Chicken with a Golden Wattle will hatch that lays gold ingots instead of eggs. There is always one inside of a Bean Pod on top of a grown Magic Bean .",
+  "keywords": [
+    "Egg",
+    "Golden"
+  ],
+  "images": [
+    "images/golden-egg.png"
+  ],
+  "videos": []
+}

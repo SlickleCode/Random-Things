@@ -1,0 +1,15 @@
+{
+  "title": "Spectre Sapling",
+  "category": "block",
+  "description": "Created by right clicking a vanilla sapling with ectoplasm this sapling grows into a spectre tree whose leaves might drop some ectoplasm when broken. While you should come out with a surplus of ectoplasm chance wise you might need a bunch of these to really get started farming Ectoplasm.",
+  "keywords": [
+    "Sapling",
+    "Spectre"
+  ],
+  "images": [
+    "images/spectre-sapling-2.png"
+  ],
+  "videos": [
+    "videos/spectre-sapling-1.mp4"
+  ]
+}

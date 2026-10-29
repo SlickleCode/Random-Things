@@ -1,0 +1,18 @@
+{
+  "title": "Runic Dust",
+  "category": "item",
+  "description": "Runic Dust is a decorative item can be placed on top of other blocks. There is a colored version for each vanilla dye.\n\nRight clicking Runic Dust on the ground with a piece of paper will create a Runic Pattern which you can then use to easily copy patterns onto other blocks.",
+  "keywords": [
+    "Dust",
+    "Runic"
+  ],
+  "images": [
+    "images/runic-dust-1.png"
+  ],
+  "recipe_images": [
+    "images/crafting-runic-dust.png"
+  ],
+  "videos": [
+    "videos/runic-dust-2.mp4"
+  ]
+}

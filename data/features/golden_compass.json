@@ -1,0 +1,14 @@
+{
+  "title": "Golden Compass",
+  "category": "item",
+  "description": "The Golden Compass is a Compass whose target you can set using a position filter, simply combine the golden compass & a position filter in the crafting grid. The compass will now point towards the location of the position filter.",
+  "keywords": [
+    "Compass",
+    "Golden"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-golden-compass.png"
+  ],
+  "videos": []
+}

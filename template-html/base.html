@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
+    <title>{% block title %}Random Things Wiki{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}A community wiki for the Random Things Minecraft mod.{% endblock %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="master-container">
+      {% include "sidebar.html" %}
+      <div class="mobile-banner-component">
+        <svg xmlns="http://www.w3.org/2000/svg" id="open-sidebar" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <span>Random Things</span>
+      </div>
+      <div class="information-body-component">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <div id="modal">
+      <img id="modal-picture">
+    </div>
+    <script src="js/main.js" async defer></script>
+  </body>
+</html>

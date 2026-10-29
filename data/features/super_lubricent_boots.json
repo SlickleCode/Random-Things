@@ -1,0 +1,24 @@
+{
+  "title": "Super Lubricent Boots",
+  "category": "item",
+  "description": "Wearing Super Lubricent Boots has the same effect as walking on Super Lubricent Ice, your player won't get slowed down by friction once he's moving.",
+  "keywords": [
+    "Super",
+    "Lubricent",
+    "Armor",
+    "Boots"
+  ],
+  "images": [],
+  "properties": [
+    {
+      "label": "Slot",
+      "value": "Feet"
+    }
+  ],
+  "recipe_images": [
+    "images/crafting-super-lubricent-boots.png"
+  ],
+  "videos": [
+    "videos/super-lubricent-boots.mp4"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Super Lubricent Stone",
+  "category": "block",
+  "description": "Super slippery stone, when an entity moves on this, it lose all friction",
+  "keywords": ["Super", "Lubricent", "Stone"],
+  "images": [],
+  "properties": [
+    { "label": "Effect", "value": "Removes friction from entities standing on it" }
+  ]
+}

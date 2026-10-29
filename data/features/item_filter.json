@@ -1,0 +1,16 @@
+{
+  "title": "Item Filter",
+  "category": "item",
+  "description": "Item Filters are used to filter items. If you open them you can specify the items to filter & also control whether it should respect metadata / oredictionary / nbt. The Filter can also be switched between a Whitelist and a Blacklist",
+  "keywords": [
+    "Filter",
+    "Item"
+  ],
+  "images": [
+    "images/item-filter.png"
+  ],
+  "recipe_images": [
+    "images/crafting-item-filter.png"
+  ],
+  "videos": []
+}

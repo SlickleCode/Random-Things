@@ -1,0 +1,14 @@
+{
+  "title": "Entity Filter",
+  "category": "item",
+  "description": "A Filter that allows you to filter by entity type. Right clicking on an entity will set the filter to that entity.",
+  "keywords": [
+    "Entity",
+    "Filter"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-entity-filter.png"
+  ],
+  "videos": []
+}

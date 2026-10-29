@@ -1,0 +1,14 @@
+{
+  "title": "Quartz Glass",
+  "category": "block",
+  "description": "Quartz Glass is a block that is not solid for players and solid for every other entity.",
+  "keywords": [
+    "Glass",
+    "Quartz"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-quartz-glass.png"
+  ],
+  "videos": []
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Sound Recorder",
+  "category": "item",
+  "description": "A Sound Recorder allows you to record and save sounds in sound patterns that can then be used in the Sound Box and ( Portable ) Sound Dampener . Shift-Right click with it in your hand to start recording, shift-right click again to stop recording. It will also stop recording by itself after it has recorded 10 unique sounds. After recording some sounds right click to open up its gui, put sound patterns in the left slot and select a recorded sound from the list to save it inside the pattern.",
+  "keywords": [
+    "Recorder",
+    "Sound"
+  ],
+  "images": [
+    "images/sound-recorder.png"
+  ],
+  "recipe_images": [
+    "images/crafting-sound-recorder.png"
+  ],
+  "videos": []
+}

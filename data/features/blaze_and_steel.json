@@ -1,0 +1,14 @@
+{
+  "title": "Blaze and Steel",
+  "category": "item",
+  "description": "The Fire created by this item burns and spreads significantly faster than vanilla fire.",
+  "keywords": [
+    "Blaze",
+    "Steel"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-blaze-and-steel.png"
+  ],
+  "videos": []
+}

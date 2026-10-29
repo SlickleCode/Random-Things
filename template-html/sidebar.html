@@ -1,0 +1,50 @@
+<div class="sidebar-component">
+  <a class="sidebar-title" href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+    </svg>
+    Random Things
+  </a>
+  <div class="sidebar-search-line">
+    <svg xmlns="http://www.w3.org/2000/svg" id="close-sidebar" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+    <input type="text" id="search-field" class="sidebar-search-field" name="search" placeholder="Search...">
+    <button type="button" id="theme-toggle" class="theme-toggle-button" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="4" stroke-width="2"/>
+        <path stroke-linecap="round" stroke-width="2" d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+      <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="sidebar-item-list" id="sidebar-item-list">
+    {% for category in categories %}
+      {% set items = features_by_category.get(category.id, []) %}
+      {% if items %}
+      <div class="sidebar-category" data-category="{{ category.id }}">
+        <button type="button" class="sidebar-header-item" aria-expanded="true">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {{ category.icon | safe }}
+          </svg>
+          <span class="sidebar-header-label">{{ category.label }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="sidebar-header-chevron h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div class="sidebar-category-items">
+          {% for feature in items %}
+          <a class="sidebar-line-item{% if feature.id == active_id %} sidebar-line-item-active{% endif %}"
+             href="{{ feature.id }}.html"
+             data-keywords="{{ ([feature.title] + feature.keywords) | join(' ') | lower }}">
+            {{ feature.title }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

@@ -1,0 +1,29 @@
+{
+  "title": "Stable Ender Pearl",
+  "category": "item",
+  "description": "While Stable Ender Pearls are used in various crafting recipes they also have a purpose on their own.\n\nWhen you you right click a stable ender pearl in your hand it will be bound to you. When it's dropped on the ground it will teleport the player it's bound to to itself after 7 seconds.\nIf it's not bound to anyone it will instead teleport a random entity in a 10 block radius to itself.",
+  "keywords": [
+    "Enderpearl",
+    "Ender",
+    "Pearl",
+    "Teleportation",
+    "Stable"
+  ],
+  "images": [],
+  "properties": [
+    {
+      "label": "Teleport Delay",
+      "value": "7 seconds"
+    },
+    {
+      "label": "Unbound Behavior",
+      "value": "Teleports a random entity within 10 blocks"
+    }
+  ],
+  "recipe_images": [
+    "images/crafting-stable-ender-pearl.png"
+  ],
+  "videos": [
+    "videos/stable-ender-pearl.mp4"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Emerald Compass",
+  "category": "item",
+  "description": "The Emerald Compass is a compass that points to a specific player. You can change the target player by combining the compass with an ID Card in a crafting table.",
+  "keywords": [
+    "Compass",
+    "Emerald"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-emerald-compass.png"
+  ],
+  "videos": []
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Magic Hood",
+  "category": "item",
+  "description": "The Magic Hood can be worn as a helmet and has 2 effects:\n\n- In Multiplayer your player name does not render, whether you are crouching or not.\n\n- You emit no potion particles.\n\nAs armor it has the same properties as chain armor but it is indestructible.\n\nIt can only be found in dungeon chests & blacksmith villager chests.",
+  "keywords": [
+    "Hood",
+    "Magic"
+  ],
+  "images": [],
+  "videos": []
+}

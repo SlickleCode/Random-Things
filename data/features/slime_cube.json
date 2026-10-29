@@ -1,0 +1,14 @@
+{
+  "title": "Slime Cube",
+  "category": "block",
+  "description": "Slime Cubes allow Slimes to spawn in the Chunk they are in. Unlike Vanilla Slime Chunks Slimes can spawn at any height & do so at a significantly increased rate.\nPowered by Redstone this block instead prevents slimes from spawning through vanilla spawning mechanics (Slime Chunk / Swampland)",
+  "keywords": [
+    "Cube",
+    "Slime"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-slime-cube.png"
+  ],
+  "videos": []
+}

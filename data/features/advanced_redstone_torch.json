@@ -1,0 +1,54 @@
+{
+  "title": "Advanced Redstone Torch",
+  "category": "block",
+  "description": "Unlike a normal redstone torch which just emits either a redstone signal of 15 or 0 with an advanced one you can configure the signal strength for the two states freely. It's green while powered and red while unpowered.",
+  "keywords": [
+    "Redstone",
+    "Torch",
+    "Advanced",
+    "Signal"
+  ],
+  "images": [
+    "images/advanced-redstone-torch-1.png"
+  ],
+  "videos": [
+    "videos/advanced-redstone-torch-2.mp4"
+  ],
+  "recipe": {
+    "shape": [
+      [
+        null,
+        "redstone",
+        null
+      ],
+      [
+        "redstone",
+        "iron_ingot",
+        "redstone"
+      ],
+      [
+        null,
+        "stick",
+        null
+      ]
+    ],
+    "result": {
+      "key": "advanced_redstone_torch",
+      "count": 1
+    }
+  },
+  "properties": [
+    {
+      "label": "Powered Color",
+      "value": "Green"
+    },
+    {
+      "label": "Unpowered Color",
+      "value": "Red"
+    },
+    {
+      "label": "Configurable Signal Strength",
+      "value": "Yes, for both states"
+    }
+  ]
+}

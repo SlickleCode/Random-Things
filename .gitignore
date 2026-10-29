@@ -1,0 +1,7 @@
+meeting_notes
+package-lock.json
+
+# directories
+__pycache__/
+node_modules/
+website_walker

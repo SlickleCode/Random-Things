@@ -1,0 +1,16 @@
+{
+  "title": "Fluid Display",
+  "category": "block",
+  "description": "The Fluid Display is a decorative block that can take on the textures of fluids. Just right click one with any kind of fluid container to set the fluid displayed. Right clicking it with something else will switch it between the flowing and stationary fluid texture. Shift right clicking it with an empty hand will rotate it.",
+  "keywords": [
+    "Display",
+    "Fluid"
+  ],
+  "images": [
+    "images/fluid-display.png"
+  ],
+  "recipe_images": [
+    "images/crafting-fluid-display.png"
+  ],
+  "videos": []
+}

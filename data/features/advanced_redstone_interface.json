@@ -1,0 +1,17 @@
+{
+  "title": "Advanced Redstone Interface",
+  "category": "block",
+  "description": "Compared to the basic Redstone Interface the advanced one can be linked to a total of 9 blocks. Instead of the Redstone Tool you use Position Filters which you insert into the gui of the block.",
+  "keywords": [
+    "Advanced",
+    "Interface",
+    "Redstone"
+  ],
+  "images": [
+    "images/advanced-redstone-interface.png"
+  ],
+  "recipe_images": [
+    "images/crafting-advanced-redstone-interface.png"
+  ],
+  "videos": []
+}

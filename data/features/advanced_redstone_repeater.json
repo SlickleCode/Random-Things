@@ -1,0 +1,17 @@
+{
+  "title": "Advanced Redstone Repeater",
+  "category": "block",
+  "description": "The Advanced Redstone Repeater is a redstone repeater with configurable turn on / turn off delay.",
+  "keywords": [
+    "Advanced",
+    "Redstone",
+    "Repeater"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-advanced-redstone-repeater.png"
+  ],
+  "videos": [
+    "videos/advanced-redstone-repeater.mp4"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Peace Candle",
+  "category": "block",
+  "description": "Peace Candles prevent Natural Mob Spawning in a 3 Chunk Radius around them. There is a chance of 33% for one to be in a village church.",
+  "keywords": [
+    "Candle",
+    "Peace"
+  ],
+  "images": [
+    "images/peace-candle.png"
+  ],
+  "videos": []
+}

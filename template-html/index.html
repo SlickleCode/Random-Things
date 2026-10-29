@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Random Things Wiki{% endblock %}
+
+{% block content %}
+<div class="information-card-component home-card">
+  <h1>Random Things Wiki</h1>
+  <p class="item-description">
+    A community-maintained wiki documenting every item, block and feature added by the
+    Random Things Minecraft mod. Pick a category from the sidebar, or browse everything below.
+  </p>
+
+  {% for category in categories %}
+    {% set items = features_by_category.get(category.id, []) %}
+    {% if items %}
+    <hr/>
+    <h1>{{ category.label }}</h1>
+    <div class="feature-card-grid">
+      {% for feature in items %}
+      <a class="feature-card" href="{{ feature.id }}.html">
+        {% if feature.icon %}
+        <img src="{{ feature.icon }}" alt="{{ feature.title }}">
+        {% endif %}
+        <span>{{ feature.title }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

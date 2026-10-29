@@ -1,0 +1,25 @@
+{
+  "title": "Weather Eggs",
+  "category": "item",
+  "description": "When thrown Weather Eggs will spawn a small cloud that will start to slowly go upwards. Once it reaches the sky it will change the weather to the type of the egg (Sunny, Rain, Thunderstorm).",
+  "keywords": [
+    "Weather",
+    "Egg",
+    "Throwable"
+  ],
+  "images": [
+    "images/weather-eggs.png"
+  ],
+  "properties": [
+    {
+      "label": "Weather Effects",
+      "value": "Clear, Rain, Storm"
+    }
+  ],
+  "recipe_images": [
+    "images/crafting-weather-eggs-sun.png",
+    "images/crafting-weather-eggs-rain.png",
+    "images/crafting-weather-eggs-storm.png"
+  ],
+  "videos": []
+}

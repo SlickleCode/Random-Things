@@ -1,0 +1,14 @@
+{
+  "title": "Lapis Glass",
+  "category": "block",
+  "description": "Lapis Glass is a block that is solid for players and not solid for every other entity.",
+  "keywords": [
+    "Glass",
+    "Lapis"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-lapis-glass.png"
+  ],
+  "videos": []
+}

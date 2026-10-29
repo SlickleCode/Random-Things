@@ -1,0 +1,19 @@
+{
+  "title": "Player Interface",
+  "category": "block",
+  "description": "The Player Interface is a block that allows you to access the inventory of your player as if it was a chest.\n\nLooking at the block after you placed it down you can see that it has 4 different sides:\n\nHotbar, Storage, Armor, Shield\n\nThere also is the Creative Player Interface which provides an Open Computers component to set the target player.",
+  "keywords": [
+    "Interface",
+    "Player"
+  ],
+  "images": [
+    "images/player-interface-1.png",
+    "images/player-interface-2.png",
+    "images/player-interface-3.png",
+    "images/player-interface-4.png"
+  ],
+  "recipe_images": [
+    "images/crafting-player-interface.png"
+  ],
+  "videos": []
+}

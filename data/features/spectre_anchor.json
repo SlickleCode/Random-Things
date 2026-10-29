@@ -1,0 +1,16 @@
+{
+  "title": "Spectre Anchor",
+  "category": "item",
+  "description": "The Spectre Anchor allows you to anchor items. Anchored items won't drop out of your inventory when you die.\n\nTo anchor an item you just have to combine it with a spectre anchor in a crafting grid, this only works with items that aren't stackable.",
+  "keywords": [
+    "Anchor",
+    "Spectre"
+  ],
+  "images": [
+    "images/spectre-anchor.png"
+  ],
+  "recipe_images": [
+    "images/crafting-spectre-anchor.png"
+  ],
+  "videos": []
+}

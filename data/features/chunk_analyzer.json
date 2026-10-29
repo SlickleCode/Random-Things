@@ -1,0 +1,16 @@
+{
+  "title": "Chunk Analyzer",
+  "category": "item",
+  "description": "The Chunk Analyzer allows you to check what blocks a chunk contains. Open its gui and press Scan. After a few seconds you will get the results for the chunk you are in.",
+  "keywords": [
+    "Analyzer",
+    "Chunk"
+  ],
+  "images": [
+    "images/chunk-analyzer.png"
+  ],
+  "recipe_images": [
+    "images/crafting-chunk-analyzer.png"
+  ],
+  "videos": []
+}

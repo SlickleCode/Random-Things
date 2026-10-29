@@ -1,0 +1,17 @@
+{
+  "title": "Portable Sound Dampener",
+  "category": "item",
+  "description": "Portable Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played for the player that has one in their inventory.",
+  "keywords": [
+    "Dampener",
+    "Portable",
+    "Sound"
+  ],
+  "images": [
+    "images/portable-sound-dampener.png"
+  ],
+  "recipe_images": [
+    "images/crafting-portable-sound-dampener.png"
+  ],
+  "videos": []
+}

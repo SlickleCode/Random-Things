@@ -1,0 +1,14 @@
+{
+  "title": "Online Detector",
+  "category": "block",
+  "description": "The Online Detector is a block that emits a redstone signal when a player you specify is online. Simply right click the block to open up its gui and input the name of the player you want to detect. While the specified player is online the block will emit a redstone signal, otherwise it won't.\n\nWhen Open Computers is installed it also provides a component called \"online_detector\" with the following functions:\n\n- isPlayerOnline(username) : Returns whether username is currently online.\n\n- getPlayerList() : Returns a table that contains every user that is currently online.",
+  "keywords": [
+    "Detector",
+    "Online"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-online-detector.png"
+  ],
+  "videos": []
+}

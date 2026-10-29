@@ -1,0 +1,16 @@
+{
+  "title": "Spectre Charger",
+  "category": "item",
+  "description": "When toggled on by right clicking Spectre Charger will transfer energy from your spectre energy buffer into any item in your inventory that can accept it.\n\nThe energy per tick each item gets increases with the tier.\n\nNormal: 1024 per Tick Redstone: 4096 per Tick Ender: 20480 per Tick\n\nThe Genesis Charger is creative only and basically charges the items as fast as possible for free.",
+  "keywords": [
+    "Charger",
+    "Spectre"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-spectre-charger.png",
+    "images/crafting-spectre-charger-redstone.png",
+    "images/crafting-spectre-charger-ender.png"
+  ],
+  "videos": []
+}

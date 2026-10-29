@@ -1,0 +1,14 @@
+{
+  "title": "Lava Waders",
+  "category": "item",
+  "description": "The Lava Waders combine the effects of the Obsidian Water Walking Boots and the Lava Charm . In addition they allow you to walk on lava, as long as you don't enter the lava this does not reduce your lava bar.",
+  "keywords": [
+    "Lava",
+    "Waders"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-lava-waders.png"
+  ],
+  "videos": []
+}

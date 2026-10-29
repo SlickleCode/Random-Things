@@ -1,0 +1,16 @@
+{
+  "title": "Iron Dropper",
+  "category": "block",
+  "description": "The Iron Dropper is an advanced configurable Dropper. You can change the pickup delay of items dropped, whether the dropper spits the items out \"perfectly straight\" (Nice for Superlubricent Ice/Stone), whether there are any particles/sound effects & how it reacts to redstone.",
+  "keywords": [
+    "Dropper",
+    "Iron"
+  ],
+  "images": [
+    "images/iron-dropper.png"
+  ],
+  "recipe_images": [
+    "images/crafting-iron-dropper.png"
+  ],
+  "videos": []
+}

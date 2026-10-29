@@ -1,0 +1,18 @@
+{
+  "title": "Platforms",
+  "category": "block",
+  "description": "Platforms are special blocks that are solid from the top and not solid from all other sides (You can walk on top of them but go right through them from the sides or the bottom). If you hold shift you fall through them even from the top.",
+  "keywords": [
+    "Platforms"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-platforms-1.png",
+    "images/crafting-platforms-2.png",
+    "images/crafting-platforms-3.png",
+    "images/crafting-platforms-4.png",
+    "images/crafting-platforms-5.png",
+    "images/crafting-platforms-6.png"
+  ],
+  "videos": []
+}

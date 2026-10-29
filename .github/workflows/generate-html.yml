@@ -1,0 +1,48 @@
+name: Generate HTML
+
+# Controls when the action will run. Triggers the workflow on push events
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+# The default GITHUB_TOKEN is read-only unless a workflow asks for more.
+# Without this, the final `git push` is denied with a 403, since the bot
+# has no write access to repo contents by default.
+permissions:
+  contents: write
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out repository under $GITHUB_WORKSPACE, so the job can access it
+    - uses: actions/checkout@v2
+
+    # Run using Python 3.11 for consistency
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+        architecture: 'x64'
+
+    - name: Install dependencies
+      run: pip install -r scripts/requirements.txt
+
+    # Generate html pages from data/features/*.json
+    - name: Generate html
+      run: python3 ./scripts/generate_html.py
+
+    # Commits all changes to the repo
+    # "echo" returns true so the build succeeds, even if no changed files
+    - name: Commit to the repo
+      run: |
+        git config --global user.name "danielkilgallon/minecraft_wiki"
+        git config --global user.email "json-to-html[bot]@danielkilgallon.github.io"
+        git add .
+        git commit -m 'Update generated html' || echo
+        git push

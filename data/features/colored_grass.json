@@ -1,0 +1,15 @@
+{
+  "title": "Colored Grass",
+  "category": "block",
+  "description": "Dye Grass in any of the vanilla colors! Just pick up some grass with your silktouch shovel, put it in a crafting table to get grass seeds and then color the seeds. Right clicking with a grass seed on a piece of dirt will turn it into grass with the color of the seed.\nColored Grass spreads like normal grass but will not grow over normal grass.",
+  "keywords": [
+    "Colored",
+    "Grass"
+  ],
+  "images": [],
+  "recipe_images": [
+    "images/crafting-colored-grass-1.png",
+    "images/crafting-colored-grass-2.png"
+  ],
+  "videos": []
+}

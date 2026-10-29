@@ -1,0 +1,16 @@
+{
+  "title": "Luminous Powder",
+  "category": "item",
+  "description": "Luminous Powder is primarily a crafting ingredient used in making Luminous Blocks & Luminous Stained Bricks . However you can also combine it with any enchanted item in a crafting table to make the enchantment glint glow in the dark.",
+  "keywords": [
+    "Luminous",
+    "Powder"
+  ],
+  "images": [
+    "images/luminous-powder.png"
+  ],
+  "recipe_images": [
+    "images/crafting-luminous-powder.png"
+  ],
+  "videos": []
+}

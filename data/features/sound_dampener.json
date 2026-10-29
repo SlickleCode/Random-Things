@@ -1,0 +1,16 @@
+{
+  "title": "Sound Dampener",
+  "category": "block",
+  "description": "Sound Dampeners will prevent the sounds from the sound patterns inside of it from being played in a 20 block radius around it.",
+  "keywords": [
+    "Dampener",
+    "Sound"
+  ],
+  "images": [
+    "images/sound-dampener.png"
+  ],
+  "recipe_images": [
+    "images/crafting-sound-dampener.png"
+  ],
+  "videos": []
+}
