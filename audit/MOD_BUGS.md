@@ -64,3 +64,8 @@ Peace Candle churches in all village types (needs the vanilla pool/church names)
 Branch differences: 1.18.2 refreshes the Observer through a block entity ticker instead of a tick scheduled in onLoad; Position Filter dimensions are strings from 1.16.5 on; 1.20.6/1.21.1/1.21.4/1.21.11 build the enchanted check
 of the Luminous recipe by looping over the enchantment registry (assumed API combination, unverified); sapling/paper listeners cancel RightClickBlock (no precedent on the 1.20.6+ branches).
 Wiki pages left as is (spectre_sapling, runic_dust, luminous_powder, spectre_coils, spectre_illuminator, bean) now describe features that exist, except the Luminous glow and Nature Core / Magic Bean; their recipe pictures are old.
+
+## Wiki claims that still depend on unfixed mod behaviour (the six formerly left-as-is pages were updated 2026-10-29)
+- Luminous Powder: the wiki says the glint glows in the dark; the recipe and flag exist but the glow rendering is not implemented (needs a glint coremod hook with full-bright lighting).
+- Bean: the wiki (and the original) say a Magic Bean stalk grows to the height limit breaking blocks in its way; the mod's stalk stops at the first solid block (`BeanStalkBlock`, original `BlockBeanStalk` broke blocks with hardness != -1).
+- Magic Bean has no survival source (Nature Core is not ported, as decided); the page says it is creative-only.

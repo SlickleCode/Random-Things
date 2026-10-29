@@ -1,15 +1,62 @@
 {
   "title": "Spectre Sapling",
   "category": "block",
-  "description": "Created by right clicking a vanilla sapling with ectoplasm this sapling grows into a spectre tree whose leaves might drop some ectoplasm when broken. While you should come out with a surplus of ectoplasm chance wise you might need a bunch of these to really get started farming Ectoplasm.",
+  "description": "Created by right clicking a vanilla sapling with ectoplasm (one ectoplasm is used up, creative mode keeps it) this sapling grows into a spectre tree whose leaves might drop some ectoplasm when broken. While you should come out with a surplus of ectoplasm chance wise you might need a bunch of these to really get started farming Ectoplasm.\n\nThe sapling needs a light level of 9 or more above it to grow, goes through two growth stages and can be sped up with bone meal. The tree has a trunk of 4 to 6 Spectre Logs with a canopy of Spectre Leaves. Spectre Leaves drop ectoplasm with a chance of 1 in 55 when broken and can also release one now and then on their own. A Spectre Log can be crafted into 4 Spectre Planks.",
   "keywords": [
     "Sapling",
-    "Spectre"
+    "Spectre",
+    "Spectre Leaf",
+    "Spectre Log",
+    "Spectre Plank"
   ],
   "images": [
     "images/spectre-sapling-2.png"
   ],
   "videos": [
     "videos/spectre-sapling-1.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Right click a vanilla sapling with Ectoplasm"
+    },
+    {
+      "label": "Growth",
+      "value": "Light level 9 or more, two stages, bone meal works"
+    },
+    {
+      "label": "Tree",
+      "value": "Trunk of 4 to 6 Spectre Logs"
+    },
+    {
+      "label": "Leaf drop",
+      "value": "Ectoplasm, 1 in 55 per leaf broken"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "spectre_log",
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "spectre_plank",
+        "count": 4
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid."
+    }
   ]
 }

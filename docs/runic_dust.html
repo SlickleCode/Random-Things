@@ -15,7 +15,7 @@
     <title>Runic Dust - Random Things Wiki</title>
     <meta name="description" content="Runic Dust is a decorative item can be placed on top of other blocks. There is a colored version for each vanilla dye.
 
-Right clicking Runic Dust on t">
+Right click the top of a solid">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style/main.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,7 +64,7 @@ Right clicking Runic Dust on t">
           
           <a class="sidebar-line-item"
              href="bean.html"
-             data-keywords="beans ingredient bean">
+             data-keywords="beans bean bean pod bean stew ingredient lesser magic bean magic bean">
             Beans
           </a>
           
@@ -214,7 +214,7 @@ Right clicking Runic Dust on t">
           
           <a class="sidebar-line-item sidebar-line-item-active"
              href="runic_dust.html"
-             data-keywords="runic dust dust runic">
+             data-keywords="runic dust dust pattern rune runic runic pattern">
             Runic Dust
           </a>
           
@@ -244,7 +244,7 @@ Right clicking Runic Dust on t">
           
           <a class="sidebar-line-item"
              href="spectre_illuminator.html"
-             data-keywords="spectre illuminator illuminator spectre">
+             data-keywords="spectre illuminator blackout powder illuminator spectre">
             Spectre Illuminator
           </a>
           
@@ -598,7 +598,7 @@ Right clicking Runic Dust on t">
           
           <a class="sidebar-line-item"
              href="spectre_coils.html"
-             data-keywords="spectre coils coils spectre">
+             data-keywords="spectre coils coils numbered coil spectre spectre energy injector">
             Spectre Coils
           </a>
           
@@ -610,7 +610,7 @@ Right clicking Runic Dust on t">
           
           <a class="sidebar-line-item"
              href="spectre_sapling.html"
-             data-keywords="spectre sapling sapling spectre">
+             data-keywords="spectre sapling sapling spectre spectre leaf spectre log spectre plank">
             Spectre Sapling
           </a>
           
@@ -785,15 +785,111 @@ Right clicking Runic Dust on t">
   <h1>Description</h1>
   <p class="item-description">Runic Dust is a decorative item can be placed on top of other blocks. There is a colored version for each vanilla dye.
 
-Right clicking Runic Dust on the ground with a piece of paper will create a Runic Pattern which you can then use to easily copy patterns onto other blocks.</p>
+Right click the top of a solid block to place dust: the block is split into a 4x4 grid and each right click puts one dust into the cell you clicked, using up one dust. Together the dust forms a rune.
 
+Right clicking a placed rune with a piece of paper will create a Runic Pattern holding that rune&#39;s pattern (one paper is used up) which you can then use to easily copy patterns onto other blocks. Right clicking the top of a solid block with a Runic Pattern places a copy of the rune and uses up one matching dust per cell from your inventory (cells without dust stay empty, creative mode needs none). Sneak and right click with a Runic Pattern to turn it back into paper.
+
+Left clicking a rune removes all of it and drops its dust.</p>
+
+  
+  <hr/>
+  <h1>Properties</h1>
+  <table class="properties-table">
+    
+    <tr>
+      <th>Obtain</th>
+      <td>Crafted from clay, Luminous Powder and a dye (see recipe)</td>
+    </tr>
+    
+    <tr>
+      <th>Colors</th>
+      <td>16, one for each vanilla dye</td>
+    </tr>
+    
+    <tr>
+      <th>Grid</th>
+      <td>4x4 cells per block, one dust per cell</td>
+    </tr>
+    
+    <tr>
+      <th>Config</th>
+      <td>FlatRunes (visual), default false - replaces the noisy texture with a flat one</td>
+    </tr>
+    
+  </table>
   
 
   
   <hr/>
   <h1>Recipe</h1>
   
-  <img class="recipe-picture" src="images/crafting-runic-dust.png">
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Clay Ball">
+          
+          <span class="recipe-slot-label">Clay Ball</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Luminous Powder">
+          
+          <span class="recipe-slot-label">Luminous Powder</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Any Dye">
+          
+          <span class="recipe-slot-label">Any Dye</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+        <div class="recipe-slot" title="">
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Runic Dust">
+      
+      <span class="recipe-slot-label">Runic Dust</span>
+      
+      
+      <span class="recipe-result-count">&times;8</span>
+      
+    </div>
+  </div>
+  
+  <p class="recipe-note">Shapeless: the ingredients can be placed anywhere in the crafting grid. The dye decides the color; all 16 dye colors work.</p>
+  
   
   
 

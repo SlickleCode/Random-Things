@@ -11,7 +11,7 @@ W = '/home/user/Random-Things'
 REC = sys.argv[1]
 WRITE = '--write' in sys.argv
 
-SKIP_PAGES = {'spectre_sapling', 'runic_dust', 'luminous_powder', 'spectre_coils', 'spectre_illuminator', 'bean'}
+SKIP_PAGES = set()  # the six pages left as is were released on request once their features existed
 COLORS = ['white', 'orange', 'magenta', 'light_blue', 'yellow', 'lime', 'pink', 'gray', 'light_gray', 'cyan',
           'purple', 'blue', 'brown', 'green', 'red', 'black']
 
@@ -27,7 +27,7 @@ FILE_TO_PAGE.update({
     'super_lubricent_ice': 'super_lubricent_ice', 'super_lubricent_platform': 'super_lubricent_ice',
     'filtered_super_lubricent_platform': 'super_lubricent_ice', 'super_lubricent_tincture': 'super_lubricent',
     'advanced_item_collector': 'item_collector', 'basic_redstone_interface': 'redstone_interface',
-    'rainbowlamp': 'rainbow_lamp', 'spectre_plank': None, 'evil_tear': 'artificial_end_portal',
+    'rainbowlamp': 'rainbow_lamp', 'spectre_plank': 'spectre_sapling', 'blackout_powder': 'spectre_illuminator', 'evil_tear': 'artificial_end_portal',
     'ender_anchor': 'ender_bridge', 'prismarine_ender_bridge': 'ender_bridge', 'ender_mailbox': 'ender_mailbox',
     'global_chat_detector': 'chat_detector', 'reinforced_ender_bucket': 'ender_bucket',
     'spectre_energy_injector': 'spectre_charger',
@@ -39,6 +39,9 @@ for c in COLORS:
     FILE_TO_PAGE['luminous_stained_brick_' + c] = 'stained_bricks'
     FILE_TO_PAGE['grass_seeds_' + c] = 'colored_grass'
 FILE_TO_PAGE['grass_seeds'] = 'colored_grass'
+for c in COLORS:
+    FILE_TO_PAGE['rune_dust_' + c] = 'runic_dust'
+EXTRA_PAGES = {'spectre_energy_injector': ['spectre_coils']}
 
 TAGS = {
     'forge:ingots/iron': ('iron_ingot', 'Iron Ingot'), 'forge:stone': ('stone', 'Stone'),
@@ -115,6 +118,8 @@ pages = collections.defaultdict(list)
 for f in sorted(glob.glob(REC + '/*.json')):
     name = os.path.basename(f)[:-5]
     pages[FILE_TO_PAGE.get(name) or '?'].append(name)
+    for extra in EXTRA_PAGES.get(name, []):
+        pages[extra].append(name)
 
 result = {}
 special = collections.defaultdict(list)
@@ -124,7 +129,7 @@ for page, files in sorted(pages.items()):
     recs = []
     done_families = set()
     for name in files:
-        fam = next((p for p in ('luminous_block_translucent_', 'luminous_block_', 'luminous_stained_brick_', 'stained_brick_', 'grass_seeds_')
+        fam = next((p for p in ('luminous_block_translucent_', 'luminous_block_', 'luminous_stained_brick_', 'stained_brick_', 'grass_seeds_', 'rune_dust_')
                     if name.startswith(p) and name[len(p):] in COLORS), None)
         if fam:
             if fam in done_families:
@@ -147,6 +152,9 @@ for page, files in sorted(pages.items()):
                 r['shape'][0][0] = {'key': 'stained_brick', 'label': 'Stained Brick (any color)'}
                 r['result'] = {'key': 'luminous_stained_brick', 'count': 1, 'label': 'Luminous Stained Brick'}
                 merge_note(r, 'The result has the same color as the Stained Brick used.')
+            elif fam == 'rune_dust_':
+                r['result'] = {'key': 'rune_dust', 'count': r['result']['count'], 'label': 'Runic Dust'}
+                merge_note(r, 'The dye decides the color; all 16 dye colors work.')
             elif fam == 'grass_seeds_':
                 r['shape'][0][0] = {'key': 'grass_seeds', 'label': 'Grass Seeds'}
                 r['result'] = {'key': 'grass_seeds', 'count': 1, 'label': 'Colored Grass Seeds'}

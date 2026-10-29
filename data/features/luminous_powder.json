@@ -1,7 +1,7 @@
 {
   "title": "Luminous Powder",
   "category": "item",
-  "description": "Luminous Powder is primarily a crafting ingredient used in making Luminous Blocks & Luminous Stained Bricks . However you can also combine it with any enchanted item in a crafting table to make the enchantment glint glow in the dark.",
+  "description": "Luminous Powder is primarily a crafting ingredient used in making Luminous Blocks & Luminous Stained Bricks . It is also used to craft Runic Dust and the Spectre Illuminator. However you can also combine it with any enchanted item in a crafting table to make the enchantment glint glow in the dark. The powder is used up and the item gets a yellow \"Luminous\" line in its tooltip.",
   "keywords": [
     "Luminous",
     "Powder"
@@ -9,8 +9,44 @@
   "images": [
     "images/luminous-powder.png"
   ],
-  "recipe_images": [
-    "images/crafting-luminous-powder.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted from glowstone dust, glass and a Glowing Mushroom (makes 4)"
+    },
+    {
+      "label": "Used for",
+      "value": "Luminous Blocks, Luminous Stained Bricks, Runic Dust, Spectre Illuminator"
+    },
+    {
+      "label": "Glint",
+      "value": "Combine with one enchanted item to make its glint glow in the dark"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "glowstone_dust",
+          "glass",
+          null
+        ],
+        [
+          null,
+          "glowing_mushroom",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "luminous_powder",
+        "count": 4
+      }
+    }
+  ]
 }

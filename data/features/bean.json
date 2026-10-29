@@ -1,17 +1,134 @@
 {
   "title": "Beans",
   "category": "item",
-  "description": "Walking through the world you might encounter some bean plants, breaking them will give you some beans that you can then replant to get more. You can either craft Bean Stew out of it which is slightly better then mushroom stew on the food side or craft them into Lesser Magic Beans, planting these will cause a bean stalk to emerge that will continue to grow till it hits a block. You can also quickly climb on it.\n\nIf you find a Nature Core on your way the plant chest next to it will always contain a magic bean. A magic bean acts like a lesser magic bean but it will continue to grow till the height limit breaking any blocks in its way. On top of it will also be a bean pod that drops random amounts of beans,iron,gold,diamonds and emeralds when you break it.",
+  "description": "Walking through the world you might encounter some bean plants, breaking them will give you some beans that you can then replant to get more. You can either craft Bean Stew out of it which is slightly better then mushroom stew on the food side or craft them into Lesser Magic Beans, planting these will cause a bean stalk to emerge that will continue to grow till it hits a block. You can also quickly climb on it.\n\nA magic bean acts like a lesser magic bean but it will continue to grow till the height limit breaking any blocks in its way. On top of it will also be a bean pod that drops random amounts of beans,iron,gold,diamonds and emeralds (and a Golden Egg) when you break it. Magic Beans can not be crafted or found in the world, they are only available in the creative menu.",
   "keywords": [
+    "Bean",
+    "Bean Pod",
+    "Bean Stew",
     "Ingredient",
-    "Bean"
+    "Lesser Magic Bean",
+    "Magic Bean"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-beans-1.png",
-    "images/crafting-beans-2.png"
-  ],
   "videos": [
     "videos/beans.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Wild beans",
+      "value": "Bean plants grow in the world; breaking one gives 1 bean (3 to 4 when fully grown)"
+    },
+    {
+      "label": "Lesser Magic Bean",
+      "value": "Crafted from 8 gold nuggets and a bean (see recipe)"
+    },
+    {
+      "label": "Magic Bean",
+      "value": "Creative menu only"
+    },
+    {
+      "label": "Bean Stew",
+      "value": "Restores 8 hunger, 0.6 saturation; the bowl is returned"
+    },
+    {
+      "label": "Bean Pod",
+      "value": "Also drops a Golden Egg (config GoldenEgg, default true)"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "wheat",
+          null,
+          null
+        ],
+        [
+          "beans",
+          "beans",
+          "beans"
+        ],
+        [
+          "bowl",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "bean_stew",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "beans",
+          "beans",
+          "beans"
+        ],
+        [
+          "wheat",
+          null,
+          null
+        ],
+        [
+          "bowl",
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "bean_stew",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          },
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          },
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          }
+        ],
+        [
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          },
+          "beans",
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          }
+        ],
+        [
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          },
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          },
+          {
+            "key": "gold_nugget",
+            "label": "Gold Nugget"
+          }
+        ]
+      ],
+      "result": {
+        "key": "lesser_magic_bean",
+        "count": 1
+      }
+    }
   ]
 }

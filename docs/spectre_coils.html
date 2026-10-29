@@ -62,7 +62,7 @@
           
           <a class="sidebar-line-item"
              href="bean.html"
-             data-keywords="beans ingredient bean">
+             data-keywords="beans bean bean pod bean stew ingredient lesser magic bean magic bean">
             Beans
           </a>
           
@@ -212,7 +212,7 @@
           
           <a class="sidebar-line-item"
              href="runic_dust.html"
-             data-keywords="runic dust dust runic">
+             data-keywords="runic dust dust pattern rune runic runic pattern">
             Runic Dust
           </a>
           
@@ -242,7 +242,7 @@
           
           <a class="sidebar-line-item"
              href="spectre_illuminator.html"
-             data-keywords="spectre illuminator illuminator spectre">
+             data-keywords="spectre illuminator blackout powder illuminator spectre">
             Spectre Illuminator
           </a>
           
@@ -596,7 +596,7 @@
           
           <a class="sidebar-line-item sidebar-line-item-active"
              href="spectre_coils.html"
-             data-keywords="spectre coils coils spectre">
+             data-keywords="spectre coils coils numbered coil spectre spectre energy injector">
             Spectre Coils
           </a>
           
@@ -608,7 +608,7 @@
           
           <a class="sidebar-line-item"
              href="spectre_sapling.html"
-             data-keywords="spectre sapling sapling spectre">
+             data-keywords="spectre sapling sapling spectre spectre leaf spectre log spectre plank">
             Spectre Sapling
           </a>
           
@@ -788,21 +788,345 @@ Normal: 1024 per Tick Redstone: 4096 per Tick Ender: 20480 per Tick
 
 Both the Coils and the Injector always access the buffer of the player that placed them. Since they are bound to your player they don&#39;t have a range limitation and also work across dimensions.
 
-In addition there are also Numbered &amp; Genesis Coils. Numbered Coils can be found in dungeon chests and generate 128 Energy per Tick on their own. Genesis Coils are creative mode only and generate 10000000 Energy per Tick.</p>
+In addition there are also Numbered &amp; Genesis Coils. Numbered Coils can be found in dungeon, abandoned mineshaft and end city chests (they cannot be crafted) and generate 128 Energy per Tick on their own, without using your buffer. Genesis Coils are creative mode only and generate 10000000 Energy per Tick.
 
+A Coil has to be attached to a block that can receive energy and breaks off when there is none behind it.</p>
+
+  
+  <hr/>
+  <h1>Properties</h1>
+  <table class="properties-table">
+    
+    <tr>
+      <th>Tiers</th>
+      <td>Normal 1024, Redstone 4096, Ender 20480 per tick from your buffer; Numbered 128 per tick on its own; Genesis creative only</td>
+    </tr>
+    
+    <tr>
+      <th>Numbered Coil</th>
+      <td>Found in dungeon, abandoned mineshaft and end city chests</td>
+    </tr>
+    
+    <tr>
+      <th>Config</th>
+      <td>NumberedSpectreCoils (loot), default true - turns the chest loot on or off</td>
+    </tr>
+    
+    <tr>
+      <th>Attach</th>
+      <td>Needs a block that accepts energy behind it</td>
+    </tr>
+    
+  </table>
   
 
   
   <hr/>
   <h1>Recipe</h1>
   
-  <img class="recipe-picture" src="images/crafting-spectre-energy-injector.png">
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Stable Enderpearl">
+          
+          <span class="recipe-slot-label">Stable Enderpearl</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Ender Pearl">
+          
+          <span class="recipe-slot-label">Ender Pearl</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre Coil Redstone">
+          
+          <span class="recipe-slot-label">Spectre Coil Redstone</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Ender Pearl">
+          
+          <span class="recipe-slot-label">Ender Pearl</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Stable Enderpearl">
+          
+          <span class="recipe-slot-label">Stable Enderpearl</span>
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Spectre Coil Ender">
+      
+      <span class="recipe-slot-label">Spectre Coil Ender</span>
+      
+      
+    </div>
+  </div>
   
-  <img class="recipe-picture" src="images/crafting-spectre-coils-normal.png">
   
-  <img class="recipe-picture" src="images/crafting-spectre-coils-redstone.png">
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre Ingot">
+          
+          <span class="recipe-slot-label">Spectre Ingot</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Glass">
+          
+          <span class="recipe-slot-label">Glass</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Spectre Coil Normal">
+      
+      <span class="recipe-slot-label">Spectre Coil Normal</span>
+      
+      
+    </div>
+  </div>
   
-  <img class="recipe-picture" src="images/crafting-spectre-coils-ender.png">
+  
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Redstone Block">
+          
+          <span class="recipe-slot-label">Redstone Block</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Redstone">
+          
+          <img src="textures/vanilla/redstone.png" alt="Redstone">
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre Coil Normal">
+          
+          <span class="recipe-slot-label">Spectre Coil Normal</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Redstone">
+          
+          <img src="textures/vanilla/redstone.png" alt="Redstone">
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Redstone Block">
+          
+          <span class="recipe-slot-label">Redstone Block</span>
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Spectre Coil Redstone">
+      
+      <span class="recipe-slot-label">Spectre Coil Redstone</span>
+      
+      
+    </div>
+  </div>
+  
+  
+  <div class="recipe-container">
+    <div class="recipe-grid">
+      
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre Lens">
+          
+          <span class="recipe-slot-label">Spectre Lens</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Beacon">
+          
+          <span class="recipe-slot-label">Beacon</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+      
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Spectre String">
+          
+          <span class="recipe-slot-label">Spectre String</span>
+          
+        </div>
+        
+        <div class="recipe-slot" title="Obsidian">
+          
+          <span class="recipe-slot-label">Obsidian</span>
+          
+        </div>
+        
+      
+    </div>
+    <svg class="recipe-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+    </svg>
+    <div class="recipe-slot recipe-result" title="Spectre Energy Injector">
+      
+      <span class="recipe-slot-label">Spectre Energy Injector</span>
+      
+      
+    </div>
+  </div>
+  
   
   
 

@@ -1,18 +1,66 @@
 {
   "title": "Runic Dust",
   "category": "item",
-  "description": "Runic Dust is a decorative item can be placed on top of other blocks. There is a colored version for each vanilla dye.\n\nRight clicking Runic Dust on the ground with a piece of paper will create a Runic Pattern which you can then use to easily copy patterns onto other blocks.",
+  "description": "Runic Dust is a decorative item can be placed on top of other blocks. There is a colored version for each vanilla dye.\n\nRight click the top of a solid block to place dust: the block is split into a 4x4 grid and each right click puts one dust into the cell you clicked, using up one dust. Together the dust forms a rune.\n\nRight clicking a placed rune with a piece of paper will create a Runic Pattern holding that rune's pattern (one paper is used up) which you can then use to easily copy patterns onto other blocks. Right clicking the top of a solid block with a Runic Pattern places a copy of the rune and uses up one matching dust per cell from your inventory (cells without dust stay empty, creative mode needs none). Sneak and right click with a Runic Pattern to turn it back into paper.\n\nLeft clicking a rune removes all of it and drops its dust.",
   "keywords": [
     "Dust",
-    "Runic"
+    "Pattern",
+    "Rune",
+    "Runic",
+    "Runic Pattern"
   ],
   "images": [
     "images/runic-dust-1.png"
   ],
-  "recipe_images": [
-    "images/crafting-runic-dust.png"
-  ],
   "videos": [
     "videos/runic-dust-2.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Obtain",
+      "value": "Crafted from clay, Luminous Powder and a dye (see recipe)"
+    },
+    {
+      "label": "Colors",
+      "value": "16, one for each vanilla dye"
+    },
+    {
+      "label": "Grid",
+      "value": "4x4 cells per block, one dust per cell"
+    },
+    {
+      "label": "Config",
+      "value": "FlatRunes (visual), default false - replaces the noisy texture with a flat one"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "clay_ball",
+          "luminous_powder",
+          {
+            "key": "dye",
+            "label": "Any Dye"
+          }
+        ],
+        [
+          null,
+          null,
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "rune_dust",
+        "count": 8,
+        "label": "Runic Dust"
+      },
+      "note": "Shapeless: the ingredients can be placed anywhere in the crafting grid. The dye decides the color; all 16 dye colors work."
+    }
   ]
 }

@@ -1,17 +1,76 @@
 {
   "title": "Spectre Illuminator",
   "category": "item",
-  "description": "Right clicking on the ground with this item will spawn a Spectre Illuminator that will light up the whole chunk it has been spawned in. Right click the Illuminator to get back the item and make the chunk dark again.\n\nIf you can't reach the spectre illuminator you can also craft a piece of blackout powder and right click on a block in the illuminated chunk to get it back.",
+  "description": "Right clicking on the ground with this item will spawn a Spectre Illuminator that will light up the whole chunk it has been spawned in. Right click the Illuminator to get back the item and make the chunk dark again.\n\nThe Illuminator first drifts to the middle of the chunk, then lights it up. You can not place one if there already is an Illuminator in the chunk or within 2 blocks of its edge. The light only lasts while the Illuminator is loaded.\n\nIf you can't reach the spectre illuminator you can also craft a piece of blackout powder and right click on a block in the illuminated chunk to get it back: the Illuminator disappears, the chunk goes dark again and the item drops next to the block. The blackout powder is used up.",
   "keywords": [
+    "Blackout Powder",
     "Illuminator",
     "Spectre"
   ],
   "images": [],
-  "recipe_images": [
-    "images/crafting-spectre-illuminator.png",
-    "images/crafting-blackout-powder.png"
-  ],
   "videos": [
     "videos/spectre-illuminator.mp4"
+  ],
+  "properties": [
+    {
+      "label": "Light",
+      "value": "Lights the whole chunk (light level 14) while the Illuminator exists"
+    },
+    {
+      "label": "Limit",
+      "value": "One Illuminator per chunk"
+    },
+    {
+      "label": "Blackout Powder",
+      "value": "Right click a block in the lit chunk to take the Illuminator back (uses one powder)"
+    }
+  ],
+  "recipes": [
+    {
+      "shape": [
+        [
+          "ink_sac",
+          "coal_block",
+          null
+        ],
+        [
+          null,
+          "lapis_lazuli",
+          null
+        ],
+        [
+          null,
+          null,
+          null
+        ]
+      ],
+      "result": {
+        "key": "blackout_powder",
+        "count": 4
+      }
+    },
+    {
+      "shape": [
+        [
+          "ectoplasm",
+          "glowstone_dust",
+          "ectoplasm"
+        ],
+        [
+          "glowstone_dust",
+          "luminous_powder",
+          "glowstone_dust"
+        ],
+        [
+          "ectoplasm",
+          "glowstone_dust",
+          "ectoplasm"
+        ]
+      ],
+      "result": {
+        "key": "spectre_illuminator",
+        "count": 1
+      }
+    }
   ]
 }

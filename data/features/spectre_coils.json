@@ -1,19 +1,127 @@
 {
   "title": "Spectre Coils",
   "category": "block",
-  "description": "Spectre Coils are a way to wirelessly transmit energy across your world. Each player has their own spectre energy buffer which they can fill with energy using a Spectre Energy Injector. Spectre Coils access that buffer and will transmit energy from that buffer into the block they are attached to.\nThe amount of energy they transmit per tick depends on the tier:\n\nNormal: 1024 per Tick Redstone: 4096 per Tick Ender: 20480 per Tick\n\nBoth the Coils and the Injector always access the buffer of the player that placed them. Since they are bound to your player they don't have a range limitation and also work across dimensions.\n\nIn addition there are also Numbered & Genesis Coils. Numbered Coils can be found in dungeon chests and generate 128 Energy per Tick on their own. Genesis Coils are creative mode only and generate 10000000 Energy per Tick.",
+  "description": "Spectre Coils are a way to wirelessly transmit energy across your world. Each player has their own spectre energy buffer which they can fill with energy using a Spectre Energy Injector. Spectre Coils access that buffer and will transmit energy from that buffer into the block they are attached to.\nThe amount of energy they transmit per tick depends on the tier:\n\nNormal: 1024 per Tick Redstone: 4096 per Tick Ender: 20480 per Tick\n\nBoth the Coils and the Injector always access the buffer of the player that placed them. Since they are bound to your player they don't have a range limitation and also work across dimensions.\n\nIn addition there are also Numbered & Genesis Coils. Numbered Coils can be found in dungeon, abandoned mineshaft and end city chests (they cannot be crafted) and generate 128 Energy per Tick on their own, without using your buffer. Genesis Coils are creative mode only and generate 10000000 Energy per Tick.\n\nA Coil has to be attached to a block that can receive energy and breaks off when there is none behind it.",
   "keywords": [
     "Coils",
-    "Spectre"
+    "Numbered Coil",
+    "Spectre",
+    "Spectre Energy Injector"
   ],
   "images": [
     "images/spectre-coils.png"
   ],
-  "recipe_images": [
-    "images/crafting-spectre-energy-injector.png",
-    "images/crafting-spectre-coils-normal.png",
-    "images/crafting-spectre-coils-redstone.png",
-    "images/crafting-spectre-coils-ender.png"
+  "videos": [],
+  "properties": [
+    {
+      "label": "Tiers",
+      "value": "Normal 1024, Redstone 4096, Ender 20480 per tick from your buffer; Numbered 128 per tick on its own; Genesis creative only"
+    },
+    {
+      "label": "Numbered Coil",
+      "value": "Found in dungeon, abandoned mineshaft and end city chests"
+    },
+    {
+      "label": "Config",
+      "value": "NumberedSpectreCoils (loot), default true - turns the chest loot on or off"
+    },
+    {
+      "label": "Attach",
+      "value": "Needs a block that accepts energy behind it"
+    }
   ],
-  "videos": []
+  "recipes": [
+    {
+      "shape": [
+        [
+          "stable_enderpearl",
+          "spectre_string",
+          "ender_pearl"
+        ],
+        [
+          "spectre_string",
+          "spectre_coil_redstone",
+          "spectre_string"
+        ],
+        [
+          "ender_pearl",
+          "spectre_string",
+          "stable_enderpearl"
+        ]
+      ],
+      "result": {
+        "key": "spectre_coil_ender",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "spectre_string",
+          "obsidian"
+        ],
+        [
+          "obsidian",
+          "spectre_ingot",
+          "glass"
+        ],
+        [
+          "obsidian",
+          "spectre_string",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "spectre_coil_normal",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "redstone_block",
+          "spectre_string",
+          "redstone"
+        ],
+        [
+          "spectre_string",
+          "spectre_coil_normal",
+          "spectre_string"
+        ],
+        [
+          "redstone",
+          "spectre_string",
+          "redstone_block"
+        ]
+      ],
+      "result": {
+        "key": "spectre_coil_redstone",
+        "count": 1
+      }
+    },
+    {
+      "shape": [
+        [
+          "obsidian",
+          "spectre_lens",
+          "obsidian"
+        ],
+        [
+          "spectre_string",
+          "beacon",
+          "spectre_string"
+        ],
+        [
+          "obsidian",
+          "spectre_string",
+          "obsidian"
+        ]
+      ],
+      "result": {
+        "key": "spectre_energy_injector",
+        "count": 1
+      }
+    }
+  ]
 }
