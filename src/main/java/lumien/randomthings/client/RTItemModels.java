@@ -62,9 +62,11 @@ public final class RTItemModels
 		});
 		modBus.addListener((RegisterConditionalItemModelPropertyEvent event) -> {
 			event.register(id("filled"), Filled.CODEC);
+			event.register(id("fluid_filled"), FluidFilled.CODEC);
 			event.register(id("recording"), Recording.CODEC);
 		});
 		modBus.addListener((RegisterColorHandlersEvent.ItemTintSources event) -> event.register(id("tint"), Tint.CODEC));
+		modBus.addListener((RegisterColorHandlersEvent.ItemTintSources event) -> event.register(id("fluid"), FluidTint.CODEC));
 		modBus.addListener((RegisterItemModelsEvent event) -> event.register(id("portkey"), PortkeyModel.CODEC));
 	}
 
@@ -224,6 +226,90 @@ public final class RTItemModels
 
 		@Override
 		public MapCodec<Filled> type()
+		{
+			return CODEC;
+		}
+	}
+
+	/** True while an Ender Bucket holds a fluid: the item definition then switches to the model with the fluid layer. */
+	public static final class FluidFilled implements ConditionalItemModelProperty
+	{
+		public static final MapCodec<FluidFilled> CODEC = MapCodec.unit(FluidFilled::new);
+
+		@Override
+		public boolean get(ItemStack stack, ClientLevel world, LivingEntity entity, int seed, ItemDisplayContext context)
+		{
+			net.neoforged.neoforge.fluids.SimpleFluidContent content = stack.get(lumien.randomthings.lib.ModDataComponents.FLUID);
+			return content != null && !content.isEmpty();
+		}
+
+		@Override
+		public MapCodec<FluidFilled> type()
+		{
+			return CODEC;
+		}
+	}
+
+	/**
+	 * Colours the fluid layer of a filled Ender Bucket: the average colour of the fluid's still texture times the fluid's own tint, so water, lava and any modded
+	 * fluid show up in their own colour without a model per fluid.
+	 */
+	public static final class FluidTint implements ItemTintSource
+	{
+		public static final MapCodec<FluidTint> CODEC = MapCodec.unit(FluidTint::new);
+
+		private static final java.util.Map<ResourceLocation, Integer> AVERAGES = new java.util.HashMap<>();
+
+		@Override
+		public int calculate(ItemStack stack, ClientLevel level, LivingEntity entity)
+		{
+			net.neoforged.neoforge.fluids.SimpleFluidContent content = stack.get(lumien.randomthings.lib.ModDataComponents.FLUID);
+
+			if (content == null || content.isEmpty())
+			{
+				return 0xFFFFFFFF;
+			}
+
+			net.neoforged.neoforge.fluids.FluidStack fluid = content.copy();
+			net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions extensions = net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions.of(fluid.getFluid());
+			int average = AVERAGES.computeIfAbsent(extensions.getStillTexture(fluid), FluidTint::average);
+			int tint = extensions.getTintColor(fluid);
+			int r = (tint >> 16 & 0xFF) * (average >> 16 & 0xFF) / 255;
+			int g = (tint >> 8 & 0xFF) * (average >> 8 & 0xFF) / 255;
+			int b = (tint & 0xFF) * (average & 0xFF) / 255;
+			return 0xFF000000 | r << 16 | g << 8 | b;
+		}
+
+		/** Mean colour of the texture's first animation frame (the atlas keeps the whole strip). */
+		private static int average(ResourceLocation texture)
+		{
+			net.minecraft.client.renderer.texture.SpriteContents contents = Minecraft.getInstance().getModelManager().getAtlas(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS).getSprite(texture).contents();
+			com.mojang.blaze3d.platform.NativeImage image = contents.getOriginalImage();
+			long r = 0, g = 0, b = 0, n = 0;
+
+			for (int y = 0; y < contents.height(); y++)
+			{
+				for (int x = 0; x < contents.width(); x++)
+				{
+					int pixel = image.getPixel(x, y);
+
+					if ((pixel >>> 24) == 0)
+					{
+						continue;
+					}
+
+					r += pixel >> 16 & 0xFF;
+					g += pixel >> 8 & 0xFF;
+					b += pixel & 0xFF;
+					n++;
+				}
+			}
+
+			return n == 0 ? 0xFFFFFF : (int) (r / n) << 16 | (int) (g / n) << 8 | (int) (b / n);
+		}
+
+		@Override
+		public MapCodec<FluidTint> type()
 		{
 			return CODEC;
 		}

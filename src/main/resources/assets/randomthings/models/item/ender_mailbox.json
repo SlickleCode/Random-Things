@@ -1,3 +1,11 @@
 {
-  "parent": "randomthings:block/ender_mailbox_idle"
+  "parent": "randomthings:block/ender_mailbox_idle",
+  "display": {
+    "gui": { "rotation": [30, 225, 0], "translation": [0, -2.6, 0], "scale": [0.58, 0.58, 0.58] },
+    "ground": { "translation": [0, 1, 0], "scale": [0.28, 0.28, 0.28] },
+    "fixed": { "translation": [0, -2.6, 0], "scale": [0.58, 0.58, 0.58] },
+    "thirdperson_righthand": { "rotation": [75, 45, 0], "translation": [0, 2.5, 2], "scale": [0.34, 0.34, 0.34] },
+    "firstperson_righthand": { "rotation": [0, 45, 0], "translation": [0, -1, 0], "scale": [0.4, 0.4, 0.4] },
+    "firstperson_lefthand": { "rotation": [0, 225, 0], "translation": [0, -1, 0], "scale": [0.4, 0.4, 0.4] }
+  }
 }

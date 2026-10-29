@@ -1,54 +1,29 @@
 package lumien.randomthings.client.renderer;
 
-import net.minecraft.world.item.ItemDisplayContext;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import lumien.randomthings.entity.TimeAcceleratorEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
-import org.joml.Vector3f;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.core.Direction;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 
 /**
- * Draws the Time in a Bottle item icon as a camera-facing billboard on all 6
- * faces of the target block, close to each face's own surface - per user
- * request, 2026-09-27 ("make every side have the floating icon... closer to
- * the surface"). Replaces a brief first pass that reused vanilla's own
- * {@code SpriteRenderer} directly, which can only billboard at one fixed
- * position - fine for a single marker, not for "every side." The per-icon
- * transform sequence below (translate, rescale-normal, scale, the same
- * three rotations, then the item render call itself) is copied from {@code
- * SpriteRenderer#doRender} (confirmed via {@code javap -c}) so each of the
- * 6 icons billboards identically to how vanilla's own item-entity rendering
- * does it, just repeated once per {@link Direction} with a small offset
- * instead of once at the entity's own position.
+ * Draws the spinning wheel of 1.12.2's {@code RenderTimeAccelerator} on every face of the accelerated block: more rings the higher the time rate (see
+ * {@link TimeWheel}, which holds the geometry and colours and is the same file on every branch). It replaces the floating Time in a Bottle icons, which the
+ * 1.14 port had drawn instead of the wheel.
  */
 public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAcceleratorEntity, TimeAcceleratorEntityRenderer.State> {
-    /** The icon of the entity's item, resolved once per frame in {@link #extractRenderState}. */
     public static class State extends net.minecraft.client.renderer.entity.state.EntityRenderState {
-        public final net.minecraft.client.renderer.item.ItemStackRenderState item = new net.minecraft.client.renderer.item.ItemStackRenderState();
+        public int timeRate;
     }
 
-    /** How far past the block's own half-width (0.5) each icon sits. */
-    private static final float SURFACE_GAP = 0.05F;
-
-    private final net.minecraft.client.renderer.item.ItemModelResolver itemModelResolver;
-
-    public TimeAcceleratorEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager)  {
+    public TimeAcceleratorEntityRenderer(net.minecraft.client.renderer.entity.EntityRendererProvider.Context renderManager) {
         super(renderManager);
-
-        this.itemModelResolver = renderManager.getItemModelResolver();
 
         this.shadowRadius = 0F;
     }
@@ -62,21 +37,36 @@ public class TimeAcceleratorEntityRenderer extends EntityRenderer<TimeAccelerato
     public void extractRenderState(TimeAcceleratorEntity entity, State state, float partialTicks) {
         super.extractRenderState(entity, state, partialTicks);
 
-        this.itemModelResolver.updateForNonLiving(state.item, entity.getItem(), ItemDisplayContext.GROUND, entity);
+        state.timeRate = entity.getTimeRate();
     }
 
     @Override
     public void render(State state, PoseStack matrixStack, MultiBufferSource buffer, int packedLight) {
-        float offset = 0.5F + SURFACE_GAP;
+        float progress = 2 * state.ageInTicks;
+        float[][] faces = TimeWheel.build(state.timeRate, progress);
+        Direction[] directions = Direction.values();
+        // translucent, POSITION_COLOR, no culling, standard alpha blending
+        VertexConsumer builder = buffer.getBuffer(RenderType.debugQuads());
 
-        for (Direction direction : Direction.values()) {
+        for (int face = 0; face < 6; face++) {
+            Direction direction = directions[face];
+            float[] triangles = faces[face];
+
             matrixStack.pushPose();
-            matrixStack.translate(direction.getStepX() * offset, direction.getStepY() * offset, direction.getStepZ() * offset);
-            // billboard: face the camera, then flip like the 1.14.4 renderer did
-            matrixStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-            matrixStack.mulPose(Axis.YP.rotationDegrees(180.0F));
+            matrixStack.translate(direction.getStepX() * TimeWheel.OFFSET, direction.getStepY() * TimeWheel.OFFSET, direction.getStepZ() * TimeWheel.OFFSET);
+            // 1.12.2: rotate(90, z, y, x) - the figure lies in the XZ plane and is turned so that it faces outwards - then spin around its own normal
+            matrixStack.mulPose(new Quaternionf().rotationAxis((float) Math.toRadians(90), direction.getStepZ(), direction.getStepY(), direction.getStepX()));
+            matrixStack.mulPose(Axis.YP.rotationDegrees(progress));
 
-            state.item.render(matrixStack, buffer, 15728880, OverlayTexture.NO_OVERLAY);
+            Matrix4f pose = matrixStack.last().pose();
+
+            for (int i = 0; i + 2 * TimeWheel.STRIDE < triangles.length; i += 3 * TimeWheel.STRIDE) {
+                // the quad type takes four vertices: the last one is repeated, which leaves a triangle
+                for (int v = 0; v < 4; v++) {
+                    int at = i + Math.min(v, 2) * TimeWheel.STRIDE;
+                    builder.addVertex(pose, triangles[at], triangles[at + 1], triangles[at + 2]).setColor(triangles[at + 3], triangles[at + 4], triangles[at + 5], triangles[at + 6]);
+                }
+            }
 
             matrixStack.popPose();
         }
