@@ -29,7 +29,7 @@ overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch
 **Not done:** Peace Candle churches in every village type (blocked). Rows AF1-AF12 in `TESTING_CHECKLIST.md` (section G); details in `docs/project/audit-fixes-2026-10-29.md`.
 
 **Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Numbered Spectre Coils and Blackout Powder; fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions,
-Position Filter dimensions, Observer reload output and the Analog Emitter input side. **Blocked on this branch:** the Luminous Powder recipe (no proven "is enchanted" call for 1.21.1 item components; the glow rendering is out of scope anyway). Rows AG1-AG11 in `TESTING_CHECKLIST.md` (section H).
+Position Filter dimensions, Observer reload output and the Analog Emitter input side. **Blocked on this branch:** the Luminous Powder recipe (no proven "is enchanted" call for 1.21.1 item components; the glow rendering is out of scope anyway). Rows AG1-AG11 in `TESTING_CHECKLIST.md` The Magic Bean stalk now breaks blocks in its way (row AG12). What the cloud session could not do: `docs/project/cloud-session-limits-2026-10-29.md`. (section H).
 
 ## Current state on this branch (`1.21.1`, 2026-10-22)
 
