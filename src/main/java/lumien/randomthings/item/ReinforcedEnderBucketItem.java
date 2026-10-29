@@ -181,7 +181,19 @@ public class ReinforcedEnderBucketItem extends Item implements lumien.randomthin
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                int filled = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.fill(drained, FluidAction.EXECUTE)).orElse(0);
+                // drainSource already removed the source block: put it back unless the whole amount fits (other fluid / too little room)
+                final FluidStack candidate = drained;
+                int fits = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.fill(candidate, FluidAction.SIMULATE)).orElse(0);
+
+                if (fits < drained.getAmount()) {
+                    world.setBlock(next, state, 3);
+                    drained = null;
+                }
+            }
+
+            if (drained != null) {
+                final FluidStack toFill = drained;
+                int filled = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).map(handler -> handler.fill(toFill, FluidAction.EXECUTE)).orElse(0);
 
                 if (filled > 0) {
                     pickedAny = true;

@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.Level;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -38,7 +37,8 @@ public class EnderLetterHandler extends SavedData {
     }
 
     public static EnderLetterHandler get(Level world) {
-        return ((ServerLevel) world).getDataStorage().computeIfAbsent(EnderLetterHandler::loadFrom, EnderLetterHandler::new, ID);
+        // always the overworld's store so letters and mailboxes work across dimensions
+        return world.getServer().getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(EnderLetterHandler::loadFrom, EnderLetterHandler::new, ID);
     }
 
     public ItemStackHandler getOrCreateInventoryForPlayer(UUID playerUUID) {
