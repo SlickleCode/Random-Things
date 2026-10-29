@@ -17,6 +17,13 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 `source env/activate.sh` (pins JDK 17 on this branch; JDK 8 on 1.14.4 / 1.16.5), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
 **Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`, `1.18.2/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
+## Audit bug fixes (2026-10-29, unverified)
+
+The 12 fixes of the wiki audit (1.14.4 commit `03be7448`) were mirrored here **without a compiler or Forge jars (no JDK 17 / network in that session) - build, run both suites and retest before trusting them**; every call was copied from existing code on this branch:
+Redstone Tool plain-click linking, Online Detector case sensitivity, Lotus Seeds on farmland only, Peace Candle denies slimes, Spectre Lens per player per dimension, Ender Letter store always the
+overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch `setChanged`, Potion Vaporizer drops its contents, Ender Bucket drain check, Eclipsed Clock target time, Stable Ender Pearl guard.
+**Not done:** Peace Candle churches in every village type (blocked). Rows AF1-AF12 in `TESTING_CHECKLIST.md` section G; details in `docs/project/audit-fixes-2026-10-29.md`.
+
 ## Current state on this branch (`1.18.2`, 2026-10-15) - PORT IN PROGRESS
 
 - **Branch:** cut from `1.16.5` (`c4a6a04`) on 2026-10-15; toolchain Forge 1.18.2-40.3.12 / ForgeGradle 5.1 / Gradle 7.4.2 / JDK 17 (`source env/activate.sh` finds `~/.jdks/temurin-17*`), official Mojang mappings. Plan, milestone status and every adaptation: `docs/migration/plans/1.18.2-port-plan.md`; the rename/conversion tools: `docs/migration/tools/README.md`.

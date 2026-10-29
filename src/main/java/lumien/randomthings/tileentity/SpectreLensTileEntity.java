@@ -65,7 +65,7 @@ public class SpectreLensTileEntity extends BlockEntity {
         super.setRemoved();
 
         if (owner != null && !level.isClientSide) {
-            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(level.dimension().location().toString(), owner);
         }
     }
 
@@ -86,7 +86,7 @@ public class SpectreLensTileEntity extends BlockEntity {
                     MobEffect primary = (MobEffect) PRIMARY_EFFECT.get(beacon);
                     MobEffect secondary = (MobEffect) SECONDARY_EFFECT.get(beacon);
 
-                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beaconLevels, primary, secondary);
+                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(level.dimension().location().toString(), owner, beaconLevels, primary, secondary);
                     return;
                 }
             } catch (IllegalAccessException e) {
@@ -94,7 +94,7 @@ public class SpectreLensTileEntity extends BlockEntity {
             }
         }
 
-        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(level.dimension().location().toString(), owner);
     }
 
     @Override

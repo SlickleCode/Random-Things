@@ -1,5 +1,6 @@
 package lumien.randomthings.tileentity;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.state.BlockState;
 
 import lumien.randomthings.util.WeakSets;
@@ -44,6 +45,20 @@ public class SlimeCubeTileEntity extends BlockEntity
 	{
 		super.setRemoved();
 		cubes.remove(this);
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag compound)
+	{
+		super.saveAdditional(compound);
+		compound.putBoolean("powered", powered);
+	}
+
+	@Override
+	public void load(CompoundTag compound)
+	{
+		super.load(compound);
+		this.powered = compound.getBoolean("powered");
 	}
 
 	public boolean isPowered()
