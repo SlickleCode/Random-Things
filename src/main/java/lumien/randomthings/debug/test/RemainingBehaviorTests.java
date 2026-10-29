@@ -217,6 +217,32 @@ final class RemainingBehaviorTests
 			c.check(arrived, "the player must arrive at the other fireplace (x=" + landedX + ")");
 		}));
 
+		tests.add(RTTest.named("behavior.floo.a_duplicate_sign_name_keeps_the_sign_and_the_bricks").run(c -> {
+			c.floor();
+			String name = "Dup" + (new Random().nextInt(9000) + 1000);
+			c.setQuiet(c.at(0, 1, 0), Blocks.BRICKS.defaultBlockState());
+			c.setQuiet(c.at(6, 1, 0), Blocks.BRICKS.defaultBlockState());
+			ItemStack sign = null;
+
+			for (int x : new int[] { 0, 6 })
+			{
+				sign = new ItemStack(ModItems.FLOO_SIGN);
+				sign.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(x == 0 ? name : name.toUpperCase()));
+				c.player.setItemInHand(InteractionHand.MAIN_HAND, sign);
+				BlockPos brick = c.at(x, 1, 0);
+				ModItems.FLOO_SIGN.useOn(new UseOnContext(c.player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atLowerCornerOf(brick), Direction.NORTH, brick, false)));
+			}
+
+			boolean secondStillBrick = c.world.getBlockState(c.at(6, 1, 0)).getBlock() == Blocks.BRICKS;
+			boolean signKept = sign.getCount() == 1 || c.player.getAbilities().instabuild;
+
+			FlooNetworkHandler.get(c.world).brokenMaster(c.tile(c.at(0, 1, 0), FlooBrickTileEntity.class).getFirePlaceUid());
+			c.player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+
+			c.check(secondStillBrick, "the brick of the duplicate-named fireplace must not be converted");
+			c.check(signKept, "the sign must not be consumed by a duplicate name");
+		}));
+
 		// ---- Blazing Fire ---------------------------------------------------------------------
 		tests.add(RTTest.named("coremod.blazing_fire.catches_flammable_blocks_about_four_times_as_often_as_vanilla_fire").run(c -> {
 			c.floor();

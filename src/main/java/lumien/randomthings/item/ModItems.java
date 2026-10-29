@@ -172,6 +172,9 @@ public class ModItems {
     @ObjectHolder(registryName = "minecraft:item", value = "randomthings:spectre_anchor")
     public static Item SPECTRE_ANCHOR;
 
+    @ObjectHolder(registryName = "minecraft:item", value = "randomthings:luminous_powder")
+    public static Item LUMINOUS_POWDER;
+
     @ObjectHolder(registryName = "minecraft:item", value = "randomthings:redstone_activator")
     public static Item REDSTONE_ACTIVATOR;
 
@@ -222,6 +225,7 @@ public class ModItems {
         registry.register("spectre_key", new SpectreKeyItem(new Item.Properties().stacksTo(1)));
         registry.register("biome_sensor", new Item(new Item.Properties()));
         registry.register("luminous_powder", new Item(new Item.Properties()));
+        registry.register("blackout_powder", new BlackoutPowderItem(new Item.Properties()));
 
         registry.register("bean_stew", new BeanStewItem(new Item.Properties().stacksTo(1).food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.6F).build())));
         registry.register("blaze_and_steel", new BlazeAndSteelItem(new Item.Properties().stacksTo(1).durability(64)));
@@ -403,6 +407,7 @@ public class ModItems {
 
         registerItemForBlock(registry, ModBlocks.SPECTRE_ENERGY_INJECTOR);
         registerItemForBlock(registry, ModBlocks.SPECTRE_COIL_NORMAL, ModBlocks.SPECTRE_COIL_REDSTONE, ModBlocks.SPECTRE_COIL_ENDER, ModBlocks.SPECTRE_COIL_GENESIS);
+        registry.register("spectre_coil_number", new lumien.randomthings.item.block.NumberedSpectreCoilBlockItem(ModBlocks.SPECTRE_COIL_NUMBER, new Item.Properties()));
 
         registry.register("spectre_charger_normal", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.NORMAL));
         registry.register("spectre_charger_redstone", new SpectreChargerItem(new Item.Properties().stacksTo(1), SpectreChargerItem.Tier.REDSTONE));

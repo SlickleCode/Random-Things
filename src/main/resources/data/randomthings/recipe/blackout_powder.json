@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DG",
+    " M"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:coal_block"
+    },
+    "D": {
+      "item": "minecraft:ink_sac"
+    },
+    "M": {
+      "item": "minecraft:lapis_lazuli"
+    }
+  },
+  "result": {
+    "id": "randomthings:blackout_powder",
+    "count": 4
+  }
+}

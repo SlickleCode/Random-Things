@@ -21,10 +21,9 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
  * on the block's supporting face (an external machine from another mod). {@code GENESIS} coils skip the
  * pool entirely and generate a flat, huge amount directly (matching 1.12.2's own {@code 10000000}/tick).
  *
- * <p>{@code NUMBER} coils (a config-gated, dungeon-loot-table-only tier in 1.12.2 - see
- * {@code LootHandler}/{@code Worldgen.NUMBERED_COILS}) are deliberately not ported: they need real
- * loot-table-injection infrastructure this port hasn't built for anything yet, and are a separate,
- * lower-value worldgen concern from the energy network itself. Flag for a future slice if wanted.
+ * <p>{@code NUMBER} coils (the dungeon-loot-only tier, injected by {@code LootHandler} behind the
+ * {@code NumberedSpectreCoils} config option) also skip the pool and generate their flat {@code rate}
+ * (128, 1.12.2's {@code NumberedSpectreCoilEnergy} default) per tick, like 1.12.2.
  */
 public class SpectreCoilTileEntity extends BlockEntity {
     private UUID owner;
@@ -74,6 +73,11 @@ public class SpectreCoilTileEntity extends BlockEntity {
 
         if (type == CoilType.GENESIS) {
             targetStorage.receiveEnergy(10000000, false);
+            return;
+        }
+
+        if (type == CoilType.NUMBER) {
+            targetStorage.receiveEnergy(type.rate, false);
             return;
         }
 
