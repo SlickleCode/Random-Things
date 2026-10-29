@@ -8,6 +8,7 @@ Start with [`../../PORTING_PLAN.md`](../../PORTING_PLAN.md).
 | [toolchain.md](toolchain.md) | repo, JDK/Gradle/Forge pins, mapped jar for `javap`, dev tooling summary |
 | [scope-decisions.md](scope-decisions.md) | binding user decisions, deliberate divergences from 1.12.2, standing simplifications |
 | [audit-fixes-2026-10-29.md](audit-fixes-2026-10-29.md) | bug fixes from the 2026-10-29 wiki audit, written without a compiler (unverified), with per-fix notes; round 2 (missing wiki features: Spectre Sapling, Runic Pattern, Luminous Powder, Numbered Coil, Blackout Powder, plus 6 more fixes) appended |
+| [cloud-session-limits-2026-10-29.md](cloud-session-limits-2026-10-29.md) | what the 2026-10-29 cloud session could not do (no compiler, jars or game), what is unproven and what to run first |
 | [architecture-conventions.md](architecture-conventions.md) | how blocks/items/TEs/GUIs/network/config are organised in this port |
 | [coremods.md](coremods.md) | the JS transformers, what each patches and why (Mixin is dead) |
 | [api-gotchas-1.14.4.md](api-gotchas-1.14.4.md) | Forge 28.2.26 / 1.14.4 API surprises |
