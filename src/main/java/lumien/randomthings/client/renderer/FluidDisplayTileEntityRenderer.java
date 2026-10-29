@@ -75,6 +75,11 @@ public class FluidDisplayTileEntityRenderer extends TileEntityRenderer<FluidDisp
         }
 
         Minecraft.getInstance().getTextureManager().bindTexture(AtlasTexture.LOCATION_BLOCKS_TEXTURE);
+        // Real bug, found 2026-10-18 on 1.18.2 (same here): the cube was drawn over blocks in front of it, so depth state is set explicitly
+        // instead of trusting whatever the previous direct draw left behind
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthFunc(org.lwjgl.opengl.GL11.GL_LEQUAL);
+        RenderSystem.depthMask(true);
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         // Real bug, found 2026-09-28 (same category as RuneBaseTileEntityRenderer's

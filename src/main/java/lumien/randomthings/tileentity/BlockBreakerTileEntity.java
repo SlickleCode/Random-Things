@@ -219,7 +219,7 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         super.read(tileState, compound);
 
         if (compound.contains("uuid")) {
-            uuid = NBTUtil.readUniqueId(compound.getCompound("uuid"));
+            uuid = lumien.randomthings.util.UuidTag.read(compound.get("uuid"));
         }
         mining = compound.getBoolean("mining");
         canMine = compound.getBoolean("canMine");

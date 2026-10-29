@@ -45,10 +45,10 @@ public class FlooFireplace {
 
     public void read(CompoundNBT compound) {
         if (compound.contains("creatorPlayerUUID")) {
-            this.creatorPlayerUUID = NBTUtil.readUniqueId(compound.getCompound("creatorPlayerUUID"));
+            this.creatorPlayerUUID = lumien.randomthings.util.UuidTag.read(compound.get("creatorPlayerUUID"));
         }
 
-        this.masterUUID = NBTUtil.readUniqueId(compound.getCompound("masterUUID"));
+        this.masterUUID = lumien.randomthings.util.UuidTag.read(compound.get("masterUUID"));
 
         if (compound.contains("name")) {
             this.name = compound.getString("name");

@@ -77,7 +77,7 @@ public class FlooBrickTileEntity extends TileEntity {
         this.amMaster = compound.getBoolean("amMaster");
 
         if (amMaster) {
-            this.uuid = NBTUtil.readUniqueId(compound.getCompound("uuid"));
+            this.uuid = lumien.randomthings.util.UuidTag.read(compound.get("uuid"));
             this.facing = Direction.byIndex(compound.getInt("facing"));
 
             children.clear();
@@ -87,7 +87,7 @@ public class FlooBrickTileEntity extends TileEntity {
                 children.add(NBTUtil.readBlockPos(childrenTagList.getCompound(i)));
             }
         } else if (compound.contains("masterUUID")) {
-            this.masterUUID = NBTUtil.readUniqueId(compound.getCompound("masterUUID"));
+            this.masterUUID = lumien.randomthings.util.UuidTag.read(compound.get("masterUUID"));
         }
     }
 

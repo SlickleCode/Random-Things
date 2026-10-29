@@ -3,6 +3,8 @@ package lumien.randomthings.client;
 import lumien.randomthings.block.StainedBrickBlock;
 import lumien.randomthings.block.AdvancedItemCollectorBlock;
 import lumien.randomthings.block.BeanStalkBlock;
+import lumien.randomthings.block.BeanSproutBlock;
+import lumien.randomthings.block.LotusBlock;
 import lumien.randomthings.block.BiomeRadarBlock;
 import lumien.randomthings.block.BlazingFireBlock;
 import lumien.randomthings.block.ColoredGrassBlock;
@@ -73,6 +75,8 @@ public class RenderLayerSetup
             }
             else if (block instanceof AdvancedItemCollectorBlock ||
                 block instanceof BeanStalkBlock ||
+                block instanceof BeanSproutBlock ||
+                block instanceof LotusBlock ||
                 block instanceof BlazingFireBlock ||
                 block instanceof BiomeRadarBlock ||
                 block instanceof ColoredGrassBlock ||

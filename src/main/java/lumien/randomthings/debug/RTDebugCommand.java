@@ -89,6 +89,32 @@ public class RTDebugCommand
 
 									return 1;
 								})))
+				.then(Commands.literal("fixture")
+						.then(Commands.literal("build").executes(context -> {
+							for (String line : FixtureWorld.build(context.getSource().asPlayer()))
+							{
+								lumien.randomthings.debug.RTDebug.log("fixture: {}", line);
+								context.getSource().sendFeedback(new StringTextComponent("[rtdebug fixture] " + line), false);
+							}
+							return 1;
+						}))
+						.then(Commands.literal("verify").executes(context -> {
+							java.util.List<String> lines = FixtureWorld.verify(context.getSource().getWorld());
+							try
+							{
+								java.nio.file.Files.write(java.nio.file.Paths.get("randomthings_fixture.txt"), (String.join("\n", lines) + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+							}
+							catch (java.io.IOException e)
+							{
+								lumien.randomthings.debug.RTDebug.log("fixture: cannot write the report: {}", e);
+							}
+							for (String line : lines)
+							{
+								lumien.randomthings.debug.RTDebug.log("fixture: {}", line);
+								context.getSource().sendFeedback(new StringTextComponent("[rtdebug fixture] " + line), false);
+							}
+							return 1;
+						})))
 				.then(Commands.literal("manual")
 						.executes(context -> {
 							net.minecraft.entity.player.ServerPlayerEntity player = context.getSource().asPlayer();
