@@ -6,11 +6,12 @@ For you to fix elsewhere. NOTHING here is documented on the wiki (the wiki has n
 
 ## Mechanical checks (all 8 branches)
 Identical on every branch: registered item/block lang keys, the 20 config keys and defaults, all 222 recipe files (after normalising tag names and the
-1.21 ingredient format) EXCEPT one. Classes missing vs 1.14.4 on every branch: MathUtils, SpectreDimension (replaced by SpectreDimensionType /
+1.21 ingredient format) EXCEPT none (a first run flagged the Super Lubricent Tincture, see Correction). Classes missing vs 1.14.4 on every branch: MathUtils, SpectreDimension (replaced by SpectreDimensionType /
 other), SpiritSpawnEggItem (replaced by the loader's spawn egg class).
 
 ## Recipe
-- Super Lubricent Tincture: 1.14.4 accepts any potion; 1.20.6, 1.21.1, 1.21.4, 1.21.11 require a Water Bottle. (Decide which is intended; the wiki grid shows "Potion".)
+- Correction (false positive): the Super Lubricent Tincture recipe is NOT different. 1.14.4 already requires a Water Bottle (`forge:nbt` ingredient with
+  `Potion:minecraft:water`); the comparison script reduced NBT ingredients to the bare item name, so 1.14.4 looked like "any potion". The wiki shows "Water Bottle".
 
 ## CONFIRMED differences
 1. Magnetic enchantment config (1.21.1, 1.21.4, 1.21.11): `MagneticEnchantment=false` only disables the effect; the enchantment stays in enchanting

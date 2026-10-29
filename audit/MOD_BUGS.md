@@ -9,7 +9,7 @@ The wiki describes the intended behaviour in each case. Sources: `audit/edits/*.
 3. Peace Candle church generation is plains villages only (`PeaceCandleChurchPool`); it should cover every village. Wiki: "village church".
 4. Spectre Lens is keyed per owner UUID in overworld storage and works in any dimension (`SpectreLensHandler.java:25-41`); intended: per player per dimension. Wiki keeps "one lens per dimension".
 5. Advanced Item Collector: hard-coded `MAX_RANGE = 16` (`AdvancedItemCollectorTileEntity.java:45`), no config. Decided: documented as 16, no config. (The original had a config capped at 10.)
-6. Super Lubricent Tincture recipe takes any potion on 1.14.4; it should only take a Water Bottle (newer branches already do). Wiki recipe shows "Water Bottle".
+6. (Withdrawn, not a bug) Super Lubricent Tincture: the 1.14.4 recipe already requires a Water Bottle (`forge:nbt`); my first comparison missed the NBT. Wiki recipe shows "Water Bottle".
 7. Online Detector name matching: code reads case-insensitive (vanilla player lookup); your playtest says it is case sensitive. Wiki: case sensitive. Check which one is real and make code and wiki agree.
 8. Ender Letters / Mailboxes: saved data looks per dimension in code (`EnderLetterHandler` via `ServerWorld.getSavedData()`); your playtest says they work across dimensions. Wiki: works across dimensions.
 9. Rain Shield: 1.14.4 only patches `renderRainSnow` (`GameRendererTransformer.js:26`); 1.16.5+ also patch rain particle/sound hooks. Your playtest says sounds stop on the tested build. Wiki: particles and sounds suppressed.
@@ -21,7 +21,7 @@ The wiki describes the intended behaviour in each case. Sources: `audit/edits/*.
 - Slime Cube: code forces "allow" at any height; the original probably kept the height limit (wiki keeps "any height").
 - Missing config keys compared with the original: `RainShieldRange`, Ancient Furnace area (fixed values documented).
 - Advanced Item Collector wiki/original max range 10 vs 16 (item 5).
-- Imbuing Station, Potion Vaporizer, Inventory Tester do not drop their contents when broken (the original Imbuing Station did).
+- Potion Vaporizer did not drop its contents when broken (FIXED). Correction: the original Imbuing Station and Inventory Tester never dropped items either, so they were left unchanged (an earlier fact sheet was wrong).
 - Notification Interface drops its copied icon stack on break (you verified there is no duplication; nothing recorded further).
 - Reinforced Ender Bucket removes the source block before checking the fluid fits (fluid lost when mixing).
 - Eclipsed Clock: dropped item loses its target time; sneaking from 0 gives a negative target time.
@@ -38,3 +38,16 @@ The wiki describes the intended behaviour in each case. Sources: `audit/edits/*.
 - Spectre Key return trip: `TeleporterTransformer` may build a portal on the return trip (your playtest says the return works; code comment and behaviour should be reconciled).
 
 Version differences (other branches) are in `audit/PARITY_BUGS.md`.
+
+## Status after the code fixes (2026-10-29, all nine branches, written WITHOUT a compiler: build, run the suites and retest AF1-AF12)
+FIXED on every branch (commit "Fix bugs found in the wiki audit", rows AF1-AF12 in each TESTING_CHECKLIST.md): Redstone Tool plain click (items 10), Online Detector case (7),
+Lotus farmland-only (1), Peace Candle vs slimes (2), Spectre Lens per player per dimension (4), Ender Letter store (8), Sound Box / Slime Cube powered saved,
+Advanced Redstone Torch markDirty, Potion Vaporizer drops, Ender Bucket drain check, Eclipsed Clock target time + negative time, Stable Ender Pearl guard.
+Also: the existing Lotus Seeds test was rewritten on every branch for the farmland-only rule.
+NOT FIXED: Peace Candle churches in all villages (3): needs the vanilla village pool and church piece names of desert, savanna, snowy and taiga villages; the repo only references plains.
+NOT A BUG / no change: Advanced Item Collector range (5, decided: 16, no config), Rain Shield sounds (9, your playtest says they stop), Tincture recipe (6, already a Water Bottle),
+Imbuing Station / Inventory Tester drops (the original had none).
+Still open from the "reported" list (not requested): Block Breaker Magnetic config dependency, Redstone Interface lines, Slime Cube height, missing config keys, Floo chunk-unload removal,
+Floo duplicate sign names, Analog Emitter input side, Position Filter dimension ignored by the Advanced Interface/Remote, Observer output on load, Entity Detector empty Custom filter,
+Stable Ender Pearl cross-dimension, and every item in PARITY_BUGS.md.
+Known per-branch limits: 1.21.x fix AF1 only covers the main hand on 1.21.1 / 1.21.4 (1.14.4 also covers the off-hand); every "return PASS lets Item.useOn run" assumption is unverified in game.

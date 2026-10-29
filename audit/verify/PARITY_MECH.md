@@ -82,3 +82,6 @@ classes 386, config keys 20, recipes 222, lang keys 375
 - recipe content differs (1): super_lubricent_tincture: ('randomthings:super_lubricent_tincture', 4, ('item:minecraft:wheat_seeds/item:minecraft:potion', 'item:randomthings:beans/_')) -> ('randomthings:super_lubricent_tincture', 4, ('item:minecraft:wheat_seeds/{"components": {"minecraft:potion_contents": {"potion": "minecraft:water"}}, "items": "minecraft:potion", "neoforge:ingredient_type": "neoforge:components"}', 'item:randomthings:beans/_'))
 - item/block lang keys missing: 0 []
 
+
+
+Correction: the super_lubricent_tincture entries above are a false positive of the normaliser (it dropped the NBT of the 1.14.4 forge:nbt ingredient).

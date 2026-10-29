@@ -38,7 +38,7 @@ A. Conflicts between your playtests (1.14.4) and what the agents read in code. I
    - Rain Shield sounds: you said they stop; P1 found the 1.14.4 hook list only patches the renderer (sounds/particles are patched on 1.16.5+).
    - Redstone Tool: you said linking works; P1 thinks it only links while sneaking (the blocks open their GUI otherwise). The tool page says "right click";
      say if it should say "shift right click".
-B. Super Lubricent Tincture recipe: any potion (1.14.4) or Water Bottle (newer branches)? The wiki grid currently shows "Potion".
+B. (Resolved) Super Lubricent Tincture: not a difference; 1.14.4 already needs a Water Bottle (the script ignored NBT). The wiki shows "Water Bottle".
 C. Possible mod bugs you own (not on the wiki): see PHASE3_REPORT.md (Lotus soil, Peace Candle slimes and plains-only churches, Advanced Item Collector config range,
    Spectre Lens per player, Block Breaker/Magnetic config dependency, Notification Interface no longer a concern, etc.).
 D. Recipe icons: texture download was blocked (403 for minecraft.wiki). 109 recipe ingredient keys show as text labels. Allow `minecraft.wiki` and I can rerun it.
