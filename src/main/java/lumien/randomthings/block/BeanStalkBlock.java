@@ -24,8 +24,9 @@ import net.minecraft.server.level.ServerLevel;
  * Grows upward one segment per scheduled tick (faster for the "magic" bean
  * variant) until it hits the build height limit or something it can't grow
  * through, then - for the magic variant only - caps itself off with a
- * {@link PodBlock}. Simplified from the 1.12.2 version: dropped the
- * self-destroys-into-a-pod-when-blocked edge case only - the {@code isLadder}
+ * {@link PodBlock}. The magic variant also breaks any breakable block in its
+ * way (no drops) and turns into a pod when blocked by an unbreakable one, as
+ * in 1.12.2. Simplified from the 1.12.2 version: the {@code isLadder}
  * override below was previously (incorrectly) dropped too, on the mistaken
  * assumption that the push-while-already-moving-upward behavior in
  * {@link #onEntityCollision} gave an equivalent "climbable" feel. It doesn't:
@@ -90,6 +91,24 @@ public class BeanStalkBlock extends Block
 		}
 
 		BlockState upState = worldIn.getBlockState(up);
+
+		if (strongMagic && !upState.isAir() && !upState.canBeReplaced())
+		{
+			// 1.12.2: the magic stalk breaks any breakable block in its way (no drops),
+			// and turns the current segment into a pod when the block is unbreakable.
+			if (upState.getDestroySpeed(worldIn, up) != -1)
+			{
+				worldIn.levelEvent(2001, up, Block.getId(upState));
+				worldIn.setBlock(up, this.defaultBlockState(), 3);
+				worldIn.scheduleTick(up, this, 1);
+				worldIn.playSound(null, up, this.getSoundType(state).getPlaceSound(), SoundSource.BLOCKS, 1.0F, 1.0F);
+			}
+			else
+			{
+				worldIn.setBlock(pos, ModBlocks.BEAN_POD.defaultBlockState(), 3);
+			}
+			return;
+		}
 
 		if (upState.isAir() || upState.canBeReplaced())
 		{
