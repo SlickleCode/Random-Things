@@ -1,6 +1,7 @@
 package lumien.randomthings.item;
 
 import lumien.randomthings.block.ModBlocks;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.SoundType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -35,7 +36,7 @@ public class LotusSeedsItem extends Item implements IPlantable {
 
         net.minecraft.block.BlockState groundState = world.getBlockState(pos);
 
-        if (!groundState.getBlock().canSustainPlant(groundState, world, pos, Direction.UP, this)) {
+        if (groundState.getBlock() != Blocks.FARMLAND || !groundState.getBlock().canSustainPlant(groundState, world, pos, Direction.UP, this)) {
             return ActionResultType.FAIL;
         }
 

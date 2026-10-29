@@ -154,7 +154,17 @@ public class EnderBucketItem extends Item implements lumien.randomthings.item.IC
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                return finishPickup(player, stack, drained);
+                // drainSource already removed the source block: the bucket holds exactly one bucket and is empty here, but stay safe
+                ItemStack probe = stack.copy();
+                probe.setCount(1);
+                final FluidStack toFill = drained;
+                int fits = probe.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null).map(handler -> handler.fill(toFill, FluidAction.SIMULATE)).orElse(0);
+
+                if (fits >= drained.getAmount()) {
+                    return finishPickup(player, stack, drained);
+                }
+
+                world.setBlockState(next, state, 3);
             }
 
             for (Direction facing : Direction.values()) {

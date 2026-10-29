@@ -60,7 +60,14 @@ public class OnlineDetectorTileEntity extends TileEntity implements ITickableTil
 		{
 			MinecraftServer server = this.world.getServer();
 
-			boolean playerCheck = server != null && !username.isEmpty() && server.getPlayerList().getPlayerByUsername(username) != null;
+			boolean playerCheck = false;
+
+			if (server != null && !username.isEmpty())
+			{
+				// getPlayerByUsername ignores case, so confirm the exact (case sensitive) name afterwards
+				ServerPlayerEntity found = server.getPlayerList().getPlayerByUsername(username);
+				playerCheck = found != null && found.getGameProfile().getName().equals(username);
+			}
 
 			if (playerCheck != playerOnline)
 			{
