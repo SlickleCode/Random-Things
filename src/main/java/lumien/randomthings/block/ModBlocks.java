@@ -259,6 +259,9 @@ public class ModBlocks
 	@ObjectHolder("spectre_coil_ender")
 	public static Block SPECTRE_COIL_ENDER;
 
+	@ObjectHolder("spectre_coil_number")
+	public static Block SPECTRE_COIL_NUMBER;
+
 	@ObjectHolder("spectre_coil_genesis")
 	public static Block SPECTRE_COIL_GENESIS;
 
@@ -409,6 +412,7 @@ public class ModBlocks
 		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.NORMAL).setRegistryName("spectre_coil_normal"));
 		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.REDSTONE).setRegistryName("spectre_coil_redstone"));
 		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.ENDER).setRegistryName("spectre_coil_ender"));
+		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.NUMBER).setRegistryName("spectre_coil_number"));
 		registry.register(new SpectreCoilBlock(SpectreCoilBlock.CoilType.GENESIS).setRegistryName("spectre_coil_genesis"));
 
 		registry.register(new SpectreLensBlock().setRegistryName("spectre_lens"));

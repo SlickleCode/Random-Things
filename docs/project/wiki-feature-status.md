@@ -106,8 +106,8 @@ consolidated ASM/coremod batch in the plan file for exactly which patch and why)
 | Sound Recorder | ItemSoundRecorder | DONE-UNTESTED | No |
 | Spectre Anchor | ItemSpectreAnchor, SpectreAnchorCombineRecipe | DONE-UNTESTED (#281-282, 2026-09-27) | Yes (new `PlayerEntityTransformer` coremod redirecting `PlayerEntity.dropInventory()`'s call to `PlayerInventory.dropAllItems()` into `AsmHandler.dropAllItemsExceptAnchored` - `PlayerDropsEvent` no longer exists in this Forge version and `ItemTossEvent`/`LivingDropsEvent` don't cover the death-drop code path, confirmed via `javap -c` on all three before concluding a coremod was needed; verified via the standalone bytecode-verification harness against a full Gradle-resolved runtime classpath, and via a `runClient` boot smoke test) |
 | Spectre Charger | BlockSpectreEnergyInjector, ItemSpectreCharger | DONE-UNTESTED (#307-311, 2026-09-28) | No (dropped a purely cosmetic 3D mesh for both blocks - see the checklist slice's own note) |
-| Spectre Coils | BlockSpectreCoil, SpectreCoilHandler | DONE-UNTESTED, NORMAL/REDSTONE/ENDER/GENESIS only (#307-309, 2026-09-28) | No (same mesh simplification; also dropped the per-tier color tint - no `BlockColor` infra yet) |
-| Spectre Illuminator | SpectreIlluminatorItem, SpectreIlluminatorEntity | DONE-UNTESTED (#272-274, 2026-09-27) | Yes (new `IBlockReaderTransformer` coremod - `Block.getLightValue`'s 3-arg overload was removed in this Forge version, see `AsmHandler#overrideLightValue`'s javadoc) |
+| Spectre Coils | BlockSpectreCoil, SpectreCoilHandler | DONE-UNTESTED (#307-309, 2026-09-28); NUMBER tier (loot-only, 128 FE/t) ported 2026-10-29, unverified | No (same mesh simplification; also dropped the per-tier color tint - no `BlockColor` infra yet) |
+| Spectre Illuminator | SpectreIlluminatorItem, SpectreIlluminatorEntity | DONE-UNTESTED (#272-274, 2026-09-27); Blackout Powder (`BlackoutPowderItem`) ported 2026-10-29, unverified | Yes (new `IBlockReaderTransformer` coremod - `Block.getLightValue`'s 3-arg overload was removed in this Forge version, see `AsmHandler#overrideLightValue`'s javadoc) |
 | Spectre Key | ItemSpectreKey, BlockSpectreCore, custom dimension | DONE-UNTESTED (#297-301, 2026-09-28) | Yes (vanilla enchant-glow via `hasEffect` - no `RenderItem` patch needed, cosmetic tint is automatic; new `TeleporterTransformer` coremod for cross-dimension teleport, see `AsmHandler#overrideMakePortal`'s javadoc) |
 | Spectre Lens | BlockSpectreLens, SpectreLensHandler | DONE-UNTESTED (#312-313, 2026-09-28) | No |
 | Spectre Sapling | block/spectretree/* | DONE (#36-39, simplified fixed-shape growth not worldgen-feature-based, disclosed divergence) | No |
@@ -284,7 +284,7 @@ receive-only, `SpectreCoilBlock` receive+extract into an external machine), and 
 nothing with the energy network at all (it extends a Beacon's active buffs to its owner remotely,
 `SpectreLensHandler` is a completely separate `WorldSavedData`, no Forge Energy involved) despite
 sharing one wiki row with the Charger/Coils. `NUMBER`-tier coils (config-gated dungeon loot in 1.12.2)
-also deferred - needs real loot-table-injection infrastructure this port hasn't built for anything yet.
+were first deferred; ported 2026-10-29, unverified (`LootHandler` already injects other items by then; config `loot.NumberedSpectreCoils`).
 Ground-truthed `IEnergyStorage`/`CapabilityEnergy`/`WorldSavedData`/`LazyOptional` via `javap`/real
 source first - all near-unchanged from 1.12.2's own Forge Energy API, the most stable surface touched
 this session. Real research correction caught before shipping: a first pass concluded "Spectre String"

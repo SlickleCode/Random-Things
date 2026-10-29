@@ -18,5 +18,6 @@ public class ModRecipeSerializers
 		registry.register(SpectreAnchorCombineRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "spectre_anchor_combine")));
 		registry.register(DiaphanousSetRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "diaphanous_set")));
 		registry.register(DiaphanousInvertRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "diaphanous_invert")));
+		registry.register(LuminousPowderRecipe.SERIALIZER.setRegistryName(new ResourceLocation(ModConstants.MOD_ID, "luminous_powder")));
 	}
 }

@@ -88,6 +88,27 @@ final class UtilityBehaviorTests
 			c.check(te.isPowered(), "inverted: no monster in range means powered");
 		}));
 
+		tests.add(RTTest.named("behavior.entity_detector.empty_custom_filter_matches_nothing_and_invert_flips_it_like_1_12_2").run(c -> {
+			c.floor();
+			c.set(c.at(0, 1, 0), ModBlocks.ENTITY_DETECTOR);
+			EntityDetectorTileEntity te = c.tile(c.at(0, 1, 0), EntityDetectorTileEntity.class);
+
+			for (int i = 0; i < 6; i++)
+			{
+				te.cycleFilter();
+			}
+
+			c.eq(EntityDetectorTileEntity.FILTER.CUSTOM, te.getFilter(), "filter after 6 cycles");
+			c.spawnItem(2.5, 1.5, 0.5, new ItemStack(Items.COBBLESTONE));
+		}).waitTicks(4).run(c -> {
+			EntityDetectorTileEntity te = c.tile(c.at(0, 1, 0), EntityDetectorTileEntity.class);
+			c.check(!te.isPowered(), "empty custom filter matches nothing, so it is off");
+			te.toggleInvert();
+		}).waitTicks(4).run(c -> {
+			EntityDetectorTileEntity te = c.tile(c.at(0, 1, 0), EntityDetectorTileEntity.class);
+			c.check(te.isPowered(), "empty custom filter + invert is on (1.12.2 truth table: powered == invert)");
+		}));
+
 		// ---- Ender Mailbox --------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.loot.rolled_chest_biome_crystals_carry_a_biome").run(c -> {
 			net.minecraft.world.storage.loot.LootTable table = c.world.getServer().getLootTableManager().getLootTableFromLocation(lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON);
@@ -114,6 +135,7 @@ final class UtilityBehaviorTests
 			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.SIMPLE_DUNGEON, "randomthings:summoning_pendulum"), "the simple dungeon chest carries the Summoning Pendulum pool");
 			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.VILLAGE_WEAPONSMITH, "randomthings:magic_hood"), "the weaponsmith chest carries the Magic Hood pool");
 			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.STRONGHOLD_CORRIDOR, "randomthings:biome_crystal"), "every vanilla chest table gets the Biome Crystal pool");
+			c.check(hasPool.test(lumien.randomthings.handler.LootHandler.END_CITY_TREASURE, "randomthings:spectre_coil_number"), "the end city treasure chest carries the Numbered Spectre Coil pool");
 		}));
 
 		tests.add(RTTest.named("behavior.biome_radar.right_click_inserts_the_crystal_and_the_client_update_tag_carries_it").run(c -> {

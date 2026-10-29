@@ -14,6 +14,7 @@ _Moved verbatim from `PORTING_PLAN.md` (2026-10-11 doc refactor). Index: [README
   blocks/boots have a speed cap (blocks 0.35 b/t, boats 15°/t turn cap) that 1.12.2 never had; Trigger
   Glass chain limit config (default 20); Magnetic config-off keeps the enchant registered but unobtainable;
   Remote camo row implemented (reversed an earlier simplification); Ender Letter message body (new).
+- **Ported after all (2026-10-29, unverified):** Blackout Powder (was "will not migrate") and the loot-only Numbered Spectre Coil tier (was deferred); both are on the wiki (Spectre Illuminator, Spectre Coils pages).
 - **Not to be ported (2026-10-14):** the Precious Emerald item, with the Festival system it triggers and its animated rainbow glint; the other 1.12.2 glint
   colours are ported (`GlintColors`).
 - **Standing simplifications** (not worth re-litigating): metadata sub-items → discrete items per variant;

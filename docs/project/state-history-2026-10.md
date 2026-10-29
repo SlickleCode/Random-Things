@@ -41,7 +41,7 @@ _Moved verbatim from `PORTING_PLAN.md` (2026-10-11 doc refactor). Index: [README
   Water Walking Boots, Obsidian Water Walking Boots), Biome Glass, Biome Stone x5, Inventory Rerouter,
   Blood Rose (was never 1.12.2 content).
 - **Will not migrate (final):** Item Filter (both consumers shipped with a built-in single-example-item
-  filter), "Ender network"/Link Orb (abandoned stub in 1.12.2 itself), Blackout Powder, Collapse
+  filter), "Ender network"/Link Orb (abandoned stub in 1.12.2 itself), Collapse
   potion/effect/brewing, modded-ore divining rods and all third-party mod compat (Baubles, JEI,
   OpenComputers, Thaumcraft, Thermal Expansion), Obsidian Skull Ring (Baubles-only), Festival system,
   Player Soul/Revive Circle/Rez Stone, Dungeon Chest Generator, Voxel Projector, Nature Core, `RTCommand`.

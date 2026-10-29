@@ -25,6 +25,9 @@ overworld's, Sound Box / Slime Cube powered flags saved, Advanced Redstone Torch
 **Not done:** Peace Candle churches in every village type (needs the vanilla village pool / church piece names of desert, savanna, snowy and taiga villages, which this repo does not reference - read them from the mapped jar).
 Rows AF1-AF12 in `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-2026-10-29.md`.
 
+**Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Luminous Powder recipe (glow rendering still missing), Numbered Spectre Coils and Blackout Powder;
+fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in `TESTING_CHECKLIST.md`.
+
 ## Current state (2026-10-14)
 
 - **Port:** every wiki-documented feature is ported on both branches except the removed / will-not-migrate ones

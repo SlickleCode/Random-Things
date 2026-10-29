@@ -81,6 +81,21 @@ public class PositionFilterItem extends Item
 		compound.putInt("filterZ", pos.getZ());
 	}
 
+	/**
+	 * The dimension id stored by {@link #setPosition}, or {@code Integer.MIN_VALUE} if there is no position.
+	 */
+	public static int getDimension(ItemStack positionFilter)
+	{
+		CompoundNBT compound = positionFilter.getTag();
+
+		if (compound == null || !compound.getBoolean("hasPosition"))
+		{
+			return Integer.MIN_VALUE;
+		}
+
+		return compound.getInt("dimension");
+	}
+
 	public static BlockPos getPosition(ItemStack positionFilter)
 	{
 		CompoundNBT compound = positionFilter.getTag();

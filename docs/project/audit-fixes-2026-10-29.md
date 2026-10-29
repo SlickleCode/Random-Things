@@ -81,3 +81,119 @@ Setters call markDirty() (as AdvancedRedstoneRepeaterTileEntity). Check: change 
 - Checklist: "Stable Ender Pearl with a tag lacking a player UUID acts unbound instead of throwing - FIXED"
 
 All edited files passed syntaxcheck.sh.
+
+---
+
+# Round 2 (same day): missing features and more bug fixes (also unverified, nothing compiled)
+
+Added (matching 1.12.2): Spectre Sapling by right clicking a vanilla sapling (`minecraft:saplings` tag) with Ectoplasm; Runic Pattern from paper on a Rune Base; Luminous Powder recipe
+(`LuminousPowderRecipe`, NBT flag `luminousEnchantment`, tooltip); Numbered Spectre Coil (`CoilType.NUMBER`, 128 FE/tick, loot only, config `loot.NumberedSpectreCoils`);
+Blackout Powder item. Fixed: Floo no longer deletes a fireplace in an unloaded chunk, Floo duplicate sign names show a message, Stable Ender Pearl changes the bound player's dimension,
+Advanced Redstone Interface and Redstone Remote respect a Position Filter's dimension, Redstone Observer recomputes after load, Analog Emitter reads its input from the opposite side again.
+**Not done:** the glow-in-the-dark Luminous glint rendering (needs a new glint coremod hook that sets the lightmap to full bright; docs/project/coremods.md has the patterns; 1.12.2 used
+`AsmHandler.preEnchantment/postEnchantment`). **No change needed:** Entity Detector with an empty Custom filter (the original behaves the same).
+Notes: Numbered Coil chest chances are 10 / 8 / 30 (the original's `onlyFound` condition could never fire in chests, so it is not ported); Blackout Powder now consumes one powder (the original did not).
+Per-fix notes follow.
+
+---
+
+# H1 notes
+
+## (a) Spectre Sapling conversion
+- RandomThings.java: new RightClickBlock listener. Ectoplasm in hand + target block in tag minecraft:saplings (BlockTags.getCollection().get(RL), same shape as DiviningRodItem) and not already SPECTRE_SAPLING -> server: shrink 1 (not creative), setBlockState(SPECTRE_SAPLING default); event cancelled both sides.
+- 1.12.2: ItemIngredient.onItemUse, ore dict "treeSapling", shrink + setBlockState, returns SUCCESS (creative count is restored by ItemStack.onItemUse in 1.12, so creative check is equivalent).
+- Unverified: tag minecraft:saplings exists in 1.14.4 (believed yes); setCanceled on RightClickBlock. No test added (MoreBehaviorTests posts a RightClickBlock but no pattern for item-in-hand).
+- In game: ectoplasm on oak/spruce/... sapling -> Spectre Sapling, ectoplasm -1 (not in creative).
+- Checklist row: Ectoplasm right-click on vanilla sapling converts it to a Spectre Sapling (consumes 1 Ectoplasm, not in creative).
+
+## (b) Runic Pattern from paper
+- RandomThings.java: new RightClickBlock listener (server only). Original trigger: PAPER in hand, right-click an existing placed Rune Base (Runic Dust) block (RTEventHandler ~l.605; the lang text "right clicking runic dust with a piece of paper"). Copies the 4x4 data via RunePatternItem.setPattern (this branch's byte format), consumes 1 paper; if single paper the pattern replaces it in the clicked hand, else shrink + addItemStackToInventory (dropItem fallback). Rune Base stays. Sneak pattern->paper untouched.
+- Unverified: player.setHeldItem/addItemStackToInventory/dropItem (all used elsewhere in repo; addItemStackToInventory only on a debug inventory).
+- In game: place dust, click it with paper -> Rune Pattern with that pattern; stack of paper -1.
+- Checklist row: Right-clicking placed Runic Dust with paper creates a Rune Pattern of it (paper consumed).
+
+## (c) Luminous Powder glint
+- New recipes/LuminousPowderRecipe.java (SpecialRecipe, flag NBT byte "luminousEnchantment", exactly 1 powder + 1 enchanted not-yet-luminous item, powder consumed, result = copy count 1), registered in ModRecipeSerializers as luminous_powder; recipe JSON data/randomthings/recipes/luminous_powder_glint.json; ModItems.LUMINOUS_POWDER ObjectHolder; yellow "Luminous" tooltip at index 1 (ClientSetup tooltip listener, as 1.12.2) + lang tooltip.randomthings.luminous_enchantment.
+- "Enchanted" check = NBT list "Enchantments" non-empty (no unproven isEnchanted()).
+- Render part BLOCKED: 1.12.2 AsmHandler.preEnchantment/postEnchantment set lightmap to 240,240 around the glint pass (OpenGlHelper.lastBrightnessX/Y). This branch has no such hook (ItemRendererTransformer only supplies colour via GlintColors/ClientAsmHandler.enchantmentColorHook) and no lightmap API is used anywhere; needs a new/extended coremod hook (pre/post glint) calling the lightmap setter, reading LuminousPowderRecipe.isLuminous(renderingStack). Armour glint likewise.
+- No test added (no recipe-serializer test exists).
+- Checklist row: Luminous Powder + enchanted item (shapeless) yields item with "Luminous" tooltip (glow-in-dark glint render still TODO).
+
+Files: RandomThings.java, recipes/LuminousPowderRecipe.java, recipes/ModRecipeSerializers.java, item/ModItems.java, client/ClientSetup.java, en_us.json, recipes/luminous_powder_glint.json. syntaxcheck ok.
+
+---
+
+# H2 notes (unverified, nothing compiled; parse check + JSON check passed)
+
+## (a) Numbered Spectre Coils
+- Files: SpectreCoilBlock (CoilType.NUMBER("number",128,0x00FF00)), ModBlocks (+SPECTRE_COIL_NUMBER holder/registration), ModItems (registers NumberedSpectreCoilBlockItem "spectre_coil_number"), ModTileEntityTypes (block added to the spectre_coil TE type), SpectreCoilTileEntity (NUMBER branch: receiveEnergy(rate) directly, no pool, like GENESIS; javadoc updated), new item/block/NumberedSpectreCoilBlockItem (display name "Spectre Coil Nr. %d", number 1..499 from Random(System.identityHashCode(stack)), as 1.12.2 ItemBlockSpectreCoil), LootHandler (+ABANDONED_MINESHAFT, END_CITY_TREASURE constants; injects into simple_dungeon 10, abandoned_mineshaft 8, end_city_treasure 30), RTConfig loot.NumberedSpectreCoils (default true; 1.12.2 key worldgen.NumberedSpectreCoils), ResourceAudit (NO_RECIPE_EXPECTED + the two new chest tables in the injected-table check), assets: blockstates/spectre_coil_number.json, models/item/spectre_coil_number.json (same shared model/texture as other tiers, none are tinted on this branch), loot_tables/blocks/spectre_coil_number.json, lang block.randomthings.spectre_coil_number. Creative tab: automatic (Item.Properties group). No recipe (original had none).
+- 1.12.2: chests simple_dungeon/abandoned_mineshaft/end_city_treasure with weights 10/8/30 of 100, plus a `onlyFound` loot condition (killer is a non-fake player). In a chest context there is no killer so that condition is always false in 1.12.2, i.e. the coils effectively never generated. I did NOT port that condition (wiki says they can be found in chests). Energy: 1.12.2 generated Numbers.NumberedSpectreCoilEnergy (128) per tick directly, no pool, owner required; kept (owner==null coil does nothing, as the other tiers). The brief said "pool per player"; the original and wiki ("generate") do not use the pool for NUMBER, so I followed the original. The 128 is a constant (no energy config option added).
+- Tests: UtilityBehaviorTests loot-injection test + ChecklistTests toggle test (#338 style) assert the new pool "randomthings:spectre_coil_number" on end_city_treasure. No coil test existed to update; no count-based registry tests found.
+- Risks: vanilla table names chests/abandoned_mineshaft and chests/end_city_treasure (1.14.4 names; checked by the ResourceAudit loot-table check); getDisplayName override signature copied from EnderBucketItem; the TE type now lists 5 valid blocks.
+- Check in game: /give the coil, name shows "Spectre Coil Nr. N", attach to an energy machine, it gives 128 FE/t; chests in end cities/mineshafts/dungeons contain it; config off removes the pool.
+- Checklist row: Numbered Spectre Coil (loot only: dungeon 10%, mineshaft 8%, end city 30%; config NumberedSpectreCoils) is named "Spectre Coil Nr. N" and feeds 128 FE/t into an attached machine.
+
+## (b) Blackout Powder
+- Files: new item/BlackoutPowderItem, ModItems registration "blackout_powder" (next to luminous_powder), lang item.randomthings.blackout_powder, models/item/blackout_powder.json, textures/item/blackout_powder.png (copied from 1.12.2 items/blackoutpowder.png), data recipe recipes/blackout_powder.json (shaped DG/ M: ink_sac, coal_block, lapis_lazuli -> 4; 1.12.2 dye data 0 = ink sac, 4 = lapis).
+- 1.12.2 (ItemIngredient.onItemUse): server side, if the chunk is illuminated, finds an EntitySpectreIlluminator in the chunk, setDead, spawns an EntityItem with the Spectre Illuminator at pos.offset(facing), toggles the chunk; the powder was NOT consumed. Here: onItemUse scans SpectreIlluminatorEntity.ILLUMINATORS for isInChunk(world, chunk), calls remove() (same path as the right-click pickup, onRemovedFromWorld relights), spawns the ItemEntity at pos.offset(face), consumes one powder unless creative (per brief; divergence from 1.12.2). Not in an illuminated chunk -> PASS.
+- Test: none (no illuminator behaviour test pattern exists in debug/test).
+- Risks: unverified compile; settling (not yet illuminated) orbs are ignored. Check: place illuminator, wait until lit, right-click a block in the chunk with the powder: orb gone, item dropped beside the block, chunk dark, one powder used (not in creative); recipe gives 4.
+- Checklist row: Blackout Powder (ink sac + coal block + lapis) right-clicked on a block in an illuminated chunk removes the orb, drops the Spectre Illuminator and relights/darkens the chunk; costs one powder.
+
+## Docs
+- docs/project/wiki-feature-status.md (Spectre Coils row, history paragraph, Illuminator row), docs/project/scope-decisions.md (new "ported after all" line; it had no blackout line), docs/project/state-history-2026-10.md and root WIKI_FEATURE_STATUS.md (removed Blackout Powder from the will-not-migrate lists).
+
+---
+
+# H3 notes
+
+## (a) Floo fireplace deleted on chunk unload
+- File: handler/floo/FlooNetworkHandler.java (teleport). Added `world.isBlockLoaded(targetPos)` check before reading the TE; unloaded target -> return false, no teleport, registry untouched.
+- 1.12.2: no loaded check (same bug in the original); removed entry on any non-master TE. Deliberate improvement.
+- Risk: closest-name match that is unloaded blocks teleport entirely (does not fall through to the next-best name). Check: fireplace far away in unloaded chunk -> nothing happens, entry still exists after loading chunk.
+- Checklist row: Floo: typing the name of a fireplace in an unloaded chunk does nothing and the fireplace still works once its chunk is loaded.
+
+## (b) Floo duplicate sign name
+- Files: FlooNetworkHandler (new `hasFireplaceNamed`), FlooSignItem (status message on failure), en_us.json `floo.info.duplicate_name`.
+- 1.12.2: createFireplace false -> sign NOT consumed, bricks unchanged, no message (the port already did not consume; only the message was missing).
+- Test: RemainingBehaviorTests `behavior.floo.a_duplicate_sign_name_keeps_the_sign_and_the_bricks` (unrun).
+- Check: second sign with same name (any case) -> action bar message, sign kept, bricks unchanged.
+- Row: Floo Sign: reusing an existing name (any case) shows a message and keeps the sign and bricks.
+
+## (c) Stable Ender Pearl
+- (1) Offline bound player: the ORIGINAL also falls into the random-teleport branch (getPlayerByUUID returns null -> else branch). Current port already matches; no change.
+- (2) Cross dimension: StableEnderpearlItem now calls `player.changeDimension(entityItem.world.getDimension().getType())` when `player.dimension` differs, then setPlayerLocation (same pattern as SpectreHandler.teleportPlayerBack). Original used PlayerUtil.teleportPlayerToDimension. Removed the outdated "disclosed simplification" javadoc paragraph. UUID guard kept.
+- Risk: changeDimension may return a new entity instance for ServerPlayerEntity in some versions (SpectreHandler keeps using the old reference too); unverified in game. No test (needs two dimensions).
+- Check: bind pearl in Overworld, go to Nether, drop pearl in Overworld... i.e. drop in other dimension than the bound player; after 7s the player arrives at the pearl.
+- Row: Stable Ender Pearl: a bound player in another dimension is transferred to the pearl's dimension and position.
+
+## (d) Position Filter dimension
+- Files: PositionFilterItem (new static `getDimension(ItemStack)`, MIN_VALUE if no position), AdvancedRedstoneInterfaceTileEntity.refreshTargets (target dropped if dimension != world dimension id), network/messages/RedstoneRemoteActivateMessage (remote logic lives here, not in RedstoneRemoteItem; no signal if dimension differs).
+- 1.12.2 ignored the dimension (code used only x/y/z); change follows the wiki.
+- Tests: none existing use Position Filters with Advanced Interface/Remote; none added (needs GUI inventory/network).
+- Risk: filters created before dimension was stored have dimension 0 (Overworld) by default. Check: filter set in Nether placed in an Overworld interface does nothing.
+- Row: Advanced Redstone Interface / Redstone Remote: Position Filters set in another dimension are ignored.
+
+---
+
+# H4 notes
+
+## (a) Redstone Observer on load
+- Files: tileentity/RedstoneObserverTileEntity.java (onLoad schedules a block tick, new refreshAfterLoad()), block/RedstoneObserverBlock.java (tick() override calling refreshAfterLoad; java.util.Random import).
+- 1.12.2: weak/strong power maps were saved in NBT and the constructor ran updateRedstoneState. 1.14.4 does not save them, so output stayed 0 after reload until the target changed.
+- Fix: onLoad (server, target set) schedules a 1-tick block tick (same getPendingBlockTicks().scheduleTick pattern as SticksBlock/IgniterBlock); the tick recomputes if the target chunk isLoaded (pattern used elsewhere). Running behaviour unchanged.
+- Test: none (needs a save/reload; no pattern).
+- Risk: unverified compile; if the target chunk is not loaded at that tick, no refresh until the target notifies. Check: link observer to lever/lamp setup, toggle lever, save and reload, output matches immediately.
+- Row: "Redstone Observer output is correct right after world reload".
+
+## (b) Analog Emitter input side
+- File: tileentity/AnalogEmitterTileEntity.java updateInput: world.getRedstonePower(pos.offset(facing), facing.getOpposite()) (original line 45 semantics, same call as before).
+- Tests: existing behavior.analog_emitter test uses a Redstone Block, which powers every side, so it does not encode the old side and still holds; no change. A side-discriminating test would need a directional source (repeater/dust) whose properties are not used elsewhere in this repo, so not added.
+- Check: repeater/dust pointing into the emitter's input face powers it; sources on the other sides do not.
+- Row: "Analog Emitter input side matches 1.12.2 (facing opposite query)".
+
+## (c) Entity Detector empty Custom filter
+- Original TileEntityEntityDetector: FilterPredicate returns false for everything when filterClass==null and no IEntityFilterItem; output = (!invert == found) -> powered == invert. So empty Custom + Invert is ON in 1.12.2 too (and OFF without invert).
+- 1.14.4 code already returns `invert` for that case, identical truth table. NO code change (replicated original; the "permanently on" is original behaviour). Entity Filter item semantics untouched.
+- Test added: UtilityBehaviorTests behavior.entity_detector.empty_custom_filter_matches_nothing_and_invert_flips_it_like_1_12_2 (off, then on after invert).
+- Row: "Entity Detector: empty Custom filter is off; with Invert it is on (as 1.12.2)".
