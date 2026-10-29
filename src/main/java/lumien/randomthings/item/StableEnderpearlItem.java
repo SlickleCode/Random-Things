@@ -2,6 +2,7 @@ package lumien.randomthings.item;
 
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
+import lumien.randomthings.handler.spectre.SpectreTeleporter;
 import lumien.randomthings.util.StackTag;
 import java.util.List;
 import java.util.Random;
@@ -34,13 +35,9 @@ import net.minecraft.server.level.ServerLevel;
  * bound it (or the binding is gone), it grabs the nearest living entity
  * within 10 blocks instead - a "random teleport" fallback, matching 1.12.2.
  * <p>
- * Disclosed simplification: 1.12.2 additionally handled the rare case of the
- * dropped item ending up in a different dimension than the bound player
- * (e.g. dropped near a portal) by force-transferring that player's
- * dimension via a hand-rolled {@code SimpleTeleporter}. 1.14.4's dimension
- * API is a substantial rewrite from 1.12.2's, and this edge case isn't worth
- * porting in isolation - the normal (overwhelmingly common) same-dimension
- * case is unaffected.
+ * A bound player in another dimension than the pearl is first moved into the
+ * pearl's dimension (without building a portal, see {@link SpectreTeleporter}),
+ * then to the pearl's position, like 1.12.2.
  */
 public class StableEnderpearlItem extends Item
 {
@@ -101,6 +98,11 @@ public class StableEnderpearlItem extends Item
 				if (player != null)
 				{
 					player.level().playSound(null, player.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1, 1);
+					if (player.level() != entityItem.level())
+					{
+						player.changeDimension((ServerLevel) entityItem.level(), SpectreTeleporter.INSTANCE);
+					}
+
 					player.connection.teleport(entityItem.getX(), entityItem.getY(), entityItem.getZ(), player.getYRot(), player.getXRot());
 				}
 				else
