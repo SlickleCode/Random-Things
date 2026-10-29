@@ -2,7 +2,6 @@ package lumien.randomthings.item;
 
 import lumien.randomthings.util.StackTag;
 import lumien.randomthings.entity.EclipsedClockEntity;
-import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -37,7 +36,11 @@ public class EclipsedClockItem extends Item implements IClientItemProperties{
             return InteractionResult.FAIL;
         }
 
-        HangingEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+        EclipsedClockEntity hanging = new EclipsedClockEntity(context.getLevel(), placedPos, facing);
+
+        if (StackTag.contains(stack, "targetTime")) {
+            hanging.setTargetTime(StackTag.getInt(stack, "targetTime"));
+        }
 
         if (hanging.survives()) {
             if (!context.getLevel().isClientSide) {

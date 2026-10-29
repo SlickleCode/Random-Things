@@ -173,6 +173,17 @@ public class ReinforcedEnderBucketItem extends Item implements lumien.randomthin
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
+                // drainSource already removed the source block: put it back unless the whole amount fits (other fluid / too little room)
+                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem simHandler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+                int fits = simHandler == null ? 0 : simHandler.fill(drained, FluidAction.SIMULATE);
+
+                if (fits < drained.getAmount()) {
+                    world.setBlock(next, state, 3);
+                    drained = null;
+                }
+            }
+
+            if (drained != null) {
                 net.neoforged.neoforge.fluids.capability.IFluidHandlerItem fillHandler = stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
         int filled = fillHandler == null ? 0 : fillHandler.fill(drained, FluidAction.EXECUTE);
 

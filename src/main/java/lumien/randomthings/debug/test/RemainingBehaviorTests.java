@@ -106,6 +106,22 @@ final class RemainingBehaviorTests
 			c.check(!c.world.getBlockState(c.at(0, 1, 0)).getValue(OnlineDetectorBlock.POWERED), "changing to an offline name must unpower it");
 		}));
 
+		tests.add(RTTest.named("behavior.online_detector.matches_the_player_name_case_sensitively").run(c -> {
+			String name = c.player.getGameProfile().getName();
+			String swapped = name.equals(name.toUpperCase()) ? name.toLowerCase() : name.toUpperCase();
+
+			if (swapped.equals(name) || c.world.getServer().getPlayerList().getPlayerByName(name) == null)
+			{
+				throw new TestCtx.Skip("no case variant available or the test player is not in the player list");
+			}
+
+			c.floor();
+			c.set(c.at(0, 1, 0), ModBlocks.ONLINE_DETECTOR);
+			c.tile(c.at(0, 1, 0), OnlineDetectorTileEntity.class).setUsername(swapped);
+		}).waitTicks(45).run(c -> {
+			c.check(!c.world.getBlockState(c.at(0, 1, 0)).getValue(OnlineDetectorBlock.POWERED), "a name differing only in case must not power the detector");
+		}));
+
 		// ---- Chat Detector --------------------------------------------------------------------
 		tests.add(RTTest.named("behavior.chat_detector.matching_message_from_the_bound_player_pulses_and_is_consumed").run(c -> {
 			c.floor();

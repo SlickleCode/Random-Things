@@ -64,10 +64,12 @@ public class AdvancedRedstoneTorchTileEntity extends BlockEntity implements Menu
 	public void setSignalStrengthGreen(int newValue)
 	{
 		this.signalStrengthGreen = newValue;
+		this.setChanged();
 	}
 
 	public void setSignalStrengthRed(int newValue)
 	{
 		this.signalStrengthRed = newValue;
+		this.setChanged();
 	}
 }

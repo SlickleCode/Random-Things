@@ -145,7 +145,17 @@ public class EnderBucketItem extends Item implements lumien.randomthings.item.IC
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                return finishPickup(player, stack, drained);
+                // drainSource already removed the source block: put it back unless the whole amount fits into the bucket
+                ItemStack probe = stack.copy();
+                probe.setCount(1);
+                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem probeHandler = probe.getCapability(net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.ITEM);
+                int fits = probeHandler == null ? 0 : probeHandler.fill(drained, FluidAction.SIMULATE);
+
+                if (fits >= drained.getAmount()) {
+                    return finishPickup(player, stack, drained);
+                }
+
+                world.setBlock(next, state, 3);
             }
 
             for (Direction facing : Direction.values()) {

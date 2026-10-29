@@ -75,6 +75,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     @Override
     protected void saveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         super.saveAdditional(compound, registries);
+        compound.putBoolean("powered", powered);
 
         if (!pattern.isEmpty()) {
             compound.put("pattern", StackTag.saveStack(pattern));
@@ -85,6 +86,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     @Override
     public void loadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
         super.loadAdditional(compound, registries);
+        this.powered = compound.getBoolean("powered");
 
         this.pattern = compound.contains("pattern") ? ItemStack.parseOptional(StackTag.provider(), compound.getCompound("pattern")) : ItemStack.EMPTY;
     }
