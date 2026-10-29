@@ -449,16 +449,20 @@ final class UseItemTests
 		}));
 
 		// ---- Lotus ------------------------------------------------------------------------------
-		tests.add(RTTest.named("use_item.lotus_seeds.plant_on_grass_but_not_on_stone").run(c -> {
+		tests.add(RTTest.named("use_item.lotus_seeds.plant_on_farmland_but_not_on_grass_or_stone").run(c -> {
 			c.floor();
-			c.setQuiet(c.at(2, 0, 2), Blocks.GRASS_BLOCK.defaultBlockState());
+			c.setQuiet(c.at(2, 0, 2), Blocks.FARMLAND.defaultBlockState());
+			c.setQuiet(c.at(4, 0, 4), Blocks.GRASS_BLOCK.defaultBlockState());
 			hold(c, new ItemStack(ModItems.LOTUS_SEEDS, 2));
 
 			c.eq(InteractionResult.FAIL, useOn(c, c.at(-2, 0, -2), Direction.UP), "seeds on stone");
 			c.check(c.world.isEmptyBlock(c.at(-2, 1, -2)), "nothing planted on stone");
 			c.eq(2, c.player.getMainHandItem().getCount(), "seeds kept after the refusal");
+			c.eq(InteractionResult.FAIL, useOn(c, c.at(4, 0, 4), Direction.UP), "seeds on grass");
+			c.check(c.world.isEmptyBlock(c.at(4, 1, 4)), "nothing planted on grass");
+			c.eq(2, c.player.getMainHandItem().getCount(), "seeds kept after the grass refusal");
 
-			c.eq(InteractionResult.SUCCESS, useOn(c, c.at(2, 0, 2), Direction.UP), "seeds on grass");
+			c.eq(InteractionResult.SUCCESS, useOn(c, c.at(2, 0, 2), Direction.UP), "seeds on farmland");
 			c.eq(ModBlocks.LOTUS, c.world.getBlockState(c.at(2, 1, 2)).getBlock(), "planted block");
 			c.eq(1, c.player.getMainHandItem().getCount(), "one seed used");
 			release(c);

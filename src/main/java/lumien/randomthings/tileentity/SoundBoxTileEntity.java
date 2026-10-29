@@ -82,6 +82,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     }
 
     private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        compound.putBoolean("powered", powered);
 
         if (!pattern.isEmpty()) {
             compound.put("pattern", StackTag.saveStack(pattern));
@@ -97,6 +98,7 @@ public class SoundBoxTileEntity extends BlockEntity {
     }
 
     private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries) {
+        this.powered = compound.getBooleanOr("powered", false);
 
         this.pattern = compound.contains("pattern") ? lumien.randomthings.util.StackTag.loadStack(compound.getCompoundOrEmpty("pattern")) : ItemStack.EMPTY;
     }

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
@@ -26,6 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.InteractionResult;
+import lumien.randomthings.itemhandler.ItemStackHandler;
 
 /**
  * Faces an enclosed room and vaporizes a stored potion into it over time,
@@ -63,6 +65,24 @@ public class PotionVaporizerBlock extends Block implements EntityBlock {
 	public BlockState getStateForPlacement(BlockPlaceContext context)
 	{
 		return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+	}
+
+	public void rtOnRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving)
+	{
+		if (state.getBlock() != newState.getBlock())
+		{
+			BlockEntity te = worldIn.getBlockEntity(pos);
+
+			if (te instanceof PotionVaporizerTileEntity)
+			{
+				ItemStackHandler handler = ((PotionVaporizerTileEntity) te).itemHandler();
+
+				for (int i = 0; i < handler.getSlots(); i++)
+				{
+					Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), handler.getStackInSlot(i));
+				}
+			}
+		}
 	}
 
 	@Override

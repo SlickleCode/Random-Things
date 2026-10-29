@@ -65,7 +65,7 @@ public class SpectreLensTileEntity extends BlockEntity {
         super.setRemoved();
 
         if (owner != null && !level.isClientSide()) {
-            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+            SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(level.dimension().identifier().toString(), owner);
         }
     }
 
@@ -86,7 +86,7 @@ public class SpectreLensTileEntity extends BlockEntity {
                     net.minecraft.core.Holder<MobEffect> primary = (net.minecraft.core.Holder<MobEffect>) PRIMARY_EFFECT.get(beacon);
                     net.minecraft.core.Holder<MobEffect> secondary = (net.minecraft.core.Holder<MobEffect>) SECONDARY_EFFECT.get(beacon);
 
-                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(owner, beaconLevels, primary, secondary);
+                    SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).addLens(level.dimension().identifier().toString(), owner, beaconLevels, primary, secondary);
                     return;
                 }
             } catch (IllegalAccessException e) {
@@ -94,7 +94,7 @@ public class SpectreLensTileEntity extends BlockEntity {
             }
         }
 
-        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(owner);
+        SpectreLensHandler.get(ServerLifecycleHooks.getCurrentServer()).removeLens(level.dimension().identifier().toString(), owner);
     }
 
     @Override

@@ -33,7 +33,7 @@ public class LotusSeedsItem extends Item {
 
         net.minecraft.world.level.block.state.BlockState groundState = world.getBlockState(pos);
 
-        if (!canSustainLotus(groundState, world, pos)) {
+        if (!groundState.is(net.minecraft.world.level.block.Blocks.FARMLAND) || !canSustainLotus(groundState, world, pos)) {
             return InteractionResult.FAIL;
         }
 

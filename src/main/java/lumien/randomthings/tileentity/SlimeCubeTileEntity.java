@@ -7,6 +7,7 @@ import java.util.Set;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
@@ -44,6 +45,32 @@ public class SlimeCubeTileEntity extends BlockEntity
 	{
 		super.setRemoved();
 		cubes.remove(this);
+	}
+
+	@Override
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput rtOut)
+	{
+		super.saveAdditional(rtOut);
+		CompoundTag rtTag = new CompoundTag();
+		rtSaveAdditional(rtTag, lumien.randomthings.util.StackTag.provider());
+		lumien.randomthings.util.TagIO.write(rtOut, rtTag);
+	}
+
+	private void rtSaveAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		compound.putBoolean("powered", powered);
+	}
+
+	@Override
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput rtIn)
+	{
+		super.loadAdditional(rtIn);
+		rtLoadAdditional(lumien.randomthings.util.TagIO.read(rtIn), rtIn.lookup());
+	}
+
+	private void rtLoadAdditional(CompoundTag compound, net.minecraft.core.HolderLookup.Provider registries)
+	{
+		this.powered = compound.getBooleanOr("powered", false);
 	}
 
 	public boolean isPowered()

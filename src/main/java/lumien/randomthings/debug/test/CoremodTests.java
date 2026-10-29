@@ -145,6 +145,19 @@ final class CoremodTests
 			c.check(!canSpawn(c, EntityType.SLIME, c.at(0, 2, 0)), "a powered Slime Cube must deny slime spawns in its chunk");
 		}));
 
+		tests.add(RTTest.named("coremod.spawn.peace_candle_denies_slimes_even_inside_an_unpowered_slime_cube_chunk").run(c -> {
+			resetTrackers();
+			c.floor();
+			c.set(c.at(0, 1, 0), ModBlocks.SLIME_CUBE);
+			c.set(c.at(5, 1, 5), ModBlocks.PEACE_CANDLE);
+		}).waitTicks(2).run(c -> {
+			c.check(!AsmHandler.overrideSpawnResult(true, EntityType.SLIME, c.world, c.at(0, 2, 0)), "a Peace Candle within 3 chunks must deny slime spawns even when an unpowered Slime Cube would allow them");
+			c.remove(c.at(5, 1, 5));
+		}).waitTicks(2).run(c -> {
+			resetTrackers();
+			c.check(AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, c.at(0, 2, 0)), "without the candle the unpowered Slime Cube allows slimes again");
+		}));
+
 		tests.add(RTTest.named("coremod.spawn.slime_cube_only_affects_slimes_in_its_own_chunk_and_stops_when_removed").run(c -> {
 			resetTrackers();
 			c.floor();

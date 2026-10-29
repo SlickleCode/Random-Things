@@ -417,6 +417,18 @@ public class PotionVaporizerTileEntity extends BlockEntity implements MenuProvid
 	}
 
 	@Override
+	public void preRemoveSideEffects(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state)
+	{
+		super.preRemoveSideEffects(pos, state);
+
+		// 1.21.5+: Block.onRemove is gone and the tile entity is already removed when the neighbour callback runs, so the block's old onRemove code runs from here
+		if (this.level != null && state.getBlock() instanceof lumien.randomthings.block.PotionVaporizerBlock block)
+		{
+			block.rtOnRemove(state, this.level, pos, this.level.getBlockState(pos), false);
+		}
+	}
+
+	@Override
 	public AbstractContainerMenu createMenu(int windowId, Inventory playerInventory, Player playerEntity)
 	{
 		return new PotionVaporizerContainer(windowId, playerInventory, itemHandler, ContainerLevelAccess.create(this.level, worldPosition));

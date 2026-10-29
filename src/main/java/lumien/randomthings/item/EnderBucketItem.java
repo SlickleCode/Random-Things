@@ -144,7 +144,17 @@ public class EnderBucketItem extends Item {
             FluidStack drained = drainSource(world, next, state, block);
 
             if (drained != null) {
-                return finishPickup(player, stack, drained);
+                // drainSource already removed the source block: the bucket holds exactly one bucket and is empty here, but stay safe
+                ItemStack probe = stack.copy();
+                probe.setCount(1);
+                net.neoforged.neoforge.fluids.capability.IFluidHandlerItem probeHandler = lumien.randomthings.util.CapUtil.fluidItem(probe);
+                int fits = probeHandler == null ? 0 : probeHandler.fill(drained, FluidAction.SIMULATE);
+
+                if (fits >= drained.getAmount()) {
+                    return finishPickup(player, stack, drained);
+                }
+
+                world.setBlock(next, state, 3);
             }
 
             for (Direction facing : Direction.values()) {

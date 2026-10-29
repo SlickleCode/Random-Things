@@ -54,6 +54,18 @@ public class BasicRedstoneInterfaceBlock extends Block implements EntityBlock {
     }
 
     @Override
+    public InteractionResult useItemOn(net.minecraft.world.item.ItemStack heldStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
+    {
+        if (heldStack.getItem() instanceof lumien.randomthings.item.RedstoneToolItem)
+        {
+            // PASS skips useWithoutItem (the GUI) so the tool's useOn links the block
+            return InteractionResult.PASS;
+        }
+
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+
+    @Override
     public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player player, BlockHitResult hit) {
         if (!worldIn.isClientSide()) {
             BlockEntity te = worldIn.getBlockEntity(pos);
