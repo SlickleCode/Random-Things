@@ -2,18 +2,12 @@ package lumien.randomthings.tileentity;
 
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
 import lumien.randomthings.block.BlockBreakerBlock;
-import lumien.randomthings.enchantment.ModEnchantments;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.Containers;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -29,9 +23,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 /**
  * Ported from 1.12.2's {@code TileEntityBlockBreaker}: continuously mines the
@@ -39,15 +30,8 @@ import net.minecraftforge.items.ItemHandlerHelper;
  * survival mining exactly) unless redstone-powered, via a {@code FakePlayer}
  * holding an unbreakable pickaxe.
  *
- * <p>1.12.2 caught the fake player's drops with its own dedicated ASM hook
- * (a separate {@code ItemCatcher} path). This port reuses the block's own
- * enchantment for that instead: the fake player's pickaxe carries {@link
- * ModEnchantments#MAGNETIC}, and the global Magnetic listener in {@code
- * RandomThings} (a plain {@code BlockEvent.HarvestDropsEvent} hook, not tied
- * to a real player) already redirects any harvester's drops straight into
- * its inventory - the fake player included. So after {@code tryHarvestBlock}
- * returns, this class only has to drain that inventory into the target side,
- * not intercept anything itself.
+ * <p>The fake player's pickaxe carries no enchantment: a mined block breaks exactly like survival mining and its
+ * drops spawn in the world in front of the breaker. Nothing is collected or pushed into an inventory.
  *
  * <p>{@code FakePlayer} never gets a real {@code ServerPlayerEntity#connection} assigned, and
  * {@code ForgeHooks#onBlockBreakEvent} unconditionally calls {@code entityPlayer.connection
@@ -81,9 +65,6 @@ public class BlockBreakerTileEntity extends BlockEntity {
         ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
         pickaxe.getOrCreateTag().putBoolean("Unbreakable", true);
 
-        Map<Enchantment, Integer> enchantments = new HashMap<>();
-        enchantments.put(ModEnchantments.MAGNETIC, 1);
-        EnchantmentHelper.setEnchantments(enchantments, pickaxe);
 
         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
         player.setOnGround(true);
@@ -138,27 +119,6 @@ public class BlockBreakerTileEntity extends BlockEntity {
         resetProgress(level.getBlockState(worldPosition));
 
         player.gameMode.destroyBlock(targetPos);
-
-        IItemHandler target = null;
-        BlockEntity neighborTe = level.getBlockEntity(worldPosition.relative(facing.getOpposite()));
-        if (neighborTe != null) {
-            target = neighborTe.getCapability(ForgeCapabilities.ITEM_HANDLER, facing).orElse(null);
-        }
-
-        for (int i = 1; i < player.getInventory().items.size(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            player.getInventory().setItem(i, ItemStack.EMPTY);
-
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            ItemStack remainder = target != null ? ItemHandlerHelper.insertItemStacked(target, stack, false) : stack;
-
-            if (!remainder.isEmpty()) {
-                Containers.dropItemStack(level, worldPosition.getX() + facing.getStepX(), worldPosition.getY() + facing.getStepY(), worldPosition.getZ() + facing.getStepZ(), remainder);
-            }
-        }
     }
 
     public void neighborChanged() {

@@ -62,7 +62,7 @@ public class AsmHandler {
     /** Replaces FireBlock's private static getTickCooldown(Random) - see FireBlockTransformer.js. */
     public static int fireTickCooldown(net.minecraft.util.RandomSource rand, FireBlock fire) {
         if (fire instanceof lumien.randomthings.block.BlazingFireBlock) {
-            return 15;
+            return 15 + rand.nextInt(10);
         }
 
         return 30 + rand.nextInt(10);
@@ -465,5 +465,10 @@ public class AsmHandler {
         }
 
         return originalColor;
+    }
+
+    /** Redirect target for {@code FallingBlock.isFree}'s result: an open (triggered) Trigger Glass lets sand and gravel fall through - see FallingBlockTransformer. */
+    public static boolean openTriggerGlass(boolean original, BlockState state) {
+        return original || (state.getBlock() instanceof lumien.randomthings.block.TriggerGlassBlock && state.getValue(lumien.randomthings.block.TriggerGlassBlock.TRIGGERED));
     }
 }

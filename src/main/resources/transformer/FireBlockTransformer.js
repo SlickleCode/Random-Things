@@ -16,7 +16,7 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
-                    if (method.name !== "tryCatchFire") {
+                    if (method.name !== "tryCatchFire" && method.name !== "m_221150_") {
                         continue;
                     }
 
@@ -50,7 +50,7 @@ function initializeCoreMod() {
 
                         if (flammabilityCall === null && insn.getOpcode() === Opcodes.INVOKEVIRTUAL && insn.owner === "net/minecraft/world/level/block/state/BlockState" && insn.name === "getFlammability") {
                             flammabilityCall = insn;
-                        } else if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/util/RandomSource" && insn.name === "nextInt" && insn.desc === "(I)I") {
+                        } else if (insn.getOpcode() === Opcodes.INVOKEINTERFACE && insn.owner === "net/minecraft/util/RandomSource" && (insn.name === "nextInt" || insn.name === "m_188503_") && insn.desc === "(I)I") {
                             nextIntCalls.push(insn);
                         }
                     }

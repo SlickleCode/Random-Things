@@ -77,7 +77,7 @@ public class RTConfig
 		TRIGGER_GLASS_CHAIN_LIMIT = b.comment("How many touching Trigger Glass blocks a single redstone pulse can trigger (0 = no limit; large values can lag). Port-specific: 1.12.2 had no limit at all, this port caps it at 20 by default after lag reports").defineInRange("TriggerGlassChainLimit", 20, 0, Integer.MAX_VALUE);
 		SPIRIT_LIFETIME = b.comment("How long a Spirit stays in the world after spawning (20 = 1 second)").defineInRange("SpiritLifeTime", 20 * 20, 1, Integer.MAX_VALUE);
 		SPIRIT_CHANCE_NORMAL = b.comment("The base chance of a spirit spawning when an entity dies (0.01 = 1%)").defineInRange("SpiritChanceNormal", 0.01, 0.0, 1.0);
-		SPIRIT_CHANCE_MOON_MULT = b.comment("How much does the moon increase the chance of a spirit spawning (only at night under open sky, scaled by the moon phase)").defineInRange("SpiritChanceMoonMult", 2.0, 0.0, 1000.0);
+		SPIRIT_CHANCE_MOON_MULT = b.comment("How much does the moon increase the chance of a spirit spawning (only at night under open sky, or in the End, scaled by the moon phase)").defineInRange("SpiritChanceMoonMult", 2.0, 0.0, 1000.0);
 		SPIRIT_CHANCE_END_INCREASE = b.comment("How much does the chance of a spirit spawning increase after the Ender Dragon has been defeated").defineInRange("SpiritChanceEndIncrease", 0.07, 0.0, 1.0);
 		b.pop();
 
