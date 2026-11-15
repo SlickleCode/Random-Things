@@ -27,10 +27,9 @@ and reading the original 1.12.2 source. APIs were only used where the same call 
 
 ## 4. Not done
 
-- **Luminous Powder glint rendering:** the recipe, NBT flag and tooltip exist, but the enchantment glint does not glow in the dark. 1.12.2 forced full-bright lighting around the glint render
-  (`AsmHandler.preEnchantment` / `postEnchantment`); here it needs a new glint coremod hook (`docs/project/coremods.md`), which cannot be tested without the game.
-- **Peace Candle churches in every village type:** only the plains village pool is wrapped (`worldgen/PeaceCandleChurchPool`). Desert, savanna, snowy and taiga (and zombie) village pools and church piece names are not referenced anywhere
-  in the repo; they have to be read from the mapped jar. The cobblestone template will also look out of place in other biomes.
+- **Luminous Powder glint rendering (resolved, 2026-11-14, no code needed):** 1.14.4 has the 1.12.2 hook (`ClientAsmHandler` pre/post enchantment). On 1.16.5 and later every glint render type uses a shader with no
+  lightmap input, so the glint is already drawn at full brightness; this was checked with javap and the vanilla shader files (`docs/project/coremods.md`, "Luminous Powder glint" in each branch). A visual check in a dark place is still open (checklist row AG3).
+- **Peace Candle churches in every village type (done, 2026-11-14):** all five biome `houses` and `zombie/houses` pools are wrapped and every vanilla church gets a Peace Candle in code, with no template file (row AW8). Server suites pass on all nine branches; a real village was not looked at.
 - **Nature Core and the Magic Bean source:** not ported (final decision). The Magic Bean is creative-only.
 - **Wiki icons:** the recipe grids on the wiki show text labels for most ingredients because the texture downloader was blocked.
 - **Parity bugs:** about 27 differences between branches were found and not fixed (`audit/PARITY_BUGS.md` in the `wiki` branch), for example Trigger Glass on 1.16.5+, the Magnetic config on 1.21.1+, weather cloud and bean stalk height limits on 1.18.2+.
@@ -49,7 +48,7 @@ and reading the original 1.12.2 source. APIs were only used where the same call 
 
 ## 6. The wiki
 
-`wiki` describes the intended behaviour, not the bugs. One claim still depends on code that is missing: the Luminous glint glow (section 4). The Magic Bean stalk breaking blocks was added on 2026-10-29 and has to be retested (row AG12).
+`wiki` describes the intended behaviour, not the bugs. Its Luminous glint claim holds without new code (section 4). The Magic Bean stalk breaking blocks was added on 2026-10-29 and has to be retested (row AG12).
 
 ## 7. The wiki branch itself (this repository branch)
 Everything on `wiki` was checked by script (`audit/tools/verify.py`: 0 failures) and by rendering pages in a headless browser, but: recipe icons are text labels (texture download blocked), screenshots and videos were not re-judged

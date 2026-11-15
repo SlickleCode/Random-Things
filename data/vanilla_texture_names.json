@@ -1,1 +1,14 @@
-{}
+{
+  "coal_block": "Block of Coal",
+  "comparator": "Redstone Comparator",
+  "flint_and_steel": "Flint and Steel",
+  "gold_block": "Block of Gold",
+  "lapis_block": "Block of Lapis Lazuli",
+  "quartz": "Nether Quartz",
+  "quartz_block": "Block of Quartz",
+  "redstone_block": "Block of Redstone",
+  "repeater": "Redstone Repeater",
+  "slime_ball": "Slimeball",
+  "vine": "Vines",
+  "potion": "Water Bottle"
+}

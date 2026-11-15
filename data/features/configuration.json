@@ -89,7 +89,7 @@
     },
     {
       "label": "numbers.SpiritChanceMoonMult",
-      "value": "default 2.0 - Multiplier (0 to 1000) for the extra Spirit chance at night under open sky, scaled by the moon phase."
+      "value": "default 2.0 - Multiplier (0 to 1000) for the extra Spirit chance at night under open sky (and in the End, which always counts as night), scaled by the moon phase."
     },
     {
       "label": "numbers.SpiritChanceEndIncrease",
