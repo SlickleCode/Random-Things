@@ -154,7 +154,6 @@ final class CoremodTests
 			c.check(!AsmHandler.overrideSpawnResult(true, EntityType.SLIME, c.world, c.at(0, 2, 0)), "a Peace Candle within 3 chunks must deny slime spawns even when an unpowered Slime Cube would allow them");
 			c.remove(c.at(5, 1, 5));
 		}).waitTicks(2).run(c -> {
-			resetTrackers();
 			c.check(AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, c.at(0, 2, 0)), "without the candle the unpowered Slime Cube allows slimes again");
 		}));
 
@@ -205,6 +204,14 @@ final class CoremodTests
 			c.world.rainLevel = 0;
 				c.world.oRainLevel = 0;
 			c.check(raining, "rain must come back once the Rain Shield is removed");
+		}));
+
+		// ---- Trigger Glass (FallingBlockTransformer on FallingBlock.isFree) -----------------------
+		tests.add(RTTest.named("coremod.trigger_glass.sand_and_gravel_fall_through_it_only_while_triggered").run(c -> {
+			net.minecraft.world.level.block.state.BlockState glass = ModBlocks.TRIGGER_GLASS.defaultBlockState();
+			c.check(!net.minecraft.world.level.block.FallingBlock.isFree(glass), "a resting Trigger Glass blocks falling blocks");
+			c.check(net.minecraft.world.level.block.FallingBlock.isFree(glass.setValue(lumien.randomthings.block.TriggerGlassBlock.TRIGGERED, true)), "a triggered Trigger Glass lets falling blocks through");
+			c.check(!net.minecraft.world.level.block.FallingBlock.isFree(Blocks.STONE.defaultBlockState()), "stone is unaffected");
 		}));
 
 		// ---- Wireless Redstone Interface (power query coremods) ---------------------------------
