@@ -28,8 +28,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
  * <p>
  * Checked the actual 1.12.2 source first: its line-drawing code
  * ({@code ClientProxy.drawInterfaceLines}) only ever covered the wireless
- * Redstone Interface, a separate, still-deferred subsystem (needs Mixin
- * work) that happens to share the same Redstone Tool item for linking.
+ * Redstone Interface, a separate subsystem (now ported, driven by coremods) that happens to share the same Redstone Tool item for linking.
  * Redstone Observer's real 1.12.2 feedback was just its read-only GUI
  * showing the target's coordinates - this renderer is a deliberate
  * deviation added per explicit user request, not a missed port detail.
@@ -98,7 +97,11 @@ public class RedstoneObserverLineRenderer
 			buffer.addVertex(matrix, target.getX() + 0.5F, target.getY() + 0.5F, target.getZ() + 0.5F).setColor(1F, 0F, 0F, 1F).setNormal(matrixStack.last(), dx, dy, dz);
 		}
 
-		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		com.mojang.blaze3d.vertex.MeshData mesh = buffer.build();      // null when no line was added (nothing linked within range): buildOrThrow() threw "BufferBuilder was empty" every frame while holding a Redstone Tool
+		if (mesh != null)
+		{
+			BufferUploader.drawWithShader(mesh);
+		}
 
 		matrixStack.popPose();
 		}

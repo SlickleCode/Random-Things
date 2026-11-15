@@ -22,16 +22,8 @@ import net.minecraft.world.level.Level;
  * SpawnPlacementTransformer} coremod hook shared with Lapis Lamp/Slime Cube,
  * rather than a new one). Needs solid ground beneath it, same as a torch.
  * <p>
- * Disclosed simplification: 1.12.2 also had a ~33% chance to generate inside
- * a custom "village church" building it added as a brand-new village piece
- * (hardcoded into {@code StructureVillagePieces$Church} via ASM). 1.14.4's
- * village generator is entirely data-driven (jigsaw structure templates, no
- * hardcoded Java piece classes to hook into), so reproducing a whole new
- * custom building would mean hand-authoring NBT structure data and a
- * template-pool override with no in-game structure-block tooling available
- * to build/export it correctly - deferred rather than guessed at. The block
- * and its mob-suppression are otherwise fully functional; it's creative-menu
- * only until natural generation exists.
+ * 1.12.2 also generated it inside a custom village church; here {@code PeaceCandleChurchPool} (or the church piece on 1.14.4)
+ * swaps the vanilla church for the same building with a Peace Candle in it, in code rather than NBT files.
  */
 public class PeaceCandleBlock extends Block implements EntityBlock {
     private static final VoxelShape SHAPE = Block.box(6, 0, 6, 10, 10, 10);

@@ -27,7 +27,7 @@ and reading the original 1.12.2 source. APIs were only used where the same call 
 
 ## 4. Not done
 
-- **Luminous Powder glint rendering:** the recipe, NBT flag and tooltip exist, but the enchantment glint does not glow in the dark. 1.12.2 forced full-bright lighting around the glint render
+- **Luminous Powder glint rendering:** RESOLVED without code (2026-10-29). Luminous Powder glint (no code needed, ground-truthed with javap + the vanilla shader files on 2026-10-29): every glint RenderType (glint, glintTranslucent, entityGlint, armorEntityGlint; shader rendertype_glint family) uses vertex format POSITION_TEX and a shader with no lightmap, light or vertex-colour input, so the enchant glint is always drawn at full brightness. 1.12.2's preEnchantment/postEnchantment forced lightmap 240,240 only because its glint was darkened by the world light; here that darkening does not exist, so a luminous stack's glint already looks like 1.12.2's. Held, dropped, framed and worn items all use these types. Only the visual check in a dark place is outstanding.
   (`AsmHandler.preEnchantment` / `postEnchantment`); here it needs a new glint coremod hook (`docs/project/coremods.md`), which cannot be tested without the game.
 - **Peace Candle churches in every village type:** only the plains village pool is wrapped (`worldgen/PeaceCandleChurchPool`). Desert, savanna, snowy and taiga (and zombie) village pools and church piece names are not referenced anywhere
   in the repo; they have to be read from the mapped jar. The cobblestone template will also look out of place in other biomes.

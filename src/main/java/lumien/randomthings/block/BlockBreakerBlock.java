@@ -27,10 +27,8 @@ import net.minecraft.world.level.Level;
  * Ported from 1.12.2's {@code BlockBlockBreaker}. A machine that continuously
  * mines whatever block sits in front of it (matching the target's own real
  * hardness/tool-speed) unless redstone-powered, using a {@code FakePlayer}
- * holding an unbreakable, Magnetic-enchanted pickaxe - see
- * {@code BlockBreakerTileEntity} for why the Magnetic enchantment (needed as
- * this feature's own listed prerequisite) is what makes drops land in an
- * inventory instead of spawning on the ground.
+ * holding an unbreakable pickaxe; the mined block drops in the world
+ * (nothing is collected into an inventory).
  */
 public class BlockBreakerBlock extends Block implements EntityBlock {
     public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.values());

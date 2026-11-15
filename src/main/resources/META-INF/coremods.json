@@ -14,5 +14,6 @@
 	"ItemRendererTransformer": "transformer/ItemRendererTransformer.js",
 	"ItemStackRenderTransformer": "transformer/ItemStackRenderTransformer.js",
 	"ArmorLayerTransformer": "transformer/ArmorLayerTransformer.js",
-	"RenderTypeTransformer": "transformer/RenderTypeTransformer.js"
+	"RenderTypeTransformer": "transformer/RenderTypeTransformer.js",
+	"FallingBlockTransformer": "transformer/FallingBlockTransformer.js"
 }

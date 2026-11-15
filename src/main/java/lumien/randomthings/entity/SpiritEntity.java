@@ -69,7 +69,7 @@ public class SpiritEntity extends FlyingMob {
         spiritAge++;
 
         if (!this.level().isClientSide && spiritAge > lumien.randomthings.config.RTConfig.SPIRIT_LIFETIME.get()) {
-            this.discard();      // not kill(): its generic-kill damage is refused by hurtServer, so a Spirit never despawned
+            this.kill((net.minecraft.server.level.ServerLevel) this.level());      // dies with the death animation like 1.12.2 / 1.14.4 (needs GENERIC_KILL accepted by hurt)
         }
     }
 
@@ -86,7 +86,7 @@ public class SpiritEntity extends FlyingMob {
             }
         }
 
-        if (!source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.INDIRECT_MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD) && !source.isCreativePlayer()) {
+        if (!source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.INDIRECT_MAGIC) && !source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD) && !source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL) && !source.isCreativePlayer()) {
             return false;
         }
 
