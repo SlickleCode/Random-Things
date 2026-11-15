@@ -26,7 +26,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `behavior.igniter.toggle_mode_lights_fire_when_powered_and_removes_it_when_unpowered`
 - `behavior.igniter.ignite_mode_leaves_fire_when_unpowered`
 - `behavior.analog_emitter.outputs_configured_level_only_while_input_is_powered`
-- `behavior.block_breaker.mines_front_block_into_rear_inventory`
+- `behavior.block_breaker.mines_front_block_and_drops_it_in_the_world`
 - `behavior.block_breaker.does_nothing_while_redstone_powered`
 - `behavior.redstone_observer.repeats_the_power_of_its_bound_target_block`
 - `behavior.recipes.spectre_anchor_combine_tags_single_unstackable_item`
@@ -91,6 +91,7 @@ Everything automated in this repo, what it checks, and how to run it (all dev-on
 - `worldgen.glowing_mushroom.placed_mushroom_survives_updates_in_the_dark`
 - `worldgen.glowing_mushroom.spreads_in_a_dark_cave`
 - `worldgen.peace_candle.plains_houses_pool_is_the_church_wrapper`
+- `worldgen.peace_candle.every_village_biome_church_gets_a_candle_variant_with_a_spot_inside`
 - `worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches`
 - `worldgen.peace_candle.config_switch_stops_the_swap`
 - `worldgen.peace_candle.real_village_assemblies_contain_the_church_about_a_third_of_the_time`

@@ -101,7 +101,7 @@ public class RandomThings {
         // Not FMLCommonSetupEvent: this Forge has no enqueueWork, and the vanilla village pool registry
         // it mutates isn't thread-safe. Server start is single-threaded, before any worldgen, and the
         // config is loaded by then.
-        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install());
+        MinecraftForge.EVENT_BUS.addListener((net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent event) -> lumien.randomthings.worldgen.PeaceCandleChurchPool.install(event.getServer()));
 
         // Developer-only tooling (commands, in-game tests, audit, GUI screenshots): nothing of it is
         // registered or even loaded unless -Drandomthings.debug=true, so normal play pays nothing.
@@ -572,7 +572,7 @@ public class RandomThings {
 
             World spiritWorld = event.getEntityLiving().world;
 
-            if (spiritWorld.canBlockSeeSky(event.getEntityLiving().getPosition()) && !spiritWorld.isDaytime()) {
+            if (spiritWorld.canBlockSeeSky(event.getEntityLiving().getPosition()) && spiritMoonTime(spiritWorld)) {
                 net.minecraft.world.dimension.Dimension dimension = spiritWorld.getDimension();
                 float moonFactor = net.minecraft.world.dimension.Dimension.MOON_PHASE_FACTORS[dimension.getMoonPhase(spiritWorld.getDayTime())];
 
@@ -927,4 +927,10 @@ public class RandomThings {
             ModFeatures.registerFeatures(featureRegistryEvent);
         }
     }
+
+	/** Night under the moon, or the End (its time is fixed, but the Spirit moon bonus applies there on every version, as in 1.12.2). */
+	public static boolean spiritMoonTime(World w)
+	{
+		return (!w.isDaytime() || w.getDimension().getType() == net.minecraft.world.dimension.DimensionType.THE_END);
+	}
 }

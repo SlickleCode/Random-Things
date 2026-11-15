@@ -70,8 +70,9 @@ final class WorldgenTests
 	private static final int CAVE_Y = 90;
 
 	private static final ResourceLocation HOUSES = new ResourceLocation("village/plains/houses");
-	private static final String VANILLA_CHURCH = "Single[minecraft:village/plains/houses/plains_temple_4]";
-	private static final String PEACE_CHURCH = "Single[randomthings:peace_candle_church]";
+	private static final String VANILLA_CHURCH = "_temple_";
+	private static final String PEACE_CHURCH = "+peace_candle";
+	private static final String[] BIOMES = { "plains", "desert", "savanna", "snowy", "taiga" };
 
 	private WorldgenTests()
 	{
@@ -258,6 +259,11 @@ final class WorldgenTests
 		return JigsawManager.REGISTRY.get(HOUSES);
 	}
 
+	private static JigsawPattern poolAt(String path)
+	{
+		return JigsawManager.REGISTRY.get(new ResourceLocation(path));
+	}
+
 	private static JigsawPattern vanillaHouses(JigsawPattern wrapper) throws Exception
 	{
 		Field field = wrapper.getClass().getDeclaredField("vanilla");
@@ -271,14 +277,45 @@ final class WorldgenTests
 
 		for (JigsawPiece piece : pieces)
 		{
-			out.add(piece.toString());
+			out.add(name(piece));
 		}
 
 		return out;
 	}
 
+	/** The piece's description, with a marker added when it carries the Peace Candle processor. */
+	private static String name(JigsawPiece piece)
+	{
+		return piece.toString() + (PeaceCandleChurchPool.hasCandle(piece) ? PEACE_CHURCH : "");
+	}
+
+	private static boolean isVanillaChurch(String name)
+	{
+		return name.contains(VANILLA_CHURCH) && !name.contains(PEACE_CHURCH);
+	}
+
+	private static boolean isPeaceChurch(String name)
+	{
+		return name.contains(PEACE_CHURCH);
+	}
+
+	private static boolean anyVanillaChurch(List<String> names)
+	{
+		return names.stream().anyMatch(WorldgenTests::isVanillaChurch);
+	}
+
+	private static boolean anyPeaceChurch(List<String> names)
+	{
+		return names.stream().anyMatch(WorldgenTests::isPeaceChurch);
+	}
+
 	/** Assembles {@code count} plains villages with the real jigsaw assembler and returns {vanilla churches, Peace Candle churches, villages}. */
 	private static int[] assembleVillages(TestCtx c, int count) throws Exception
+	{
+		return assembleVillages(c, count, "village/plains/town_centers");
+	}
+
+	private static int[] assembleVillages(TestCtx c, int count, String townCentres) throws Exception
 	{
 		TemplateManager templates = c.world.getStructureTemplateManager();
 		int vanilla = 0;
@@ -289,19 +326,19 @@ final class WorldgenTests
 			SharedSeedRandom rand = new SharedSeedRandom();
 			rand.setLargeFeatureSeed(1234567L + i * 31L, i * 7, i * 13);
 			List<StructurePiece> pieces = new ArrayList<>();
-			VillagePieces.func_214838_a(c.world.getChunkProvider().getChunkGenerator(), templates, new BlockPos(i * 160, 64, 0), pieces, rand, new VillageConfig("village/plains/town_centers", 6));
+			VillagePieces.func_214838_a(c.world.getChunkProvider().getChunkGenerator(), templates, new BlockPos(i * 160, 64, 0), pieces, rand, new VillageConfig(townCentres, 6));
 
 			for (StructurePiece piece : pieces)
 			{
 				if (piece instanceof AbstractVillagePiece)
 				{
-					String name = ((AbstractVillagePiece) piece).getJigsawPiece().toString();
+					String name = name(((AbstractVillagePiece) piece).getJigsawPiece());
 
-					if (VANILLA_CHURCH.equals(name))
+					if (isVanillaChurch(name))
 					{
 						vanilla++;
 					}
-					else if (PEACE_CHURCH.equals(name))
+					else if (isPeaceChurch(name))
 					{
 						peace++;
 					}
@@ -522,12 +559,61 @@ final class WorldgenTests
 			c.check(pool != null && pool != JigsawPattern.INVALID, "village/plains/houses must be registered");
 			c.eq("PeaceCandleChurchPool", pool.getClass().getSimpleName(), "the plains houses pool must be wrapped");
 			c.check(vanillaHouses(pool) != pool, "the wrapper must keep the vanilla pool");
-			Template church = c.world.getStructureTemplateManager().getTemplate(new ResourceLocation("randomthings:peace_candle_church"));
-			Template vanillaChurch = c.world.getStructureTemplateManager().getTemplate(new ResourceLocation("minecraft:village/plains/houses/plains_temple_4"));
-			c.check(church != null && vanillaChurch != null, "both church templates must load");
-			c.eq(vanillaChurch.getSize().getX(), church.getSize().getX(), "church width");
-			c.eq(vanillaChurch.getSize().getZ(), church.getSize().getZ(), "church depth");
-			c.check(church.getSize().getY() >= vanillaChurch.getSize().getY(), "the Peace Candle church is at least as tall as the vanilla one (" + church.getSize() + " vs " + vanillaChurch.getSize() + ")");
+		}));
+
+		tests.add(RTTest.named("worldgen.peace_candle.every_village_biome_church_gets_a_candle_variant_with_a_spot_inside").run(c -> {
+			int churches = 0;
+
+			for (String biome : BIOMES)
+			{
+				for (String path : new String[] { "village/" + biome + "/houses", "village/" + biome + "/zombie/houses" })
+				{
+					JigsawPattern pool = poolAt(path);
+					c.check(pool != null && pool != JigsawPattern.INVALID, path + " must be registered");
+					JigsawPattern vanilla = pool instanceof PeaceCandleChurchPool ? vanillaHouses(pool) : pool;
+					int inPool = 0;
+					java.util.Set<JigsawPiece> distinct = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+
+					for (JigsawPiece element : vanilla.getShuffledPieces(new Random(0)))
+					{
+						if (element.toString().contains(VANILLA_CHURCH) && distinct.add(element))
+						{
+							inPool++;
+						}
+					}
+
+					if (inPool == 0)
+					{
+						continue;
+					}
+
+					c.eq("PeaceCandleChurchPool", pool.getClass().getSimpleName(), path + " has churches and must be wrapped");
+					boolean sawCandle = false;
+
+					for (int seed = 0; seed < 400 && !sawCandle; seed++)
+					{
+						for (JigsawPiece piece : pool.getShuffledPieces(new Random(seed)))
+						{
+							if (PeaceCandleChurchPool.hasCandle(piece))
+							{
+								sawCandle = true;
+							}
+						}
+					}
+
+					c.check(sawCandle, path + " must hand out candle churches");
+					churches += inPool;
+				}
+			}
+
+			c.check(churches >= 8, "the five village biomes hold at least 8 church pieces in all (got " + churches + ")");
+
+			for (String template : new String[] { "plains/houses/plains_temple_3", "plains/houses/plains_temple_4", "desert/houses/desert_temple_1", "desert/houses/desert_temple_2", "savanna/houses/savanna_temple_1", "savanna/houses/savanna_temple_2", "snowy/houses/snowy_temple_1", "taiga/houses/taiga_temple_1" })
+			{
+				Template vanillaChurch = c.world.getStructureTemplateManager().getTemplate(new ResourceLocation("minecraft:village/" + template));
+				BlockPos spot = PeaceCandleChurchPool.candleSpot(vanillaChurch);
+				c.check(spot != null && spot.getX() > 0 && spot.getZ() > 0 && spot.getX() < vanillaChurch.getSize().getX() - 1 && spot.getZ() < vanillaChurch.getSize().getZ() - 1, template + ": a candle spot inside the building (got " + spot + " in " + vanillaChurch.getSize() + ")");
+			}
 		}));
 
 		tests.add(RTTest.named("worldgen.peace_candle.pool_swaps_about_a_third_of_the_vanilla_churches").run(c -> {
@@ -543,17 +629,17 @@ final class WorldgenTests
 				List<String> wrapped = names(wrapper.getShuffledPieces(new Random(seed)));
 				c.eq(plain.size(), wrapped.size(), "the swap must not change the number of candidates");
 
-				if (plain.contains(VANILLA_CHURCH))
+				if (anyVanillaChurch(plain))
 				{
 					vanillaWithChurch++;
-					if (wrapped.contains(PEACE_CHURCH))
+					if (anyPeaceChurch(wrapped))
 					{
 						swapped++;
 						List<String> expected = new ArrayList<>();
 
 						for (String name : plain)
 						{
-							expected.add(VANILLA_CHURCH.equals(name) ? PEACE_CHURCH : name);
+							expected.add(isVanillaChurch(name) ? name + PEACE_CHURCH : name);
 						}
 
 						c.eq(expected, wrapped, "a swap must replace only the church entries");
@@ -588,7 +674,7 @@ final class WorldgenTests
 
 				for (int seed = 0; seed < 1000; seed++)
 				{
-					if (names(wrapper.getShuffledPieces(new Random(seed))).contains(PEACE_CHURCH))
+					if (anyPeaceChurch(names(wrapper.getShuffledPieces(new Random(seed)))))
 					{
 						swapped++;
 					}
@@ -614,6 +700,86 @@ final class WorldgenTests
 			c.check(share > 0.12 && share < 0.60, "Peace Candle share of churches should be near a third (got " + peace + "/" + churches + " = " + share + ")");
 		}));
 
+		tests.add(RTTest.named("worldgen.peace_candle.assembled_plains_villages_hold_candle_churches_at_about_a_third_of_the_churches").run(c -> {
+			int[] result = assembleVillages(c, 50, "village/plains/town_centers");
+			int churches = result[0] + result[1];
+			RTDebug.log("worldgen test: 50 assembled plains villages hold {} churches: {} vanilla, {} Peace Candle ({}%)", churches, result[0], result[1], churches == 0 ? 0 : Math.round(100.0 * result[1] / churches));
+
+			if (churches >= 20)
+			{
+				double share = result[1] / (double) churches;
+				c.check(share > 0.12 && share < 0.60, "plains: Peace Candle share of churches should be near a third (got " + result[1] + "/" + churches + ")");
+			}
+			else
+			{
+				c.check(result[1] <= churches, "plains villages hold few churches (" + churches + "), too few to judge the share");
+			}
+		}));
+
+		tests.add(RTTest.named("worldgen.peace_candle.assembled_desert_villages_hold_candle_churches_at_about_a_third_of_the_churches").run(c -> {
+			int[] result = assembleVillages(c, 50, "village/desert/town_centers");
+			int churches = result[0] + result[1];
+			RTDebug.log("worldgen test: 50 assembled desert villages hold {} churches: {} vanilla, {} Peace Candle ({}%)", churches, result[0], result[1], churches == 0 ? 0 : Math.round(100.0 * result[1] / churches));
+
+			if (churches >= 20)
+			{
+				double share = result[1] / (double) churches;
+				c.check(share > 0.12 && share < 0.60, "desert: Peace Candle share of churches should be near a third (got " + result[1] + "/" + churches + ")");
+			}
+			else
+			{
+				c.check(result[1] <= churches, "desert villages hold few churches (" + churches + "), too few to judge the share");
+			}
+		}));
+
+		tests.add(RTTest.named("worldgen.peace_candle.assembled_savanna_villages_hold_candle_churches_at_about_a_third_of_the_churches").run(c -> {
+			int[] result = assembleVillages(c, 50, "village/savanna/town_centers");
+			int churches = result[0] + result[1];
+			RTDebug.log("worldgen test: 50 assembled savanna villages hold {} churches: {} vanilla, {} Peace Candle ({}%)", churches, result[0], result[1], churches == 0 ? 0 : Math.round(100.0 * result[1] / churches));
+
+			if (churches >= 20)
+			{
+				double share = result[1] / (double) churches;
+				c.check(share > 0.12 && share < 0.60, "savanna: Peace Candle share of churches should be near a third (got " + result[1] + "/" + churches + ")");
+			}
+			else
+			{
+				c.check(result[1] <= churches, "savanna villages hold few churches (" + churches + "), too few to judge the share");
+			}
+		}));
+
+		tests.add(RTTest.named("worldgen.peace_candle.assembled_snowy_villages_hold_candle_churches_at_about_a_third_of_the_churches").run(c -> {
+			int[] result = assembleVillages(c, 50, "village/snowy/town_centers");
+			int churches = result[0] + result[1];
+			RTDebug.log("worldgen test: 50 assembled snowy villages hold {} churches: {} vanilla, {} Peace Candle ({}%)", churches, result[0], result[1], churches == 0 ? 0 : Math.round(100.0 * result[1] / churches));
+
+			if (churches >= 20)
+			{
+				double share = result[1] / (double) churches;
+				c.check(share > 0.12 && share < 0.60, "snowy: Peace Candle share of churches should be near a third (got " + result[1] + "/" + churches + ")");
+			}
+			else
+			{
+				c.check(result[1] <= churches, "snowy villages hold few churches (" + churches + "), too few to judge the share");
+			}
+		}));
+
+		tests.add(RTTest.named("worldgen.peace_candle.assembled_taiga_villages_hold_candle_churches_at_about_a_third_of_the_churches").run(c -> {
+			int[] result = assembleVillages(c, 50, "village/taiga/town_centers");
+			int churches = result[0] + result[1];
+			RTDebug.log("worldgen test: 50 assembled taiga villages hold {} churches: {} vanilla, {} Peace Candle ({}%)", churches, result[0], result[1], churches == 0 ? 0 : Math.round(100.0 * result[1] / churches));
+
+			if (churches >= 20)
+			{
+				double share = result[1] / (double) churches;
+				c.check(share > 0.12 && share < 0.60, "taiga: Peace Candle share of churches should be near a third (got " + result[1] + "/" + churches + ")");
+			}
+			else
+			{
+				c.check(result[1] <= churches, "taiga villages hold few churches (" + churches + "), too few to judge the share");
+			}
+		}));
+
 		tests.add(RTTest.named("worldgen.peace_candle.assembler_builds_no_peace_candle_churches_with_the_config_off").run(c -> {
 			java.util.function.BooleanSupplier before = PeaceCandleChurchPool.enabled;
 			int[] result;
@@ -633,7 +799,20 @@ final class WorldgenTests
 		}));
 
 		tests.add(RTTest.named("worldgen.peace_candle.church_piece_places_a_working_peace_candle").run(c -> {
-			SingleJigsawPiece piece = new SingleJigsawPiece("randomthings:peace_candle_church");
+			SingleJigsawPiece piece = null;
+
+			for (int seed = 0; seed < 400 && piece == null; seed++)
+			{
+				for (JigsawPiece candidate : housesPool().getShuffledPieces(new Random(seed)))
+				{
+					if (PeaceCandleChurchPool.hasCandle(candidate) && candidate.toString().contains("plains_temple_4"))
+					{
+						piece = (SingleJigsawPiece) candidate;
+					}
+				}
+			}
+
+			c.check(piece != null, "the plains pool must hand out the candle plains_temple_4");
 			TemplateManager templates = c.world.getStructureTemplateManager();
 			BlockPos base = new BlockPos(c.origin.getX() - 4, CAVE_Y, c.origin.getZ() - 4);
 			MutableBoundingBox box = piece.getBoundingBox(templates, base, Rotation.NONE);

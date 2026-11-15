@@ -368,13 +368,7 @@ deferred - no future revisit expected unless something changes.
 "~33% chance to generate inside a village church". Originally deferred (2026-09-27) on the belief that
 1.14.4's village pools were data-driven and needed a hand-authored custom building; both halves of that
 turned out wrong in a useful way: the pools are still registered from Java (`JigsawManager.REGISTRY`),
-and the user authored the church NBT in-game after all. `PeaceCandleChurchPool` wraps
-`village/plains/houses` and, a third of the time the assembler asks for candidates, swaps vanilla's tall
-church (`plains_temple_4`) for `randomthings:peace_candle_church`. **Disclosed differences from 1.12.2:**
-(1) 1.12.2 kept the vanilla church and just placed a Peace Candle block at one spot in it; this port
-swaps in a whole custom template (explicit user design). (2) Plains villages only - the template is
-cobblestone-styled, and vanilla's desert/savanna/snowy/taiga churches (and zombie villages) are untouched;
-1.12.2 covered every village biome. Config: `[worldgen] PeaceCandle` (1.12.2's option name).
+`PeaceCandleChurchPool` wraps the `houses` and `zombie/houses` pools of all five village biomes (plains, desert, savanna, snowy, taiga) and, a third of the time the assembler asks for candidates, swaps every vanilla church (`*_temple_*`) for the same template with a `PeaceCandleProcessor` added: it turns one floor air cell inside the church (picked from the vanilla template: roofed, walled, most central) into a Peace Candle. There is no church NBT file of our own, so footprints and loot are vanilla. **Difference from 1.12.2:** none in behaviour (1.12.2 also kept the vanilla church and placed a candle block in a third of them, in every village biome). Config: `[worldgen] PeaceCandle` (1.12.2's option name).
 
 **Spectre Illuminator, implemented (2026-09-27):** a floating orb placed by right-click that drifts to
 hover above and center itself over its chunk, then lights the whole chunk up. Three disclosed

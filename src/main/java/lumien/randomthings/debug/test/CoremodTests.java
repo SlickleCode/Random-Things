@@ -153,7 +153,6 @@ final class CoremodTests
 			c.check(!AsmHandler.overrideSpawnResult(true, EntityType.SLIME, c.world, c.at(0, 2, 0)), "a Peace Candle within 3 chunks must deny slime spawns even when an unpowered Slime Cube would allow them");
 			c.remove(c.at(5, 1, 5));
 		}).waitTicks(2).run(c -> {
-			resetTrackers();
 			c.check(AsmHandler.overrideSpawnResult(false, EntityType.SLIME, c.world, c.at(0, 2, 0)), "without the candle the unpowered Slime Cube allows slimes again");
 		}));
 
@@ -409,6 +408,22 @@ final class CoremodTests
 		catch (java.io.IOException e)
 		{
 			throw new TestCtx.Failure("cannot read the coremod registry: " + e);
+		}
+
+		// Forge 1.14's production class loader does not enumerate mod-jar resources through getResources; the mod file itself serves them
+		try
+		{
+			net.minecraftforge.fml.loading.moddiscovery.ModFileInfo info = net.minecraftforge.fml.ModList.get().getModFileById("randomthings");
+			java.nio.file.Path path = info == null ? null : info.getFile().findResource("META-INF/coremods.json");
+
+			if (path != null && java.nio.file.Files.exists(path))
+			{
+				return new String(java.nio.file.Files.readAllBytes(path), java.nio.charset.StandardCharsets.UTF_8);
+			}
+		}
+		catch (java.io.IOException e)
+		{
+			throw new TestCtx.Failure("cannot read the coremod registry from the mod file: " + e);
 		}
 
 		throw new TestCtx.Failure("the Random Things coremods.json is not on the class path");

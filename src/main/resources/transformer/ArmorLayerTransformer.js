@@ -45,6 +45,18 @@ function initializeCoreMod() {
                                 }
                             }
                         }
+                        // Luminous glint (1.12.2's preEnchantment/postEnchantment): full-bright lightmap for the whole glint pass, restored before its RETURN
+                        var armorRets = [];
+                        for (var ar = 0; ar < ins2.size(); ar++) {
+                            var an = ins2.get(ar);
+                            if (an.getOpcode && an.getOpcode() === Opcodes.RETURN) {
+                                armorRets.push(an);
+                            }
+                        }
+                        for (var arr = 0; arr < armorRets.length; arr++) {
+                            ins2.insertBefore(armorRets[arr], new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "postGlint", "()V", false));
+                        }
+                        ins2.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "preGlint", "()V", false));
                         continue;
                     }
 
@@ -88,7 +100,7 @@ function initializeCoreMod() {
 
                 // hook-site marker: how many calls into lumien/randomthings/asm this transformer left in the class, as a synthetic field
                 // rt$hooks$<Tag>$<count> (the coremod.applied test reads it, so a transformer whose anchor vanished fails a test instead of passing silently)
-                var rtNames = ["armorColorHook", "armorEnchantmentHook", "setRenderingStack"];
+                var rtNames = ["armorColorHook", "armorEnchantmentHook", "setRenderingStack", "preGlint", "postGlint"];
                 var rtHooks = 0;
                 for (var rtM = 0; rtM < classNode.methods.size(); rtM++) {
                     var rtIt = classNode.methods.get(rtM).instructions.iterator();

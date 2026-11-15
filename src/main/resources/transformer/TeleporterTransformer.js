@@ -42,7 +42,7 @@ function initializeCoreMod() {
 
                     var prologue = new InsnList();
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 0));
-                    prologue.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/world/Teleporter", "world", "Lnet/minecraft/world/server/ServerWorld;"));
+                    prologue.add(new FieldInsnNode(Opcodes.GETFIELD, "net/minecraft/world/Teleporter", method.name === "func_85188_a" ? "field_85192_a" : "world", "Lnet/minecraft/world/server/ServerWorld;"));
                     prologue.add(new VarInsnNode(Opcodes.ALOAD, 1));
                     prologue.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/AsmHandler", "overrideMakePortal", "(Lnet/minecraft/world/server/ServerWorld;Lnet/minecraft/entity/Entity;)Z", false));
                     prologue.add(new JumpInsnNode(Opcodes.IFEQ, continueLabel));

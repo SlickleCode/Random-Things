@@ -40,6 +40,24 @@ function initializeCoreMod() {
                         continue;
                     }
 
+                    // Luminous glint (1.12.2's preEnchantment/postEnchantment): renderEffect(TextureManager, Runnable, int)V has a single RETURN; force the
+                    // lightmap to full bright for the whole glint pass of a Luminous Powder stack. Ground-truthed via javap -c.
+                    if ((method.name === "renderEffect" || method.name === "func_211128_a") && method.desc === "(Lnet/minecraft/client/renderer/texture/TextureManager;Ljava/lang/Runnable;I)V") {
+                        var rins = method.instructions;
+                        var rets = [];
+                        for (var rk = 0; rk < rins.size(); rk++) {
+                            var rn = rins.get(rk);
+                            if (rn.getOpcode && rn.getOpcode() === Opcodes.RETURN) {
+                                rets.push(rn);
+                            }
+                        }
+                        for (var rr = 0; rr < rets.length; rr++) {
+                            rins.insertBefore(rets[rr], new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "postGlint", "()V", false));
+                        }
+                        rins.insert(new MethodInsnNode(Opcodes.INVOKESTATIC, "lumien/randomthings/asm/ClientAsmHandler", "preGlint", "()V", false));
+                        continue;
+                    }
+
                     if (method.name === "lambda$renderItem$0") {
                         var ins = method.instructions;
                         for (var k = 0; k < ins.size(); k++) {
@@ -78,7 +96,7 @@ function initializeCoreMod() {
 
                 // hook-site marker: how many calls into lumien/randomthings/asm this transformer left in the class, as a synthetic field
                 // rt$hooks$<Tag>$<count> (the coremod.applied test reads it, so a transformer whose anchor vanished fails a test instead of passing silently)
-                var rtNames = ["enchantmentColorHook", "getColorFromItemStack", "setRenderingStack"];
+                var rtNames = ["enchantmentColorHook", "getColorFromItemStack", "setRenderingStack", "preGlint", "postGlint"];
                 var rtHooks = 0;
                 for (var rtM = 0; rtM < classNode.methods.size(); rtM++) {
                     var rtIt = classNode.methods.get(rtM).instructions.iterator();

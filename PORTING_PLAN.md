@@ -17,6 +17,12 @@ Porting the Minecraft mod Random Things (Lumien) from 1.12.2 to newer Forge vers
 `source env/activate.sh` (pins JDK 8), then `./gradlew build` (`-x test` for a quick check). Details: `docs/project/toolchain.md`.
 **Folder layout (since 2026-10-14):** the repository is a bare store in the parent folder (`.bare/`) with one git-worktree folder per version branch (`1.14.4/`, `1.16.5/`, `1.18.2/`), each with its own `run/`, `build/` and `prod-test/`. Work inside a version folder and open the other one for the other branch instead of `git checkout`; nothing needs cleaning between versions (see `CLAUDE.md`, skill `branch-mirroring`). Project skills/agents live in `.claude/` (tracked on every branch).
 
+## Coremod fixes (2026-10-29)
+Production-jar fixes (2026-10-30): `TeleporterTransformer` read `Teleporter.world` by its dev name, so every Spectre teleport died with `NoSuchFieldError` in a real install; it now uses `field_85192_a` when it patched the SRG method. The `coremod.applied` test could not find `META-INF/coremods.json` in a production jar (Forge 1.14 class loader); it now falls back to the mod file via `ModList`. Production suites after the fix: server 403/0/7, client 408/0/2.
+
+Luminous Powder glint now glows (checklist AH1): `ItemRendererTransformer` wraps `ItemRenderer.renderEffect` and `ArmorLayerTransformer` wraps the armor glint pass with `ClientAsmHandler.preGlint/postGlint` (lightmap forced to 240,240 for luminous stacks, as 1.12.2's preEnchantment/postEnchantment).
+Rain Shield also silences splash particles and the rain sound (AH2): `GameRendererTransformer` redirects the biome lookup in `GameRenderer.addRainParticles` through `AsmHandler.getBiomeForRainRender(IWorldReader, BlockPos)`. Both compile; not yet run in game.
+
 ## Audit bug fixes (2026-10-29, unverified)
 
 A wiki audit (branch `wiki`) found behaviour bugs; 12 fixes were written on this branch **without a compiler or Forge jars (cloud session, no JDK 8, no Maven access) - build, run both suites and retest before trusting them**:
@@ -27,6 +33,18 @@ Rows AF1-AF12 in `TESTING_CHECKLIST.md`; details in `docs/project/audit-fixes-20
 
 **Round 2 (same day, also unverified):** added the Spectre Sapling conversion, Runic Pattern from paper, Luminous Powder recipe (glow rendering still missing), Numbered Spectre Coils and Blackout Powder;
 fixed Floo (unloaded chunk, duplicate names), Stable Ender Pearl dimensions, Position Filter dimensions, Observer reload output and the Analog Emitter input side. Rows AG1-AG11 in `TESTING_CHECKLIST.md`. The Magic Bean stalk now breaks blocks in its way (row AG12). What the cloud session could not do: `docs/project/cloud-session-limits-2026-10-29.md`.
+
+**Wave 3 parity fixes (2026-11-13, unverified in game):** Block Breaker now breaks normally and drops in the world (no Magnetic pickaxe, no rear-inventory delivery; test `behavior.block_breaker.mines_front_block_and_drops_it_in_the_world`), rows AW1-AW6 in `TESTING_CHECKLIST.md`: Blazing Fire delay 15 + rand(10), chest boats in the Super Lubricent cap, Fertilized Dirt for sugar cane / cactus (1.21.x), Imbue on-hit through `LivingDamageEvent.Pre` (1.21.x), Spirit `/kill` + real death at expiry (1.20.1+). Not done: Trigger Glass sand/gravel fall-through (needs a FallingBlock coremod), the Magnetic config gate on 1.21.x (data-driven enchantment), Ancient Furnace biome list (kept per version).
+
+**Spirit Spawn Egg parity (2026-11-14, server suite green; the 1.14.4 egg was also checked in a real client by scenario `spirit_egg`):** test `parity.spirit_spawn_egg.sets_a_spawner_and_spawns_from_a_dispenser` (row AW11) checks that the egg switches a Mob Spawner and works from a Dispenser; it failed here, so `SpiritSpawnEggItem` now does what the vanilla egg does (spawner, dispenser, water, black/blue tint through `IRTItemColor`). Rain Shield and the Spirit entity were compared on all nine branches: same logic (only the hook locations differ: 1.14.4 `GameRenderer`, 1.16.5-1.21.1 `WorldRenderer`/`LevelRenderer`, 1.21.4+ the unified precipitation lookup). Known gap on every branch: 1.12.2 had a `RainShieldRange` option, the ports use 80 blocks fixed.
+
+**Spirit End moon bonus (2026-11-14):** the Spirit moon bonus applies under open sky at night and in the End on every branch (`RandomThings.spiritMoonTime`; the End has a fixed time, so 1.14.4 never gave it and 1.16.5+ gave it by accident, then briefly not at all). Test `parity.spirit.moon_bonus_applies_in_the_end`, row AW12; wiki ectoplasm and configuration pages say so.
+
+**Village survey (2026-11-14, server-side):** per village type the candle share of churches is 18-54% over 150 assembled villages each (the test builds 50 per type) (plains ~35%, savanna ~33%, snowy ~30%, taiga ~30%, desert ~30% but only ~10-20 churches per 150 villages; vanilla desert and taiga villages almost never hold a church). A dev-only real-world survey (`debug/test/VillageSurvey.java`, run with `bash docs/testing/survey-scripts/village_survey.sh default`; seed 424242, grid probes, fresh world, writes `run/randomthings_villages.txt`) found the candle block standing in the nearest candle church of every type that had one. The survey needed no gradle change: the script sets the system property through `JAVA_TOOL_OPTIONS` and patches `run/server.properties` (restored afterwards).
+
+**Spectre rock blocks (2026-11-14):** the Energy Injector and the five Spectre Coils need a pickaxe to drop, as in 1.12.2 (`Material.ROCK`). Test `parity.spectre_rock_blocks.need_a_pickaxe_to_drop`, row AW13. Other "suspected" audit items (Spectre dimension, Rune Dust support, Escape Rope landing, Magnetic tool set) are still unchecked.
+
+**Peace Candle churches in code (2026-11-14, unverified in a real world):** `PeaceCandleChurchPool` now wraps the `houses` and `zombie/houses` pools of all five village biomes and swaps each vanilla `*_temple_*` church for the same template plus a `PeaceCandleProcessor` (registered processor type, so it survives save/reload) that turns one floor air cell into the candle; the cell is chosen from the vanilla template (inside, roofed, most central). `peace_candle_church.nbt` is deleted. Tests: `worldgen.peace_candle.every_village_biome_church_gets_a_candle_variant_with_a_spot_inside` and the reworked pool/assembler tests; row AW8.
 
 ## Current state (2026-10-14)
 

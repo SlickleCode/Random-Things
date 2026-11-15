@@ -5,8 +5,10 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 
+import lumien.randomthings.recipes.LuminousPowderRecipe;
 import lumien.randomthings.tileentity.LightRedirectorTileEntity;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -42,6 +44,30 @@ public class ClientAsmHandler {
 
     public static void setRenderingStack(ItemStack stack) {
         renderingStack = stack;
+    }
+
+    private static float glintSavedX, glintSavedY;
+    private static boolean glintFullBright;
+
+    /**
+     * Port of 1.12.2's {@code AsmHandler.preEnchantment}: called at the head of the item and armor glint passes; a Luminous Powder stack draws its glint at full
+     * brightness by forcing the lightmap coordinates to 240,240 until {@link #postGlint}.
+     */
+    public static void preGlint() {
+        if (!glintFullBright && !renderingStack.isEmpty() && LuminousPowderRecipe.isLuminous(renderingStack)) {
+            glintSavedX = GLX.lastBrightnessX;
+            glintSavedY = GLX.lastBrightnessY;
+            glintFullBright = true;
+            GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, 240.0F, 240.0F);
+        }
+    }
+
+    /** Port of 1.12.2's {@code AsmHandler.postEnchantment}: restores the lightmap coordinates saved by {@link #preGlint}. */
+    public static void postGlint() {
+        if (glintFullBright) {
+            glintFullBright = false;
+            GLX.glMultiTexCoord2f(GLX.GL_TEXTURE1, glintSavedX, glintSavedY);
+        }
     }
 
     /**

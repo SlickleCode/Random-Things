@@ -258,6 +258,11 @@ public class AsmHandler {
         return true;
     }
 
+    /** {@code GameRenderer.addRainParticles} reads the biome through {@code IWorldReader}; the splash particles and the rain sound both depend on it. */
+    public static Biome getBiomeForRainRender(net.minecraft.world.IWorldReader reader, BlockPos pos) {
+        return reader instanceof World ? getBiomeForRainRender((World) reader, pos) : reader.getBiome(pos);
+    }
+
     /**
      * Redirect target for the one {@code World.getBiome} call inside {@code
      * GameRenderer.renderRainSnow(float)}'s per-column loop - see {@code

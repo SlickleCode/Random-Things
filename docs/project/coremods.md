@@ -16,13 +16,13 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `SpawnPlacementTransformer` | `EntitySpawnPlacementRegistry` shared predicate dispatch | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
 | `MagicHoodTransformer` | `LivingRenderer.canRenderName` (6 returns) | Hide nametag |
 | `RainShieldTransformer` | `World.isRainingAt` (4 returns) | Mechanical rain/snow suppression |
-| `GameRendererTransformer` | biome lookup in rain render loop | Visual rain suppression |
+| `GameRendererTransformer` | biome lookup in the rain render loop (`renderRainSnow`) and in `addRainParticles` | Visual rain, splash particles and rain sound suppression |
 | `IBlockReaderTransformer` | `IBlockReader.getLightValue(BlockPos)` | Spectre Illuminator light |
 | `PlayerEntityTransformer` | `PlayerInventory.dropAllItems` in `dropInventory` | Spectre Anchor keeps items |
 | `WorldRedstonePowerTransformer` / `WorldReaderStrongPowerTransformer` | `World.getRedstonePower` / `IWorldReader.getStrongPower` | Wireless Redstone Interface signals |
 | `TeleporterTransformer` | `Teleporter.makePortal` | Skip portal carving for the Spectre dimension |
 | `BlockRendererDispatcherTransformer` | block render dispatch | Light Redirector "periscope" |
-| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer | Dyeing Machine recolor |
+| `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer / `renderEffect` and the armor glint pass | Dyeing Machine recolor; Luminous Powder full-bright glint (`preGlint`/`postGlint`) |
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a

@@ -365,7 +365,7 @@ public final class ManualTestWorld
 		{
 			for (net.minecraft.world.gen.feature.structure.StructurePiece piece : start.getComponents())
 			{
-				if (piece.write().toString().contains("peace_candle_church"))
+				if (piece instanceof net.minecraft.world.gen.feature.structure.AbstractVillagePiece && lumien.randomthings.worldgen.PeaceCandleChurchPool.hasCandle(((net.minecraft.world.gen.feature.structure.AbstractVillagePiece) piece).getJigsawPiece()))
 				{
 					net.minecraft.util.math.MutableBoundingBox box = piece.getBoundingBox();
 					return new BlockPos((box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2, (box.minZ + box.maxZ) / 2);

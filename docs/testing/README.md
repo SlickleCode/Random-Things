@@ -117,7 +117,7 @@ screenshots only as evidence. It only types and clicks while the Minecraft windo
 Stop: hold Ctrl+Alt+Shift (or Pause, Scroll Lock, F12), or `python desk.py stop`. Run: `python -u scn.py imbuing rain_shield ...`, or `python -u scn.py all` (every scenario, flat-world ones first,
 then the default-world ones in a second fresh world); list: `python scn.py list`. Always use `-u` when redirecting output to a file.
 Scenarios (checklist rows): `imbuing` (#169/#170/#175), `imbue_effects` (#176-179), `rain_shield` (#258/#259), `ender_anchor` (#356/#357), `sound_dampener` (#158-160, via the client's
-`[RT-DEBUG] muted sound ...` log line), `fluid_display` (#234), `crafting_evil_tear_portkey` (#238/#279), `portkey_drop` (#277), `redstone_remote` (#287), `redstone_interface` (#284),
+`[RT-DEBUG] muted sound ...` log line), `fluid_display` (#234), `crafting_evil_tear_portkey` (#238/#279), `portkey_drop` (#277), `spirit_egg` (AW11), `redstone_remote` (#287), `redstone_interface` (#284),
 `block_destabilizer` (#293/#294), `dyeing_machine` (#321-324, incl. hotbar colour and glint sheen), `worn_armor` (dyed armor and tinted glint on the player in F5 view), `magic_hood` (#254, counts swirl particles via the dev `ParticleProbe`, enabled by the file `run/rt_probe`), `redstone_remote_edit` (#287 edit screen), `block_destabilizer_lazy` (#295), `falling_block_obstruction` (#296), `rune_rendering` (#346: shapes, noise, static picture), `light_redirector` (#319), `ender_mailbox` (#209/#210/#212/#214/#215),
 `biome_radar` (#149-153), `bean_stew` (#121), `magnetic` (#288), `colored_grass` (#343/#344), and in the default world `ancient_furnace` (#265, nearest igloo of the seed) and
 `glowing_mushroom_cave` (#387).
@@ -184,7 +184,7 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 ## Reading results — conventions
 
 - Test names are `area.subject.what_it_proves`, lowercase with dots/underscores, so filters work:
-  `behavior.block_breaker.mines_front_block_into_rear_inventory`, `nbt.tile_entity.iron_dropper`,
+  `behavior.block_breaker.mines_front_block_and_drops_it_in_the_world`, `nbt.tile_entity.iron_dropper`,
   `nbt.item.ender_bucket`.
 - `SKIP` means "not applicable" (e.g. a tile entity type with no block, an entity that cannot be created
   without context) and is reported separately from failures. Investigate skips occasionally; they can hide
@@ -217,3 +217,6 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 - The behavior suite covers a representative subset of machines. Adding coverage is cheap — see
   [writing-tests.md](writing-tests.md).
 
+## Real-village Peace Candle survey
+
+`bash docs/testing/survey-scripts/village_survey.sh [level-type]` (dev-only, `debug/test/VillageSurvey.java`): fresh normal world, seed 424242, probes a grid for the nearest villages and counts per village type the churches and the Peace Candle churches, then loads the nearest candle church of each type and checks the candle block is standing. Report: `run/randomthings_villages.txt`. Level type `default` up to 1.19.2, `minecraft\:normal` from 1.20.1. `RT_VILLAGE_SURVEY_VANILLA=true` switches the swap off (compare with a fresh world, a reused world keeps its saved villages).

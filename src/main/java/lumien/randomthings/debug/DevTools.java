@@ -20,6 +20,7 @@ public final class DevTools
 		MinecraftForge.EVENT_BUS.addListener((FMLServerStartingEvent event) -> RTDebugCommand.register(event.getCommandDispatcher()));
 		MinecraftForge.EVENT_BUS.addListener(RTTestRunner::onServerTick);
 		lumien.randomthings.debug.test.ServerAutoTest.init();
+		lumien.randomthings.debug.test.VillageSurvey.init();
 
 		DistExecutor.runWhenOn(Dist.CLIENT, () -> lumien.randomthings.client.DevToolsClient::init);
 	}

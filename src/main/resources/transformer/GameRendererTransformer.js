@@ -13,6 +13,27 @@ function initializeCoreMod() {
                 for (m in methods) {
                     var method = methods[m];
 
+                    // addRainParticles()V - the splash particles and the rain sound (both only fire when a splash position was found, so one biome
+                    // lookup decides both). Its single biome lookup is INVOKEINTERFACE IWorldReader.getBiome; ground-truthed via javap -c.
+                    if ((method.name === "addRainParticles" || method.name === "func_78484_h") && method.desc === "()V") {
+                        var rins = method.instructions;
+
+                        for (var ri = 0; ri < rins.size(); ri++) {
+                            var rn = rins.get(ri);
+
+                            if (rn.getOpcode && rn.getOpcode() === Opcodes.INVOKEINTERFACE && rn.owner === "net/minecraft/world/IWorldReader" && (rn.name === "getBiome" || rn.name === "func_180494_b") && rn.desc === "(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;") {
+                                rn.setOpcode(Opcodes.INVOKESTATIC);
+                                rn.owner = "lumien/randomthings/asm/AsmHandler";
+                                rn.name = "getBiomeForRainRender";
+                                rn.desc = "(Lnet/minecraft/world/IWorldReader;Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/world/biome/Biome;";
+                                rn.itf = false;
+                                break;
+                            }
+                        }
+
+                        continue;
+                    }
+
                     // renderRainSnow(F)V - the falling rain/snow visual, ground-truthed via
                     // javap -c: its per-column loop calls World.getBiome(BlockPos) exactly
                     // once, then immediately checks biome.getPrecipitation() != NONE against
@@ -46,7 +67,7 @@ function initializeCoreMod() {
                         }
                     }
 
-                    break;
+                    continue;
                 }
 
                 // hook-site marker: how many calls into lumien/randomthings/asm this transformer left in the class, as a synthetic field
