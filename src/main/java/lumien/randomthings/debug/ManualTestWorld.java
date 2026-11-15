@@ -391,7 +391,7 @@ public final class ManualTestWorld
 		{
 			for (net.minecraft.world.level.levelgen.structure.StructurePiece piece : start.getPieces())
 			{
-				if (piece instanceof net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece pool && pool.getElement().toString().contains("peace_candle_church"))
+				if (piece instanceof net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece pool && lumien.randomthings.worldgen.PeaceCandleChurchPool.hasCandle(pool.getElement()))
 				{
 					return piece.getBoundingBox().getCenter();
 				}

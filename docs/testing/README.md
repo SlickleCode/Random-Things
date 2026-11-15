@@ -172,7 +172,7 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
 ## Reading results — conventions
 
 - Test names are `area.subject.what_it_proves`, lowercase with dots/underscores, so filters work:
-  `behavior.block_breaker.mines_front_block_into_rear_inventory`, `nbt.tile_entity.iron_dropper`,
+  `behavior.block_breaker.mines_front_block_and_drops_it_in_the_world`, `nbt.tile_entity.iron_dropper`,
   `nbt.item.ender_bucket`.
 - `SKIP` means "not applicable" (e.g. a tile entity type with no block, an entity that cannot be created
   without context) and is reported separately from failures. Investigate skips occasionally; they can hide
@@ -218,3 +218,7 @@ it does not play anything. Already caught: the mod crashing every dedicated serv
   harvest paths). Add a behavior test per coremod-backed feature when practical.
 - The behavior suite covers a representative subset of machines. Adding coverage is cheap — see
   [writing-tests.md](writing-tests.md).
+
+## Real-village Peace Candle survey
+
+`bash docs/testing/survey-scripts/village_survey.sh [level-type]` (dev-only, `debug/test/VillageSurvey.java`): fresh normal world, seed 424242, probes a grid for the nearest villages and counts per village type the churches and the Peace Candle churches, then loads the nearest candle church of each type and checks the candle block is standing. Report: `run/randomthings_villages.txt`. Level type `default` up to 1.19.2, `minecraft\:normal` from 1.20.1. `RT_VILLAGE_SURVEY_VANILLA=true` switches the swap off (compare with a fresh world, a reused world keeps its saved villages).

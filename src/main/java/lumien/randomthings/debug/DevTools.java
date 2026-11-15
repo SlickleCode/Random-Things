@@ -19,6 +19,7 @@ public final class DevTools
 		NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.RegisterCommandsEvent event) -> RTDebugCommand.register(event.getDispatcher()));
 		NeoForge.EVENT_BUS.addListener(RTTestRunner::onServerTick);
 		lumien.randomthings.debug.test.ServerAutoTest.init();
+		lumien.randomthings.debug.test.VillageSurvey.init();
 
 		if (net.neoforged.fml.loading.FMLEnvironment.dist == Dist.CLIENT)
 		{

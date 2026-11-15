@@ -293,8 +293,8 @@ public class RandomThings {
         // EntityDamageSource-but-not-IndirectEntityDamageSource check). Only one
         // imbue can be active at a time (see ImbueItem.clearImbues), so this is a
         // plain if/else-if chain, same priority order as 1.12.2's RTEventHandler.
-        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) -> {
-            if (event.isCanceled() || event.getEntity().level().isClientSide || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.entity.living.LivingDamageEvent.Pre event) -> {
+            if (event.getEntity().level().isClientSide || event.getSource().getEntity() == null || event.getSource().getDirectEntity() != event.getSource().getEntity()) {
                 return;
             }
 
@@ -399,7 +399,7 @@ public class RandomThings {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(EntityType.BOAT, e -> true)) {
+            for (Entity entity : ((ServerLevel) event.getLevel()).getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(Boat.class), e -> true)) {
                 if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
                     SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
@@ -589,7 +589,7 @@ public class RandomThings {
 
             Level spiritWorld = event.getEntity().level();
 
-            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && !spiritWorld.isDay()) {
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && spiritMoonTime(spiritWorld)) {
                 float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
@@ -865,6 +865,8 @@ public class RandomThings {
                 ModContainerTypes.registerContainerTypes(new RTRegistry<>(event, Registries.MENU));
             } else if (key.equals(Registries.RECIPE_SERIALIZER)) {
                 ModRecipeSerializers.registerRecipeSerializers(new RTRegistry<>(event, Registries.RECIPE_SERIALIZER));
+            } else if (key.equals(NeoForgeRegistries.Keys.CONDITION_CODECS)) {
+                event.register(NeoForgeRegistries.Keys.CONDITION_CODECS, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "magnetic_enabled"), () -> lumien.randomthings.handler.MagneticEnabledCondition.CODEC);
             } else if (key.equals(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS)) {
                 event.register(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "magnetic"), () -> lumien.randomthings.handler.MagneticLootModifier.CODEC);
             } else if (key.equals(Registries.MOB_EFFECT)) {
@@ -877,10 +879,18 @@ public class RandomThings {
                 event.register(Registries.LOOT_FUNCTION_TYPE, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "random_biome"), () -> lumien.randomthings.handler.LootHandler.RANDOM_BIOME_TYPE);
             } else if (key.equals(Registries.DATA_COMPONENT_TYPE)) {
                 ModDataComponents.register(event);
+            } else if (key.equals(Registries.STRUCTURE_PROCESSOR)) {
+                event.register(Registries.STRUCTURE_PROCESSOR, ResourceLocation.fromNamespaceAndPath(ModConstants.MOD_ID, "peace_candle"), () -> lumien.randomthings.worldgen.PeaceCandleProcessor.TYPE);
             } else if (key.equals(Registries.FEATURE)) {
                 ModFeatures.registerFeatures(new RTRegistry<>(event, Registries.FEATURE));
             }
             ObjectHolderInjector.inject(key);
         }
     }
+
+	/** Night under the moon, or the End (its time is fixed, but the Spirit moon bonus applies there on every version, as in 1.12.2). */
+	public static boolean spiritMoonTime(net.minecraft.world.level.Level w)
+	{
+		return (w.dimension() == net.minecraft.world.level.Level.END || (!w.isDay() && !w.dimensionType().hasFixedTime()));
+	}
 }

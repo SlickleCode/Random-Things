@@ -54,7 +54,7 @@ public class FertilizedDirtBlock extends Block
 			BlockState aboveState = worldIn.getBlockState(pos.above());
 			Block aboveBlock = aboveState.getBlock();
 
-			if (aboveBlock instanceof net.minecraft.world.level.block.BushBlock && aboveState.isRandomlyTicking())
+			if ((aboveBlock instanceof net.minecraft.world.level.block.BushBlock || aboveBlock instanceof net.minecraft.world.level.block.SugarCaneBlock || aboveBlock instanceof net.minecraft.world.level.block.CactusBlock) && aboveState.isRandomlyTicking())
 			{
 				aboveState.randomTick(worldIn, pos.above(), random);
 			}

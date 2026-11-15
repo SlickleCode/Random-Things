@@ -1,3 +1,4 @@
 {
+  "neoforge:conditions": [ { "type": "randomthings:magnetic_enabled" } ],
   "values": [ { "id": "randomthings:magnetic", "required": false } ]
 }
