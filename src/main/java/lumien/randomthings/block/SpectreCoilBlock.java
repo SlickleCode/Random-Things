@@ -68,7 +68,7 @@ public class SpectreCoilBlock extends Block implements EntityBlock {
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollision());
+        super(lumien.randomthings.lib.RTIds.block().mapColor(net.minecraft.world.level.material.MapColor.STONE).instrument(net.minecraft.world.level.block.state.properties.NoteBlockInstrument.BASEDRUM).strength(0.3F).noCollision().requiresCorrectToolForDrops());
 
         this.coilType = coilType;
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.UP));

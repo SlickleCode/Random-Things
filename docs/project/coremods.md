@@ -16,6 +16,7 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `SpawnPlacementTransformer` | `SpawnPlacements.checkSpawnRules` (`m_21759_`) | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
 | `MagicHoodTransformer` | `LivingEntityRenderer.shouldShowName` (all returns) | Hide nametag |
 | `RainShieldTransformer` | `Level.isRainingAt` (`m_46758_`, all returns) | Mechanical rain/snow suppression |
+| `FallingBlock` (Java, `RTTransformers`) | `FallingBlock.isFree` (the single return) | Trigger Glass: open (triggered) glass lets sand/gravel fall through |
 | `WorldRendererTransformer` | `LevelRenderer.renderSnowAndRain` / `tickRain`, the `getBiome` call (now returns `Holder<Biome>`) | Visual rain suppression |
 | `IBlockReaderTransformer` | `BlockGetter.getLightEmission(BlockPos)` | Spectre Illuminator light |
 | `PlayerEntityTransformer` | `Inventory.dropAll` call in `Player.dropEquipment` | Spectre Anchor keeps items |
@@ -25,6 +26,8 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `RenderTypeTransformer` | the seven glint `RenderType` getters (`glint()`, `entityGlint()`, ...) return `ClientAsmHandler.tintGlint(type)` | Dyeing Machine glint result, Redstone Tool, Spectre Key/Sword, Portkey, Escape Rope |
 
 Names are matched as Mojang name **or** SRG id (`m_...`); all anchors were re-read in the 1.18.2 bytecode on 2026-10-15. Verified so far: dev client/server only. **Not yet verified: production (SRG) jar, and the visual result of the glint/armor/render-dispatch transformers.** (`GameRendererTransformer` and `TeleporterTransformer` from the 1.14.4 table no longer exist.)
+
+**Luminous Powder glint (no code needed, ground-truthed with javap + the vanilla shader files on 2026-10-29): every glint RenderType (glint, glintTranslucent, entityGlint, armorEntityGlint; all built on RenderPipelines.GLINT (POSITION_TEX, core/glint)) uses vertex format POSITION_TEX and a shader with no lightmap, light or vertex-colour input, so the enchant glint is always drawn at full brightness. 1.12.2's preEnchantment/postEnchantment forced lightmap 240,240 only because its glint was darkened by the world light; here that darkening does not exist, so a luminous stack's glint already looks like 1.12.2's. Held, dropped, framed and worn items all use these types. Only the visual check in a dark place is outstanding.**
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a

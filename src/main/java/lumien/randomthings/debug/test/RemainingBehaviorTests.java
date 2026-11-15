@@ -395,8 +395,16 @@ final class RemainingBehaviorTests
 
 			ServerPlayer two = net.neoforged.neoforge.common.util.FakePlayerFactory.get(c.world, new com.mojang.authlib.GameProfile(UUID.randomUUID(), "SpectreSecond"));
 			// a fake player has no connection; give it one that swallows every packet so it can change dimension like a real second player
-			two.connection = new net.minecraft.server.network.ServerGamePacketListenerImpl(c.world.getServer(), new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND)
+			net.minecraft.network.Connection stubConnection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND)
 			{
+				private final io.netty.channel.Channel stubChannel = new io.netty.channel.embedded.EmbeddedChannel();
+
+				@Override
+				public io.netty.channel.Channel channel()
+				{
+					return stubChannel;
+				}
+
 				@Override
 				public void send(net.minecraft.network.protocol.Packet<?> packet)
 				{
@@ -406,7 +414,11 @@ final class RemainingBehaviorTests
 				public void send(net.minecraft.network.protocol.Packet<?> packet, io.netty.channel.ChannelFutureListener listener)
 				{
 				}
-			}, two, net.minecraft.server.network.CommonListenerCookie.createInitial(two.getGameProfile(), false));
+			};
+			net.minecraft.server.network.ServerGamePacketListenerImpl oneConnection = one.connection;
+			two.connection = new net.minecraft.server.network.ServerGamePacketListenerImpl(c.world.getServer(), stubConnection, two, net.minecraft.server.network.CommonListenerCookie.createInitial(two.getGameProfile(), false));
+			// the test player of a dedicated-server run has no usable channel either
+			one.connection = new net.minecraft.server.network.ServerGamePacketListenerImpl(c.world.getServer(), stubConnection, one, net.minecraft.server.network.CommonListenerCookie.createInitial(one.getGameProfile(), false));
 			double startX = one.getX();
 			double startZ = one.getZ();
 
@@ -438,6 +450,7 @@ final class RemainingBehaviorTests
 			{
 				handler.teleportPlayerBack(one);
 				handler.teleportPlayerBack(two);
+				one.connection = oneConnection;
 			}
 
 			c.check(one.level().dimension() == Level.OVERWORLD, "player one must be back in the overworld, is in " + one.level().dimension().identifier());

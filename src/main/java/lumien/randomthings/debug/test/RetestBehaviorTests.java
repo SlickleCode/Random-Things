@@ -791,6 +791,63 @@ final class RetestBehaviorTests
 			standAt(c, 40, 1, 40);	// the player must not stand in the test area: later tests count drops there
 		}));
 
+		tests.add(RTTest.named("parity.spirit_spawn_egg.sets_a_spawner_and_spawns_from_a_dispenser").run(c -> {
+			c.floor();
+			standAt(c, 0, 1, 0);
+			net.minecraft.world.item.Item egg = item("spirit_spawn_egg");
+			c.check(egg != null, "the item is registered");
+
+			// on a spawner: the spawner switches to the Spirit and the egg is used up
+			BlockPos spawnerPos = c.at(-4, 1, 4);
+			c.set(spawnerPos, net.minecraft.world.level.block.Blocks.SPAWNER.defaultBlockState());
+			hold(c, new ItemStack(egg));
+			c.check(useOn(c, spawnerPos, Direction.UP).consumesAction(), "using the egg on a spawner");
+			c.check(c.tile(spawnerPos, net.minecraft.world.level.block.entity.SpawnerBlockEntity.class).getUpdateTag(c.world.registryAccess()).toString().contains("randomthings:spirit"), "the spawner now spawns Spirits");
+			c.remove(spawnerPos);	// a live spawner would add spirits of its own to the count below
+			release(c);
+
+			// from a dispenser: the egg is shot out and a Spirit appears in front of it
+			BlockPos dispenserPos = c.at(4, 2, 4);
+			c.set(dispenserPos, net.minecraft.world.level.block.Blocks.DISPENSER.defaultBlockState().setValue(net.minecraft.world.level.block.DispenserBlock.FACING, Direction.EAST));
+			c.tile(dispenserPos, net.minecraft.world.level.block.entity.DispenserBlockEntity.class).setItem(0, new ItemStack(egg));
+			c.eq(0, c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)).size(), "no spirit before");
+			net.minecraft.world.level.block.state.BlockState dispenserState = c.world.getBlockState(dispenserPos);
+			dispenserState.tick(c.world, dispenserPos, c.world.random);
+			c.eq(1, c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)).size(), "the dispenser spawned a spirit");
+
+			for (SpiritEntity spirit : c.world.getEntitiesOfClass(SpiritEntity.class, c.area().inflate(8)))
+			{
+				spirit.discard();
+			}
+
+			standAt(c, 40, 1, 40);
+		}));
+
+		tests.add(RTTest.named("parity.spirit.moon_bonus_applies_in_the_end").run(c -> {
+			net.minecraft.world.level.Level end = c.world.getServer().getLevel(net.minecraft.world.level.Level.END);
+			c.check(end != null, "the End is loaded");
+			c.check(lumien.randomthings.RandomThings.spiritMoonTime(end), "the Spirit moon bonus applies in the End (fixed time), on every version");
+		}));
+
+		tests.add(RTTest.named("parity.spectre_rock_blocks.need_a_pickaxe_to_drop").run(c -> {
+			c.floor();
+			net.minecraft.world.level.block.Block[] blocks = { lumien.randomthings.block.ModBlocks.SPECTRE_ENERGY_INJECTOR, lumien.randomthings.block.ModBlocks.SPECTRE_COIL_NORMAL, lumien.randomthings.block.ModBlocks.SPECTRE_COIL_REDSTONE, lumien.randomthings.block.ModBlocks.SPECTRE_COIL_ENDER, lumien.randomthings.block.ModBlocks.SPECTRE_COIL_NUMBER, lumien.randomthings.block.ModBlocks.SPECTRE_COIL_GENESIS };
+			net.minecraft.core.BlockPos p = c.at(0, 1, 0);
+
+			for (net.minecraft.world.level.block.Block block : blocks)
+			{
+				c.set(p, block.defaultBlockState());
+				net.minecraft.world.level.block.state.BlockState state = c.world.getBlockState(p);
+				c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+				c.check(!c.player.hasCorrectToolForDrops(state), block + ": mined by hand it drops nothing (1.12.2: Material.ROCK needs a pickaxe)");
+				c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.WOODEN_PICKAXE));
+				c.check(c.player.hasCorrectToolForDrops(state), block + ": any pickaxe makes it drop");
+			}
+
+			c.player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+			c.remove(p);
+		}));
+
 		// ---- Rune Dust and Rune Base (#161, #163-165) --------------------------------------------------
 		tests.add(RTTest.named("retest.rune_dust.right_click_on_a_solid_top_places_a_rune_base_with_one_pixel_in_the_clicked_corner").run(c -> {
 			c.floor();

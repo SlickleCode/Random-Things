@@ -1781,6 +1781,12 @@ def confirm_experimental(g):
             g.wait(1.0)
             return True
         return False
+    if gray(265, 285) and gray(585, 285) and not gray(426, 285) and not gray(426, 340) and not gray(426, 250):
+        # the 1.21 prompt on a client with no saved worlds: the same Yes/No pair at y=295 over the plain panel background instead of the dirt one
+        g.note('experimental-features prompt (panel background): clicking Yes')
+        g.click(265, 295)
+        g.wait(1.0)
+        return True
     if gray(265, 285) and gray(585, 285) and is_dark(425, 295, 60):
         g.note('experimental-features prompt: clicking Yes')
         g.click(265, 295)
@@ -1796,13 +1802,15 @@ def new_world(g, world, kind='flat'):
     g.do('focus')
     g.click(426, 203 if MC21 else 236)         # main menu: Singleplayer
     if MC20:
-        for _ in range(12):                    # 1.20: with no saved world Singleplayer opens the create screen directly (after "Preparing for world creation...")
-            g.wait(1.5)
-            if is_dark(426, 117, 12):
+        def title_showing():                   # the gray Singleplayer button of the main menu (the title logo is dark at (426,117) too, so that pixel alone cannot tell the screens apart)
+            r, gg, b = desk.pixel('Minecraft', 300, 236)
+            return 90 < r < 200 and abs(r - gg) < 12 and abs(gg - b) < 12
+        for _ in range(24):                    # 1.20: with no saved world Singleplayer opens the create screen directly (after "Preparing for world creation..."); otherwise the world list
+            g.wait(0.5)
+            if not title_showing() and (is_dark(426, 117, 12) or is_dark(426, 64, 12)):
                 break
-        if not is_dark(426, 117, 12):
-            require_screen(g, 'world list', 426, 64)
-            g.click(584, 395)                  # Create New World
+        if is_dark(426, 64, 12):                # the black search box exists only on the world list (the list also highlights its top row, so (426,117) can be dark there too)
+            g.click(584, 395)                  # Create New World (world list)
             g.wait(2)
         require_screen(g, 'create world', 426, 117)
         g.click(426, 117); g.key('a', ctrl=True); g.do('text', world)
@@ -1817,8 +1825,12 @@ def new_world(g, world, kind='flat'):
         g.wait(1.5)
         wait_for_world(g)
         return
-    require_screen(g, 'world list', 426, 64)   # the black search box
-    g.click(584, 395)                          # Create New World
+    for _ in range(40):                        # a client with no saved worlds (a fresh production install) opens Create New World directly instead of the list
+        if is_dark(426, 64, 12) or is_dark(300, 139, 12):
+            break
+        desk.sleep(0.5)
+    if is_dark(426, 64, 12):                   # the black search box of the world list
+        g.click(584, 395)                      # Create New World
     require_screen(g, 'create world', 300, 139)
     g.click(426, 139); g.key('a', ctrl=True); g.do('text', world)
     if MC16 and (not MC18 or MC19):            # 1.16 and 1.19.2 create-world screen: game mode at (266,219); picking Creative also turns cheats ON
@@ -1886,6 +1898,63 @@ def controlled_setup(g):
         g.cmd('fill -90 3 -90 89 3 89 minecraft:grass_block', 1.5)
     g.tp(0.5, 4, 0.5, 0, 0)
     g.wait(2.0)                                                      # a freshly created world: the first chunks, the inventory and the camera settle before the first scenario clicks
+
+
+def panel_showing():
+    """True when a grey container panel is in the middle of the screen (a GUI is open)."""
+    for sx, sy in ((213, 199), (291, 41), (131, 120)):       # plain grey spots of a 176x166 container panel
+        px = desk.pixel('Minecraft', 2 * sx, 2 * sy)
+        if 120 <= px[0] <= 235 and abs(px[0] - px[1]) < 16 and abs(px[1] - px[2]) < 16:
+            return True
+    return False
+
+
+@scenario
+def audit_interactions(g):
+    """AF1 / AG1 / AG2: real right clicks. A Redstone Tool links a Basic Redstone Interface WITHOUT sneaking (the block must not open its GUI instead);
+    Ectoplasm on a vanilla sapling makes a Spectre Sapling and uses one; paper on a Rune Base gives a Rune Pattern and uses one."""
+    arena(g)
+    g.wait(1.0)                      # as in imbuing: the first scenario of a fresh world needs a pause before its first block commands and clicks (1.18.2 lost them all)
+    g.cmd('setblock 0 4 3 randomthings:basic_redstone_interface')
+    g.cmd('setblock 3 4 2 minecraft:redstone_lamp')
+    g.slot(0, 'randomthings:redstone_tool')
+    g.select(0)
+    aim_at(g, 0, 4, 3)
+    g.click(427, 240, 'right'); g.wait(0.8)
+    if panel_showing():
+        g.check(False, 'AF1: a plain right click with the Redstone Tool on the interface opened its GUI instead of starting a link')
+        g.key('escape'); g.wait(0.6)
+        return
+    g.check('linking' in inv(g), 'AF1: a plain right click on the Basic Redstone Interface starts a link (the tool is now linking)', inv(g)[:200])
+    aim_at(g, 3, 4, 2)
+    g.click(427, 240, 'right'); g.wait(0.8)
+    g.check(dv(g, 'block 0 4 3', 'targetX') in ('3', '3I'), 'AF1: a second right click on another block set the interface target', dv(g, 'block 0 4 3', 'targetX'))
+    g.cmd('setblock -1 4 3 minecraft:redstone_block')
+    g.wait(1.0)
+    g.check(block_is(g, 3, 4, 2, 'minecraft:redstone_lamp[lit=true]'), 'AF1: the linked target is powered by the interface')
+    g.cmd('setblock -1 4 3 minecraft:air')
+
+    g.cmd('gamemode survival')
+    g.cmd('clear @s')
+    g.cmd('setblock 0 4 3 minecraft:oak_sapling')
+    g.slot(0, 'randomthings:ectoplasm 2')
+    g.select(0)
+    aim_at(g, 0, 4, 3)
+    g.click(427, 240, 'right'); g.wait(0.8)
+    g.check(block_is(g, 0, 4, 3, 'randomthings:spectre_sapling'), 'AG1: Ectoplasm on a vanilla sapling turned it into a Spectre Sapling')
+    out = inv(g)
+    g.check(re.search(r'count: 1\b|Count: 1b', out) is not None, 'AG1: exactly one Ectoplasm was used up (one left)', out[:200])
+
+    g.cmd('clear @s')
+    g.cmd('setblock 0 4 3 randomthings:rune_base')
+    g.slot(0, 'minecraft:paper 2')
+    g.select(0)
+    aim_at(g, 0, 3.53, 3)                       # the Rune Base is a flat plate at the bottom of its block: aim at y=4.03, not the block centre
+    g.click(427, 240, 'right'); g.wait(0.8)
+    out = inv(g)
+    g.check('rune_pattern' in out, 'AG2: paper on a Rune Base gave a Rune Pattern', out[:200])
+    g.check('minecraft:paper' in out and re.search(r'count: 1\b|Count: 1b', out) is not None, 'AG2: exactly one paper was used up', out[:200])
+    g.cmd('gamemode creative')
 
 
 def leave_world(g, world):

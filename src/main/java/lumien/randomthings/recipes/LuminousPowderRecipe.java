@@ -32,15 +32,7 @@ public class LuminousPowderRecipe extends CustomRecipe {
 
     /** True if the stack carries at least one enchantment (level above 0 for any registered enchantment). */
     private static boolean isEnchantedStack(ItemStack stack, Level level) {
-        net.minecraft.core.HolderLookup.Provider access = level.registryAccess();
-
-        for (net.minecraft.resources.Identifier id : access.lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).keySet()) {
-            if (net.minecraft.world.item.enchantment.EnchantmentHelper.getItemEnchantmentLevel(access.lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, id)), stack) > 0) {
-                return true;
-            }
-        }
-
-        return false;
+        return stack.isEnchanted();
     }
 
     @Override

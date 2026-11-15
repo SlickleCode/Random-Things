@@ -43,14 +43,14 @@ public class DyeingMachineScreen extends AbstractContainerScreen<DyeingMachineCo
         super.containerTick();
 
         if (this.currentColor != this.targetColor) {
-            this.p -= 0.02f;
+            this.p = Math.max(0f, this.p - 0.02f);
             Color currentObj = new Color(currentColor);
             Color targetObj = new Color(targetColor);
 
             currentColor = new Color(
-                    COLOR_MOD * (currentObj.getRed() * p + targetObj.getRed() * (1 - p)),
-                    COLOR_MOD * (currentObj.getGreen() * p + targetObj.getGreen() * (1 - p)),
-                    COLOR_MOD * (currentObj.getBlue() * p + targetObj.getBlue() * (1 - p))).getRGB();
+                    Math.min(1f, COLOR_MOD * (currentObj.getRed() * p + targetObj.getRed() * (1 - p))),
+                    Math.min(1f, COLOR_MOD * (currentObj.getGreen() * p + targetObj.getGreen() * (1 - p))),
+                    Math.min(1f, COLOR_MOD * (currentObj.getBlue() * p + targetObj.getBlue() * (1 - p)))).getRGB();
         }
 
         if (p <= 0f) {

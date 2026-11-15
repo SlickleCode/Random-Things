@@ -13,7 +13,7 @@ public class RTTransformers implements ClassProcessorProvider
 	/** Every transformer of the mod (also read by the {@code coremod.applied} test). */
 	public static java.util.List<RTTransformer> all()
 	{
-		return java.util.List.of(new SpawnPlacement(), new MagicHood(), new RainShield(), new WorldRedstonePower(), new WorldReaderStrongPower(), new IBlockReader(), new BlockLightEngine(), new SuperLubricentBoots(), new PlayerEntity(), new FireBlock(),
+		return java.util.List.of(new SpawnPlacement(), new MagicHood(), new RainShield(), new WorldRedstonePower(), new WorldReaderStrongPower(), new IBlockReader(), new BlockLightEngine(), new SuperLubricentBoots(), new PlayerEntity(), new FireBlock(), new FallingBlock(),
 				new RTClientTransformers.BlockRendererDispatcher(), new RTClientTransformers.WorldRenderer(), new RTClientTransformers.ItemRenderer(), new RTClientTransformers.ArmorLayer(),
 				new RTClientTransformers.GlintGetters(), new RTClientTransformers.ItemGlint(), new RTClientTransformers.RenderTypeModulator());
 	}
@@ -243,6 +243,21 @@ public class RTTransformers implements ClassProcessorProvider
 					}
 				}
 			}
+		}
+	}
+
+	/** FallingBlock.isFree: an open (triggered) Trigger Glass lets sand and gravel fall through. */
+	static class FallingBlock extends RTTransformer
+	{
+		FallingBlock()
+		{
+			super("falling_block", "FallingBlock", "net.minecraft.world.level.block.FallingBlock", "openTriggerGlass");
+		}
+
+		@Override
+		protected void apply(ClassNode classNode)
+		{
+			hookReturns(classNode, "isFree", "(Lnet/minecraft/world/level/block/state/BlockState;)Z", "openTriggerGlass", "(ZLnet/minecraft/world/level/block/state/BlockState;)Z", true, 0);
 		}
 	}
 }
