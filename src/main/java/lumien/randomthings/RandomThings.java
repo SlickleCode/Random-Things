@@ -392,7 +392,7 @@ public class RandomThings {
                 return;
             }
 
-            for (Entity entity : ((ServerLevel) event.level).getEntities(EntityType.BOAT, e -> true)) {
+            for (Entity entity : ((ServerLevel) event.level).getEntities(net.minecraft.world.level.entity.EntityTypeTest.forClass(Boat.class), e -> true)) {
                 if (entity instanceof Boat && SuperLubricentPhysics.isOnLubricentBlock(entity)) {
                     SuperLubricentPhysics.capBoatMotion((Boat) entity);
                 }
@@ -582,7 +582,7 @@ public class RandomThings {
 
             Level spiritWorld = event.getEntity().level;
 
-            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && !spiritWorld.isDay()) {
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntity().blockPosition()) && spiritMoonTime(spiritWorld)) {
                 float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
@@ -878,9 +878,17 @@ public class RandomThings {
                 lumien.randomthings.enchantment.ModEnchantments.registerEnchantments(event.getForgeRegistry());
             } else if (key.equals(ForgeRegistries.Keys.ENTITY_TYPES)) {
                 ModEntityTypes.registerEntityTypes(event.getForgeRegistry());
+            } else if (key.equals(net.minecraft.core.Registry.STRUCTURE_PROCESSOR_REGISTRY)) {
+                event.register(net.minecraft.core.Registry.STRUCTURE_PROCESSOR_REGISTRY, new ResourceLocation(ModConstants.MOD_ID, "peace_candle"), () -> lumien.randomthings.worldgen.PeaceCandleProcessor.TYPE);
             } else if (key.equals(ForgeRegistries.Keys.FEATURES)) {
                 ModFeatures.registerFeatures(event.getForgeRegistry());
             }
         }
     }
+
+	/** Night under the moon, or the End (its time is fixed, but the Spirit moon bonus applies there on every version, as in 1.12.2). */
+	public static boolean spiritMoonTime(net.minecraft.world.level.Level w)
+	{
+		return (w.dimension() == net.minecraft.world.level.Level.END || (!w.isDay() && !w.dimensionType().hasFixedTime()));
+	}
 }

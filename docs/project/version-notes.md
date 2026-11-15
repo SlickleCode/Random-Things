@@ -60,6 +60,7 @@ Mixins cannot be tested via `runClient` in this setup - the project uses coremod
 - Stack-neutral injections only. Client-only hooks must clean up per-call state (`setRenderingStack` ... `clearRenderingStack` before every `RETURN`).
 - Since 1.18.2 the JS sandbox blocks `Java.type('java.lang.System')`; use only the ASM/coremod API classes (`print(...)` for diagnostics).
 - 1.18 glint: the glint `RenderType`s are shader-based (colour via `RenderSystem.setShaderColor` at draw time); every custom `RenderType` still needs its own `fixedBuffers` entry or you get `BufferBuilder not started` (see `TintedGlintRenderType`). Verified on 1.18.2 by the dyeing-machine scenario (pixel measurement of the tinted glint).
+- Luminous Powder glint (1.12.2 preEnchantment/postEnchantment forced lightmap 240): NOT ported on purpose. All glint `RenderType`s (`glint`, `entityGlint`, `armorGlint`, `armorEntityGlint`, `*Direct`, `glintTranslucent`) use `POSITION_TEX` shaders (`rendertype_*glint.vsh/json`) with no `UV2`/`Sampler2` lightmap input, so the glint is already full-bright for every item, luminous or not (checked in the client-extra jar). Hence no hook-site, no coremod change.
 
 ## prod-jar-check
 
