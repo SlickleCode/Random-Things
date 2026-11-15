@@ -24,7 +24,7 @@ import net.minecraft.world.World;
  */
 public class SpectreEnergyInjectorBlock extends Block {
     public SpectreEnergyInjectorBlock() {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(3.0F).sound(SoundType.GLASS));
+        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(3.0F).sound(SoundType.GLASS).harvestTool(net.minecraftforge.common.ToolType.PICKAXE).setRequiresTool());
     }
 
     @Override

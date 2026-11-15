@@ -16,6 +16,7 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `SpawnPlacementTransformer` | `EntitySpawnPlacementRegistry` shared predicate dispatch | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
 | `MagicHoodTransformer` | `LivingRenderer.canRenderName` (6 returns) | Hide nametag |
 | `RainShieldTransformer` | `World.isRainingAt` (4 returns) | Mechanical rain/snow suppression |
+| `FallingBlockTransformer` | `FallingBlock.canFallThrough` (`func_185759_i`, the single return) | Trigger Glass: open (triggered) glass lets sand/gravel fall through |
 | `GameRendererTransformer` | biome lookup in rain render loop | Visual rain suppression |
 | `IBlockReaderTransformer` | `IBlockReader.getLightValue(BlockPos)` | Spectre Illuminator light |
 | `PlayerEntityTransformer` | `PlayerInventory.dropAllItems` in `dropInventory` | Spectre Anchor keeps items |
@@ -24,6 +25,8 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `BlockRendererDispatcherTransformer` | block render dispatch | Light Redirector "periscope" |
 | `ItemRendererTransformer` / `ArmorLayerTransformer` | item quad color / armor layer; (1.16.5) also capture the stack being drawn in `renderItem` / `BipedArmorLayer.func_241739_a_` | Dyeing Machine recolor; enchant-glint colour |
 | `RenderTypeTransformer` (1.16.5 only) | the seven glint `RenderType` getters return `ClientAsmHandler.tintGlint(type)` (tinted wrapper type for stacks with a custom glint colour) | Dyeing Machine glint result, Redstone Tool, Spectre Key/Sword, Portkey, Escape Rope |
+
+No coremod for the Luminous Powder glint on 1.16.5: 1.12.2 forced lightmap 240,240 around the glint (`preEnchantment`/`postEnchantment`), but every 1.16 glint `RenderType` (`glint`, `armor_glint`, `entity_glint`, ...) uses `POSITION_TEX` with no lightmap/diffuse-lighting state (javap on `RenderType.<clinit>`), so the glint is always full bright and `LuminousPowderRecipe.isLuminous` needs no render hook.
 
 Patterns: wrap the value before an `IRETURN` (collect all return nodes by reference first, then insert); or
 insert an early conditional return at method head. Verification (no harness exists in the repo; write a

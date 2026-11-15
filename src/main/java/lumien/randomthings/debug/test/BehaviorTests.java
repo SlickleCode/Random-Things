@@ -151,16 +151,16 @@ final class BehaviorTests
 			c.eq(0, c.tile(c.at(0, 1, 0), AnalogEmitterTileEntity.class).getOutput(), "output after input removed");
 		}));
 
-		// ---- Block Breaker (also covers the Magnetic enchantment + fake player path) ------------
-		tests.add(RTTest.named("behavior.block_breaker.mines_front_block_into_rear_inventory").run(c -> {
+		// ---- Block Breaker (fake player path; drops stay in the world) ------------
+		tests.add(RTTest.named("behavior.block_breaker.mines_front_block_and_drops_it_in_the_world").run(c -> {
 			c.floor();
 			c.set(c.at(-1, 1, 0), Blocks.CHEST);
 			c.set(c.at(1, 1, 0), Blocks.DIRT);
 			c.set(c.at(0, 1, 0), ModBlocks.BLOCK_BREAKER.getDefaultState().with(BlockBreakerBlock.FACING, Direction.EAST));
 		}).waitTicks(80).run(c -> {
 			c.check(c.world.isAirBlock(c.at(1, 1, 0)), "target dirt should be mined, found " + c.world.getBlockState(c.at(1, 1, 0)).getBlock());
-			c.eq(1, TestCtx.count(c.inventory(c.at(-1, 1, 0)), Items.DIRT), "dirt delivered to the chest behind the breaker (loose items: " + c.itemEntities() + ")");
-			c.eq(0, c.itemEntities().size(), "loose item entities (drops should be redirected into the chest)");
+			c.eq(0, TestCtx.count(c.inventory(c.at(-1, 1, 0)), Items.DIRT), "the chest behind the breaker must stay empty (nothing is pushed into inventories)");
+			c.eq(1, c.itemEntities().size(), "the dirt drops as one item in the world");
 		}));
 
 		tests.add(RTTest.named("behavior.block_breaker.does_nothing_while_redstone_powered").run(c -> {

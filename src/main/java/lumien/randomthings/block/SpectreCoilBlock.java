@@ -60,7 +60,7 @@ public class SpectreCoilBlock extends Block {
     private final CoilType coilType;
 
     public SpectreCoilBlock(CoilType coilType) {
-        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(0.3F).doesNotBlockMovement());
+        super(Block.Properties.create(Material.ROCK).hardnessAndResistance(0.3F).doesNotBlockMovement().harvestTool(net.minecraftforge.common.ToolType.PICKAXE).setRequiresTool());
 
         this.coilType = coilType;
         this.setDefaultState(this.stateContainer.getBaseState().with(FACING, Direction.UP));

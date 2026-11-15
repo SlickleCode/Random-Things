@@ -2,18 +2,12 @@ package lumien.randomthings.tileentity;
 
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
 
 import lumien.randomthings.block.BlockBreakerBlock;
-import lumien.randomthings.enchantment.ModEnchantments;
 import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -30,9 +24,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
 
 /**
  * Ported from 1.12.2's {@code TileEntityBlockBreaker}: continuously mines the
@@ -40,15 +31,8 @@ import net.minecraftforge.items.ItemHandlerHelper;
  * survival mining exactly) unless redstone-powered, via a {@code FakePlayer}
  * holding an unbreakable pickaxe.
  *
- * <p>1.12.2 caught the fake player's drops with its own dedicated ASM hook
- * (a separate {@code ItemCatcher} path). This port reuses the block's own
- * enchantment for that instead: the fake player's pickaxe carries {@link
- * ModEnchantments#MAGNETIC}, and the global Magnetic listener in {@code
- * RandomThings} (a plain {@code BlockEvent.HarvestDropsEvent} hook, not tied
- * to a real player) already redirects any harvester's drops straight into
- * its inventory - the fake player included. So after {@code tryHarvestBlock}
- * returns, this class only has to drain that inventory into the target side,
- * not intercept anything itself.
+ * <p>The fake player's pickaxe carries no enchantment: a mined block breaks exactly like survival mining and its
+ * drops spawn in the world in front of the breaker. Nothing is collected or pushed into an inventory.
  *
  * <p>{@code FakePlayer} never gets a real {@code ServerPlayerEntity#connection} assigned, and
  * {@code ForgeHooks#onBlockBreakEvent} unconditionally calls {@code entityPlayer.connection
@@ -82,9 +66,6 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
         pickaxe.getOrCreateTag().putBoolean("Unbreakable", true);
 
-        Map<Enchantment, Integer> enchantments = new HashMap<>();
-        enchantments.put(ModEnchantments.MAGNETIC, 1);
-        EnchantmentHelper.setEnchantments(enchantments, pickaxe);
 
         player.setHeldItem(Hand.MAIN_HAND, pickaxe);
         player.setOnGround(true);
@@ -140,27 +121,6 @@ public class BlockBreakerTileEntity extends TileEntity implements ITickableTileE
         resetProgress(world.getBlockState(pos));
 
         player.interactionManager.tryHarvestBlock(targetPos);
-
-        IItemHandler target = null;
-        TileEntity neighborTe = world.getTileEntity(pos.offset(facing.getOpposite()));
-        if (neighborTe != null) {
-            target = neighborTe.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, facing).orElse(null);
-        }
-
-        for (int i = 1; i < player.inventory.mainInventory.size(); i++) {
-            ItemStack stack = player.inventory.getStackInSlot(i);
-            player.inventory.setInventorySlotContents(i, ItemStack.EMPTY);
-
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            ItemStack remainder = target != null ? ItemHandlerHelper.insertItemStacked(target, stack, false) : stack;
-
-            if (!remainder.isEmpty()) {
-                InventoryHelper.spawnItemStack(world, pos.getX() + facing.getXOffset(), pos.getY() + facing.getYOffset(), pos.getZ() + facing.getZOffset(), remainder);
-            }
-        }
     }
 
     public void neighborChanged() {
