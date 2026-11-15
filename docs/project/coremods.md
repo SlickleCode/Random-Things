@@ -16,6 +16,7 @@ infrastructure deleted. Coremods are self-contained in the jar: `META-INF/coremo
 | `SpawnPlacementTransformer` | `SpawnPlacements.checkSpawnRules` (`m_21759_`) | Slime Cube ALLOW, Lapis/Quartz Lamp, Peace Candle DENY (Lapis ALLOW guarded for Peaceful) |
 | `MagicHoodTransformer` | `LivingEntityRenderer.shouldShowName` (all returns) | Hide nametag |
 | `RainShieldTransformer` | `Level.isRainingAt` (`m_46758_`, all returns) | Mechanical rain/snow suppression |
+| `FallingBlockTransformer` | `FallingBlock.isFree` (`m_53241_`, the single return) | Trigger Glass: open (triggered) glass lets sand/gravel fall through |
 | `WorldRendererTransformer` | `LevelRenderer.renderSnowAndRain` / `tickRain`, the `getBiome` call (now returns `Holder<Biome>`) | Visual rain suppression |
 | `IBlockReaderTransformer` | `BlockGetter.getLightEmission(BlockPos)` | Spectre Illuminator light |
 | `PlayerEntityTransformer` | `Inventory.dropAll` call in `Player.dropEquipment` | Spectre Anchor keeps items |

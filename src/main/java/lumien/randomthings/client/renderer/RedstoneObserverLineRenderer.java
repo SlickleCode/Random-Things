@@ -27,8 +27,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
  * <p>
  * Checked the actual 1.12.2 source first: its line-drawing code
  * ({@code ClientProxy.drawInterfaceLines}) only ever covered the wireless
- * Redstone Interface, a separate, still-deferred subsystem (needs Mixin
- * work) that happens to share the same Redstone Tool item for linking.
+ * Redstone Interface, a separate subsystem (now ported, driven by coremods) that happens to share the same Redstone Tool item for linking.
  * Redstone Observer's real 1.12.2 feedback was just its read-only GUI
  * showing the target's coordinates - this renderer is a deliberate
  * deviation added per explicit user request, not a missed port detail.

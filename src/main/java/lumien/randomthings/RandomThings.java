@@ -587,7 +587,7 @@ public class RandomThings {
 
             Level spiritWorld = event.getEntityLiving().level;
 
-            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntityLiving().blockPosition()) && !spiritWorld.isDay()) {
+            if (spiritWorld.canSeeSkyFromBelowWater(event.getEntityLiving().blockPosition()) && spiritMoonTime(spiritWorld)) {
                 float moonFactor = net.minecraft.world.level.dimension.DimensionType.MOON_BRIGHTNESS_PER_PHASE[spiritWorld.dimensionType().moonPhase(spiritWorld.getDayTime())];
 
                 chance += moonFactor / 100f * lumien.randomthings.config.RTConfig.SPIRIT_CHANCE_MOON_MULT.get();
@@ -764,6 +764,7 @@ public class RandomThings {
         AsmHandler.modBlockLight(0F, 1);
         RTPacketHandler.register();
         event.enqueueWork(lumien.randomthings.handler.ModDimensions::registerBuiltin);
+        event.enqueueWork(() -> net.minecraft.core.Registry.register(net.minecraft.core.Registry.STRUCTURE_PROCESSOR, new ResourceLocation(ModConstants.MOD_ID, "peace_candle"), lumien.randomthings.worldgen.PeaceCandleProcessor.TYPE));
         event.enqueueWork(lumien.randomthings.handler.LootHandler::registerFunctionTypes);
 
         registerImbuingRecipes();
@@ -913,4 +914,10 @@ public class RandomThings {
             ModFeatures.registerFeatures(featureRegistryEvent);
         }
     }
+
+	/** Night under the moon, or the End (its time is fixed, but the Spirit moon bonus applies there on every version, as in 1.12.2). */
+	public static boolean spiritMoonTime(net.minecraft.world.level.Level w)
+	{
+		return (w.dimension() == net.minecraft.world.level.Level.END || (!w.isDay() && !w.dimensionType().hasFixedTime()));
+	}
 }

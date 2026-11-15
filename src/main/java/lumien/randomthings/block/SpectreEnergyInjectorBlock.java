@@ -26,7 +26,7 @@ import net.minecraft.world.level.Level;
  */
 public class SpectreEnergyInjectorBlock extends Block implements EntityBlock {
     public SpectreEnergyInjectorBlock() {
-        super(Block.Properties.of(Material.STONE).strength(3.0F).sound(SoundType.GLASS));
+        super(Block.Properties.of(Material.STONE).strength(3.0F).sound(SoundType.GLASS).requiresCorrectToolForDrops());
     }
 
     @Override

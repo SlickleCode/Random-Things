@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "randomthings:spectre_energy_injector",
+    "randomthings:spectre_coil_normal",
+    "randomthings:spectre_coil_redstone",
+    "randomthings:spectre_coil_ender",
+    "randomthings:spectre_coil_number",
+    "randomthings:spectre_coil_genesis"
+  ]
+}
